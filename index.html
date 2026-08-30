@@ -20,71 +20,10 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d0e12}
 <script>
 (function(){
   const frame=document.getElementById('app'), boot=document.getElementById('boot');
-  const AIRFLOW=[
-    ['camshaft_duration','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Duration'],['camshaft_ivc','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Intake Valve Closing — IVC'],['camshaft_exhaust_events','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Exhaust Valve Events'],['camshaft_lsa','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Lobe Separation Angle'],['camshaft_intake_centerline','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Intake Centerline'],['camshaft_advance_retard','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Advance / Retard'],['cam_card','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Complete Cam Card / Valve Events'],['intake_port_cfm','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Intake Port CFM'],['exhaust_port_cfm','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Exhaust Port CFM'],['cfm_velocity_csa','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · CFM ↔ Velocity ↔ CSA'],['required_port_csa','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Required Port CSA'],['port_velocity','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Port Velocity'],['intake_curtain_area','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Intake Curtain Area'],['exhaust_curtain_area','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Exhaust Curtain Area'],['valve_throat_area','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD · Valve Throat Area'],['port_valve_area_ratio','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Port-to-Valve Area Ratio'],['intake_flow_per_cylinder','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Intake Flow per Cylinder'],['exhaust_intake_flow_ratio','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Exhaust / Intake Ratio'],['mach_port_velocity','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Mach Index / Velocity'],['head_flow_curve','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Cylinder Head Flow Curve'],['valve_lift_rocker','ENGINE AIRFLOW & VALVETRAIN','VALVETRAIN · Valve Lift Calculator'],['effective_rocker_ratio','ENGINE AIRFLOW & VALVETRAIN','VALVETRAIN · Effective Rocker Ratio'],['lash_net_lift','ENGINE AIRFLOW & VALVETRAIN','VALVETRAIN · Lash / Net Lift'],['engine_airflow_estimate','ENGINE AIRFLOW & VALVETRAIN','AIRFLOW / ENGINE · Engine Airflow Estimation'],['airflow_power_estimate','ENGINE AIRFLOW & VALVETRAIN','AIRFLOW / ENGINE · Airflow → Power Estimate']
-  ];
-  function repairRegistry(w){
-    try{
-      w.eval(`(function(){
-        const airflow=${JSON.stringify(AIRFLOW)};
-        if(typeof CALCS==='undefined')return;
-        const all=[],seen=new Set();
-        function add(list){if(!Array.isArray(list))return;list.forEach(function(c){if(c&&c.id&&!seen.has(c.id)){seen.add(c.id);all.push(c);}})}
-        try{add(typeof GH_MASTER_CALCS!=='undefined'?GH_MASTER_CALCS:[])}catch(e){}
-        try{add(typeof GH_E1_CALCS!=='undefined'?GH_E1_CALCS:[])}catch(e){}
-        try{add(typeof GH_E101_CALCS!=='undefined'?GH_E101_CALCS:[])}catch(e){}
-        airflow.forEach(function(x){add([{cat:x[1],id:x[0],name:x[2]}])});
-        CALCS.splice(0,CALCS.length,...all);
-        try{window.GH_MASTER_CALCS=all}catch(e){}
-        if(typeof ghBuildNav==='function')buildNav=ghBuildNav;
-        if(typeof buildNav==='function')buildNav(document.getElementById('search-input')?.value||'');
-        var n=document.querySelector('.gh-calculator-count strong');
-        if(n)n.textContent=String(all.filter(function(c){return c.id!=='dashboard'}).length);
-        window.__GH_FINAL_REGISTRY_COUNT=all.filter(function(c){return c.id!=='dashboard'}).length;
-      })()`);
-    }catch(e){console.error('Gearhead Labs registry repair failed',e)}
-  }
-  function installAccordion(w){
-    try{
-      const d=w.document;
-      if(!d || d.__GH_ACCORDION_INSTALLED)return;
-      d.__GH_ACCORDION_INSTALLED=true;
-      const names=/^(gasoline|diesel|ev|electric|towing|universal|engine|powertrain|fuel|forced induction|drivetrain|chassis|suspension|brakes|electrical|conversion|shop math|engineering air|airflow|valvetrain)/i;
-      d.addEventListener('click',function(ev){
-        const target=ev.target && ev.target.closest ? ev.target.closest('button,[role="button"],summary,[data-lab],[data-category],.lab,.lab-header,.lab-title,.category,.category-header,.category-title') : null;
-        if(!target)return;
-        const text=(target.textContent||'').replace(/\s+/g,' ').trim();
-        if(!names.test(text))return;
-        let host=target;
-        for(let i=0;i<5 && host;i++,host=host.parentElement){
-          const kids=Array.from(host.children||[]);
-          const panel=kids.find(function(el){return el!==target && (el.classList.contains('children')||el.classList.contains('items')||el.classList.contains('calcs')||el.classList.contains('calculator-list')||el.getAttribute('role')==='group')});
-          if(panel){
-            const open=panel.hidden || getComputedStyle(panel).display==='none' || panel.getAttribute('aria-hidden')==='true';
-            panel.hidden=!open;
-            panel.setAttribute('aria-hidden',String(!open));
-            target.setAttribute('aria-expanded',String(open));
-            ev.preventDefault();
-            ev.stopPropagation();
-            return;
-          }
-        }
-        const next=target.nextElementSibling;
-        if(next && next.children && next.children.length){
-          const open=next.hidden || getComputedStyle(next).display==='none' || next.getAttribute('aria-hidden')==='true';
-          next.hidden=!open;
-          next.setAttribute('aria-hidden',String(!open));
-          target.setAttribute('aria-expanded',String(open));
-          ev.preventDefault();
-          ev.stopPropagation();
-        }
-      },true);
-    }catch(e){console.error('Gearhead Labs accordion repair failed',e)}
-  }
-  function repair(){
-    try{const w=frame.contentWindow;repairRegistry(w);installAccordion(w);setTimeout(function(){repairRegistry(w);installAccordion(w)},250);setTimeout(function(){repairRegistry(w);installAccordion(w)},1000)}catch(e){console.error(e)}
-    boot.classList.add('hide');
-  }
+  const AIRFLOW=[['camshaft_duration','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Duration'],['camshaft_ivc','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Intake Valve Closing — IVC'],['camshaft_exhaust_events','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Exhaust Valve Events'],['camshaft_lsa','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Lobe Separation Angle'],['camshaft_intake_centerline','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Intake Centerline'],['camshaft_advance_retard','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Advance / Retard'],['cam_card','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Complete Cam Card / Valve Events'],['intake_port_cfm','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Intake Port CFM'],['exhaust_port_cfm','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Exhaust Port CFM'],['cfm_velocity_csa','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · CFM ↔ Velocity ↔ CSA'],['required_port_csa','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Required Port CSA'],['port_velocity','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Port Velocity'],['intake_curtain_area','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Intake Curtain Area'],['exhaust_curtain_area','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Exhaust Curtain Area'],['valve_throat_area','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Valve Throat Area'],['port_valve_area_ratio','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Port-to-Valve Area Ratio'],['intake_flow_per_cylinder','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Intake Flow per Cylinder'],['exhaust_intake_flow_ratio','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Exhaust / Intake Ratio'],['mach_port_velocity','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Mach Index / Velocity'],['head_flow_curve','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Cylinder Head Flow Curve'],['valve_lift_rocker','ENGINE AIRFLOW & VALVETRAIN','VALVETRAIN · Valve Lift Calculator'],['effective_rocker_ratio','ENGINE AIRFLOW & VALVETRAIN','VALVETRAIN · Effective Rocker Ratio'],['lash_net_lift','ENGINE AIRFLOW & VALVETRAIN','VALVETRAIN · Lash / Net Lift'],['engine_airflow_estimate','ENGINE AIRFLOW & VALVETRAIN','AIRFLOW / ENGINE · Engine Airflow Estimation'],['airflow_power_estimate','ENGINE AIRFLOW & VALVETRAIN','AIRFLOW / ENGINE · Airflow → Power Estimate']];
+  function repairRegistry(w){try{w.eval(`(function(){const airflow=${JSON.stringify(AIRFLOW)};if(typeof CALCS==='undefined')return;const all=[],seen=new Set();function add(list){if(!Array.isArray(list))return;list.forEach(function(c){if(c&&c.id&&!seen.has(c.id)){seen.add(c.id);all.push(c)}})}try{add(typeof GH_MASTER_CALCS!=='undefined'?GH_MASTER_CALCS:[])}catch(e){}try{add(typeof GH_E1_CALCS!=='undefined'?GH_E1_CALCS:[])}catch(e){}try{add(typeof GH_E101_CALCS!=='undefined'?GH_E101_CALCS:[])}catch(e){}airflow.forEach(function(x){add([{cat:x[1],id:x[0],name:x[2]}])});CALCS.splice(0,CALCS.length,...all);try{window.GH_MASTER_CALCS=all}catch(e){}if(typeof ghBuildNav==='function')buildNav=ghBuildNav;if(typeof buildNav==='function')buildNav(document.getElementById('search-input')?.value||'');var n=document.querySelector('.gh-calculator-count strong');if(n)n.textContent=String(all.filter(function(c){return c.id!=='dashboard'}).length);window.__GH_FINAL_REGISTRY_COUNT=all.filter(function(c){return c.id!=='dashboard'}).length})()`)}catch(e){console.error('Gearhead Labs registry repair failed',e)}}
+  function installAccordion(w){try{const d=w.document;if(!d||d.__GH_ACCORDION_INSTALLED)return;d.__GH_ACCORDION_INSTALLED=true;const s=d.createElement('style');s.id='GH_ACCORDION_RUNTIME_FIX';s.textContent='.gh-cat-block.open .gh-cat-items{display:block!important}.gh-cat-block.open .gh-cat-head i{transform:rotate(180deg);color:#d7a11f}';d.head.appendChild(s);d.addEventListener('click',function(ev){const target=ev.target&&ev.target.closest?ev.target.closest('.gh-cat-head'):null;if(!target)return;const block=target.closest('.gh-cat-block');if(!block)return;ev.preventDefault();ev.stopPropagation();block.classList.toggle('open');target.setAttribute('aria-expanded',block.classList.contains('open')?'true':'false')},true)}catch(e){console.error('Gearhead Labs accordion repair failed',e)}}
+  function repair(){try{const w=frame.contentWindow;repairRegistry(w);installAccordion(w);setTimeout(function(){repairRegistry(w);installAccordion(w)},250);setTimeout(function(){repairRegistry(w);installAccordion(w)},1000)}catch(e){console.error(e)}boot.classList.add('hide')}
   frame.addEventListener('load',repair);
 })();
 </script>
