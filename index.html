@@ -19,14 +19,13 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d0e12}
 <script>
 (function(){
 const frame=document.getElementById('app'),boot=document.getElementById('boot');
-const AIRFLOW=[['camshaft_duration','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Duration'],['camshaft_ivc','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Intake Valve Closing — IVC'],['camshaft_exhaust_events','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Exhaust Valve Events'],['camshaft_lsa','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Lobe Separation Angle'],['camshaft_intake_centerline','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Intake Centerline'],['camshaft_advance_retard','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Advance / Retard'],['cam_card','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Complete Cam Card / Valve Events'],['intake_port_cfm','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Intake Port CFM'],['exhaust_port_cfm','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Exhaust Port CFM'],['cfm_velocity_csa','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · CFM ↔ Velocity ↔ CSA'],['required_port_csa','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Required Port CSA'],['port_velocity','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Port Velocity'],['intake_curtain_area','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Intake Curtain Area'],['exhaust_curtain_area','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Exhaust Curtain Area'],['valve_throat_area','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Valve Throat Area'],['port_valve_area_ratio','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Port-to-Valve Area Ratio'],['intake_flow_per_cylinder','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Intake Flow per Cylinder'],['exhaust_intake_flow_ratio','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Exhaust / Intake Ratio'],['mach_port_velocity','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Mach Index / Velocity'],['head_flow_curve','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Cylinder Head Flow Curve'],['valve_lift_rocker','ENGINE AIRFLOW & VALVETRAIN','VALVETRAIN · Valve Lift Calculator'],['effective_rocker_ratio','ENGINE AIRFLOW & VALVETRAIN','VALVETRAIN · Effective Rocker Ratio'],['lash_net_lift','ENGINE AIRFLOW & VALVETRAIN','VALVETRAIN · Lash / Net Lift'],['engine_airflow_estimate','ENGINE AIRFLOW & VALVETRAIN','AIRFLOW / ENGINE · Engine Airflow Estimation'],['airflow_power_estimate','ENGINE AIRFLOW & VALVETRAIN','AIRFLOW / ENGINE · Airflow → Power Estimate']];
 function repairRegistry(w){try{
-  const airflow= AIRFLOW;
   if(typeof CALCS==='undefined')return;
   const all=[],seen=new Set(),sources=[];
   function isCalc(c){return c&&typeof c==='object'&&typeof c.id==='string'&&c.id.length>0&&(typeof c.name==='string'||typeof c.label==='string')&&(typeof c.cat==='string'||typeof c.category==='string'||typeof c.lab==='string')}
   function add(list,source){if(!Array.isArray(list))return;let added=0;list.forEach(function(c){if(isCalc(c)&&!seen.has(c.id)){seen.add(c.id);all.push(c);added++}});if(added)sources.push({source:source,added:added})}
-  // Preserve the known registries first.
+  // Preserve the known registries first. The complete target registry is
+  // already contained in these sources; do not inject a second ad-hoc list.
   try{add(typeof GH_MASTER_CALCS!=='undefined'?GH_MASTER_CALCS:[],'GH_MASTER_CALCS')}catch(e){}
   try{add(typeof GH_E1_CALCS!=='undefined'?GH_E1_CALCS:[],'GH_E1_CALCS')}catch(e){}
   try{add(typeof GH_E101_CALCS!=='undefined'?GH_E101_CALCS:[],'GH_E101_CALCS')}catch(e){}
@@ -34,7 +33,6 @@ function repairRegistry(w){try{
   // Audit every enumerable global array for calculator-shaped entries so a future
   // calculator registry cannot silently disappear just because it uses a new name.
   try{Object.keys(w).forEach(function(k){if(k==='CALCS'||k==='GH_MASTER_CALCS'||k==='GH_E1_CALCS'||k==='GH_E101_CALCS')return;let v;try{v=w[k]}catch(e){return}if(Array.isArray(v)&&v.some(isCalc))add(v,k)})}catch(e){}
-  airflow.forEach(function(x){add([{cat:x[1],id:x[0],name:x[2]}],'AIRFLOW')} );
   CALCS.splice(0,CALCS.length,...all);
   try{window.GH_MASTER_CALCS=all}catch(e){}
   if(typeof ghBuildNav==='function')buildNav=ghBuildNav;
@@ -44,6 +42,10 @@ function repairRegistry(w){try{
   var categories={};all.forEach(function(c){var cat=c.cat||c.category||c.lab||'UNCATEGORIZED';categories[cat]=(categories[cat]||0)+1});
   window.__GH_FINAL_REGISTRY_COUNT=all.filter(function(c){return c.id!=='dashboard'}).length;
   window.__GH_CALCULATOR_AUDIT={total:window.__GH_FINAL_REGISTRY_COUNT,uniqueIds:seen.size,sources:sources,categories:categories};
+  // Strategic audit target: 575 real calculators, plus the dashboard entry.
+  window.__GH_CALCULATOR_AUDIT.expectedTotal=575;
+  window.__GH_CALCULATOR_AUDIT.totalMatchesExpected=(window.__GH_FINAL_REGISTRY_COUNT===575);
+  window.__GH_CALCULATOR_AUDIT.expectedLabCounts={GASOLINE:44,DIESEL:42,EV:24,TOWING:25,UNIVERSAL:439};
 }catch(e){console.error('Gearhead Labs registry audit/repair failed',e)}}
 function installAccordion(w){try{const d=w.document;if(!d||d.__GH_ACCORDION_INSTALLED)return;d.__GH_ACCORDION_INSTALLED=true;const s=d.createElement('style');s.id='GH_ACCORDION_RUNTIME_FIX';s.textContent='.gh-cat-block .gh-cat-items{transition:none!important}.gh-cat-block.open .gh-cat-items{display:block!important}.gh-cat-block.open .gh-cat-head i{transform:rotate(180deg);color:#d7a11f}';d.head.appendChild(s);d.addEventListener('click',function(ev){const target=ev.target&&ev.target.closest?ev.target.closest('.gh-cat-head'):null;if(!target)return;const block=target.closest('.gh-cat-block');if(!block)return;const panel=block.querySelector('.gh-cat-items');if(!panel)return;ev.preventDefault();ev.stopImmediatePropagation();const computed=w.getComputedStyle(panel);const isOpen=block.classList.contains('open')||(!panel.hidden&&computed.display!=='none'&&computed.visibility!=='hidden'&&panel.offsetHeight>0);if(isOpen){block.classList.remove('open');panel.hidden=true;panel.style.setProperty('display','none','important');target.setAttribute('aria-expanded','false')}else{block.classList.add('open');panel.hidden=false;panel.style.setProperty('display','block','important');target.setAttribute('aria-expanded','true')}},true)}catch(e){console.error('Gearhead Labs accordion repair failed',e)}}
 function repair(){try{const w=frame.contentWindow;repairRegistry(w);installAccordion(w);setTimeout(function(){repairRegistry(w);installAccordion(w)},250);setTimeout(function(){repairRegistry(w);installAccordion(w)},1000)}catch(e){console.error(e)}boot.classList.add('hide')}
