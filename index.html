@@ -24,14 +24,10 @@ function repairRegistry(w){try{
   const all=[],seen=new Set(),sources=[];
   function isCalc(c){return c&&typeof c==='object'&&typeof c.id==='string'&&c.id.length>0&&(typeof c.name==='string'||typeof c.label==='string')&&(typeof c.cat==='string'||typeof c.category==='string'||typeof c.lab==='string')}
   function add(list,source){if(!Array.isArray(list))return;let added=0;list.forEach(function(c){if(isCalc(c)&&!seen.has(c.id)){seen.add(c.id);all.push(c);added++}});if(added)sources.push({source:source,added:added})}
-  // Preserve the known registries first. The complete target registry is
-  // already contained in these sources; do not inject a second ad-hoc list.
   try{add(typeof GH_MASTER_CALCS!=='undefined'?GH_MASTER_CALCS:[],'GH_MASTER_CALCS')}catch(e){}
   try{add(typeof GH_E1_CALCS!=='undefined'?GH_E1_CALCS:[],'GH_E1_CALCS')}catch(e){}
   try{add(typeof GH_E101_CALCS!=='undefined'?GH_E101_CALCS:[],'GH_E101_CALCS')}catch(e){}
   try{add(CALCS,'CALCS-original')}catch(e){}
-  // Audit every enumerable global array for calculator-shaped entries so a future
-  // calculator registry cannot silently disappear just because it uses a new name.
   try{Object.keys(w).forEach(function(k){if(k==='CALCS'||k==='GH_MASTER_CALCS'||k==='GH_E1_CALCS'||k==='GH_E101_CALCS')return;let v;try{v=w[k]}catch(e){return}if(Array.isArray(v)&&v.some(isCalc))add(v,k)})}catch(e){}
   CALCS.splice(0,CALCS.length,...all);
   try{window.GH_MASTER_CALCS=all}catch(e){}
@@ -42,7 +38,6 @@ function repairRegistry(w){try{
   var categories={};all.forEach(function(c){var cat=c.cat||c.category||c.lab||'UNCATEGORIZED';categories[cat]=(categories[cat]||0)+1});
   window.__GH_FINAL_REGISTRY_COUNT=all.filter(function(c){return c.id!=='dashboard'}).length;
   window.__GH_CALCULATOR_AUDIT={total:window.__GH_FINAL_REGISTRY_COUNT,uniqueIds:seen.size,sources:sources,categories:categories};
-  // Strategic audit target: 575 real calculators, plus the dashboard entry.
   window.__GH_CALCULATOR_AUDIT.expectedTotal=575;
   window.__GH_CALCULATOR_AUDIT.totalMatchesExpected=(window.__GH_FINAL_REGISTRY_COUNT===575);
   window.__GH_CALCULATOR_AUDIT.expectedLabCounts={GASOLINE:44,DIESEL:42,EV:24,TOWING:25,UNIVERSAL:439};
@@ -52,5 +47,6 @@ function repair(){try{const w=frame.contentWindow;repairRegistry(w);installAccor
 frame.addEventListener('load',repair);
 })();
 </script>
+<script src="navigation-ux.js"></script>
 </body>
 </html>
