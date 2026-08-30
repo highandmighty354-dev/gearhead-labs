@@ -1,0 +1,150 @@
+name: Gearhead Registry Repair
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  repair-registry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Repair master calculator registry
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          airflow = [
+            ('camshaft_duration','CAMSHAFT · Duration'),
+            ('camshaft_ivc','CAMSHAFT · Intake Valve Closing — IVC'),
+            ('camshaft_exhaust_events','CAMSHAFT · Exhaust Valve Events'),
+            ('camshaft_lsa','CAMSHAFT · Lobe Separation Angle'),
+            ('camshaft_intake_centerline','CAMSHAFT · Intake Centerline'),
+            ('camshaft_advance_retard','CAMSHAFT · Advance / Retard'),
+            ('cam_card','CAMSHAFT · Complete Cam Card / Valve Events'),
+            ('intake_port_cfm','CYLINDER HEAD / FLOW · Intake Port CFM'),
+            ('exhaust_port_cfm','CYLINDER HEAD / FLOW · Exhaust Port CFM'),
+            ('cfm_velocity_csa','CYLINDER HEAD / FLOW · CFM ↔ Velocity ↔ CSA'),
+            ('required_port_csa','CYLINDER HEAD / FLOW · Required Port CSA'),
+            ('port_velocity','CYLINDER HEAD / FLOW · Port Velocity'),
+            ('intake_curtain_area','CYLINDER HEAD / FLOW · Intake Curtain Area'),
+            ('exhaust_curtain_area','CYLINDER HEAD / FLOW · Exhaust Curtain Area'),
+            ('valve_throat_area','CYLINDER HEAD / FLOW · Valve Throat Area'),
+            ('port_valve_area_ratio','CYLINDER HEAD / FLOW · Port-to-Valve Area Ratio'),
+            ('intake_flow_per_cylinder','CYLINDER HEAD / FLOW · Intake Flow per Cylinder'),
+            ('exhaust_intake_flow_ratio','CYLINDER HEAD / FLOW · Exhaust / Intake Ratio'),
+            ('mach_port_velocity','CYLINDER HEAD / FLOW · Mach Index / Velocity'),
+            ('head_flow_curve','CYLINDER HEAD / FLOW · Cylinder Head Flow Curve'),
+            ('valve_lift_rocker','VALVETRAIN · Valve Lift Calculator'),
+            ('effective_rocker_ratio','VALVETRAIN · Effective Rocker Ratio'),
+            ('lash_net_lift','VALVETRAIN · Lash / Net Lift'),
+            ('engine_airflow_estimate','AIRFLOW / ENGINE · Engine Airflow Estimation'),
+            ('airflow_power_estimate','AIRFLOW / ENGINE · Airflow → Power Estimate'),
+          ]
+
+          boot = r'''<script id="GH_FINAL_REGISTRY_GUARD">
+(function(){
+  'use strict';
+  const AIRFLOW = [
+    ['camshaft_duration','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Duration'],
+    ['camshaft_ivc','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Intake Valve Closing — IVC'],
+    ['camshaft_exhaust_events','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Exhaust Valve Events'],
+    ['camshaft_lsa','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Lobe Separation Angle'],
+    ['camshaft_intake_centerline','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Intake Centerline'],
+    ['camshaft_advance_retard','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Advance / Retard'],
+    ['cam_card','ENGINE AIRFLOW & VALVETRAIN','CAMSHAFT · Complete Cam Card / Valve Events'],
+    ['intake_port_cfm','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Intake Port CFM'],
+    ['exhaust_port_cfm','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Exhaust Port CFM'],
+    ['cfm_velocity_csa','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · CFM ↔ Velocity ↔ CSA'],
+    ['required_port_csa','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Required Port CSA'],
+    ['port_velocity','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Port Velocity'],
+    ['intake_curtain_area','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Intake Curtain Area'],
+    ['exhaust_curtain_area','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Exhaust Curtain Area'],
+    ['valve_throat_area','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Valve Throat Area'],
+    ['port_valve_area_ratio','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Port-to-Valve Area Ratio'],
+    ['intake_flow_per_cylinder','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Intake Flow per Cylinder'],
+    ['exhaust_intake_flow_ratio','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Exhaust / Intake Ratio'],
+    ['mach_port_velocity','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Mach Index / Velocity'],
+    ['head_flow_curve','ENGINE AIRFLOW & VALVETRAIN','CYLINDER HEAD / FLOW · Cylinder Head Flow Curve'],
+    ['valve_lift_rocker','ENGINE AIRFLOW & VALVETRAIN','VALVETRAIN · Valve Lift Calculator'],
+    ['effective_rocker_ratio','ENGINE AIRFLOW & VALVETRAIN','VALVETRAIN · Effective Rocker Ratio'],
+    ['lash_net_lift','ENGINE AIRFLOW & VALVETRAIN','VALVETRAIN · Lash / Net Lift'],
+    ['engine_airflow_estimate','ENGINE AIRFLOW & VALVETRAIN','AIRFLOW / ENGINE · Engine Airflow Estimation'],
+    ['airflow_power_estimate','ENGINE AIRFLOW & VALVETRAIN','AIRFLOW / ENGINE · Airflow → Power Estimate']
+  ];
+  function rebuild(){
+    if(typeof CALCS==='undefined') return;
+    const all=[]; const seen=new Set();
+    function add(list){
+      if(!Array.isArray(list)) return;
+      list.forEach(c=>{
+        if(c && c.id && !seen.has(c.id)){ seen.add(c.id); all.push(c); }
+      });
+    }
+    try{ add(typeof GH_MASTER_CALCS!=='undefined' ? GH_MASTER_CALCS : []); }catch(e){}
+    try{ add(typeof GH_E1_CALCS!=='undefined' ? GH_E1_CALCS : []); }catch(e){}
+    try{ add(typeof GH_E101_CALCS!=='undefined' ? GH_E101_CALCS : []); }catch(e){}
+    AIRFLOW.forEach(x=>add([{cat:x[1],id:x[0],name:x[2]}]));
+    CALCS.splice(0,CALCS.length,...all);
+    try{ window.GH_MASTER_CALCS=all; }catch(e){}
+    try{
+      const input=document.getElementById('search-input');
+      if(typeof buildNav==='function') buildNav(input?.value||'');
+      const n=document.querySelector('.gh-calculator-count strong');
+      if(n) n.textContent=String(all.filter(c=>c.id!=='dashboard').length);
+    }catch(e){}
+  }
+  function boot(){ rebuild(); setTimeout(rebuild,250); setTimeout(rebuild,1000); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+})();
+</script>
+'''
+
+          for name in ('index.html','E1.1.0_Gearhead_Labs_Automotive_Math_Encyclopedia.html'):
+              p = Path(name)
+              if not p.exists():
+                  continue
+              s = p.read_text(encoding='utf-8')
+              original = s
+
+              old = 'CALCS.splice(0, CALCS.length, ...GH_MASTER_CALCS);'
+              new = '''
+const GH_AIRFLOW_CALCS = [
+''' + ''.join(f"  {{cat:'ENGINE AIRFLOW & VALVETRAIN',id:'{i}',name:'{n}'}},\n" for i,n in airflow) + '''];
+const GH_PUBLIC_CALCS = [];
+const GH_PUBLIC_SEEN = new Set();
+[GH_MASTER_CALCS, (typeof GH_E1_CALCS!=='undefined'?GH_E1_CALCS:[]), (typeof GH_E101_CALCS!=='undefined'?GH_E101_CALCS:[]), GH_AIRFLOW_CALCS].forEach(function(list){
+  list.forEach(function(c){ if(c && c.id && !GH_PUBLIC_SEEN.has(c.id)){ GH_PUBLIC_SEEN.add(c.id); GH_PUBLIC_CALCS.push(c); } });
+});
+CALCS.splice(0, CALCS.length, ...GH_PUBLIC_CALCS);
+window.GH_MASTER_CALCS = GH_PUBLIC_CALCS;'''
+              if old in s:
+                  s = s.replace(old,new,1)
+
+              if 'id="GH_FINAL_REGISTRY_GUARD"' not in s and '</body>' in s:
+                  s = s.replace('</body>', boot + '</body>', 1)
+
+              if s != original:
+                  p.write_text(s,encoding='utf-8')
+
+          print('Registry repair applied to available encyclopedia files.')
+          PY
+
+      - name: Commit and stop
+        shell: bash
+        run: |
+          git config user.name "Gearhead Labs"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html E1.1.0_Gearhead_Labs_Automotive_Math_Encyclopedia.html
+          if git diff --cached --quiet; then
+            echo "No changes required"
+            exit 0
+          fi
+          git commit -m "Restore complete calculator registry [skip ci]"
+          git push
