@@ -1,0 +1,99 @@
+name: Gearhead Registry Repair PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Repair calculator registry
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          airflow = [
+            ('camshaft_duration','CAMSHAFT · Duration'),
+            ('camshaft_ivc','CAMSHAFT · Intake Valve Closing — IVC'),
+            ('camshaft_exhaust_events','CAMSHAFT · Exhaust Valve Events'),
+            ('camshaft_lsa','CAMSHAFT · Lobe Separation Angle'),
+            ('camshaft_intake_centerline','CAMSHAFT · Intake Centerline'),
+            ('camshaft_advance_retard','CAMSHAFT · Advance / Retard'),
+            ('cam_card','CAMSHAFT · Complete Cam Card / Valve Events'),
+            ('intake_port_cfm','CYLINDER HEAD / FLOW · Intake Port CFM'),
+            ('exhaust_port_cfm','CYLINDER HEAD / FLOW · Exhaust Port CFM'),
+            ('cfm_velocity_csa','CYLINDER HEAD / FLOW · CFM ↔ Velocity ↔ CSA'),
+            ('required_port_csa','CYLINDER HEAD / FLOW · Required Port CSA'),
+            ('port_velocity','CYLINDER HEAD / FLOW · Port Velocity'),
+            ('intake_curtain_area','CYLINDER HEAD / FLOW · Intake Curtain Area'),
+            ('exhaust_curtain_area','CYLINDER HEAD / FLOW · Exhaust Curtain Area'),
+            ('valve_throat_area','CYLINDER HEAD / FLOW · Valve Throat Area'),
+            ('port_valve_area_ratio','CYLINDER HEAD / FLOW · Port-to-Valve Area Ratio'),
+            ('intake_flow_per_cylinder','CYLINDER HEAD / FLOW · Intake Flow per Cylinder'),
+            ('exhaust_intake_flow_ratio','CYLINDER HEAD / FLOW · Exhaust / Intake Ratio'),
+            ('mach_port_velocity','CYLINDER HEAD / FLOW · Mach Index / Velocity'),
+            ('head_flow_curve','CYLINDER HEAD / FLOW · Cylinder Head Flow Curve'),
+            ('valve_lift_rocker','VALVETRAIN · Valve Lift Calculator'),
+            ('effective_rocker_ratio','VALVETRAIN · Effective Rocker Ratio'),
+            ('lash_net_lift','VALVETRAIN · Lash / Net Lift'),
+            ('engine_airflow_estimate','AIRFLOW / ENGINE · Engine Airflow Estimation'),
+            ('airflow_power_estimate','AIRFLOW / ENGINE · Airflow → Power Estimate'),
+          ]
+
+          guard = r'''<script id="GH_FINAL_REGISTRY_GUARD">
+(function(){
+  'use strict';
+  const AIRFLOW = %s;
+  function rebuild(){
+    if(typeof CALCS==='undefined') return;
+    const all=[]; const seen=new Set();
+    function add(list){ if(!Array.isArray(list))return; list.forEach(c=>{if(c&&c.id&&!seen.has(c.id)){seen.add(c.id);all.push(c);}}); }
+    try{add(typeof GH_MASTER_CALCS!=='undefined'?GH_MASTER_CALCS:[]);}catch(e){}
+    try{add(typeof GH_E1_CALCS!=='undefined'?GH_E1_CALCS:[]);}catch(e){}
+    try{add(typeof GH_E101_CALCS!=='undefined'?GH_E101_CALCS:[]);}catch(e){}
+    AIRFLOW.forEach(c=>add([{cat:'ENGINE AIRFLOW & VALVETRAIN',id:c[0],name:c[1]}]));
+    CALCS.splice(0,CALCS.length,...all);
+    try{window.GH_MASTER_CALCS=all;}catch(e){}
+    try{if(typeof buildNav==='function')buildNav(document.getElementById('search-input')?.value||'');}catch(e){}
+  }
+  function boot(){rebuild();setTimeout(rebuild,250);setTimeout(rebuild,1000);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
+''' % repr(airflow)
+
+          for name in ('index.html','E1.1.0_Gearhead_Labs_Automotive_Math_Encyclopedia.html'):
+              p=Path(name)
+              if not p.exists(): continue
+              s=p.read_text(encoding='utf-8')
+              original=s
+              old='CALCS.splice(0, CALCS.length, ...GH_MASTER_CALCS);'
+              new="""const GH_AIRFLOW_CALCS = [\n""" + ''.join(f"  {{cat:'ENGINE AIRFLOW & VALVETRAIN',id:'{i}',name:'{n}'}},\n" for i,n in airflow) + """ ];\nconst GH_PUBLIC_CALCS=[];\nconst GH_PUBLIC_SEEN=new Set();\n[GH_MASTER_CALCS,(typeof GH_E1_CALCS!=='undefined'?GH_E1_CALCS:[]),(typeof GH_E101_CALCS!=='undefined'?GH_E101_CALCS:[]),GH_AIRFLOW_CALCS].forEach(function(list){list.forEach(function(c){if(c&&c.id&&!GH_PUBLIC_SEEN.has(c.id)){GH_PUBLIC_SEEN.add(c.id);GH_PUBLIC_CALCS.push(c);}});});\nCALCS.splice(0,CALCS.length,...GH_PUBLIC_CALCS);\nwindow.GH_MASTER_CALCS=GH_PUBLIC_CALCS;"""
+              if old in s:s=s.replace(old,new,1)
+              if 'id="GH_FINAL_REGISTRY_GUARD"' not in s and '</body>' in s:s=s.replace('</body>',guard+'</body>',1)
+              if s!=original:p.write_text(s,encoding='utf-8')
+          PY
+
+      - name: Commit repair to PR branch
+        shell: bash
+        run: |
+          git config user.name "Gearhead Labs"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html E1.1.0_Gearhead_Labs_Automotive_Math_Encyclopedia.html
+          if git diff --cached --quiet; then
+            echo "Registry already repaired"
+            exit 0
+          fi
+          git commit -m "Restore complete calculator registry"
+          git push origin HEAD:${{ github.head_ref }}
