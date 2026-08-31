@@ -15,6 +15,7 @@
 
       const input=d.querySelector('#search-input,.search-input,input[type="search"]');
       const storageKey='gh-nav-open-v1';
+      const pendingKey='gh-nav-pending-calc-v2';
       const getBlocks=()=>Array.from(d.querySelectorAll('.gh-cat-block'));
       const getHeaders=()=>Array.from(d.querySelectorAll('.gh-cat-head,.cat-header-toggle'));
       const getItems=()=>Array.from(d.querySelectorAll('.calc-item,[data-calc-id],.gh-nav-item,a[href*="?calc="]'));
@@ -67,9 +68,11 @@
         input.addEventListener('keydown',e=>{if(e.key==='Escape'){input.value='';search('');input.blur()}});
       }
 
-      // Own calculator-result routing at capture time. Match the master
-      // calculator router's normal renderCalc(id) behavior; do not pass the
-      // optional second argument because that path can trigger a page reset.
+      // Search-result routing is handled here at capture time. Use the same
+      // one-argument renderCalc(id) path as the calculator's own navigation.
+      // A short-lived pending target also survives an unexpected iframe reload
+      // and lets the fresh frame restore the requested calculator after its
+      // bootstrap code finishes.
       d.addEventListener('click',e=>{
         const h=e.target.closest&&e.target.closest('.gh-cat-head,.cat-header-toggle');
         if(h)setTimeout(save,0);
@@ -77,6 +80,7 @@
         if(!item)return;
         getItems().forEach(n=>n.classList.remove('gh-nav-focus'));
         item.classList.add('gh-nav-focus');
+
         let id=item.getAttribute('data-calc-id')||item.getAttribute('data-id')||'';
         const href=item.getAttribute('href')||'';
         if(!id && href){
@@ -84,12 +88,23 @@
           if(m){try{id=decodeURIComponent(m[1])}catch(err){id=m[1]}}
         }
         if(!id || typeof w.renderCalc!=='function')return;
+
         e.preventDefault();
         e.stopPropagation();
         try{
+          try{localStorage.setItem(pendingKey,id)}catch(err){}
           w.renderCalc(id);
           if(href)w.history.replaceState(null,'',href);
           if(w.innerWidth<=640)d.getElementById('sidebar')?.classList.remove('open');
+
+          // If bootstrap code subsequently rebuilds the dashboard, restore the
+          // selected calculator once more after that bootstrap window.
+          setTimeout(()=>{
+            try{
+              if(w.currentCalc===id || w.__GH_CURRENT_CALC===id)return;
+              if(typeof w.renderCalc==='function')w.renderCalc(id);
+            }catch(err){console.error('Gearhead Labs pending calculator restore failed',id,err)}
+          },700);
         }catch(err){
           console.error('Gearhead Labs calculator route failed',id,err);
           if(href)w.location.href=href;
@@ -101,6 +116,20 @@
       });
       restore();
       if(input&&input.value)search(input.value);
+
+      // If the iframe was rebuilt by the outer shell, recover the last tapped
+      // calculator after the shell's normal dashboard bootstrap completes.
+      let pending=null;
+      try{pending=localStorage.getItem(pendingKey)}catch(e){}
+      if(pending && Array.isArray(w.CALCS) && w.CALCS.some(c=>c&&c.id===pending) && typeof w.renderCalc==='function'){
+        setTimeout(()=>{
+          try{
+            if(w.currentCalc!==pending)w.renderCalc(pending);
+            try{localStorage.removeItem(pendingKey)}catch(e){}
+          }catch(err){console.error('Gearhead Labs startup calculator restore failed',pending,err)}
+        },450);
+      }
+
       w.__GH_NAV_UX={search,restore,save,count:getItems().length};
     }catch(e){console.error('Gearhead Labs navigation UX failed',e)}
   }
