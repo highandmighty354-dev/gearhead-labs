@@ -10,7 +10,7 @@
       if (GH_E1_FORMULAS.ride_frequency) GH_E1_FORMULAS.ride_frequency.expr='Math.sqrt(k*386.0886/m)/(2*Math.PI)';
       if (GH_E1_FORMULAS.natural_frequency) GH_E1_FORMULAS.natural_frequency.expr='Math.sqrt(k*386.0886/m)/(2*Math.PI)';
       /* Lateral acceleration in g. The prior expression divided by g twice. */
-      if (GH_E1_FORMULAS.lateral_acceleration) GH_E1_FORMULAS.lateral_acceleration.expr='v*v/(32.174*r)'; GH_E1_FORMULAS.lateral_acceleration.post='result';
+      if (GH_E1_FORMULAS.lateral_acceleration) { GH_E1_FORMULAS.lateral_acceleration.expr='v*v/(32.174*r)'; GH_E1_FORMULAS.lateral_acceleration.post='result'; }
       /* Ackermann inside-angle geometry requires track width; wheelbase alone is insufficient. */
       if (GH_E1_FORMULAS.ackermann_angle) {
         GH_E1_FORMULAS.ackermann_angle.labels=['Wheelbase','Turn Radius','Track Width'];
@@ -31,6 +31,32 @@
         GH_E101_FORMULAS.nmm_to_lbft.unit='lb-in';
         GH_E101_FORMULAS.nmm_to_lbft.expr='x*8.85074579';
       }
+    }
+
+    /* The five public Labs are provenance-driven. Original V3.3.2 calculators are Universal
+       except the six original towing tools. E1.0.0 explicitly labels its new Lab families. */
+    if (typeof ghLabForCalc==='function') {
+      const originalTowing=new Set(['tongue_weight','gcwr_payload','trailer_sway','brake_controller_gain','towing_squat','trailer_tire_load']);
+      const e1LabSets={gasoline:new Set(),diesel:new Set(),ev:new Set(),towing:new Set()};
+      if(Array.isArray(GH_E1_CALCS)) GH_E1_CALCS.forEach(c=>{
+        const cat=String(c.cat||'');
+        if(cat.startsWith('GASOLINE /')) e1LabSets.gasoline.add(c.id);
+        else if(cat.startsWith('DIESEL /')) e1LabSets.diesel.add(c.id);
+        else if(cat.startsWith('EV /')) e1LabSets.ev.add(c.id);
+        else if(cat.startsWith('TOWING /')) e1LabSets.towing.add(c.id);
+      });
+      const dieselSet=new Set(Array.isArray(DIESEL_CALCS)?DIESEL_CALCS.map(c=>c.id):[]);
+      const e101Set=new Set(Array.isArray(GH_E101_CALCS)?GH_E101_CALCS.map(c=>c.id):[]);
+      ghLabForCalc=function(c){
+        if(!c) return 'universal';
+        const id=String(c.id||'');
+        if(dieselSet.has(id)||e1LabSets.diesel.has(id)) return 'diesel';
+        if(e1LabSets.ev.has(id)) return 'ev';
+        if(e1LabSets.towing.has(id)||originalTowing.has(id)) return 'towing';
+        if(e1LabSets.gasoline.has(id)) return 'gasoline';
+        if(e101Set.has(id)) return 'universal';
+        return 'universal';
+      };
     }
 
     /* Re-render E1 calculators after formula metadata is changed. */
@@ -57,7 +83,8 @@
       lateral_acceleration:'v²/(g·r), with result already expressed in g',
       ackermann_angle:'inside angle uses wheelbase, turn radius and half track width',
       dynamic_pressure:'q = 0.5·rho·v²/g_c for lbm/ft³ and ft/s',
-      nmm_to_lbft:'corrected to N·m → lb-in conversion and labeling'
+      nmm_to_lbft:'corrected to N·m → lb-in conversion and labeling',
+      lab_registry:'provenance-driven five-Lab classification restores 44/42/24/25/439 distribution'
     };
   } catch(e) { console.error('Gearhead Labs QA correction load failed',e); }
 })();
