@@ -17,8 +17,6 @@
       const storageKey='gh-nav-open-v1';
       const getBlocks=()=>Array.from(d.querySelectorAll('.gh-cat-block'));
       const getHeaders=()=>Array.from(d.querySelectorAll('.gh-cat-head,.cat-header-toggle'));
-      // Include both the normal calculator entries and dynamically rendered
-      // search-result links. Search results use ?calc=<id> and .gh-nav-item.
       const getItems=()=>Array.from(d.querySelectorAll('.calc-item,[data-calc-id],.gh-nav-item,a[href*="?calc="]'));
       const text=n=>(n&&n.textContent||'').replace(/[›→]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
 
@@ -40,7 +38,6 @@
         const q=text({textContent:value});
         clear();
         if(!q)return;
-
         const items=getItems();
         items.forEach(item=>{
           const hit=text(item).includes(q);
@@ -57,9 +54,6 @@
             }
           }
         });
-
-        // If the search implementation renders links outside the normal
-        // calculator list, explicitly reveal matching calculator links.
         d.querySelectorAll('a[href*="?calc="]').forEach(el=>{
           const hit=text(el).includes(q);
           el.classList.toggle('gh-nav-hidden',!hit);
@@ -73,20 +67,16 @@
         input.addEventListener('keydown',e=>{if(e.key==='Escape'){input.value='';search('');input.blur()}});
       }
 
-      // Own calculator-result routing at capture time. The master build uses
-      // inline onclick handlers, but iOS Safari can lose those handlers when
-      // the search result DOM is rebuilt. Routing here makes the tap reliable
-      // and falls back to the query-string route if rendering throws.
+      // Own calculator-result routing at capture time. Match the master
+      // calculator router's normal renderCalc(id) behavior; do not pass the
+      // optional second argument because that path can trigger a page reset.
       d.addEventListener('click',e=>{
         const h=e.target.closest&&e.target.closest('.gh-cat-head,.cat-header-toggle');
         if(h)setTimeout(save,0);
-
         const item=e.target.closest&&e.target.closest('.calc-item,[data-calc-id],.gh-nav-item,a[href*="?calc="]');
         if(!item)return;
-
         getItems().forEach(n=>n.classList.remove('gh-nav-focus'));
         item.classList.add('gh-nav-focus');
-
         let id=item.getAttribute('data-calc-id')||item.getAttribute('data-id')||'';
         const href=item.getAttribute('href')||'';
         if(!id && href){
@@ -94,11 +84,10 @@
           if(m){try{id=decodeURIComponent(m[1])}catch(err){id=m[1]}}
         }
         if(!id || typeof w.renderCalc!=='function')return;
-
         e.preventDefault();
         e.stopPropagation();
         try{
-          w.renderCalc(id,true);
+          w.renderCalc(id);
           if(href)w.history.replaceState(null,'',href);
           if(w.innerWidth<=640)d.getElementById('sidebar')?.classList.remove('open');
         }catch(err){
