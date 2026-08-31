@@ -73,13 +73,37 @@
         input.addEventListener('keydown',e=>{if(e.key==='Escape'){input.value='';search('');input.blur()}});
       }
 
+      // Own calculator-result routing at capture time. The master build uses
+      // inline onclick handlers, but iOS Safari can lose those handlers when
+      // the search result DOM is rebuilt. Routing here makes the tap reliable
+      // and falls back to the query-string route if rendering throws.
       d.addEventListener('click',e=>{
         const h=e.target.closest&&e.target.closest('.gh-cat-head,.cat-header-toggle');
         if(h)setTimeout(save,0);
+
         const item=e.target.closest&&e.target.closest('.calc-item,[data-calc-id],.gh-nav-item,a[href*="?calc="]');
-        if(item){
-          getItems().forEach(n=>n.classList.remove('gh-nav-focus'));
-          item.classList.add('gh-nav-focus');
+        if(!item)return;
+
+        getItems().forEach(n=>n.classList.remove('gh-nav-focus'));
+        item.classList.add('gh-nav-focus');
+
+        let id=item.getAttribute('data-calc-id')||item.getAttribute('data-id')||'';
+        const href=item.getAttribute('href')||'';
+        if(!id && href){
+          const m=href.match(/[?&]calc=([^&]+)/);
+          if(m){try{id=decodeURIComponent(m[1])}catch(err){id=m[1]}}
+        }
+        if(!id || typeof w.renderCalc!=='function')return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        try{
+          w.renderCalc(id,true);
+          if(href)w.history.replaceState(null,'',href);
+          if(w.innerWidth<=640)d.getElementById('sidebar')?.classList.remove('open');
+        }catch(err){
+          console.error('Gearhead Labs calculator route failed',id,err);
+          if(href)w.location.href=href;
         }
       },true);
 
