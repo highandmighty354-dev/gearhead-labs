@@ -1,7 +1,7 @@
 /* Gearhead Labs — Navigation / UX layer
-   Strategic task #3: make the complete calculator library easy to browse/search.
-   Search-result links are treated as first-class calculator items so they remain
-   clickable and compatible with the calculator router.
+   Deterministic calculator search + mobile-safe calculator routing.
+   Search is rendered from the authoritative CALCS registry instead of trying
+   to hide/rebuild the existing accordion DOM while the user types.
 */
 (function(){
   function install(w){
@@ -9,130 +9,174 @@
       const d=w.document;
       if(!d || d.__GH_NAV_UX_INSTALLED) return;
       d.__GH_NAV_UX_INSTALLED=true;
+
       const style=d.createElement('style');
-      style.textContent='.gh-nav-match{outline:1px solid rgba(217,154,22,.55);background:rgba(217,154,22,.08)!important}.gh-nav-hidden{display:none!important}.gh-nav-focus{box-shadow:inset 3px 0 0 #d99a16!important;background:rgba(217,154,22,.12)!important}';
+      style.id='GH_NAV_UX_SEARCH_CSS';
+      style.textContent=`
+        .gh-nav-search-results{margin:0;border-top:1px solid #21242c;background:#0f1013;max-height:55vh;overflow:auto}
+        .gh-nav-search-results[hidden]{display:none!important}
+        .gh-nav-search-result{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:13px 14px;border:0;border-bottom:1px solid #21242c;background:transparent;color:#c3c8d1;text-align:left;font:600 13px/1.3 Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer}
+        .gh-nav-search-result:hover,.gh-nav-search-result:active{background:rgba(217,154,22,.12);color:#f5f6f8}
+        .gh-nav-search-result strong{display:block;color:#f5f6f8;font-weight:650}
+        .gh-nav-search-result small{display:block;margin-top:3px;color:#8c96a5;font-size:10px;font-weight:500}
+        .gh-nav-search-result b{color:#d99a16;font-size:18px;line-height:1}
+        .gh-nav-search-empty{padding:18px 14px;color:#8c96a5;font-size:12px;line-height:1.5}
+      `;
       d.head.appendChild(style);
 
       const input=d.querySelector('#search-input,.search-input,input[type="search"]');
+      const sidebar=d.querySelector('.sidebar');
+      if(!input || !sidebar) return;
+
+      let results=d.querySelector('.gh-nav-search-results');
+      if(!results){
+        results=d.createElement('div');
+        results.className='gh-nav-search-results';
+        results.hidden=true;
+        const wrap=input.closest('.search-wrap')||input.parentElement;
+        wrap.appendChild(results);
+      }
+
       const storageKey='gh-nav-open-v1';
-      const pendingKey='gh-nav-pending-calc-v2';
-      const getBlocks=()=>Array.from(d.querySelectorAll('.gh-cat-block'));
-      const getHeaders=()=>Array.from(d.querySelectorAll('.gh-cat-head,.cat-header-toggle'));
-      const getItems=()=>Array.from(d.querySelectorAll('.calc-item,[data-calc-id],.gh-nav-item,a[href*="?calc="]'));
-      const text=n=>(n&&n.textContent||'').replace(/[›→]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+      const text=v=>String(v||'').replace(/\s+/g,' ').trim().toLowerCase();
+      const getCalcs=()=>Array.isArray(w.CALCS)?w.CALCS.filter(c=>c&&c.id&&c.id!=='dashboard'&&(c.name||c.label)):[];
 
       function save(){
-        try{localStorage.setItem(storageKey,JSON.stringify(getHeaders().map((h,i)=>({i,open:h.getAttribute('aria-expanded')==='true'||!!h.closest('.gh-cat-block.open')}))))}catch(e){}
+        try{
+          localStorage.setItem(storageKey,JSON.stringify(
+            Array.from(d.querySelectorAll('.gh-cat-head,.cat-header-toggle')).map((h,i)=>({
+              i,
+              open:h.getAttribute('aria-expanded')==='true'||!!h.closest('.gh-cat-block.open')
+            }))
+          ));
+        }catch(e){}
       }
+
       function restore(){
         try{
           const state=JSON.parse(localStorage.getItem(storageKey)||'null');
           if(!Array.isArray(state))return;
-          getHeaders().forEach((h,i)=>{const x=state[i];if(!x)return;const open=!!x.open;h.setAttribute('aria-expanded',String(open));const b=h.closest('.gh-cat-block');const p=b&&b.querySelector('.gh-cat-items');if(b&&p){b.classList.toggle('open',open);p.hidden=!open;if(open)p.style.removeProperty('display');else p.style.setProperty('display','none','important')}});
+          Array.from(d.querySelectorAll('.gh-cat-head,.cat-header-toggle')).forEach((h,i)=>{
+            const x=state[i]; if(!x)return;
+            const open=!!x.open;
+            h.setAttribute('aria-expanded',String(open));
+            const b=h.closest('.gh-cat-block');
+            const p=b&&b.querySelector('.gh-cat-items');
+            if(b&&p){b.classList.toggle('open',open);p.hidden=!open;if(open)p.style.removeProperty('display');else p.style.setProperty('display','none','important')}
+          });
         }catch(e){}
       }
-      function clear(){
-        getItems().forEach(n=>n.classList.remove('gh-nav-match','gh-nav-hidden'));
-        getBlocks().forEach(b=>b.classList.remove('gh-nav-match'));
-      }
-      function search(value){
-        const q=text({textContent:value});
-        clear();
-        if(!q)return;
-        const items=getItems();
-        items.forEach(item=>{
-          const hit=text(item).includes(q);
-          item.classList.toggle('gh-nav-hidden',!hit);
-          item.classList.toggle('gh-nav-match',hit);
-          if(hit){
-            const b=item.closest('.gh-cat-block');
-            if(b){
-              b.classList.add('open');
-              const p=b.querySelector('.gh-cat-items');
-              const h=b.querySelector('.gh-cat-head');
-              if(p){p.hidden=false;p.style.removeProperty('display')}
-              if(h)h.setAttribute('aria-expanded','true');
-            }
-          }
-        });
-        d.querySelectorAll('a[href*="?calc="]').forEach(el=>{
-          const hit=text(el).includes(q);
-          el.classList.toggle('gh-nav-hidden',!hit);
-          el.classList.toggle('gh-nav-match',hit);
+
+      function closeSearch(){
+        results.hidden=true;
+        results.innerHTML='';
+        sidebar.classList.remove('gh-searching');
+        Array.from(sidebar.children).forEach(el=>{
+          if(el!==input.closest('.search-wrap')) el.style.removeProperty('display');
         });
       }
 
-      if(input){
-        input.setAttribute('autocomplete','off');
-        input.addEventListener('input',()=>search(input.value));
-        input.addEventListener('keydown',e=>{if(e.key==='Escape'){input.value='';search('');input.blur()}});
+      function openSearch(){
+        sidebar.classList.add('gh-searching');
+        const wrap=input.closest('.search-wrap');
+        Array.from(sidebar.children).forEach(el=>{
+          if(el!==wrap) el.style.setProperty('display','none','important');
+        });
+        results.hidden=false;
       }
 
-      // Search-result routing is handled here at capture time. Use the same
-      // one-argument renderCalc(id) path as the calculator's own navigation.
-      // A short-lived pending target also survives an unexpected iframe reload
-      // and lets the fresh frame restore the requested calculator after its
-      // bootstrap code finishes.
-      d.addEventListener('click',e=>{
-        const h=e.target.closest&&e.target.closest('.gh-cat-head,.cat-header-toggle');
-        if(h)setTimeout(save,0);
-        const item=e.target.closest&&e.target.closest('.calc-item,[data-calc-id],.gh-nav-item,a[href*="?calc="]');
-        if(!item)return;
-        getItems().forEach(n=>n.classList.remove('gh-nav-focus'));
-        item.classList.add('gh-nav-focus');
+      function renderSearch(value){
+        const q=text(value);
+        if(!q){closeSearch();return;}
+        const matches=getCalcs().filter(c=>{
+          const name=text(c.name||c.label);
+          const cat=text(c.cat||c.category||c.lab);
+          const desc=text(c.description||c.desc||'');
+          return name.includes(q)||cat.includes(q)||desc.includes(q);
+        }).slice(0,60);
 
-        let id=item.getAttribute('data-calc-id')||item.getAttribute('data-id')||'';
-        const href=item.getAttribute('href')||'';
-        if(!id && href){
-          const m=href.match(/[?&]calc=([^&]+)/);
-          if(m){try{id=decodeURIComponent(m[1])}catch(err){id=m[1]}}
+        openSearch();
+        if(!matches.length){
+          results.innerHTML='<div class="gh-nav-search-empty">No calculators found for <strong>'+String(value).replace(/[&<>]/g,'')+'</strong>.</div>';
+          return;
         }
-        if(!id || typeof w.renderCalc!=='function')return;
 
-        e.preventDefault();
-        e.stopPropagation();
+        results.innerHTML='';
+        matches.forEach(c=>{
+          const b=d.createElement('button');
+          b.type='button';
+          b.className='gh-nav-search-result';
+          const name=d.createElement('span');
+          const strong=d.createElement('strong');
+          strong.textContent=c.name||c.label;
+          const small=d.createElement('small');
+          small.textContent=c.cat||c.category||c.lab||'Calculator';
+          name.appendChild(strong);name.appendChild(small);
+          const arrow=d.createElement('b');arrow.textContent='›';
+          b.appendChild(name);b.appendChild(arrow);
+          b.addEventListener('click',function(ev){
+            ev.preventDefault();ev.stopPropagation();
+            openCalculator(c.id);
+          });
+          results.appendChild(b);
+        });
+      }
+
+      function openCalculator(id){
+        try{localStorage.setItem('gh-nav-pending-calc-v3',id)}catch(e){}
         try{
-          try{localStorage.setItem(pendingKey,id)}catch(err){}
+          if(typeof w.renderCalc!=='function') throw new Error('renderCalc unavailable');
           w.renderCalc(id);
-          if(href)w.history.replaceState(null,'',href);
+          const url=new URL(w.location.href);
+          url.searchParams.set('calc',id);
+          w.history.replaceState(null,'',url.pathname+'?'+url.searchParams.toString()+url.hash);
+          input.value='';
+          closeSearch();
           if(w.innerWidth<=640)d.getElementById('sidebar')?.classList.remove('open');
-
-          // If bootstrap code subsequently rebuilds the dashboard, restore the
-          // selected calculator once more after that bootstrap window.
           setTimeout(()=>{
-            try{
-              if(w.currentCalc===id || w.__GH_CURRENT_CALC===id)return;
-              if(typeof w.renderCalc==='function')w.renderCalc(id);
-            }catch(err){console.error('Gearhead Labs pending calculator restore failed',id,err)}
-          },700);
+            try{if(w.currentCalc!==id)w.renderCalc(id)}catch(e){console.error('GH calculator restore failed',id,e)}
+            try{localStorage.removeItem('gh-nav-pending-calc-v3')}catch(e){}
+          },250);
         }catch(err){
-          console.error('Gearhead Labs calculator route failed',id,err);
-          if(href)w.location.href=href;
+          console.error('Gearhead Labs calculator search routing failed',id,err);
+          try{w.location.href='?calc='+encodeURIComponent(id)}catch(e){}
         }
+      }
+
+      // Capture the input before any legacy search handler can rebuild the nav;
+      // render our authoritative result list on the next turn.
+      input.addEventListener('input',function(){
+        const value=input.value;
+        setTimeout(()=>renderSearch(value),0);
+      },true);
+      input.addEventListener('search',function(){renderSearch(input.value)},true);
+      input.addEventListener('keydown',function(e){
+        if(e.key==='Escape'){input.value='';closeSearch();input.blur();}
       },true);
 
-      d.addEventListener('keydown',e=>{
-        if(e.key==='/' && !/input|textarea|select/i.test(e.target.tagName||'')){e.preventDefault();input&&input.focus();}
-      });
-      restore();
-      if(input&&input.value)search(input.value);
+      // Keep category accordions usable when search is not active.
+      d.addEventListener('click',function(ev){
+        const h=ev.target&&ev.target.closest?ev.target.closest('.gh-cat-head,.cat-header-toggle'):null;
+        if(h)setTimeout(save,0);
+      },true);
 
-      // If the iframe was rebuilt by the outer shell, recover the last tapped
-      // calculator after the shell's normal dashboard bootstrap completes.
+      restore();
+      if(input.value)renderSearch(input.value);
+
+      // Restore a calculator only when explicitly left pending by a search tap.
       let pending=null;
-      try{pending=localStorage.getItem(pendingKey)}catch(e){}
-      if(pending && Array.isArray(w.CALCS) && w.CALCS.some(c=>c&&c.id===pending) && typeof w.renderCalc==='function'){
+      try{pending=localStorage.getItem('gh-nav-pending-calc-v3')}catch(e){}
+      if(pending && getCalcs().some(c=>c.id===pending)){
         setTimeout(()=>{
-          try{
-            if(w.currentCalc!==pending)w.renderCalc(pending);
-            try{localStorage.removeItem(pendingKey)}catch(e){}
-          }catch(err){console.error('Gearhead Labs startup calculator restore failed',pending,err)}
-        },450);
+          try{if(w.currentCalc!==pending)w.renderCalc(pending)}catch(e){}
+          try{localStorage.removeItem('gh-nav-pending-calc-v3')}catch(e){}
+        },500);
       }
 
-      w.__GH_NAV_UX={search,restore,save,count:getItems().length};
+      w.__GH_NAV_UX={search:renderSearch,restore,save,count:getCalcs().length};
     }catch(e){console.error('Gearhead Labs navigation UX failed',e)}
   }
+
   function wait(){
     try{
       const f=document.getElementById('app');
@@ -143,5 +187,6 @@
       }
     }catch(e){}
   }
-  window.addEventListener('load',wait);wait();
+  window.addEventListener('load',wait);
+  wait();
 })();
