@@ -20,6 +20,18 @@
         GH_E1_FORMULAS.dynamic_compression.vars=['b','s','l','cr','ica'];
         GH_E1_FORMULAS.dynamic_compression.expr='( (Math.PI/4*b*b*(s/2*(1-Math.cos((180+ica)*Math.PI/180))+l-Math.sqrt(l*l-(s/2*Math.sin((180+ica)*Math.PI/180))**2))) + (Math.PI/4*b*b*s)/(cr-1) ) / ((Math.PI/4*b*b*s)/(cr-1))';
       }
+
+      /* Keep both Otto entries, but make them genuinely different tools:
+         Otto Cycle Efficiency accepts the specific-heat ratio gamma;
+         Air-Standard Otto Cycle remains the fixed-gamma 1.4 reference tool. */
+      if (GH_E1_FORMULAS.otto_efficiency) {
+        GH_E1_FORMULAS.otto_efficiency.labels=['Compression Ratio','Specific Heat Ratio (γ)'];
+        GH_E1_FORMULAS.otto_efficiency.vars=['r','gamma'];
+        GH_E1_FORMULAS.otto_efficiency.expr='1-1/(r**(gamma-1))';
+        GH_E1_FORMULAS.otto_efficiency.out='Otto Cycle Thermal Efficiency';
+        GH_E1_FORMULAS.otto_efficiency.unit='%';
+        GH_E1_FORMULAS.otto_efficiency.post='result*100';
+      }
     }
 
     if (typeof GH_E101_FORMULAS === 'object') {
@@ -55,6 +67,21 @@
 
     if (typeof RENDERS === 'object') {
       if (typeof GH_E1_FORMULAS === 'object' && typeof ghE1Render==='function') Object.keys(GH_E1_FORMULAS).forEach(id=>RENDERS[id]=()=>ghE1Render(id));
+
+      /* Give Otto Cycle Efficiency its engineering-default gamma of 1.4.
+         Air-Standard Otto stays as the fixed-gamma reference calculator. */
+      if (typeof GH_E1_FORMULAS === 'object' && GH_E1_FORMULAS.otto_efficiency) {
+        RENDERS.otto_efficiency=()=>{
+          const r=vd('otto_efficiency_r',10);
+          const gamma=vd('otto_efficiency_gamma',1.4);
+          const valid=r>1&&gamma>1;
+          const eta=valid?(1-1/Math.pow(r,gamma-1))*100:NaN;
+          return `${headerHTML('Otto Cycle Thermal Efficiency','General Otto-cycle thermal efficiency. Enter compression ratio and specific-heat ratio (γ). The common gasoline-air reference uses γ ≈ 1.4.')}`+
+            `<div class="calc-body">${field('Compression Ratio','otto_efficiency_r',10,'')}${field('Specific Heat Ratio (γ)','otto_efficiency_gamma',1.4,'')}${resultHTML('Thermal Efficiency',valid?+eta.toFixed(4):0,'%')}`+
+            `<div class="calc-note"><strong>Formula:</strong> η = 1 − 1 / r^(γ−1)<br>For the fixed γ=1.4 reference case, use Air-Standard Otto Cycle.</div></div>${calcFooter('Otto Cycle Efficiency')}`;
+        };
+      }
+
       RENDERS.cog_height=()=>{
         const wt=vd('wt8',3420), wb=vd('wb5',108), df=vd('rf',1720), ang=vd('ta5',6);
         const valid=wt>0&&wb>0&&df>0&&ang>0&&ang<90;
@@ -93,6 +120,7 @@
       bmep_from_torque:'four-stroke BMEP = 48πT/V', ride_frequency:'correct lb/in natural-frequency conversion', natural_frequency:'correct lb/in natural-frequency conversion',
       lateral_acceleration:'v²/(g·r), already in g', ackermann_angle:'requires track width', dynamic_pressure:'q = 0.5·rho·v²/g_c', engine_air_density:'ideal-gas R=53.35',
       dynamic_compression:'crank-slider piston position at IVC', nmm_to_lbft:'corrected N·m to lb-in', cog_height:'correct tilt-test load-change equation', master_cylinder:'actual caliper clamp-force calculation',
+      otto_efficiency:'generalized Otto-cycle efficiency with explicit specific-heat ratio γ; Air-Standard Otto remains fixed at γ=1.4',
       lab_registry:'provenance-driven 44/42/24/25/439 distribution', render_safety:'invalid numeric output blocked at render boundary'
     };
   } catch(e) { console.error('Gearhead Labs QA correction load failed',e); }
