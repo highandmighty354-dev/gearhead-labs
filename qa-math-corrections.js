@@ -14,23 +14,24 @@
         GH_E1_FORMULAS.ackermann_angle.expr='Math.atan(l/(r-t/2))*180/Math.PI';
       }
       if (GH_E1_FORMULAS.dynamic_pressure) GH_E1_FORMULAS.dynamic_pressure.expr='0.5*rho*v*v/32.174';
-      /* Ideal-gas density in US customary units: rho(lb/ft³)=P(psia)*144/(53.35*T(°R)). */
       if (GH_E1_FORMULAS.engine_air_density) GH_E1_FORMULAS.engine_air_density.expr='(P*144)/(53.35*T)';
+      /* True dynamic compression uses piston position at intake closing, not a linear stroke shortcut. */
+      if (GH_E1_FORMULAS.dynamic_compression) {
+        GH_E1_FORMULAS.dynamic_compression.labels=['Bore','Stroke','Connecting Rod Length','Static Compression Ratio','Intake Closing Angle (ABDC)'];
+        GH_E1_FORMULAS.dynamic_compression.vars=['b','s','l','cr','ica'];
+        GH_E1_FORMULAS.dynamic_compression.expr='( (Math.PI/4*b*b*(s/2*(1-Math.cos((180+ica)*Math.PI/180))+l-Math.sqrt(l*l-(s/2*Math.sin((180+ica)*Math.PI/180))**2))) + (Math.PI/4*b*b*s)/(cr-1) ) / ((Math.PI/4*b*b*s)/(cr-1))';
+      }
     }
 
     if (typeof GH_E101_FORMULAS === 'object') {
       if (GH_E101_FORMULAS.fraction_simplify) GH_E101_FORMULAS.fraction_simplify.expr='n/d';
       if (GH_E101_FORMULAS.decimal_to_mixed_number) GH_E101_FORMULAS.decimal_to_mixed_number.expr='x';
       if (GH_E101_FORMULAS.nmm_to_lbft) {
-        GH_E101_FORMULAS.nmm_to_lbft.out='lb-in';
-        GH_E101_FORMULAS.nmm_to_lbft.unit='lb-in';
-        GH_E101_FORMULAS.nmm_to_lbft.expr='x*8.85074579';
+        GH_E101_FORMULAS.nmm_to_lbft.out='lb-in'; GH_E101_FORMULAS.nmm_to_lbft.unit='lb-in'; GH_E101_FORMULAS.nmm_to_lbft.expr='x*8.85074579';
       }
     }
 
-    /* Public Lab assignment is provenance-driven: E1.0.0 explicitly names its
-       gasoline/diesel/EV/towing families; E1.0.1 is Universal; the original
-       V3.3.2 set is Universal except its six original towing tools. */
+    /* Public Lab assignment is provenance-driven. */
     if (typeof ghLabForCalc==='function') {
       const originalTowing=new Set(['tongue_weight','gcwr_payload','trailer_sway','brake_controller_gain','towing_squat','trailer_tire_load']);
       const e1LabSets={gasoline:new Set(),diesel:new Set(),ev:new Set(),towing:new Set()};
@@ -44,8 +45,7 @@
       const dieselSet=new Set(Array.isArray(DIESEL_CALCS)?DIESEL_CALCS.map(c=>c.id):[]);
       const e101Set=new Set(Array.isArray(GH_E101_CALCS)?GH_E101_CALCS.map(c=>c.id):[]);
       ghLabForCalc=function(c){
-        if(!c) return 'universal';
-        const id=String(c.id||'');
+        if(!c) return 'universal'; const id=String(c.id||'');
         if(dieselSet.has(id)||e1LabSets.diesel.has(id)) return 'diesel';
         if(e1LabSets.ev.has(id)) return 'ev';
         if(e1LabSets.towing.has(id)||originalTowing.has(id)) return 'towing';
@@ -55,30 +55,31 @@
       };
     }
 
-    /* Rebind generated E1 renderers after formula metadata changes. */
     if (typeof RENDERS === 'object') {
       if (typeof GH_E1_FORMULAS === 'object' && typeof ghE1Render==='function') Object.keys(GH_E1_FORMULAS).forEach(id=>RENDERS[id]=()=>ghE1Render(id));
+      /* Correct the CG tilt-test implementation and its input semantics. */
+      RENDERS.cog_height=()=>{
+        const wt=vd('wt8',3420), wb=vd('wb5',108), df=vd('rf',1720), ang=vd('ta5',6);
+        const valid=wt>0&&wb>0&&df>0&&ang>0&&ang<90;
+        const h=valid?df*wb/(wt*Math.tan(ang*Math.PI/180)):NaN;
+        return `${headerHTML('Center of Gravity Height','Tilt-test CG height from front axle load change. The load input must be the change in front axle load produced by the tilt test.')}<div class="calc-body">${field('Vehicle Weight','wt8',3420,getU('weight'))}${field('Wheelbase','wb5',108,'in')}${field('Front Axle Load Change','rf',1720,getU('weight'))}${field('Tilt Angle','ta5',6,'°')}${resultHTML('CG Height',valid?+h.toFixed(2):0,'in')}</div>${calcFooter('CG Height')}`;
+      };
+      /* This calculator was labeled as master-cylinder sizing but actually computes caliper clamp force. */
+      RENDERS.master_cylinder=()=>{
+        const p=vd('cp',1800), bore=vd('bore4',1.0); const area=Math.PI*Math.pow(bore/2,2); const force=p*area;
+        return `${headerHTML('Caliper Clamp Force','Calculate caliper clamp force from hydraulic line pressure and caliper piston bore.')}<div class="calc-body">${field('Brake Line Pressure','cp',1800,'psi')}${field('Caliper Piston Bore Diameter','bore4',1.0,'in')}${resultHTML('Caliper Clamp Force',+force.toFixed(0),'lbf')}</div>${calcFooter('Caliper Clamp Force')}`;
+      };
       if (typeof GH_E101_FORMULAS === 'object') Object.keys(GH_E101_FORMULAS).forEach(id=>{
         const s=GH_E101_FORMULAS[id], safe=id.replace(/[^a-zA-Z0-9_]/g,'_');
-        RENDERS[id]=()=>{
-          const fields=s.labels.map((label,i)=>field(label,`${safe}_${s.vars[i]}`, label.includes('Denominator')||label.includes('Maximum')?8:1,'')).join('');
-          let val; try{val=Function(...s.vars,`return ${s.expr};`)(...s.vars.map(v=>vd(`${safe}_${v}`,1)));}catch(e){val=NaN;}
-          const shown=Number.isFinite(val)?Number(val).toLocaleString(undefined,{maximumFractionDigits:8}):'—';
-          return `${headerHTML(s.out,'E1.0.1 — researched unit conversion / shop math tool.')}<div class="calc-body"><div class="gh-e1-fields">${fields}</div><button class="calc-btn" onclick="renderCalc('${id}',false)">CONVERT</button><div class="result-box"><div class="result-label">${s.out}</div><div class="result-value">${shown}<span class="result-unit">${s.unit}</span></div></div><div class="calc-note"><strong>Formula:</strong> <code>${escapeHtml(s.expr)}</code><br>Conversion factors follow NIST guidance; carry full precision internally and round the final displayed result.</div></div>${calcFooter('E1.0.1')}`;
-        };
+        RENDERS[id]=()=>{const fields=s.labels.map((label,i)=>field(label,`${safe}_${s.vars[i]}`,label.includes('Denominator')||label.includes('Maximum')?8:1,'')).join('');let val;try{val=Function(...s.vars,`return ${s.expr};`)(...s.vars.map(v=>vd(`${safe}_${v}`,1)));}catch(e){val=NaN;}const shown=Number.isFinite(val)?Number(val).toLocaleString(undefined,{maximumFractionDigits:8}):'—';return `${headerHTML(s.out,'E1.0.1 — researched unit conversion / shop math tool.')}<div class="calc-body"><div class="gh-e1-fields">${fields}</div><button class="calc-btn" onclick="renderCalc('${id}',false)">CONVERT</button><div class="result-box"><div class="result-label">${s.out}</div><div class="result-value">${shown}<span class="result-unit">${s.unit}</span></div></div><div class="calc-note"><strong>Formula:</strong> <code>${escapeHtml(s.expr)}</code><br>Conversion factors follow NIST guidance; carry full precision internally and round the final displayed result.</div></div>${calcFooter('E1.0.1')}`;};
       });
     }
 
     window.__GH_QA_CORRECTIONS__={
-      bmep_from_torque:'four-stroke BMEP = 48πT/V for lb-ft and ci',
-      ride_frequency:'f = sqrt(k*386.0886/m)/(2π)',
-      natural_frequency:'f = sqrt(k*386.0886/m)/(2π)',
-      lateral_acceleration:'v²/(g·r), already in g',
-      ackermann_angle:'inside angle uses wheelbase, turn radius and half track width',
-      dynamic_pressure:'q = 0.5·rho·v²/g_c',
-      engine_air_density:'ideal-gas density uses R=53.35 for lbm/(ft·lbf/°R)',
-      nmm_to_lbft:'corrected to N·m → lb-in conversion and labeling',
-      lab_registry:'provenance-driven five-Lab classification restores 44/42/24/25/439 distribution'
+      bmep_from_torque:'four-stroke BMEP = 48πT/V', ride_frequency:'correct lb/in natural-frequency conversion', natural_frequency:'correct lb/in natural-frequency conversion',
+      lateral_acceleration:'v²/(g·r), already in g', ackermann_angle:'requires track width', dynamic_pressure:'q = 0.5·rho·v²/g_c', engine_air_density:'ideal-gas R=53.35',
+      dynamic_compression:'crank-slider piston position at IVC', nmm_to_lbft:'corrected N·m to lb-in', cog_height:'correct tilt-test load-change equation', master_cylinder:'renamed to actual caliper clamp-force calculation',
+      lab_registry:'provenance-driven 44/42/24/25/439 distribution'
     };
   } catch(e) { console.error('Gearhead Labs QA correction load failed',e); }
 })();
