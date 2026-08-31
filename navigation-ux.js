@@ -1,7 +1,7 @@
 /* Gearhead Labs — Navigation / UX layer
-   Strategic task #3: make the complete calculator library easy to browse/search.
-   Search-result links are treated as first-class calculator items so they remain
-   clickable and compatible with the calculator router.
+   Search is intentionally simple: typing filters the visible calculator
+   library to matching calculators only, then exposes those matches as clean
+   standalone results. Selecting a result uses the normal calculator renderer.
 */
 (function(){
   function install(w){
@@ -9,18 +9,52 @@
       const d=w.document;
       if(!d || d.__GH_NAV_UX_INSTALLED) return;
       d.__GH_NAV_UX_INSTALLED=true;
+
       const style=d.createElement('style');
-      style.textContent='.gh-nav-match{outline:1px solid rgba(217,154,22,.55);background:rgba(217,154,22,.08)!important}.gh-nav-hidden{display:none!important}.gh-nav-focus{box-shadow:inset 3px 0 0 #d99a16!important;background:rgba(217,154,22,.12)!important}';
+      style.textContent=`
+        .gh-nav-hidden{display:none!important}
+        .gh-search-results{margin:0;border-top:1px solid rgba(255,255,255,.06);background:#0d0e12}
+        .gh-search-result{display:flex;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box;padding:18px 28px;border:0;border-bottom:1px solid rgba(255,255,255,.06);background:transparent;color:#d7dbe2;font:500 18px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-align:left;cursor:pointer}
+        .gh-search-result:active{background:rgba(215,161,31,.12)}
+        .gh-search-result .arrow{color:#7f8995;font-size:22px;margin-left:16px}
+        .gh-search-empty{padding:22px 28px;color:#8994a3;font:500 17px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+      `;
       d.head.appendChild(style);
 
       const input=d.querySelector('#search-input,.search-input,input[type="search"]');
       const storageKey='gh-nav-open-v1';
       const getBlocks=()=>Array.from(d.querySelectorAll('.gh-cat-block'));
       const getHeaders=()=>Array.from(d.querySelectorAll('.gh-cat-head,.cat-header-toggle'));
-      // Include both the normal calculator entries and dynamically rendered
-      // search-result links. Search results use ?calc=<id> and .gh-nav-item.
       const getItems=()=>Array.from(d.querySelectorAll('.calc-item,[data-calc-id],.gh-nav-item,a[href*="?calc="]'));
-      const text=n=>(n&&n.textContent||'').replace(/[›→]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+      const cleanText=s=>String(s||'').replace(/[›→]/g,'').replace(/\s+/g,' ').trim();
+      const lower=s=>cleanText(s).toLowerCase();
+
+      let resultsHost=null;
+      function ensureHost(){
+        if(resultsHost && resultsHost.isConnected)return resultsHost;
+        if(!input)return null;
+        resultsHost=d.createElement('div');
+        resultsHost.className='gh-search-results gh-nav-hidden';
+        resultsHost.setAttribute('aria-live','polite');
+        const anchor=input.closest('.search-wrap,.search-container,.search-box')||input.parentElement;
+        if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(resultsHost,anchor.nextSibling);
+        return resultsHost;
+      }
+
+      function getId(item){
+        let id=item.getAttribute('data-calc-id')||item.getAttribute('data-id')||'';
+        const href=item.getAttribute('href')||'';
+        if(!id&&href){
+          const m=href.match(/[?&]calc=([^&#]+)/);
+          if(m)try{id=decodeURIComponent(m[1])}catch(e){id=m[1]}
+        }
+        if(!id){
+          const oc=item.getAttribute('onclick')||'';
+          const m=oc.match(/renderCalc\s*\(\s*['"]([^'"]+)['"]/);
+          if(m)id=m[1];
+        }
+        return id;
+      }
 
       function save(){
         try{localStorage.setItem(storageKey,JSON.stringify(getHeaders().map((h,i)=>({i,open:h.getAttribute('aria-expanded')==='true'||!!h.closest('.gh-cat-block.open')}))))}catch(e){}
@@ -32,38 +66,59 @@
           getHeaders().forEach((h,i)=>{const x=state[i];if(!x)return;const open=!!x.open;h.setAttribute('aria-expanded',String(open));const b=h.closest('.gh-cat-block');const p=b&&b.querySelector('.gh-cat-items');if(b&&p){b.classList.toggle('open',open);p.hidden=!open;if(open)p.style.removeProperty('display');else p.style.setProperty('display','none','important')}});
         }catch(e){}
       }
-      function clear(){
-        getItems().forEach(n=>n.classList.remove('gh-nav-match','gh-nav-hidden'));
-        getBlocks().forEach(b=>b.classList.remove('gh-nav-match'));
+
+      function clearSearch(){
+        getItems().forEach(n=>n.classList.remove('gh-nav-hidden','gh-nav-match','gh-nav-focus'));
+        getBlocks().forEach(b=>b.classList.remove('gh-nav-hidden','gh-nav-match'));
+        if(resultsHost){resultsHost.innerHTML='';resultsHost.classList.add('gh-nav-hidden')}
       }
+
       function search(value){
-        const q=text({textContent:value});
-        clear();
+        clearSearch();
+        const q=lower(value);
         if(!q)return;
 
-        const items=getItems();
-        items.forEach(item=>{
-          const hit=text(item).includes(q);
-          item.classList.toggle('gh-nav-hidden',!hit);
-          item.classList.toggle('gh-nav-match',hit);
-          if(hit){
-            const b=item.closest('.gh-cat-block');
-            if(b){
-              b.classList.add('open');
-              const p=b.querySelector('.gh-cat-items');
-              const h=b.querySelector('.gh-cat-head');
-              if(p){p.hidden=false;p.style.removeProperty('display')}
-              if(h)h.setAttribute('aria-expanded','true');
-            }
+        const matches=[];
+        const seen=new Set();
+        getItems().forEach(item=>{
+          const name=cleanText(item.textContent);
+          if(!name)return;
+          if(lower(name).includes(q)){
+            const id=getId(item);
+            const key=id||name.toLowerCase();
+            if(!seen.has(key)){seen.add(key);matches.push({id,name,item})}
           }
+          item.classList.add('gh-nav-hidden');
         });
 
-        // If the search implementation renders links outside the normal
-        // calculator list, explicitly reveal matching calculator links.
-        d.querySelectorAll('a[href*="?calc="]').forEach(el=>{
-          const hit=text(el).includes(q);
-          el.classList.toggle('gh-nav-hidden',!hit);
-          el.classList.toggle('gh-nav-match',hit);
+        getBlocks().forEach(b=>b.classList.add('gh-nav-hidden'));
+
+        const host=ensureHost();
+        if(!host)return;
+        host.innerHTML='';
+        host.classList.remove('gh-nav-hidden');
+
+        if(!matches.length){
+          const empty=d.createElement('div');
+          empty.className='gh-search-empty';
+          empty.textContent='No calculators found for '+cleanText(value)+'.';
+          host.appendChild(empty);
+          return;
+        }
+
+        matches.forEach(match=>{
+          const button=d.createElement('button');
+          button.type='button';
+          button.className='gh-search-result';
+          button.dataset.calcId=match.id||'';
+          button.dataset.calcName=match.name;
+          const label=d.createElement('span');
+          label.textContent=match.name;
+          const arrow=d.createElement('span');
+          arrow.className='arrow';
+          arrow.textContent='›';
+          button.append(label,arrow);
+          host.appendChild(button);
         });
       }
 
@@ -73,57 +128,55 @@
         input.addEventListener('keydown',e=>{if(e.key==='Escape'){input.value='';search('');input.blur()}});
       }
 
-      // Own calculator-result routing at capture time. The master build uses
-      // inline onclick handlers, but iOS Safari can lose those handlers when
-      // the search result DOM is rebuilt. Routing here makes the tap reliable
-      // and falls back to the query-string route if rendering throws.
       d.addEventListener('click',e=>{
-        const h=e.target.closest&&e.target.closest('.gh-cat-head,.cat-header-toggle');
-        if(h)setTimeout(save,0);
+        const header=e.target.closest&&e.target.closest('.gh-cat-head,.cat-header-toggle');
+        if(header)setTimeout(save,0);
 
+        const result=e.target.closest&&e.target.closest('.gh-search-result');
+        if(result){
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          let id=result.dataset.calcId||'';
+          if(!id){
+            const wanted=lower(result.dataset.calcName);
+            const found=getItems().find(item=>lower(item.textContent)===wanted);
+            id=found&&getId(found)||'';
+          }
+          if(id&&typeof w.renderCalc==='function'){
+            try{w.renderCalc(id,false)}catch(err){console.error('Gearhead Labs calculator navigation failed',id,err)}
+          }
+          return;
+        }
+
+        // Leave the original calculator click behavior intact. This repair
+        // only owns the new isolated search-result buttons.
         const item=e.target.closest&&e.target.closest('.calc-item,[data-calc-id],.gh-nav-item,a[href*="?calc="]');
-        if(!item)return;
-
-        getItems().forEach(n=>n.classList.remove('gh-nav-focus'));
-        item.classList.add('gh-nav-focus');
-
-        let id=item.getAttribute('data-calc-id')||item.getAttribute('data-id')||'';
-        const href=item.getAttribute('href')||'';
-        if(!id && href){
-          const m=href.match(/[?&]calc=([^&]+)/);
-          if(m){try{id=decodeURIComponent(m[1])}catch(err){id=m[1]}}
-        }
-        if(!id || typeof w.renderCalc!=='function')return;
-
-        e.preventDefault();
-        e.stopPropagation();
-        try{
-          w.renderCalc(id,true);
-          if(href)w.history.replaceState(null,'',href);
-          if(w.innerWidth<=640)d.getElementById('sidebar')?.classList.remove('open');
-        }catch(err){
-          console.error('Gearhead Labs calculator route failed',id,err);
-          if(href)w.location.href=href;
-        }
+        if(item)item.classList.add('gh-nav-focus');
       },true);
 
       d.addEventListener('keydown',e=>{
-        if(e.key==='/' && !/input|textarea|select/i.test(e.target.tagName||'')){e.preventDefault();input&&input.focus();}
+        if(e.key==='/'&&!/input|textarea|select/i.test(e.target.tagName||'')){e.preventDefault();input&&input.focus()}
       });
+
       restore();
       if(input&&input.value)search(input.value);
       w.__GH_NAV_UX={search,restore,save,count:getItems().length};
     }catch(e){console.error('Gearhead Labs navigation UX failed',e)}
   }
+
   function wait(){
     try{
       const f=document.getElementById('app');
-      if(f&&f.contentWindow){
-        install(f.contentWindow);
-        setTimeout(()=>install(f.contentWindow),300);
-        setTimeout(()=>install(f.contentWindow),1000);
+      if(!f||!f.contentWindow)return;
+      const w=f.contentWindow;
+      // Do not mark the child installed until its actual search input exists.
+      if(w.document&&w.document.readyState!=='loading'&&w.document.querySelector('#search-input,.search-input,input[type="search"]')){
+        install(w);
+      }else{
+        setTimeout(wait,100);
       }
-    }catch(e){}
+    }catch(e){setTimeout(wait,100)}
   }
-  window.addEventListener('load',wait);wait();
+  window.addEventListener('load',wait);
+  wait();
 })();
