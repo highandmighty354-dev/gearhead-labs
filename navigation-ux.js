@@ -1,7 +1,7 @@
 /* Gearhead Labs — Navigation / UX layer
    Search is intentionally simple: typing filters the visible calculator
    library to matching calculators only, then exposes those matches as clean
-   standalone results. Selecting a result uses the normal calculator renderer.
+   standalone results. Selecting a result uses the normal calculator router.
 */
 (function(){
   function install(w){
@@ -54,6 +54,31 @@
           if(m)id=m[1];
         }
         return id;
+      }
+
+      function openCalculator(id){
+        if(!id)return false;
+        const route='?calc='+encodeURIComponent(id);
+        try{
+          if(typeof w.ghRoute==='function'){
+            w.history.pushState(null,'',route);
+            w.ghRoute();
+            if(w.innerWidth<=640)d.getElementById('sidebar')?.classList.remove('open');
+            return true;
+          }
+        }catch(err){console.error('Gearhead Labs calculator route failed',id,err)}
+        try{
+          if(typeof w.renderCalc==='function'){
+            w.renderCalc(id,false);
+            if(w.innerWidth<=640)d.getElementById('sidebar')?.classList.remove('open');
+            return true;
+          }
+        }catch(err){console.error('Gearhead Labs calculator renderer failed',id,err)}
+        try{
+          w.location.search=route;
+          return true;
+        }catch(err){console.error('Gearhead Labs calculator location fallback failed',id,err)}
+        return false;
       }
 
       function save(){
@@ -142,14 +167,10 @@
             const found=getItems().find(item=>lower(item.textContent)===wanted);
             id=found&&getId(found)||'';
           }
-          if(id&&typeof w.renderCalc==='function'){
-            try{w.renderCalc(id,false)}catch(err){console.error('Gearhead Labs calculator navigation failed',id,err)}
-          }
+          openCalculator(id);
           return;
         }
 
-        // Leave the original calculator click behavior intact. This repair
-        // only owns the new isolated search-result buttons.
         const item=e.target.closest&&e.target.closest('.calc-item,[data-calc-id],.gh-nav-item,a[href*="?calc="]');
         if(item)item.classList.add('gh-nav-focus');
       },true);
@@ -160,7 +181,7 @@
 
       restore();
       if(input&&input.value)search(input.value);
-      w.__GH_NAV_UX={search,restore,save,count:getItems().length};
+      w.__GH_NAV_UX={search,restore,save,count:getItems().length,openCalculator};
     }catch(e){console.error('Gearhead Labs navigation UX failed',e)}
   }
 
@@ -169,7 +190,6 @@
       const f=document.getElementById('app');
       if(!f||!f.contentWindow)return;
       const w=f.contentWindow;
-      // Do not mark the child installed until its actual search input exists.
       if(w.document&&w.document.readyState!=='loading'&&w.document.querySelector('#search-input,.search-input,input[type="search"]')){
         install(w);
       }else{
