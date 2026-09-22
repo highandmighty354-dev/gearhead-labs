@@ -1,4 +1,56 @@
-# GEARHEAD LABS — VERIFICATION HANDOFF (F1.10.6)
+# GEARHEAD LABS — HANDOFF (F1.11.0 · M1 in progress)
+
+**Current file:** `F1_11_0_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html`
+**Frozen reference / rollback:** `F1.10.6-FINAL` (git tag). Unchanged, and still passes its own gate.
+**Release gate:** `npm install && ./verify-all.sh <file.html>`. That is 4 gates: syntax, 15 static suites, 3 live suites, 5 engine suites, plus the Node engine tests. Every one must pass.
+
+**Read next:**
+- `ENGINE.md`: what the engine is, its API, the Unknown≠Zero contract, and the proof standard
+- `DECISIONS.md`: the owner decisions D-001 to D-005
+- `CHANGELOG-F1_11_0.md`: what changed
+- `engine-pending.json`: the 44 calculators not yet migrated, each with a reason
+- `CATEGORY-RECONCILIATION.md`
+
+## M1 status
+
+- **Step 1 — done (F1.11.0):**
+  - `v()` Unknown≠Zero
+  - `GH_ENGINE` 1.0.0 embedded and Node-usable
+  - **215 calculators proven equal to the live page** (3,176 comparisons)
+  - negative controls confirmed
+
+**Next steps, in order (smallest safe first):**
+
+1. **M1.2 — close the 37 fixable pending calculators.**
+   - 24 DOMAIN_RULES_NEEDED: add each live renderer's guard to its registry expression, using the pattern already in the registry: `[..].every(n=>n>0) ? expr : NaN`.
+   - 13 REGISTRY_INCOMPLETE: add the missing input to the registry entry.
+   - Each is re-proven by LIVE_PARITY before it moves to `engine-migrated.json`.
+   - Registry expressions change, but the displayed math does not; STATIC + LIVE gates must stay green.
+2. **M1.3 — understeer_gradient per D-004.**
+   - Add vehicle weight; compute Kus = Wf/Cf − Wr/Cr in deg/g.
+   - Update the live renderer, registry, example text and exception entry together.
+   - This is a deliberate change to a displayed value, so it goes in its own version.
+3. **M1.4 — retire duplicated math.**
+   - For migrated calculators, make the live renderer take its numbers from `GH_ENGINE.calculate()` instead of its own inline math.
+   - Go one family at a time, with LIVE_PARITY + RENDER_STABLE + DEFAULT_EXAMPLE green after each.
+4. **Owner decisions still open:**
+   - `bolt_pattern` measurement convention (engineering defect, see changelog)
+   - `pinion_angle_change` 0° display
+   - `optimal_shift` registry stub
+   - `ev_motor_power` kW vs HP
+   - the 6 example-copy decisions from F1.10.6
+5. **M2 — canonical fields and value model:** a Supabase/Postgres schema per D-001 to D-003.
+
+## Rules added in M1
+
+- **Parity is proven against the live page, never assumed from the registry.** 44 calculators passed the static DIFFERENTIAL check yet diverge from the live page away from their default inputs.
+- **The engine never coerces.** `0` is known; `null`, `undefined`, `NaN`, `''` and strings are unknown. An unknown input gives `INCOMPLETE` with null outputs.
+- **`gh-engine.js` is the only engine source.** Rebuild the page's `GH_ENGINE` block from it; the gate checks byte identity.
+- **Do not put formulas in the engine.** Formula fixes go in the registry, then get re-proven.
+
+---
+
+# PREVIOUS HANDOFF — F1.10.6 (frozen baseline; still accurate for that version)
 
 **Current file:** `F1_10_6_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html`
 **Release gate:** `./verify-all.sh <file.html>` exits 0 only if ALL of these pass:

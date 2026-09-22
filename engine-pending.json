@@ -1,0 +1,197 @@
+{
+ "about": "DIFFERENTIAL-passing calculators that did NOT prove full live parity. Not migrated. Each needs the fix described before it can join engine-migrated.json.",
+ "reasons": {
+  "REGISTRY_INCOMPLETE": "Live calculator has an input (usually a unit/mode selector or a physical constant exposed as an input) that the registry formula does not have. The registry only matches the live page for the default setting. Fix: add the input to the registry entry, then re-prove.",
+  "DOMAIN_RULES_NEEDED": "Values agree everywhere both compute, but the live renderer rejects a zero (or non-positive) input that the registry expression evaluates. The engine must not call VALID what the product calls invalid. Fix: add the live guard to the registry expression using the existing registry pattern ([..].every(n=>n>0) ? expr : NaN), then re-prove.",
+  "REGISTRY_STUB": "Registry formula is a simplified stand-in that agrees with the live algorithm only at default inputs.",
+  "LIVE_DEFECT": "Live renderer shows a number for physically invalid input, or has an engineering defect found during parity. Needs an owner-visible fix in the live calculator before migration.",
+  "UNIT_DIVERGENCE": "Registry and live display the same quantity in different units.",
+  "MODE_DEPENDENT": "Calculator has solve-for modes; some registry inputs are not rendered in the default mode, so they cannot be bound. Needs per-mode registry entries."
+ },
+ "counts": {
+  "DOMAIN_RULES_NEEDED": 24,
+  "REGISTRY_STUB": 1,
+  "UNIT_DIVERGENCE": 1,
+  "REGISTRY_INCOMPLETE": 13,
+  "MODE_DEPENDENT": 3,
+  "LIVE_DEFECT": 2
+ },
+ "pending": {
+  "weight_reduction": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: wt3=0"
+  },
+  "static_compression": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: bore2=0, stroke2=0"
+  },
+  "optimal_shift": {
+   "reason": "REGISTRY_STUB",
+   "detail": "Registry: shift RPM = peak-HP RPM (3 inputs). Live: searches the torque curve for the shift point that maximises wheel torque (7 inputs). Also shows a shift RPM when peak-HP RPM is 0."
+  },
+  "crawl_ratio_tire": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: raw_cr=0, stock_d=0, new_d=0"
+  },
+  "tire_size": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: tw=0, ar=0, wr=0"
+  },
+  "air_density": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: presInHg=0"
+  },
+  "dyno_correction": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: hp_raw=0"
+  },
+  "ev_motor_power": {
+   "reason": "UNIT_DIVERGENCE",
+   "detail": "Registry output \"Motor Power (kW)\" = 340.8 kW; live displays the same power as 457 HP. Per the canonical-units decision (native US/Imperial), the registry output should be HP; that is a formula change and needs re-verification."
+  },
+  "ev_quarter_mile": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: wt=0, hp=0, util=0"
+  },
+  "valve_lash": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: rocker_r=0"
+  },
+  "hp_from_specs": {
+   "reason": "REGISTRY_INCOMPLETE",
+   "detail": "Missing registry input(s): Air Density"
+  },
+  "valve_spring_rate": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: d=0, n=0, D=0"
+  },
+  "breakover_angle": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: wb=0"
+  },
+  "rc_downforce": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: area=0"
+  },
+  "winch_line_pull": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: gvwr=0, mult=0, rated=0"
+  },
+  "distance_converter": {
+   "reason": "REGISTRY_INCOMPLETE",
+   "detail": "Missing registry input(s): From Unit"
+  },
+  "volume_converter": {
+   "reason": "REGISTRY_INCOMPLETE",
+   "detail": "Missing registry input(s): From"
+  },
+  "pressure_converter": {
+   "reason": "REGISTRY_INCOMPLETE",
+   "detail": "Missing registry input(s): From"
+  },
+  "power_converter": {
+   "reason": "REGISTRY_INCOMPLETE",
+   "detail": "Missing registry input(s): From"
+  },
+  "wind_et": {
+   "reason": "REGISTRY_INCOMPLETE",
+   "detail": "Missing registry input(s): Wind Direction"
+  },
+  "max_rpm": {
+   "reason": "REGISTRY_INCOMPLETE",
+   "detail": "Missing registry input(s): Application"
+  },
+  "fuse_sizing": {
+   "reason": "REGISTRY_INCOMPLETE",
+   "detail": "Live has a Load Type selector (continuous/non-continuous) and a Next Standard Size output; registry models only the continuous 1.25x case."
+  },
+  "ring_gap": {
+   "reason": "REGISTRY_INCOMPLETE",
+   "detail": "Missing registry input(s): Application"
+  },
+  "bearing_life": {
+   "reason": "REGISTRY_INCOMPLETE",
+   "detail": "Missing registry input(s): Bearing Type"
+  },
+  "dynamic_compression": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: scr=0"
+  },
+  "hp_quarter_mile": {
+   "reason": "MODE_DEPENDENT",
+   "detail": "Trap-speed vs ET mode; the ET input is not rendered in the default (trap) mode."
+  },
+  "reverse_displacement": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: disp2=0"
+  },
+  "portal_gear_reduction": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: pgr_axle=0, pgr_portal=0"
+  },
+  "pinion_angle_change": {
+   "reason": "LIVE_DEFECT",
+   "detail": "Live displays 0° (with a warning line) when the axle-to-pivot distance is 0, where the angle is undefined. Unknown/invalid must not display as zero. Engine returns atan(x/0)=90°, also invalid: needs a >0 domain rule in the registry."
+  },
+  "speed_converter": {
+   "reason": "REGISTRY_INCOMPLETE",
+   "detail": "Missing registry input(s): From Unit"
+  },
+  "temp_converter": {
+   "reason": "REGISTRY_INCOMPLETE",
+   "detail": "Missing registry input(s): From"
+  },
+  "time_speed_dist": {
+   "reason": "MODE_DEPENDENT",
+   "detail": "Solve-for distance/time/speed modes; the distance input is hidden in the default mode."
+  },
+  "bolt_pattern": {
+   "reason": "LIVE_DEFECT",
+   "detail": "Registry hard-codes 5 lugs (ignores the lug-count input). Live mixes measurement conventions (adjacent-stud geometry for 4/5/8 lugs, PCD = measurement for 6) and its fallback branch for other lug counts returns meas/(2 sin(π/n)), a RADIUS, labelled as bolt-circle DIAMETER (2x error). Needs a sourced convention decision."
+  },
+  "e85_blend": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: tank_gal=0, target_e=0, e85_pct=0"
+  },
+  "curtain_area": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: port_ca=0"
+  },
+  "mach_index": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: mi_q=0, mi_a=0, mi_c=0"
+  },
+  "rc_watt_link": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: ph_len=0, ph_wb=0"
+  },
+  "diesel_airflow": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: da_disp=0, da_rpm=0, da_ve=0, da_air=0"
+  },
+  "tire_size_comparison": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: tsc_ow=0, tsc_oa=0, tsc_od=0, tsc_nw=0, tsc_na=0, tsc_nd=0"
+  },
+  "brake_bias": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: wt_bb=0"
+  },
+  "master_cylinder": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: mc_pedal=0, mc_ratio=0, mc_pressure=0"
+  },
+  "throttle_body": {
+   "reason": "DOMAIN_RULES_NEEDED",
+   "detail": "Live rejects: tb_cid=0, tb_rpm=0, tb_ve=0, tb_vel=0"
+  },
+  "injector_flow": {
+   "reason": "REGISTRY_INCOMPLETE",
+   "detail": "Missing registry input(s): From"
+  },
+  "diesel_injector_flow": {
+   "reason": "MODE_DEPENDENT",
+   "detail": "Not all registry inputs are rendered with defaults; needs per-mode review."
+  }
+ }
+}

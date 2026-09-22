@@ -3,6 +3,7 @@
 #   ./verify-all.sh <encyclopedia.html>
 # Gates: 1) every inline <script> block parses  2) gh-verify.js (15 static suites)
 #        3) gh-verify-live.js (3 live-page suites; needs: npm install)
+#        4) gh-verify-engine.js (engine embed, Unknown!=Zero, Node==browser, live parity)
 set -u
 FILE="${1:?usage: ./verify-all.sh <encyclopedia.html>}"
 DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -27,5 +28,8 @@ if ! node -e "require.resolve('jsdom')" --prefix "$DIR" 2>/dev/null && [ ! -d "$
 else
   node --max-old-space-size=6000 "$DIR/gh-verify-live.js" "$FILE" || fail=1
 fi
+echo; echo "== GATE 4: engine (gh-verify-engine.js) =="
+if [ ! -d "$DIR/node_modules/jsdom" ]; then echo "  x jsdom not installed"; fail=1
+else node --max-old-space-size=6000 "$DIR/gh-verify-engine.js" "$FILE" || fail=1; node "$DIR/engine.test.js" "$(basename "$FILE")" > /tmp/gh-engine-test.txt 2>&1 && echo "[PASS] ENGINE_NODE_TESTS  $(tail -1 /tmp/gh-engine-test.txt)" || { cat /tmp/gh-engine-test.txt; fail=1; }; fi
 echo; [ $fail -eq 0 ] && echo "RELEASE GATE: PASS" || echo "RELEASE GATE: FAIL"
 exit $fail
