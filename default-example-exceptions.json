@@ -1,0 +1,661 @@
+{
+ "_about": "Documented exceptions for the DEFAULT_EXAMPLE invariant (gh-verify-live.js). Every calculator not listed here must open showing a number its own CONTENT.example states. An entry that starts reproducing its example FAILS the suite as stale and must be removed. Reasons: QUALITATIVE (example has no number / result is a verdict), NO_STATED_RESULT (example restates inputs but never states the answer), NON_DEFAULT_SCENARIO (example is a correct worked case with different inputs, kept deliberately), INTERACTIVE (simulator/stateful tool, no single result), MODE_DEPENDENT (needs a selection before a result exists), OPEN_DECISION (needs an owner decision; see note).",
+ "counts": {
+  "QUALITATIVE": 40,
+  "NO_STATED_RESULT": 48,
+  "MODE_DEPENDENT": 1,
+  "INTERACTIVE": 12,
+  "OPEN_DECISION": 1,
+  "NON_DEFAULT_SCENARIO": 6
+ },
+ "exceptions": {
+  "trailer_sway": {
+   "reason": "QUALITATIVE",
+   "note": "Result is a categorical risk rating (\"High risk\"), which is exactly what the example states; the 0.93 figure in the example is an intermediate ratio the tool does not display.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Sway Risk Assessment=High risk"
+  },
+  "ev_quarter_mile": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Effective Power=530 HP; Estimated 0-60=4.88 sec; Quarter-Mile ET=11.61 sec; Trap Speed=117.4 mph. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Effective Power=530 HP; Estimated 0-60=4.88 sec; Quarter-Mile ET=11.61 sec; Trap Speed=117.4 mph"
+  },
+  "ev_tire_wear": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Tire Wear Index vs. ICE Baseline=1.83x. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Tire Wear Index vs. ICE Baseline=1.83x"
+  },
+  "torque_converter": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Vehicle Speed at Stall=27 mph; Theoretical Wheel Torque=9,065 lb-ft; Overall Launch Ratio=9.25 :1. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Vehicle Speed at Stall=27 mph; Theoretical Wheel Torque=9,065 lb-ft; Overall Launch Ratio=9.25 :1"
+  },
+  "roll_out": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Roll-Out Distance=10.996in. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Roll-Out Distance=10.996in"
+  },
+  "engine_airflow": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Airflow Required=629CFM. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Airflow Required=629CFM"
+  },
+  "carb_sizing": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Recommended Carb Size=629CFM. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Recommended Carb Size=629CFM"
+  },
+  "throttle_body": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Engine Airflow Demand=665.6 CFM; Required Bore Area=9.128 in²; Required Bore (inches)=3.409 in; Required Bore (metric)=87 mm. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Engine Airflow Demand=665.6 CFM; Required Bore Area=9.128 in²; Required Bore (inches)=3.409 in; Required Bore (metric)=87 mm"
+  },
+  "exhaust_header": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Primary Tube Area=3.321 sq in; Primary ID=2.056 in; Tuned Primary Length=44.9 in. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Primary Tube Area=3.321 sq in; Primary ID=2.056 in; Tuned Primary Length=44.9 in"
+  },
+  "octane_for_cr": {
+   "reason": "QUALITATIVE",
+   "note": "By design the tool establishes that no unique octane number exists for a compression ratio (Unknown != Zero); the example says the same thing in words.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "What Gearhead Labs Can Establish=No unique octane number"
+  },
+  "hp_quarter_mile": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Estimated Flywheel Horsepower=~383HP. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Estimated Flywheel Horsepower=~383HP"
+  },
+  "nitrous_jet": {
+   "reason": "MODE_DEPENDENT",
+   "note": "Result requires the visitor to pick an exact published manufacturer chart (system + pressure); on open no chart is selected, so the tool correctly refuses to invent a jet size (Unknown != Zero).",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Exact system required=Select an exact NX system/pressure and a horsepower level present in its published chart."
+  },
+  "reverse_displacement": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Solved Bore=4.2521 in; Solved Stroke=3.7536 in. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Solved Bore=4.2521 in; Solved Stroke=3.7536 in"
+  },
+  "rocker_valve_lift": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Valve Lift=0.45in.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Valve Lift=0.45in"
+  },
+  "hp_from_airflow": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Estimated HP Potential=~637HP. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Estimated HP Potential=~637HP"
+  },
+  "cc_to_cubic_inches": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Cubic Inches=0.06102374in³. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Cubic Inches=0.06102374in³"
+  },
+  "cubic_inches_to_liters": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Liters=0.01638706L. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Liters=0.01638706L"
+  },
+  "cam_card": {
+   "reason": "INTERACTIVE",
+   "note": "Simulator / stateful workbench: output is a chart, table or multi-step interactive state rather than a single result box. There is no single default-output number to compare with the example.",
+   "reviewed": "2026-09-22",
+   "live_at_review": null
+  },
+  "intake_port_cfm": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Pressure-Normalized CFM=300 CFM; Area/Pressure Estimate=285.7698 CFM. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Pressure-Normalized CFM=300 CFM; Area/Pressure Estimate=285.7698 CFM"
+  },
+  "exhaust_port_cfm": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Pressure-Normalized CFM=230 CFM; Area/Pressure Estimate=204.1213 CFM. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Pressure-Normalized CFM=230 CFM; Area/Pressure Estimate=204.1213 CFM"
+  },
+  "cfm_velocity_csa": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Solved Average Velocity=257.1429ft/sec.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Solved Average Velocity=257.1429ft/sec"
+  },
+  "head_flow_curve": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Interpolated Intake CFM=295CFM.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Interpolated Intake CFM=295CFM"
+  },
+  "engine_airflow_estimate": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Engine Volume Flow=297.5 CFM; CFM per Cylinder=49.5833 CFM/cyl; Ambient-Equivalent CFM=297.5 CFM; Air Mass Flow=22.7588 lb/min.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Engine Volume Flow=297.5 CFM; CFM per Cylinder=49.5833 CFM/cyl; Ambient-Equivalent CFM=297.5 CFM; Air Mass Flow=22.7588 lb/min"
+  },
+  "airflow_power_estimate": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Estimated Airflow=297.5 CFM; Estimated Air Mass=22.7588 lb/min; Estimated Fuel Flow=1.5482 lb/min; Estimated Horsepower=185.7857 HP; Estimat.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Estimated Airflow=297.5 CFM; Estimated Air Mass=22.7588 lb/min; Estimated Fuel Flow=1.5482 lb/min; Estimated Horsepower=185.7857 HP; Estimat"
+  },
+  "cg_3d": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: 3D CG Distance from Center Reference=18in. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "3D CG Distance from Center Reference=18in"
+  },
+  "fuse_size": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Min Fuse Rating=25 A; Next Standard Size=25 A. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Min Fuse Rating=25 A; Next Standard Size=25 A"
+  },
+  "tap_drill": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Tap Drill Size (M8×1.25)=6.782 mm.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Tap Drill Size (M8×1.25)=6.782 mm"
+  },
+  "hydraulic_cylinder_force": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Bore Area=3.142 in²; Extend Force=6,283 lbf; Retract Force=4,712 lbf.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Bore Area=3.142 in²; Extend Force=6,283 lbf; Retract Force=4,712 lbf"
+  },
+  "hydraulic_cylinder_speed": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Extend Speed=367.6 in/min; Retract Speed=490.2 in/min.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Extend Speed=367.6 in/min; Retract Speed=490.2 in/min"
+  },
+  "hydraulic_mechanical_advantage": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: System Pressure=127.3 psi; Output Force=1,600 lbf; Mechanical Advantage=16 x.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "System Pressure=127.3 psi; Output Force=1,600 lbf; Mechanical Advantage=16 x"
+  },
+  "power_steering_assist": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Piston Area=2.405 in²; Max Assist Force=2,886 lbf. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Piston Area=2.405 in²; Max Assist Force=2,886 lbf"
+  },
+  "hydraulic_reservoir_sizing": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Total Cylinder Displacement=31.4 in³; Line Volume=14.1 in³; Recommended Reservoir Size=0.25 gal.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Total Cylinder Displacement=31.4 in³; Line Volume=14.1 in³; Recommended Reservoir Size=0.25 gal"
+  },
+  "air_density": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Air Density=0.0762lb/ft³. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Air Density=0.0762lb/ft³"
+  },
+  "grains_water": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Water Vapor Pressure=17.79 hPa; Grains of Water=77.8 gr/lb.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Water Vapor Pressure=17.79 hPa; Grains of Water=77.8 gr/lb"
+  },
+  "baro_correction": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Pressure Ratio=1. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Pressure Ratio=1"
+  },
+  "jetting": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Estimated Jet=62; Change=-10 sizes; Direction=—.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Estimated Jet=62; Change=-10 sizes; Direction=—"
+  },
+  "density_altitude": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Density Altitude=130ft; Pressure Altitude=0ft; Station Pressure=29.92in Hg; Air Density=0.0024lb/ft³.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Density Altitude=130ft; Pressure Altitude=0ft; Station Pressure=29.92in Hg; Air Density=0.0024lb/ft³"
+  },
+  "sim_curve_editor": {
+   "reason": "INTERACTIVE",
+   "note": "Simulator / stateful workbench: output is a chart, table or multi-step interactive state rather than a single result box. There is no single default-output number to compare with the example.",
+   "reviewed": "2026-09-22",
+   "live_at_review": null
+  },
+  "sim_acceleration": {
+   "reason": "INTERACTIVE",
+   "note": "Simulator / stateful workbench: output is a chart, table or multi-step interactive state rather than a single result box. There is no single default-output number to compare with the example.",
+   "reviewed": "2026-09-22",
+   "live_at_review": null
+  },
+  "sim_braking": {
+   "reason": "INTERACTIVE",
+   "note": "Simulator / stateful workbench: output is a chart, table or multi-step interactive state rather than a single result box. There is no single default-output number to compare with the example.",
+   "reviewed": "2026-09-22",
+   "live_at_review": null
+  },
+  "sim_cornering": {
+   "reason": "INTERACTIVE",
+   "note": "Simulator / stateful workbench: output is a chart, table or multi-step interactive state rather than a single result box. There is no single default-output number to compare with the example.",
+   "reviewed": "2026-09-22",
+   "live_at_review": null
+  },
+  "sim_top_speed": {
+   "reason": "INTERACTIVE",
+   "note": "Simulator / stateful workbench: output is a chart, table or multi-step interactive state rather than a single result box. There is no single default-output number to compare with the example.",
+   "reviewed": "2026-09-22",
+   "live_at_review": null
+  },
+  "sim_dragstrip": {
+   "reason": "INTERACTIVE",
+   "note": "Simulator / stateful workbench: output is a chart, table or multi-step interactive state rather than a single result box. There is no single default-output number to compare with the example.",
+   "reviewed": "2026-09-22",
+   "live_at_review": null
+  },
+  "sim_gear_rpm": {
+   "reason": "INTERACTIVE",
+   "note": "Simulator / stateful workbench: output is a chart, table or multi-step interactive state rather than a single result box. There is no single default-output number to compare with the example.",
+   "reviewed": "2026-09-22",
+   "live_at_review": null
+  },
+  "sim_weight_transfer": {
+   "reason": "INTERACTIVE",
+   "note": "Simulator / stateful workbench: output is a chart, table or multi-step interactive state rather than a single result box. There is no single default-output number to compare with the example.",
+   "reviewed": "2026-09-22",
+   "live_at_review": null
+  },
+  "braking_distance": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Reaction Distance=66 ft; Braking Distance=150 ft; Total Stopping Distance=216 ft. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Reaction Distance=66 ft; Braking Distance=150 ft; Total Stopping Distance=216 ft"
+  },
+  "brake_rotor_temp": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Energy to Rotor=528.9 BTU; Temperature Rise=329.5 °F.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Energy to Rotor=528.9 BTU; Temperature Rise=329.5 °F"
+  },
+  "brake_clamp_force": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Piston Area (each)=2.405 in²; Total Piston Area=4.811 in²; Clamp Force=5,773 lbf. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Piston Area (each)=2.405 in²; Total Piston Area=4.811 in²; Clamp Force=5,773 lbf"
+  },
+  "brake_torque": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Brake Torque=366.6667lb-ft. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Brake Torque=366.6667lb-ft"
+  },
+  "brake_bias_hydraulic": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Front Hydraulic Bias=59%. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Front Hydraulic Bias=59%"
+  },
+  "rotor_heat": {
+   "reason": "QUALITATIVE",
+   "note": "No CONTENT.example text exists for this entry. Live opens showing: Energy to Rotor=528.9 BTU; Temperature Rise=329.5 °F.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Energy to Rotor=528.9 BTU; Temperature Rise=329.5 °F"
+  },
+  "pedal_force": {
+   "reason": "QUALITATIVE",
+   "note": "No CONTENT.example text exists for this entry. Live opens showing: Estimated Pedal Effort=~177.8lbf.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Estimated Pedal Effort=~177.8lbf"
+  },
+  "lease_vs_buy": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Lease Payment=447.26 $/mo; Lease Total Cost=18,101.36 $; Buy Payment=1,011.42 $/mo; Buy Net Cost (after equity)=24,411.12 $. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Lease Payment=447.26 $/mo; Lease Total Cost=18,101.36 $; Buy Payment=1,011.42 $/mo; Buy Net Cost (after equity)=24,411.12 $"
+  },
+  "total_cost_ownership": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Total Cost of Ownership=$38,250; Depreciation=15,750 $; Total Fuel=11,000 $; Total Insurance=7,000 $; Total Maintenance=4,500 $. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Total Cost of Ownership=$38,250; Depreciation=15,750 $; Total Fuel=11,000 $; Total Insurance=7,000 $; Total Maintenance=4,500 $"
+  },
+  "trade_in_payoff": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Negative Equity (Owed)=$3,000.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Negative Equity (Owed)=$3,000"
+  },
+  "depreciation_schedule": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Year 1=28,000 $; Year 2=24,640 $; Year 3=21,683 $; Year 4=19,081 $; Year 5=16,791 $. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Year 1=28,000 $; Year 2=24,640 $; Year 3=21,683 $; Year 4=19,081 $; Year 5=16,791 $"
+  },
+  "build_budget": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Budget Remaining=$15,000.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Budget Remaining=$15,000"
+  },
+  "insurance_estimator": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Est. Annual Premium=1,531 $; Est. Monthly Premium=128 $.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Est. Annual Premium=1,531 $; Est. Monthly Premium=128 $"
+  },
+  "refinance_savings": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Current Payment=552.71 $/mo; New Payment=515.66 $/mo; Monthly Savings=37.05 $; Total Savings=1,778.4 $. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Current Payment=552.71 $/mo; New Payment=515.66 $/mo; Monthly Savings=37.05 $; Total Savings=1,778.4 $"
+  },
+  "reaction_time": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Reaction Analysis=0.512. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Reaction Analysis=0.512"
+  },
+  "christmas_tree": {
+   "reason": "INTERACTIVE",
+   "note": "Simulator / stateful workbench: output is a chart, table or multi-step interactive state rather than a single result box. There is no single default-output number to compare with the example.",
+   "reviewed": "2026-09-22",
+   "live_at_review": null
+  },
+  "perfect_light": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Result=Opponent wins (better total time); Your Total=10.4 sec; Opp Total=10.38 sec.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Result=Opponent wins (better total time); Your Total=10.4 sec; Opp Total=10.38 sec"
+  },
+  "gear_shift_rpm_drag": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: 1st→2nd=4,530 RPM; 2nd→3rd=4,490 RPM; 3rd→4th=4,545 RPM.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "1st→2nd=4,530 RPM; 2nd→3rd=4,490 RPM; 3rd→4th=4,545 RPM"
+  },
+  "delay_box_setting": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Delay Box Setting=0.02 sec. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Delay Box Setting=0.02 sec"
+  },
+  "incremental_et": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: 330-660 Segment=2.6 sec; 660-1000 Segment=2.2 sec; 1000-1320 Segment=2.2 sec. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "330-660 Segment=2.6 sec; 660-1000 Segment=2.2 sec; 1000-1320 Segment=2.2 sec"
+  },
+  "ct_spring_split": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Front Split (LF−RF)=100 lbs/in; Rear Split (RR−LR)=-15 lbs/in; Front Roll Stiffness=1,300 lbs/in; Rear Roll Stiffness=385 lbs/in; F/R Ratio=. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Front Split (LF−RF)=100 lbs/in; Rear Split (RR−LR)=-15 lbs/in; Front Roll Stiffness=1,300 lbs/in; Rear Roll Stiffness=385 lbs/in; F/R Ratio="
+  },
+  "ct_panhard_roll": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Lateral Weight Transfer=300 lbs; % Rear Weight=10 %. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Lateral Weight Transfer=300 lbs; % Rear Weight=10 %"
+  },
+  "ct_moment_center": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: MC Height=7 in; MC Offset from CL=-1 in.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "MC Height=7 in; MC Offset from CL=-1 in"
+  },
+  "ct_track_bar_adj": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Lateral Weight Transfer Change=+60 lbs. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Lateral Weight Transfer Change=+60 lbs"
+  },
+  "ct_jacking_bolt": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Load Change per Round=1.6lbs. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Load Change per Round=1.6lbs"
+  },
+  "ct_tire_temp_balance": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: F L/R Spread=30 °F; R L/R Spread=30 °F.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "F L/R Spread=30 °F; R L/R Spread=30 °F"
+  },
+  "ct_push_loose": {
+   "reason": "INTERACTIVE",
+   "note": "Simulator / stateful workbench: output is a chart, table or multi-step interactive state rather than a single result box. There is no single default-output number to compare with the example.",
+   "reviewed": "2026-09-22",
+   "live_at_review": null
+  },
+  "rc_pit_strategy": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Total Laps=37 laps; Total Fuel=4.44 gal; Pit Stops=0 stops; Laps per Stint=37 laps; First Stop Lap=37 lap; Undercut Window=15 laps. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Total Laps=37 laps; Total Fuel=4.44 gal; Pit Stops=0 stops; Laps per Stint=37 laps; First Stop Lap=37 lap; Undercut Window=15 laps"
+  },
+  "rc_lap_delta": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Estimated Delta=0.03 sec; New Lap Time=94.97 sec.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Estimated Delta=0.03 sec; New Lap Time=94.97 sec"
+  },
+  "rc_roll_center": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Roll Center Height=1.25 in.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Roll Center Height=1.25 in"
+  },
+  "rc_undercut": {
+   "reason": "QUALITATIVE",
+   "note": "Result is a YES/NO viability verdict plus supporting figures; the example states the verdict (\"NOT viable\", slightly negative pace advantage) which matches the live output (NO, -0.2 sec/lap).",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Undercut Viable?=NO; Pace Advantage=-0.2 sec/lap; Laps to Recover=— laps; Overcut Laps Needed=22.5 laps"
+  },
+  "tap_drill_size": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Tap Drill Size (M8×1.25)=6.782 mm.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Tap Drill Size (M8×1.25)=6.782 mm"
+  },
+  "bolt_torque_spec": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Recommended Torque=43.6 ft-lbs; Target Clamp Load=6,974 lbs. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Recommended Torque=43.6 ft-lbs; Target Clamp Load=6,974 lbs"
+  },
+  "drill_decimal": {
+   "reason": "QUALITATIVE",
+   "note": "No CONTENT.example text exists for this entry. Live opens showing: Decimal Equivalent=0.2570 in.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Decimal Equivalent=0.2570 in"
+  },
+  "feeds_speeds": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Spindle Speed=764 RPM; Feed Rate=3.06 in/min. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Spindle Speed=764 RPM; Feed Rate=3.06 in/min"
+  },
+  "bolt_stretch": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Target Stretch=0.8 thou (.001\"); Estimated Clamp Load=899 lbs; Bolt Stress=11,600 psi. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Target Stretch=0.8 thou (.001\"); Estimated Clamp Load=899 lbs; Bolt Stress=11,600 psi"
+  },
+  "sheet_gauge": {
+   "reason": "QUALITATIVE",
+   "note": "No CONTENT.example text exists for this entry. Live opens showing: Thickness=0.0478 in; Thickness (mm)=1.214 mm.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Thickness=0.0478 in; Thickness (mm)=1.214 mm"
+  },
+  "decimal_fraction_universal": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Result=0.3125 in.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Result=0.3125 in"
+  },
+  "bearing_life": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: L10 Life=15.6 M revolutions; L10 Life (hours)=87 hrs; L10 Life (days @ 24hr)=4 days.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "L10 Life=15.6 M revolutions; L10 Life (hours)=87 hrs; L10 Life (days @ 24hr)=4 days"
+  },
+  "resistor_color": {
+   "reason": "QUALITATIVE",
+   "note": "No CONTENT.example text exists for this entry. Live opens showing: Resistance Value=1kΩ ±5%.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Resistance Value=1kΩ ±5%"
+  },
+  "ac_pressure": {
+   "reason": "QUALITATIVE",
+   "note": "No CONTENT.example text exists for this entry. Live opens showing: Saturation Pressure=119 psia; Saturation Pressure (gauge)=104.3 psig.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Saturation Pressure=119 psia; Saturation Pressure (gauge)=104.3 psig"
+  },
+  "distance_converter": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Miles=1 mi; Kilometers=1.6093 km; Feet=5,280 ft; Meters=1,609.34 m.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Miles=1 mi; Kilometers=1.6093 km; Feet=5,280 ft; Meters=1,609.34 m"
+  },
+  "time_speed_dist": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Distance=0.167miles.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Distance=0.167miles"
+  },
+  "fuel_line_loss": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Flow Velocity=2.42 ft/s; Reynolds Number=8,659; Darcy Friction Factor=0.0408; Pressure Drop=0.38 psi. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Flow Velocity=2.42 ft/s; Reynolds Number=8,659; Darcy Friction Factor=0.0408; Pressure Drop=0.38 psi"
+  },
+  "fuse_sizing": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Min Fuse Rating=25 A; Next Standard Size=25 A. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Min Fuse Rating=25 A; Next Standard Size=25 A"
+  },
+  "pressure_converter": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: PSI=14.7 psi; bar=1.0135 bar; kPa=101.353 kPa; atm=1.0003 atm.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "PSI=14.7 psi; bar=1.0135 bar; kPa=101.353 kPa; atm=1.0003 atm"
+  },
+  "power_converter": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: HP (SAE)=425 hp; kW=316.92 kW; PS / CV=430.89 PS.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "HP (SAE)=425 hp; kW=316.92 kW; PS / CV=430.89 PS"
+  },
+  "tire_size": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Sidewall Height=4.3406 in; Overall Diameter=25.681 in; Circumference=80.679 in; Rev/Mile=785.3 rev. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Sidewall Height=4.3406 in; Overall Diameter=25.681 in; Circumference=80.679 in; Rev/Mile=785.3 rev"
+  },
+  "tire_size_comparison": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Old Diameter=28.878 in; New Diameter=31.606 in; Diameter Change=9.45 %; Ground Clearance Change=1.364 in; Old Rev/Mile=698.4 rev; New Rev/Mi. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Old Diameter=28.878 in; New Diameter=31.606 in; Diameter Change=9.45 %; Ground Clearance Change=1.364 in; Old Rev/Mile=698.4 rev; New Rev/Mi"
+  },
+  "weight_transfer": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Weight Transfer=456lbs. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Weight Transfer=456lbs"
+  },
+  "cross_weight": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Cross Weight %=51.5%; Left Front=25 %; Right Front=26.5 %; Left Rear=22.1 %; Right Rear=26.5 %. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Cross Weight %=51.5%; Left Front=25 %; Right Front=26.5 %; Left Rear=22.1 %; Right Rear=26.5 %"
+  },
+  "approach_departure_angle": {
+   "reason": "QUALITATIVE",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Approach Angle=15.6 °; Departure Angle=19.3 °.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Approach Angle=15.6 °; Departure Angle=19.3 °"
+  },
+  "caster_from_camber": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Estimated Caster=~2.92°. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Estimated Caster=~2.92°"
+  },
+  "understeer_gradient": {
+   "reason": "OPEN_DECISION",
+   "note": "Example states no number. Separately flagged for a product decision: the live renderer computes (front weight % / front stiffness) - (rear weight % / rear stiffness) x 1000, a sign-correct balance INDEX, and labels it \"Kus\". True Kus in deg/g needs axle weights in lb (i.e. a vehicle-weight input). Sign and balance verdict are correct; the magnitude is not Kus in deg/g.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Understeer Gradient (Kus)=19.05"
+  },
+  "bump_steer": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Bump Steer Rate=0.05 in/in. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Bump Steer Rate=0.05 in/in"
+  },
+  "caster_trail_effect": {
+   "reason": "NO_STATED_RESULT",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Camber Gain from Caster=1.553°. Content recommendation: state the result.",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Camber Gain from Caster=1.553°"
+  },
+  "kelvin_to_fahrenheit": {
+   "reason": "NON_DEFAULT_SCENARIO",
+   "note": "Default is a realistic 293.15 K (room temperature, opens showing Fahrenheit=68°F); the example deliberately uses 1 K to show the offset. Both are correct. Defaulting a converter to 1 K would be a worse product; recommended copy update to the 293.15 K case (owner decision).",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Fahrenheit=68°F"
+  },
+  "kelvin_to_celsius": {
+   "reason": "NON_DEFAULT_SCENARIO",
+   "note": "Default is a realistic 293.15 K (room temperature, opens showing Celsius=20°C); the example deliberately uses 1 K to show the offset. Both are correct. Defaulting a converter to 1 K would be a worse product; recommended copy update to the 293.15 K case (owner decision).",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Celsius=20°C"
+  },
+  "universal_automotive_converter": {
+   "reason": "INTERACTIVE",
+   "note": "Simulator / stateful workbench: output is a chart, table or multi-step interactive state rather than a single result box. There is no single default-output number to compare with the example.",
+   "reviewed": "2026-09-22",
+   "live_at_review": null
+  },
+  "bmep_from_torque": {
+   "reason": "NON_DEFAULT_SCENARIO",
+   "note": "This page renders the shared canonical calculator 'bmep' (RENDERS.bmep_from_torque delegates to it), which opens on that calculator's defaults (BMEP=173.5 psi) and reproduces 'bmep''s own example exactly. This page's example is a separate, arithmetically correct worked case with different inputs. Changing the shared defaults would break the canonical page; making this page's example match would mean rewriting vetted copy. Recommended: copy update to the shared scenario (owner decision).",
+   "reviewed": "2026-09-22",
+   "live_at_review": "BMEP=173.5 psi"
+  },
+  "port_velocity": {
+   "reason": "NON_DEFAULT_SCENARIO",
+   "note": "This page renders the shared canonical calculator 'cfm_velocity_csa' (RENDERS.port_velocity delegates to it), which opens on that calculator's defaults (Solved Average Velocity=257.1429ft/sec) and reproduces 'cfm_velocity_csa''s own example exactly. This page's example is a separate, arithmetically correct worked case with different inputs. Changing the shared defaults would break the canonical page; making this page's example match would mean rewriting vetted copy. Recommended: copy update to the shared scenario (owner decision).",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Solved Average Velocity=257.1429ft/sec"
+  },
+  "ring_gap_bore": {
+   "reason": "NON_DEFAULT_SCENARIO",
+   "note": "This page renders the shared canonical calculator 'ring_gap' (RENDERS.ring_gap_bore delegates to it), which opens on that calculator's defaults (Top Ring Gap=0.0191 in; Second Ring Gap=0.0204 in) and reproduces 'ring_gap''s own example exactly. This page's example is a separate, arithmetically correct worked case with different inputs. Changing the shared defaults would break the canonical page; making this page's example match would mean rewriting vetted copy. Recommended: copy update to the shared scenario (owner decision).",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Top Ring Gap=0.0191 in; Second Ring Gap=0.0204 in"
+  },
+  "injector_duty_cycle": {
+   "reason": "NON_DEFAULT_SCENARIO",
+   "note": "This page renders the shared canonical calculator 'injector_duty' (RENDERS.injector_duty_cycle delegates to it), which opens on that calculator's defaults (Injector Duty Cycle=44.3%) and reproduces 'injector_duty''s own example exactly. This page's example is a separate, arithmetically correct worked case with different inputs. Changing the shared defaults would break the canonical page; making this page's example match would mean rewriting vetted copy. Recommended: copy update to the shared scenario (owner decision).",
+   "reviewed": "2026-09-22",
+   "live_at_review": "Injector Duty Cycle=44.3%"
+  }
+ }
+}

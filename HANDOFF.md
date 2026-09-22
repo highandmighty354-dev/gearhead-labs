@@ -1,3 +1,86 @@
+# GEARHEAD LABS — VERIFICATION HANDOFF (F1.10.6)
+
+**Current file:** `F1_10_6_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html`
+**Release gate:** `./verify-all.sh <file.html>` exits 0 only if ALL of these pass:
+1. every inline `<script>` block parses (16 blocks)
+2. `gh-verify.js`: 15 static suites
+3. `gh-verify-live.js`: 3 live-page suites (needs `npm install`; jsdom pinned)
+
+**Baseline:** `verification-baseline-F1_10_6.txt` (full gate output, PASS).
+**Version history:** `gearhead-labs-repo.zip` is a git repo with tags `F1.10.5` and `F1.10.6-FINAL`.
+**What changed and why:** `CHANGELOG-F1_10_6.md`.
+**Next-phase plan:** `BUILD-READINESS-REPORT.md`.
+
+Upload next session: this doc, the html, both harnesses, `default-example-exceptions.json`,
+`verify-all.sh`, `package.json`, the baseline, the changelog, and `defaults-audit-findings.md`.
+
+---
+
+## CORRECTION TO THE ARCHITECTURE SECTION BELOW (read first)
+
+The F1.10.5 handoff says GH_E1 ids are live through the generic renderer except for 5 known bespoke ones. **That is not accurate.**
+
+- A late script block, `<script id="GH_CERTIFICATION_REMEDIATION">`, runs after all the other renderer definitions. It reassigns ~200 ids with `RENDERS.id = ...`, overriding both the generic renderer and earlier bespoke object methods.
+- For those ids, the live code is the LAST assignment, not the first `id(){...}` text match that `gh-verify.js`'s `renderBody()` finds.
+- Many late overrides carry their own defaults (`certValue('x',870)`), so a registry `defaults[]` edit may be inert. That is how `ev_usable_energy`, `ev_soc_energy` and `hydraulic_pump_flow` kept wrong defaults after last session's registry fix.
+
+**The authoritative way to see what a visitor gets is the live harness:**
+- `gh-verify-live.js` opens every calculator in the real page.
+- To read the live source of one calculator: run `node gh-verify-live.js <file.html> --source id`. It prints the renderer that actually runs.
+
+The static harness is still valuable, since it runs registry math, identities, homogeneity and envelopes. It is no longer the only gate.
+
+## THE 3 LIVE SUITES
+
+| Suite | Asserts |
+|---|---|
+| LIVE_RENDER | all 606 entries + 6 aliases open via the real `renderCalc()` without throwing, and render content |
+| RENDER_STABLE | re-rendering from the inputs *as displayed* gives the identical result (displayed inputs ⇒ displayed result) |
+| DEFAULT_EXAMPLE | the result on open reproduces a number stated in that entry's own `CONTENT.example` |
+
+For DEFAULT_EXAMPLE, every non-reproducing entry must be in `default-example-exceptions.json` with a reason and a justification. An exception that starts reproducing FAILS as stale.
+
+The matcher:
+- ignores numbers that merely restate an input, unless a result phrase introduces them ("gives 114°")
+- requires rounding agreement AND ≤2% difference, so 0.5 cannot pass as "1"
+- ignores the "1" in "N:1"
+- understands fractions ("3/8", "1 and 3/8", "5 / 10")
+
+**Negative control:** on F1.10.5 the live gate reports 50 failures (4 crashes, 30 unstable, 16 default mismatches). On F1.10.6 it reports 0.
+
+**Current DEFAULT_EXAMPLE picture (606):**
+- 492 exact, 6 within 0.5% (long NIST constants shown to 8 digits)
+- 108 documented exceptions:
+  - 48 NO_STATED_RESULT (example never states its answer: a content gap)
+  - 40 QUALITATIVE
+  - 12 INTERACTIVE (simulators)
+  - 6 NON_DEFAULT_SCENARIO
+  - 1 MODE_DEPENDENT (`nitrous_jet`)
+  - 1 OPEN_DECISION (`understeer_gradient`)
+
+## OPEN ITEMS (owner decisions — nothing here blocks the freeze)
+
+1. **`understeer_gradient` is not Kus in deg/g.** The live renderer computes (front% / Cf − rear% / Cr) × 1000. The sign and understeer/oversteer verdict are correct; the magnitude is a dimensionless index. True Kus needs axle weights in lb, i.e. a vehicle-weight input. Decide: add the input, or relabel as "Balance Index".
+2. **6 NON_DEFAULT_SCENARIO pages.**
+   - `bmep_from_torque`, `port_velocity`, `ring_gap_bore` and `injector_duty_cycle` render a shared canonical calculator and show its defaults.
+   - `kelvin_to_*` default to 293.15 K while the example uses 1 K.
+
+   All the math is correct. Recommended: update the example copy to the shared scenario.
+3. **48 examples never state a result.** A content pass would move them from exceptions to verified.
+4. **`v(id)` returns 0 for a missing/empty field** (Unknown ≠ Zero). It is latent today because every live renderer that matters uses `vd()`. Fix before the engine is extracted, so the calculation API can return "Incomplete" instead of 0.
+5. Carried over, unchanged: ET constant split (Huntington 6.290 vs Hale 5.825); `pid_proportional` unit; `hardness_convert` / `helicoil_size` linear approximations; `driveshaft_critical` constant source; 10 sub-0.1% rounding shifts.
+
+## RULES LEARNED THIS SESSION
+
+- **A green static suite is not a working calculator.** Four calculators crashed on open while all 15 static suites passed. Always run the full gate.
+- **An input field is not a result display.** Its text is read back on every keystroke, so it must round-trip exactly.
+- **When fixing a default, fix it where it is live.** Check `node gh-verify-live.js <file> --source id`. Check both the `vd()` fallback and the `field()` display value; they drifted apart in 4 calculators.
+- **Never reassign a canonical id to point at an alias.** Aliases point to canonical, one direction only.
+
+---
+
+# HISTORY — F1.10.5 HANDOFF (retained verbatim; see correction above)
+
 # GEARHEAD LABS — VERIFICATION HANDOFF
 
 **Current file:** `F1_10_5_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html`
