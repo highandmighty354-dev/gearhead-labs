@@ -1,4 +1,16 @@
-# GEARHEAD LABS — HANDOFF (F1.12.1 · M1.3 release candidate)
+# GEARHEAD LABS — HANDOFF (F1.12.2 · speed_converter corrective release candidate)
+
+**Current file:** `F1_12_2_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html` · engine `gh-engine@1.1.0`.
+**Proposed tag:** `F1.12.2-SPEED-CONVERTER-FIX` (create only on approval). Rollback: `F1.12.1-M1.3-UNDERSTEER`.
+**Read:** `SPEEDFIX-RESULTS.md`.
+
+**Status:** migrated **252**, pending **8**.
+
+**Publishing:** this repository has no GitHub remote. Publish by uploading the HTML to `highandmighty354-dev/gearhead-labs` `main`; then verify the Pages URL.
+
+---
+
+# PREVIOUS HANDOFF — F1.12.1 (M1.3)
 
 **Current file:** `F1_12_1_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html` · engine `gh-engine@1.1.0`.
 **Tag (after approval):** `F1.12.1-M1.3-UNDERSTEER`. Rollback: `F1.12.0-D009-CATEGORICAL` and earlier.

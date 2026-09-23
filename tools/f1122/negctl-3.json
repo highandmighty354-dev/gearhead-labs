@@ -1,0 +1,25 @@
+{
+ "control": 3,
+ "name": "multiply swapped for divide (kph source: mph)",
+ "caught": true,
+ "results": {
+  "engine": {
+   "exit": 1,
+   "fails": [
+    "[FAIL] LIVE_PARITY  0 passed, 1 failed"
+   ],
+   "detail": [
+    "[s_from=kph] defaults: 'MPH' engine 96.5604 vs live \"37.28 mph\""
+   ]
+  },
+  "node": {
+   "exit": 1,
+   "fails": [
+    "FAIL  1 km/h path unchanged (divisions preserved)"
+   ],
+   "detail": [
+    "99 passed, 1 failed"
+   ]
+  }
+ }
+}

@@ -1,0 +1,24 @@
+{
+ "control": 5,
+ "name": "ft/s branch writes to the wrong outputs (mph/km/h swapped)",
+ "caught": true,
+ "results": {
+  "engine": {
+   "exit": 1,
+   "fails": [
+    "[FAIL] LIVE_PARITY  0 passed, 1 failed",
+    "[FAIL] SPEED_F1122  17 passed, 5 failed"
+   ],
+   "detail": [
+    "[s_from=fps] defaults: 'MPH' engine 40.90899793 vs live \"65.84 mph\""
+   ]
+  },
+  "node": {
+   "exit": 0,
+   "fails": [],
+   "detail": [
+    "100 passed, 0 failed"
+   ]
+  }
+ }
+}

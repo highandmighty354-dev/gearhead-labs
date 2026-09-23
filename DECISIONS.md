@@ -2,6 +2,12 @@
 
 Owner decisions and the implementation choices that follow from them. Newest first.
 
+## D-013 · speed_converter corrective release (owner, 2026-09-23)
+
+- The live ft/s source branch is added using the inverses of the calculator's existing constants (1.46667, 0.91134, 3.28084); no new constants, existing precision.
+- Re-proved through D-009 (From selector declared with bound constants) and migrated.
+- Engine unchanged.
+
 ## D-012 · M1.3 Save-to-Vehicle contract: ALT-A (owner, 2026-09-23)
 
 - The Understeer Gradient Vehicle Weight field is `ug_vw`, and it must **never** write the vehicle profile's weight. The id matches no profile or range pattern.

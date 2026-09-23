@@ -1,0 +1,26 @@
+{
+ "control": 2,
+ "name": "1% change to one bound constant (fps mph_div 1.46667)",
+ "caught": true,
+ "results": {
+  "engine": {
+   "exit": 1,
+   "fails": [
+    "[FAIL] LIVE_PARITY  0 passed, 1 failed",
+    "[FAIL] SPEED_F1122  20 passed, 2 failed"
+   ],
+   "detail": [
+    "[s_from=fps] defaults: 'MPH' engine 40.50395835 vs live \"40.91 mph\""
+   ]
+  },
+  "node": {
+   "exit": 1,
+   "fails": [
+    "FAIL  60 ft/s -> 60/1.46667 mph, 60/0.91134 km/h, 60/3.28084 m/s, 60 ft/s (exact ops)"
+   ],
+   "detail": [
+    "97 passed, 3 failed"
+   ]
+  }
+ }
+}

@@ -98,6 +98,30 @@ t('numeric zero beside a categorical input stays a KNOWN zero', r.state === 'VAL
   }
 }
 
+/* ---------------- F1.12.2 speed_converter (D-009 re-proof) ----------------- */
+{
+  const SC = 'speed_converter', V = (inp) => E.calculate(SC, inp).outputs.map(o => o.value);
+  const d = E.describe(SC);
+  t('speed_converter: inputs s_in + categorical s_from [mph,kph,mps,fps]', d.inputs.map(i => i.var).join() === 's_in,s_from' && d.inputs[1].kind === 'categorical' && d.inputs[1].choices.map(c => c.value).join() === 'mph,kph,mps,fps');
+  t('60 ft/s -> 60/1.46667 mph, 60/0.91134 km/h, 60/3.28084 m/s, 60 ft/s (exact ops)', JSON.stringify(V({ s_in: 60, s_from: 'fps' })) === JSON.stringify([60 / 1.46667, 60 / 0.91134, 60 / 3.28084, 60]));
+  t('60 ft/s displays 40.91 mph, 65.84 km/h, 18.288 m/s', V({ s_in: 60, s_from: 'fps' }).map((x, i) => x.toFixed([2, 2, 3, 2][i])).join() === '40.91,65.84,18.288,60.00');
+  t('60 mph path unchanged: 60, 96.5604, 26.8224, 88.0002', JSON.stringify(V({ s_in: 60, s_from: 'mph' })) === JSON.stringify([60, 60 * 1.60934, 60 * 0.44704, 60 * 1.46667]));
+  t('1 km/h path unchanged (divisions preserved)', JSON.stringify(V({ s_in: 1, s_from: 'kph' })) === JSON.stringify([1 / 1.60934, 1, 1 / 3.6, 0.91134]));
+  t('1 m/s path unchanged', JSON.stringify(V({ s_in: 1, s_from: 'mps' })) === JSON.stringify([2.23694, 3.6, 1, 3.28084]));
+  for (const u of ['mph', 'kph', 'mps', 'fps']) t(`0 from ${u} -> 0 in every unit (known zero)`, V({ s_in: 0, s_from: u }).every(x => x === 0) && E.calculate(SC, { s_in: 0, s_from: u }).state === 'VALID');
+  const fps = V({ s_in: 60, s_from: 'fps' });
+  t('round trip ft/s -> mph -> ft/s = 60 (to 1e-9)', Math.abs(V({ s_in: fps[0], s_from: 'mph' })[3] - 60) < 1e-9);
+  t('round trip ft/s -> km/h -> ft/s = 60 (to 1e-9)', Math.abs(V({ s_in: fps[1], s_from: 'kph' })[3] - 60) < 1e-9);
+  t('round trip ft/s -> m/s -> ft/s = 60 (to 1e-9)', Math.abs(V({ s_in: fps[2], s_from: 'mps' })[3] - 60) < 1e-9);
+  for (const [what, inp] of [['missing From', { s_in: 60 }], ['missing speed', { s_from: 'fps' }], ['NaN speed', { s_in: NaN, s_from: 'fps' }], ["'' From", { s_in: 60, s_from: '' }]]) {
+    const x = E.calculate(SC, inp); t(`speed_converter ${what} -> INCOMPLETE, no number, no default`, x.state === 'INCOMPLETE' && x.outputs.every(o => o.value === null));
+  }
+  for (const bad of ['FPS', 'Fps', ' fps', 'fps ', 'ft/s', 4, 0]) {
+    const x = E.calculate(SC, { s_in: 60, s_from: bad });
+    t(`speed_converter From ${JSON.stringify(bad)} -> INCOMPLETE + INVALID_OPTION`, x.state === 'INCOMPLETE' && x.warnings.includes('INVALID_OPTION:s_from') && x.outputs.every(o => o.value === null));
+  }
+}
+
 /* Fail-closed declarations: a malformed options block -> NOT_APPLICABLE, never evaluated. */
 const clone = () => JSON.parse(JSON.stringify(regs));
 const mk = mut => { const R = clone(); const sp = R.GH_BACKFILL_FORMULAS.ring_gap; mut(sp); return createEngine(R, {}); };

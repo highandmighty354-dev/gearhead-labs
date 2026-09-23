@@ -1,0 +1,21 @@
+{
+ "speed_converter": {
+  "vectors": 16,
+  "checks": 64,
+  "problems": [],
+  "unitNotes": [],
+  "uncovered_live_outputs": [],
+  "binding": {
+   "s_in": {
+    "field": "s_in",
+    "label": "Speed",
+    "unit": ""
+   },
+   "s_from": {
+    "field": "s_from",
+    "label": "From Unit",
+    "unit": ""
+   }
+  }
+ }
+}

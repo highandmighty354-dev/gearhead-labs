@@ -1,0 +1,137 @@
+{
+ "live_branch_added": "else if(s_from==='fps'){ mph=+(s_in/1.46667).toFixed(2); kph=+(s_in/0.91134).toFixed(2); mps=+(s_in/3.28084).toFixed(3); }",
+ "registry_before": {
+  "labels": [
+   "Speed"
+  ],
+  "vars": [
+   "s_in"
+  ],
+  "outputs": [
+   {
+    "expr": "s_in",
+    "out": "MPH",
+    "unit": "mph"
+   },
+   {
+    "expr": "+(s_in*1.60934).toFixed(2)",
+    "out": "KM/H",
+    "unit": "km/h"
+   },
+   {
+    "expr": "+(s_in*0.44704).toFixed(3)",
+    "out": "M/S",
+    "unit": "m/s"
+   },
+   {
+    "expr": "+(s_in*1.46667).toFixed(2)",
+    "out": "FT/S",
+    "unit": "ft/s"
+   }
+  ]
+ },
+ "registry_after": {
+  "labels": [
+   "Speed",
+   "From Unit"
+  ],
+  "vars": [
+   "s_in",
+   "s_from"
+  ],
+  "options": {
+   "s_from": {
+    "params": {
+     "mph_mul": "mph multiplier for the selected unit",
+     "mph_div": "mph divisor for the selected unit",
+     "kph_mul": "km/h multiplier for the selected unit",
+     "kph_div": "km/h divisor for the selected unit",
+     "mps_mul": "m/s multiplier for the selected unit",
+     "mps_div": "m/s divisor for the selected unit",
+     "fps_mul": "ft/s multiplier for the selected unit",
+     "fps_div": "ft/s divisor for the selected unit"
+    },
+    "choices": [
+     {
+      "value": "mph",
+      "label": "mph",
+      "bind": {
+       "mph_mul": 1,
+       "mph_div": 1,
+       "kph_mul": 1.60934,
+       "kph_div": 1,
+       "mps_mul": 0.44704,
+       "mps_div": 1,
+       "fps_mul": 1.46667,
+       "fps_div": 1
+      }
+     },
+     {
+      "value": "kph",
+      "label": "km/h",
+      "bind": {
+       "mph_mul": 1,
+       "mph_div": 1.60934,
+       "kph_mul": 1,
+       "kph_div": 1,
+       "mps_mul": 1,
+       "mps_div": 3.6,
+       "fps_mul": 0.91134,
+       "fps_div": 1
+      }
+     },
+     {
+      "value": "mps",
+      "label": "m/s",
+      "bind": {
+       "mph_mul": 2.23694,
+       "mph_div": 1,
+       "kph_mul": 3.6,
+       "kph_div": 1,
+       "mps_mul": 1,
+       "mps_div": 1,
+       "fps_mul": 3.28084,
+       "fps_div": 1
+      }
+     },
+     {
+      "value": "fps",
+      "label": "ft/s",
+      "bind": {
+       "mph_mul": 1,
+       "mph_div": 1.46667,
+       "kph_mul": 1,
+       "kph_div": 0.91134,
+       "mps_mul": 1,
+       "mps_div": 3.28084,
+       "fps_mul": 1,
+       "fps_div": 1
+      }
+     }
+    ]
+   }
+  },
+  "outputs": [
+   {
+    "expr": "s_in*mph_mul/mph_div",
+    "out": "MPH",
+    "unit": "mph"
+   },
+   {
+    "expr": "s_in*kph_mul/kph_div",
+    "out": "KM/H",
+    "unit": "km/h"
+   },
+   {
+    "expr": "s_in*mps_mul/mps_div",
+    "out": "M/S",
+    "unit": "m/s"
+   },
+   {
+    "expr": "s_in*fps_mul/fps_div",
+    "out": "FT/S",
+    "unit": "ft/s"
+   }
+  ]
+ }
+}

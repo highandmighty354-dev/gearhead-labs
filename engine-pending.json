@@ -1,5 +1,5 @@
 {
- "about": "Calculators that did NOT prove full live parity. Not migrated. Each needs the fix or decision described before it can join engine-migrated.json. Updated at F1.12.0 (D-009).",
+ "about": "Calculators that did NOT prove full live parity. Not migrated. Each needs the fix or decision described before it can join engine-migrated.json. Updated at F1.12.2 (speed_converter corrected and migrated).",
  "reasons": {
   "REGISTRY_INCOMPLETE": "Live calculator has an input (usually a unit/mode selector or a physical constant exposed as an input) that the registry formula does not have. The registry only matches the live page for the default setting. Fix: add the input to the registry entry, then re-prove.",
   "REGISTRY_STUB": "Registry formula is a simplified stand-in that agrees with the live algorithm only at default inputs.",
@@ -12,7 +12,7 @@
   "REGISTRY_STUB": 1,
   "UNIT_DIVERGENCE": 1,
   "MODE_DEPENDENT": 3,
-  "LIVE_DEFECT": 3,
+  "LIVE_DEFECT": 2,
   "EXACT_PARITY_NOT_EXPRESSIBLE": 1
  },
  "pending": {
@@ -31,11 +31,6 @@
   "pinion_angle_change": {
    "reason": "LIVE_DEFECT",
    "detail": "Live displays 0° (with a warning line) when the axle-to-pivot distance is 0, where the angle is undefined. Unknown/invalid must not display as zero. Engine returns atan(x/0)=90°, also invalid: needs a >0 domain rule in the registry."
-  },
-  "speed_converter": {
-   "reason": "LIVE_DEFECT",
-   "detail": "Live calculator defect found in the D-009 review: the From selector offers ft/s but the renderer has no fps branch, so 60 ft/s displays as 60 mph, 60 km/h and 60 m/s (correct: ~40.9 mph). D-009 could encode the selector, but exact parity would publish the defect as engineering truth. Needs an owner-approved live-page correction first; the live calculation is NOT modified (scope lock).",
-   "evidence": "D009-RESULTS.md"
   },
   "temp_converter": {
    "reason": "EXACT_PARITY_NOT_EXPRESSIBLE",

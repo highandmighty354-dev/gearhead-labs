@@ -441,6 +441,51 @@ if (E.describe('understeer_gradient')) try {
   S(); container().innerHTML = '';
 } catch (e) { record('UNDERSTEER_M13', 'suite aborted', false, 'unexpected error (a required field or result is missing): ' + String(e.message).slice(0, 120)); }
 
+/* ---------------- SPEED_F1122 (F1.12.2) ----------------------------------
+ * speed_converter corrective release: the missing ft/s source branch.
+ *  - live anchors (60/1/10/100 ft/s), reverse anchors, zero from every unit
+ *  - round trips for all 12 unit pairs through the live page
+ *  - mph / km/h / m/s source paths byte-identical to the pre-fix code (grid)
+ *  - engine: anchors per option, missing/invalid selector -> INCOMPLETE, provenance */
+if (E.describe('speed_converter')) try {
+  const SC = 'speed_converter', rec = (id, ok, d) => record('SPEED_F1122', id, ok, d);
+  const U = { mph: 'MPH', kph: 'KM/H', mps: 'M/S', fps: 'FT/S' };
+  const conv = (v, from) => { const st = w.eval('CALC_PERSISTENT_STATE'); for (const k of Object.keys(st)) delete st[k]; container().innerHTML = '';
+    w.renderCalc(SC, false); doc.getElementById('s_in').value = String(v); doc.getElementById('s_from').value = from; w.renderCalc(SC, false);
+    const o = {}; container().querySelectorAll('.mini-result').forEach(m => { o[m.querySelector('.label').textContent.trim()] = m.querySelector('.value').textContent.replace(/\s+/g, ''); }); return o; };
+  const want = (o, exp) => Object.entries(exp).every(([k, v]) => o[k] === v);
+  for (const [v, exp] of [[60, { MPH: '40.91mph', 'KM/H': '65.84km/h', 'M/S': '18.288m/s', 'FT/S': '60ft/s' }], [1, { MPH: '0.68mph', 'KM/H': '1.1km/h', 'M/S': '0.305m/s', 'FT/S': '1ft/s' }],
+                          [10, { MPH: '6.82mph', 'KM/H': '10.97km/h', 'M/S': '3.048m/s', 'FT/S': '10ft/s' }], [100, { MPH: '68.18mph', 'KM/H': '109.73km/h', 'M/S': '30.48m/s', 'FT/S': '100ft/s' }]]) {
+    const o = conv(v, 'fps'); rec(`${v} ft/s anchor`, want(o, exp), JSON.stringify(o)); }
+  for (const [v, from] of [[40.91, 'mph'], [65.84, 'kph'], [18.29, 'mps']]) { const o = conv(v, from); const f = parseFloat(o['FT/S']); rec(`reverse ${v} ${from} -> ~60 ft/s`, Math.abs(f - 60) <= 0.02, o['FT/S']); }
+  for (const from of Object.keys(U)) { const o = conv(0, from); rec(`zero from ${from}`, Object.values(o).every(x => parseFloat(x) === 0) && Object.keys(o).length === 4, JSON.stringify(o)); }
+  let rt = [];
+  for (const a of Object.keys(U)) for (const b of Object.keys(U)) { if (a === b) continue; for (const v of [1, 60, 250]) {
+    const there = parseFloat(conv(v, a)[U[b]]); const back = parseFloat(conv(there, b)[U[a]]);
+    if (!(Math.abs(back - v) <= Math.max(0.02, v * 0.002))) rt.push(`${v} ${a}->${b}=${there}->${a}=${back}`); } }
+  rec('round trips, all 12 unit pairs (1, 60, 250)', !rt.length, rt.length ? rt.slice(0, 3).join(' | ') : '36 round trips within display precision');
+  /* the three existing source paths must be exactly as before: pre-fix branch code, verbatim */
+  const old = (s_in, s_from) => { let mph = s_in, kph = s_in, mps = s_in, fps = s_in;
+    if (s_from === 'mph') { kph = +(s_in * 1.60934).toFixed(2); mps = +(s_in * 0.44704).toFixed(3); fps = +(s_in * 1.46667).toFixed(2); }
+    else if (s_from === 'kph') { mph = +(s_in / 1.60934).toFixed(2); mps = +(s_in / 3.6).toFixed(3); fps = +(s_in * 0.91134).toFixed(2); }
+    else if (s_from === 'mps') { mph = +(s_in * 2.23694).toFixed(2); kph = +(s_in * 3.6).toFixed(2); fps = +(s_in * 3.28084).toFixed(2); }
+    return { MPH: mph, 'KM/H': kph, 'M/S': mps, 'FT/S': fps }; };
+  const fmt = (x, u) => w.fmtUnitValue(x, u);
+  let pd = [], n = 0;
+  for (const from of ['mph', 'kph', 'mps']) for (const v of [0, 0.5, 1, 7.3, 40.91, 60, 88, 123.456, 300]) { const o = conv(v, from), e = old(v, from); n++;
+    for (const [k, u] of [['MPH', 'mph'], ['KM/H', 'km/h'], ['M/S', 'm/s'], ['FT/S', 'ft/s']]) {
+      const shown = parseFloat(String(o[k]).replace(/,/g, '')), expect = parseFloat(String(fmt(e[k], u)).replace(/,/g, ''));
+      if (!(shown === expect) || !String(o[k]).endsWith(u)) pd.push(`${v} ${from} ${k}: shows ${o[k]}, pre-fix code displays ${fmt(e[k], u)}${u}`); } }
+  rec('mph / km/h / m/s source paths identical to pre-fix code', !pd.length, pd.length ? pd.slice(0, 3).join(' | ') : `${n} inputs x 4 outputs identical`);
+  /* engine: anchors per option, contract, provenance */
+  const r = E.calculate(SC, { s_in: 60, s_from: 'fps' });
+  rec('engine 60 ft/s', r.state === 'VALID' && r.outputs.map(o => +o.value.toFixed(3)).join() === '40.909,65.837,18.288,60', r.outputs.map(o => o.value).join(', '));
+  const ri = r.inputs.find(i => i.var === 's_from'); rec('engine provenance records ft/s and its bound constants', ri.kind === 'categorical' && ri.value === 'fps' && ri.bound.mph_div === 1.46667 && ri.bound.kph_div === 0.91134 && ri.bound.mps_div === 3.28084, JSON.stringify(ri.bound));
+  for (const [what, inp] of [['missing From', { s_in: 60 }], ['missing speed', { s_from: 'fps' }], ['From "FPS"', { s_in: 60, s_from: 'FPS' }], ['From " fps"', { s_in: 60, s_from: ' fps' }], ['From "fps "', { s_in: 60, s_from: 'fps ' }], ['From 4 (numeric code)', { s_in: 60, s_from: 4 }], ['From "ftps"', { s_in: 60, s_from: 'ftps' }]]) {
+    const x = E.calculate(SC, inp); rec(`engine ${what} -> INCOMPLETE, no number`, x.state === 'INCOMPLETE' && x.outputs.every(o => o.value === null), `${x.state} ${x.warnings.join(',')}`); }
+  const st = w.eval('CALC_PERSISTENT_STATE'); for (const k of Object.keys(st)) delete st[k]; container().innerHTML = '';
+} catch (e) { record('SPEED_F1122', 'suite aborted', false, 'unexpected error: ' + String(e.message).slice(0, 120)); }
+
 finish();
 
 function finish() {
@@ -448,7 +493,7 @@ function finish() {
   console.log('='.repeat(72)); console.log('GEARHEAD LABS - ENGINE VERIFICATION'); console.log(`file     : ${FILE.split('/').pop()}`);
   console.log(`engine   : gh-engine.js ${require(path.join(__dirname, 'gh-engine.js')).ENGINE_VERSION}   migrated calculators: ${MIGRATED.calculators.length}`); console.log('='.repeat(72));
   let fails = 0;
-  for (const s of ['ENGINE_EMBED', 'V_UNKNOWN', 'ENGINE_UNKNOWN', 'OPTION_CONTRACT', 'ENGINE_NODE', 'FORMULA_DISPLAY', 'LIVE_PARITY', 'UNDERSTEER_M13']) {
+  for (const s of ['ENGINE_EMBED', 'V_UNKNOWN', 'ENGINE_UNKNOWN', 'OPTION_CONTRACT', 'ENGINE_NODE', 'FORMULA_DISPLAY', 'LIVE_PARITY', 'UNDERSTEER_M13', 'SPEED_F1122']) {
     const b = by[s] || { pass: 0, fail: 0, fails: [] }; fails += b.fail;
     console.log(`\n[${b.fail ? 'FAIL' : 'PASS'}] ${s}  ${b.pass} passed, ${b.fail} failed`);
     b.fails.slice(0, 60).forEach(f => console.log(`    x ${f.id}\n        ${f.detail}`));

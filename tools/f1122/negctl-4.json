@@ -1,0 +1,26 @@
+{
+ "control": 4,
+ "name": "drop ft/s from the declaration",
+ "caught": true,
+ "results": {
+  "engine": {
+   "exit": 1,
+   "fails": [
+    "[FAIL] LIVE_PARITY  0 passed, 1 failed",
+    "[FAIL] SPEED_F1122  20 passed, 2 failed"
+   ],
+   "detail": [
+    "OPTION_SET s_from: live [\"mph\",\"kph\",\"mps\",\"fps\"] vs declared [\"mph\",\"kph\",\"mps\"]"
+   ]
+  },
+  "node": {
+   "exit": 1,
+   "fails": [
+    "FAIL  speed_converter: inputs s_in + categorical s_from [mph,kph,mps,fps]"
+   ],
+   "detail": [
+    "FAIL  60 ft/s -> 60/1.46667 mph, 60/0.91134 km/h, 60/3.28084 m/s, 60 ft/s (exact ops)"
+   ]
+  }
+ }
+}

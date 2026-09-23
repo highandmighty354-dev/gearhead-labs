@@ -121,18 +121,18 @@ Values must agree at the precision the page displays, or within 0.1% (the docume
 - A 1% change to one registry formula fails LIVE_PARITY.
 - A one-comment change to the embedded engine fails ENGINE_EMBED.
 
-## Status at F1.12.1
+## Status at F1.12.2
 
 | | Count |
 |---|---|
-| **Migrated: full live parity proven** | **251** (215 M1.1 + 25 M1.2 + 10 D-009 + 1 M1.3) |
-| Pending: see `engine-pending.json` | 9 |
+| **Migrated: full live parity proven** | **252** (215 M1.1 + 25 M1.2 + 10 D-009 + 1 M1.3 + 1 F1.12.2) |
+| Pending: see `engine-pending.json` | 8 |
 
 Pending breakdown:
 
 | Reason | Count | Calculators |
 |---|---|---|
-| LIVE_DEFECT | 3 | speed_converter, pinion_angle_change, bolt_pattern |
+| LIVE_DEFECT | 2 | pinion_angle_change, bolt_pattern |
 | MODE_DEPENDENT | 3 | hp_quarter_mile, time_speed_dist, diesel_injector_flow |
 | EXACT_PARITY_NOT_EXPRESSIBLE | 1 | temp_converter |
 | REGISTRY_STUB | 1 | optimal_shift |
