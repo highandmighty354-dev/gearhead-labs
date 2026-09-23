@@ -1,7 +1,7 @@
 {
  "about": "Calculators whose live result is PROVEN equal to GH_ENGINE.calculate() by LIVE_PARITY in gh-verify-engine.js (defaults, all inputs scaled, each input scaled, each input zeroed, every non-registry live input varied; values, units and validity). The harness FAILS if any listed calculator stops matching. Add a calculator only after it passes.",
  "candidates_from": "gh-verify.js DIFFERENTIAL passes on F1.10.6 (259)",
- "count": 240,
+ "count": 250,
  "calculators": [
   "deck_height",
   "hp_trap_speed",
@@ -242,7 +242,17 @@
   "brake_bias",
   "master_cylinder",
   "throttle_body",
-  "hp_from_specs"
+  "hp_from_specs",
+  "distance_converter",
+  "volume_converter",
+  "pressure_converter",
+  "power_converter",
+  "injector_flow",
+  "wind_et",
+  "max_rpm",
+  "fuse_sizing",
+  "ring_gap",
+  "bearing_life"
  ],
  "history": [
   {
@@ -280,6 +290,23 @@
     "master_cylinder",
     "throttle_body",
     "hp_from_specs"
+   ]
+  },
+  {
+   "version": "F1.12.0",
+   "added": 10,
+   "basis": "LIVE_PARITY under every declared option + OPTION_SET + OPTION_CONTRACT + FORMULA_DISPLAY (D-009, engine 1.1.0)",
+   "ids": [
+    "distance_converter",
+    "volume_converter",
+    "pressure_converter",
+    "power_converter",
+    "injector_flow",
+    "wind_et",
+    "max_rpm",
+    "fuse_sizing",
+    "ring_gap",
+    "bearing_life"
    ]
   }
  ]

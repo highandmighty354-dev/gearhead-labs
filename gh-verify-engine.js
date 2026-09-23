@@ -86,7 +86,10 @@ if (!E) finish();
 
 /* ---------------- ENGINE_UNKNOWN (all registry calculators) ------------- */
 const ALL = E.listCalculators();
-const numeric = id => { const d = E.describe(id); return d.inputs.map((x, i) => [x.var, 1 + 0.37 * (i + 1)]); };
+/* A sample input set: numbers for numeric inputs, the first DECLARED choice for
+ * a categorical (D-009) input - never a number standing in for a selector. */
+const numeric = (id, pick = 0) => { const d = E.describe(id); return d.inputs.map((x, i) => [x.var, x.kind === 'categorical' ? x.choices[Math.min(pick, x.choices.length - 1)].value : 1 + 0.37 * (i + 1)]); };
+const isCat = (d, v) => { const x = d.inputs.find(i => i.var === v); return !!(x && x.kind === 'categorical'); };
 for (const id of ALL) {
   const d = E.describe(id), vars = d.inputs.map(x => x.var);
   const full = Object.fromEntries(numeric(id));
@@ -98,12 +101,54 @@ for (const id of ALL) {
       if (r.state !== 'INCOMPLETE' || !r.missing.includes(v) || r.outputs.some(o => o.value !== null)) { bad = `missing '${v}' as ${String(unk)} -> ${r.state}, outputs ${JSON.stringify(r.outputs.map(o => o.value))}`; break; }
     }
     if (bad) break;
+    if (isCat(d, v)) continue;                              // categorical contract: OPTION_CONTRACT below
     const rs = E.calculate(id, { ...full, [v]: '5' });       // strings are not silently parsed
     if (rs.state !== 'INCOMPLETE' || !rs.warnings.some(x => x.startsWith('NON_NUMERIC_INPUT'))) { bad = `string input for '${v}' was accepted`; break; }
     const rz = E.calculate(id, { ...full, [v]: 0 });           // a zero is known
     if (rz.missing.includes(v) || rz.state === 'INCOMPLETE' || rz.inputs.find(x => x.var === v).value !== 0) { bad = `explicit 0 for '${v}' treated as unknown (${rz.state})`; break; }
   }
   record('ENGINE_UNKNOWN', id, !bad, bad || `${vars.length} input(s): unknown -> INCOMPLETE, 0 -> known`);
+}
+
+/* ---------------- OPTION_CONTRACT (D-009) ----------------------------------
+ * For every registry entry with declared options, for every categorical input:
+ * each declared choice is accepted and records its exact bound constants; every
+ * invalid form (undeclared, wrong case, surrounding whitespace, number/string
+ * swap, 0, '0') is INCOMPLETE + INVALID_OPTION with null outputs; missing forms
+ * are INCOMPLETE without INVALID_OPTION (missing is not invalid). */
+const OPTION_IDS = ALL.filter(id => E.describe(id).inputs.some(i => i.kind === 'categorical'));
+for (const id of OPTION_IDS) {
+  const d = E.describe(id), full = Object.fromEntries(numeric(id));
+  const spec = JSON.parse(JSON.stringify(w.eval(`(()=>{for(const r of [GH_E1_FORMULAS,GH_E101_FORMULAS,GH_LEGACY_FORMULAS,GH_BACKFILL_FORMULAS]) if(r[${JSON.stringify(d.canonical_id)}]) return r[${JSON.stringify(d.canonical_id)}]; })()`)));
+  const fails = []; let n = 0;
+  for (const x of d.inputs.filter(i => i.kind === 'categorical')) {
+    const decl = spec.options[x.var];
+    for (const ch of decl.choices) {
+      const r = E.calculate(id, { ...full, [x.var]: ch.value }); n++;
+      const rec = r.inputs.find(i => i.var === x.var);
+      if (r.missing.includes(x.var) || r.state === 'INCOMPLETE' || r.state === 'NOT_APPLICABLE') fails.push(`declared ${JSON.stringify(ch.value)} rejected (${r.state})`);
+      else if (rec.kind !== 'categorical' || rec.value !== ch.value || JSON.stringify(rec.bound) !== JSON.stringify(ch.bind) || rec.option_label !== ch.label) fails.push(`provenance for ${JSON.stringify(ch.value)} wrong: ${JSON.stringify(rec)}`);
+    }
+    const invalid = new Set(['zzz_undeclared', 0, '0']);
+    for (const ch of decl.choices) {
+      if (typeof ch.value === 'string') {
+        invalid.add(ch.value.toUpperCase() !== ch.value ? ch.value.toUpperCase() : ch.value.toLowerCase());
+        invalid.add(' ' + ch.value); invalid.add(ch.value + ' ');
+        invalid.add(decl.choices.indexOf(ch) + 1);                 // a numeric CODE for a text option
+      } else { invalid.add(String(ch.value)); invalid.add(' ' + String(ch.value)); invalid.add(ch.value + 0.001); }
+    }
+    for (const bad of invalid) {
+      if (decl.choices.some(c => c.value === bad)) continue;     // a declared value is not invalid
+      const r = E.calculate(id, { ...full, [x.var]: bad }); n++;
+      if (r.state !== 'INCOMPLETE' || !r.missing.includes(x.var) || !r.warnings.includes('INVALID_OPTION:' + x.var) || r.outputs.some(o => o.value !== null)) fails.push(`invalid ${JSON.stringify(bad)} -> ${r.state} ${JSON.stringify(r.warnings)}`);
+    }
+    for (const miss of [undefined, null, NaN, '']) {
+      const inp = { ...full }; if (miss === undefined) delete inp[x.var]; else inp[x.var] = miss;
+      const r = E.calculate(id, inp); n++;
+      if (r.state !== 'INCOMPLETE' || !r.missing.includes(x.var) || r.warnings.some(wn => wn.startsWith('INVALID_OPTION')) || r.outputs.some(o => o.value !== null)) fails.push(`missing ${String(miss)} -> ${r.state} ${JSON.stringify(r.warnings)}`);
+    }
+  }
+  record('OPTION_CONTRACT', id, !fails.length, fails.length ? fails.slice(0, 3).join(' | ') : `${n} contract checks`);
 }
 
 /* ---------------- ENGINE_NODE (same engine outside the browser) ---------- */
@@ -113,9 +158,12 @@ for (const id of ALL) {
   const N = createEngine(regs, JSON.parse(JSON.stringify(w.eval('GH_CALC_ALIASES'))));
   let diff = 0, first = null;
   for (const id of ALL) {
-    const inp = Object.fromEntries(numeric(id));
-    const a = JSON.stringify(E.calculate(id, inp)), b = JSON.stringify(N.calculate(id, inp));
-    if (a !== b) { diff++; first = first || id; }
+    const picks = OPTION_IDS.includes(id) ? Math.max(...E.describe(id).inputs.filter(i => i.kind === 'categorical').map(i => i.choices.length)) : 1;
+    for (let k = 0; k < picks; k++) {                         // D-009: every declared choice
+      const inp = Object.fromEntries(numeric(id, k));
+      const a = JSON.stringify(E.calculate(id, inp)), b = JSON.stringify(N.calculate(id, inp));
+      if (a !== b) { diff++; first = first || id; }
+    }
   }
   record('ENGINE_NODE', `${ALL.length} calculators`, diff === 0, diff ? `${diff} differ between browser and Node engine, first: ${first}` : 'Node engine == in-page engine for every calculator');
 }
@@ -132,8 +180,31 @@ for (const id of ALL) {
     const d = doc.createElement('div'); d.innerHTML = (typeof w.ghFormulaBlockHTML === 'function' && w.ghFormulaBlockHTML(id)) || '';
     const t = d.textContent.replace(/\s+/g, ' '); const k = t.indexOf('JS Implementation');
     const art = (k < 0 ? t : t.slice(0, k)).match(ART);
-    if (KNOWN[id]) record('FORMULA_DISPLAY', id, !!art, art ? `known pre-existing: ${KNOWN[id]}` : 'stale: no longer has artifacts - remove from formula-display-known.json');
-    else record('FORMULA_DISPLAY', id, !art, art ? `typeset formula shows code: ${[...new Set(art)].join(' ')}` : '');
+    const optProblems = [];
+    const spec = JSON.parse(JSON.stringify(w.eval(`(()=>{for(const r of [GH_E1_FORMULAS,GH_E101_FORMULAS,GH_LEGACY_FORMULAS,GH_BACKFILL_FORMULAS]) if(r[${JSON.stringify(id)}]) return r[${JSON.stringify(id)}]; return null})()`)) || 'null');
+    if (spec && spec.options) {
+      /* D-009: the published formula uses bound constants, so the legend must
+       * define each one and list every choice; display forms must be exact; the
+       * typeset math may not contain quotes (no string comparisons). */
+      const typeset = k < 0 ? t : t.slice(0, k);
+      if (/['"`]/.test(typeset)) optProblems.push('typeset formula contains a quote');
+      const lis = [...d.querySelectorAll('.gh-var-legend li')].map(li => li.textContent.replace(/\s+/g, ' '));
+      for (const [v, decl] of Object.entries(spec.options)) for (const [pn, meaning] of Object.entries(decl.params)) {
+        const sym = (() => { const e = doc.createElement('span'); e.innerHTML = w.renderVarName(pn); return e.textContent.replace(/\s+/g, ' '); })();
+        const li = lis.find(x => x.startsWith(sym + ' = ' + meaning));
+        if (!li) { optProblems.push(`bound constant ${pn} not defined in legend`); continue; }
+        for (const ch of decl.choices) {
+          const shown = (ch.bind_display && ch.bind_display[pn]) || String(ch.bind[pn]);
+          if (!li.includes(`${ch.label}: ${shown}`)) optProblems.push(`legend for ${pn} lacks ${ch.label}: ${shown}`);
+          if (ch.bind_display && ch.bind_display[pn] !== undefined) {
+            let val; try { val = Function('"use strict"; return (' + ch.bind_display[pn] + ');')(); } catch (e) { val = NaN; }
+            if (val !== ch.bind[pn]) optProblems.push(`display "${ch.bind_display[pn]}" for ${pn} is ${val}, bound value is ${ch.bind[pn]}`);
+          }
+        }
+      }
+    }
+    if (KNOWN[id]) record('FORMULA_DISPLAY', id, !!art && !optProblems.length, art ? `known pre-existing: ${KNOWN[id]}` : 'stale: no longer has artifacts - remove from formula-display-known.json');
+    else record('FORMULA_DISPLAY', id, !art && !optProblems.length, [art ? `typeset formula shows code: ${[...new Set(art)].join(' ')}` : '', ...optProblems].filter(Boolean).join(' | '));
   }
 }
 
@@ -173,7 +244,9 @@ function sameNumber(engineVal, shown) {
 }
 function openFresh(id) { const s = w.eval('CALC_PERSISTENT_STATE'); delete s[id]; container().innerHTML = ''; w.renderCalc(id, false); }
 function setAndRender(id, binding, values) {
-  for (const [v, b] of Object.entries(binding)) { const el = doc.getElementById(b.id); if (!el) continue; if (b.tag === 'SELECT' && ![...el.options].some(o => Number(o.value) === values[v])) continue; el.value = b.tag === 'SELECT' ? [...el.options].find(o => Number(o.value) === values[v]).value : String(values[v]); }
+  for (const [v, b] of Object.entries(binding)) { const el = doc.getElementById(b.id); if (!el) continue;
+    if (b.tag === 'SELECT') { const o = [...el.options].find(o => o.value === String(values[v]) || Number(o.value) === values[v]); if (o) el.value = o.value; continue; }
+    el.value = String(values[v]); }
   w.renderCalc(id, false);
 }
 
@@ -191,19 +264,38 @@ for (const id of MIGRATED.calculators) {
     if (f && !Object.values(binding).some(b => b.id === f.id)) binding[inp.var] = f; else unbound.push(inp.var);
   }
   if (unbound.length) { record('LIVE_PARITY', id, false, `cannot bind registry input(s) ${unbound.join(', ')} to a live field`); continue; }
-  const base = {};
+  const base = {}, catProblems = [];
+  const catVars = d.inputs.filter(i => i.kind === 'categorical').map(i => i.var);
   for (const [v, b] of Object.entries(binding)) {
     const raw = b.el.value; const x = Number(raw);
-    base[v] = b.tag === 'SELECT' ? (isFinite(x) ? x : raw) : x;
+    if (catVars.includes(v)) {
+      /* D-009 OPTION_SET: the live selector's options must EXACTLY equal the
+       * declared choices - same values, same visible labels, same count. */
+      const live = [...b.el.options].map(o => [o.value, o.textContent.trim()]);
+      const decl = d.inputs.find(i => i.var === v).choices.map(c => [String(c.value), c.label]);
+      if (JSON.stringify([...live].sort()) !== JSON.stringify([...decl].sort()) || live.length !== decl.length)
+        catProblems.push(`OPTION_SET ${v}: live ${JSON.stringify(live.map(o => o[0]))} vs declared ${JSON.stringify(decl.map(o => o[0]))}`);
+      const ch = d.inputs.find(i => i.var === v).choices.find(c => String(c.value) === raw);
+      if (!ch) catProblems.push(`live default ${JSON.stringify(raw)} for ${v} is not a declared choice`);
+      base[v] = ch ? ch.value : raw;
+    } else base[v] = b.tag === 'SELECT' ? (isFinite(x) ? x : raw) : x;
   }
-  if (Object.entries(binding).some(([v, b]) => b.tag === 'SELECT' && typeof base[v] !== 'number')) { record('LIVE_PARITY', id, false, 'an input is a non-numeric select - not an engine calculator yet'); continue; }
-  const vectors = [['defaults', base]];
+  if (catProblems.length) { record('LIVE_PARITY', id, false, catProblems.join(' | ')); continue; }
+  if (Object.entries(binding).some(([v, b]) => b.tag === 'SELECT' && !catVars.includes(v) && typeof base[v] !== 'number')) { record('LIVE_PARITY', id, false, 'an input is a non-numeric select - not an engine calculator yet'); continue; }
   const editable = Object.keys(binding).filter(v => binding[v].tag !== 'SELECT');
-  vectors.push(['all x1.07', Object.fromEntries(Object.entries(base).map(([k, x]) => [k, editable.includes(k) ? +(x * 1.07).toPrecision(6) : x]))]);
-  for (const v of editable) vectors.push([`${v} x1.13`, { ...base, [v]: +(base[v] * 1.13 || 1.13).toPrecision(6) }]);
-  for (const v of editable) if (base[v] !== 0) vectors.push([`${v}=0`, { ...base, [v]: 0 }]);
+  const vectorsFor = (b0, tag) => {
+    const out = [[`${tag}defaults`, b0]];
+    out.push([`${tag}all x1.07`, Object.fromEntries(Object.entries(b0).map(([k2, x]) => [k2, editable.includes(k2) ? +(x * 1.07).toPrecision(6) : x]))]);
+    for (const v of editable) out.push([`${tag}${v} x1.13`, { ...b0, [v]: +(b0[v] * 1.13 || 1.13).toPrecision(6) }]);
+    for (const v of editable) if (b0[v] !== 0) out.push([`${tag}${v}=0`, { ...b0, [v]: 0 }]);
+    return out;
+  };
+  let vectors = vectorsFor(base, '');
+  /* D-009: the full vector set under EVERY declared choice of every categorical input. */
+  for (const v of catVars) for (const ch of d.inputs.find(i => i.var === v).choices)
+    if (ch.value !== base[v]) vectors = vectors.concat(vectorsFor({ ...base, [v]: ch.value }, `[${v}=${ch.value}] `));
   /* M1.2: a registry input bound to a NUMERIC select is tested with every option. */
-  for (const [v, b] of Object.entries(binding)) if (b.tag === 'SELECT')
+  for (const [v, b] of Object.entries(binding)) if (b.tag === 'SELECT' && !catVars.includes(v))
     [...b.el.options].map(o => Number(o.value)).filter(x => isFinite(x) && x !== base[v]).forEach(x => vectors.push([`${v}=option ${x}`, { ...base, [v]: x }]));
 
   const problems = [], unitNotes = [];
@@ -290,7 +382,7 @@ function finish() {
   console.log('='.repeat(72)); console.log('GEARHEAD LABS - ENGINE VERIFICATION'); console.log(`file     : ${FILE.split('/').pop()}`);
   console.log(`engine   : gh-engine.js ${require(path.join(__dirname, 'gh-engine.js')).ENGINE_VERSION}   migrated calculators: ${MIGRATED.calculators.length}`); console.log('='.repeat(72));
   let fails = 0;
-  for (const s of ['ENGINE_EMBED', 'V_UNKNOWN', 'ENGINE_UNKNOWN', 'ENGINE_NODE', 'FORMULA_DISPLAY', 'LIVE_PARITY']) {
+  for (const s of ['ENGINE_EMBED', 'V_UNKNOWN', 'ENGINE_UNKNOWN', 'OPTION_CONTRACT', 'ENGINE_NODE', 'FORMULA_DISPLAY', 'LIVE_PARITY']) {
     const b = by[s] || { pass: 0, fail: 0, fails: [] }; fails += b.fail;
     console.log(`\n[${b.fail ? 'FAIL' : 'PASS'}] ${s}  ${b.pass} passed, ${b.fail} failed`);
     b.fails.slice(0, 60).forEach(f => console.log(`    x ${f.id}\n        ${f.detail}`));

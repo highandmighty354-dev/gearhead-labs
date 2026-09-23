@@ -1,0 +1,242 @@
+{
+ "distance_converter": {
+  "before": {
+   "eq": [
+    "Miles=din1 (mi)",
+    "Kilometers=din1.60934 (km)",
+    "Feet=din5280 (ft)",
+    "Meters=din1609.34 (m)"
+   ],
+   "lg": [
+    "din = Distance"
+   ]
+  },
+  "after": {
+   "eq": [
+    "Miles=dinkmi (mi)",
+    "Kilometers=dinkkm (km)",
+    "Feet=dinkft (ft)",
+    "Meters=dinkm (m)"
+   ],
+   "lg": [
+    "din = Distance",
+    "dfrom = From Unit",
+    "kmi = miles per selected unit (Miles: 1 · Kilometers: 0.621371 · Feet: 1/5280 · Meters: 0.000621371 · Yards: 1/1760)",
+    "kkm = kilometers per selected unit (Miles: 1.60934 · Kilometers: 1 · Feet: 0.0003048 · Meters: 0.001 · Yards: 0.000914)",
+    "kft = feet per selected unit (Miles: 5280 · Kilometers: 3280.84 · Feet: 1 · Meters: 3.28084 · Yards: 3)",
+    "km = meters per selected unit (Miles: 1609.34 · Kilometers: 1000 · Feet: 0.3048 · Meters: 1 · Yards: 0.9144)"
+   ]
+  }
+ },
+ "volume_converter": {
+  "before": {
+   "eq": [
+    "Gallons=vol3 (gal)",
+    "Liters=vol3 · 3.78541 (L)",
+    "Quarts=vol3 · 4 (qt)",
+    "Fluid oz=vol3 · 128 (oz)"
+   ],
+   "lg": [
+    "vol3 = Volume"
+   ]
+  },
+  "after": {
+   "eq": [
+    "Gallons=vol3 · kgal (gal)",
+    "Liters=vol3 · kgal · 3.78541 (L)",
+    "Quarts=vol3 · kgal · 4 (qt)",
+    "Fluid oz=vol3 · kgal · 128 (oz)"
+   ],
+   "lg": [
+    "vol3 = Volume",
+    "vf = From",
+    "kgal = US gallons per selected unit (Gallons: 1 · Quarts: 0.25 · Pints: 0.125 · Fluid oz: 1/128 · Liters: 0.264172 · Milliliters: 0.000264172)"
+   ]
+  }
+ },
+ "pressure_converter": {
+  "before": {
+   "eq": [
+    "PSI=presin (psi)",
+    "bar=presin14.5038 (bar)",
+    "kPa=presin0.145038 (kPa)",
+    "atm=presin14.6959 (atm)"
+   ],
+   "lg": [
+    "presin = Pressure"
+   ]
+  },
+  "after": {
+   "eq": [
+    "PSI=presin · kpsi (psi)",
+    "bar=presin · kpsi14.5038 (bar)",
+    "kPa=presin · kpsi0.145038 (kPa)",
+    "atm=presin · kpsi14.6959 (atm)"
+   ],
+   "lg": [
+    "presin = Pressure",
+    "presfrom = From",
+    "kpsi = psi per selected unit (PSI: 1 · bar: 14.5038 · kPa: 0.145038 · atm: 14.6959 · mmHg: 0.0193368 · in Hg: 0.491154)"
+   ]
+  }
+ },
+ "power_converter": {
+  "before": {
+   "eq": [
+    "HP (SAE)=powin (hp)",
+    "kW=powin · 0.745699 (kW)",
+    "PS / CV=powin · 0.7456990.735499 (PS)"
+   ],
+   "lg": [
+    "powin = Power"
+   ]
+  },
+  "after": {
+   "eq": [
+    "HP (SAE)=powin · kkw0.745699 (hp)",
+    "kW=powin · kkw (kW)",
+    "PS / CV=powin · kkw0.735499 (PS)"
+   ],
+   "lg": [
+    "powin = Power",
+    "powfrom = From",
+    "kkw = kW per selected unit (HP (SAE): 0.745699 · kW: 1 · PS / CV (metric): 0.735499 · Watts: 0.001)"
+   ]
+  }
+ },
+ "injector_flow": {
+  "before": {
+   "eq": [
+    "cc/min=flow1 · 10.5042 (cc/min)"
+   ],
+   "lg": [
+    "flow1 = Flow Rate"
+   ]
+  },
+  "after": {
+   "eq": [
+    "lb/hr=flow1 · lbmullbdiv (lb/hr)",
+    "cc/min=flow1 · ccmulccdiv (cc/min)"
+   ],
+   "lg": [
+    "flow1 = Flow Rate",
+    "flowfrom = From",
+    "lbmul = lb/hr multiplier (lb/hr: 1 · cc/min: 1)",
+    "lbdiv = lb/hr divisor (lb/hr: 1 · cc/min: 10.5042)",
+    "ccmul = cc/min multiplier (lb/hr: 10.5042 · cc/min: 1)",
+    "ccdiv = cc/min divisor (lb/hr: 1 · cc/min: 1)"
+   ]
+  }
+ },
+ "wind_et": {
+  "before": {
+   "eq": [
+    "Corrected ET (headwind)=etwnd + windspd · 0.001 (sec)"
+   ],
+   "lg": [
+    "etwnd = Current ET (calm)",
+    "windspd = Wind Speed"
+   ]
+  },
+  "after": {
+   "eq": [
+    "Corrected ET=etwnd + windspd · windfactor · 0.1 (sec)"
+   ],
+   "lg": [
+    "etwnd = Current ET (calm)",
+    "windspd = Wind Speed",
+    "winddir = Wind Direction",
+    "windfactor = wind direction factor (Headwind: 0.01 · Tailwind: -0.01)"
+   ]
+  }
+ },
+ "max_rpm": {
+  "before": {
+   "eq": [
+    "Max Safe RPM (Street, 4,000 ft/min piston speed)=24000strmr (RPM)"
+   ],
+   "lg": [
+    "strmr = Stroke"
+   ]
+  },
+  "after": {
+   "eq": [
+    "Max Safe RPM=mpslimit · 12strmr · 2 (RPM)"
+   ],
+   "lg": [
+    "strmr = Stroke",
+    "typemr = Application",
+    "mpslimit = mean piston speed limit (ft/min) (Street / Daily: 4000 · Performance: 4500 · All-Out Race: 5000)"
+   ]
+  }
+ },
+ "fuse_sizing": {
+  "before": {
+   "eq": [
+    "Minimum Fuse Rating (continuous load)=ampsfs · 1.25 (A)"
+   ],
+   "lg": [
+    "ampsfs = Load Current"
+   ]
+  },
+  "after": {
+   "eq": [
+    "Min Fuse Rating=ampsfs · kfuse (A)"
+   ],
+   "lg": [
+    "ampsfs = Load Current",
+    "typefs = Load Type",
+    "kfuse = fuse sizing multiplier (Continuous (×1.25): 1.25 · Intermittent (×1.0): 1 · Motor Inrush (×1.5, time-delay): 1.5)"
+   ]
+  }
+ },
+ "ring_gap": {
+  "before": {
+   "eq": [
+    "Top Ring Gap (Street)=borerg · 0.0045 (in)",
+    "Second Ring Gap (Street)=borerg · 0.0048 (in)"
+   ],
+   "lg": [
+    "borerg = Bore"
+   ]
+  },
+  "after": {
+   "eq": [
+    "Top Ring Gap=borerg · ktop (in)",
+    "Second Ring Gap=borerg · ksecond (in)"
+   ],
+   "lg": [
+    "borerg = Bore",
+    "apprg = Application",
+    "ktop = top ring gap per inch of bore (Street / Moderate Performance: 0.0045 · Race / Naturally Aspirated: 0.0045 · Nitrous — Street: 0.005 · Nitrous — Race: 0.007 · Turbo / Supercharged: 0.007)",
+    "ksecond = second ring gap per inch of bore (Street / Moderate Performance: 0.0048 · Race / Naturally Aspirated: 0.005 · Nitrous — Street: 0.0055 · Nitrous — Race: 0.0075 · Turbo / Supercharged: 0.0075)"
+   ]
+  }
+ },
+ "bearing_life": {
+  "before": {
+   "eq": [
+    "L10 Life (ball bearing, p=3)=(ratedloadloadbr)3 (million rev)",
+    "L10 Life (hours)=(ratedloadloadbr)3 · 1000000rpmbr · 60 (hours)"
+   ],
+   "lg": [
+    "loadbr = Equivalent Dynamic Load",
+    "ratedload = Bearing Dynamic Load Rating",
+    "rpmbr = Operating Speed"
+   ]
+  },
+  "after": {
+   "eq": [
+    "L10 Life=(ratedloadloadbr)p (million rev)",
+    "L10 Life (hours)=(ratedloadloadbr)p · 1000000rpmbr · 60 (hours)"
+   ],
+   "lg": [
+    "loadbr = Equivalent Dynamic Load",
+    "ratedload = Bearing Dynamic Load Rating",
+    "rpmbr = Operating Speed",
+    "lifeexp = Bearing Type",
+    "p = load-life exponent (Ball Bearing (p=3): 3 · Roller Bearing (p=10/3): 10/3)"
+   ]
+  }
+ }
+}

@@ -1,0 +1,100 @@
+[
+ {
+  "control": "1% change to one bound constant (pressure bar)",
+  "calculator": "pressure_converter",
+  "exit": 1,
+  "caught": true,
+  "failing_suites": [
+   "[FAIL] LIVE_PARITY  0 passed, 1 failed"
+  ],
+  "first_detail": [
+   "[pres_from=bar] defaults: 'PSI' engine 215.3379 vs live \"213.2059 psi\""
+  ]
+ },
+ {
+  "control": "add an undeclared option (distance furlong)",
+  "calculator": "distance_converter",
+  "exit": 1,
+  "caught": true,
+  "failing_suites": [
+   "[FAIL] LIVE_PARITY  0 passed, 1 failed"
+  ],
+  "first_detail": [
+   "OPTION_SET d_from: live [\"mi\",\"km\",\"ft\",\"m\",\"yd\"] vs declared [\"mi\",\"km\",\"ft\",\"m\",\"yd\",\"furlong\"]"
+  ]
+ },
+ {
+  "control": "remove a live option (distance yd)",
+  "calculator": "distance_converter",
+  "exit": 1,
+  "caught": true,
+  "failing_suites": [
+   "[FAIL] LIVE_PARITY  0 passed, 1 failed"
+  ],
+  "first_detail": [
+   "OPTION_SET d_from: live [\"mi\",\"km\",\"ft\",\"m\",\"yd\"] vs declared [\"mi\",\"km\",\"ft\",\"m\"]"
+  ]
+ },
+ {
+  "control": "change option case (km -> KM)",
+  "calculator": "distance_converter",
+  "exit": 1,
+  "caught": true,
+  "failing_suites": [
+   "[FAIL] LIVE_PARITY  0 passed, 1 failed"
+  ],
+  "first_detail": [
+   "OPTION_SET d_from: live [\"mi\",\"km\",\"ft\",\"m\",\"yd\"] vs declared [\"mi\",\"KM\",\"ft\",\"m\",\"yd\"]"
+  ]
+ },
+ {
+  "control": "add whitespace (km -> \"km \")",
+  "calculator": "distance_converter",
+  "exit": 1,
+  "caught": true,
+  "failing_suites": [
+   "[FAIL] LIVE_PARITY  0 passed, 1 failed"
+  ],
+  "first_detail": [
+   "OPTION_SET d_from: live [\"mi\",\"km\",\"ft\",\"m\",\"yd\"] vs declared [\"mi\",\"km \",\"ft\",\"m\",\"yd\"]"
+  ]
+ },
+ {
+  "control": "numeric code instead of declared string (wind head/tail -> 1/2)",
+  "calculator": "wind_et",
+  "exit": 1,
+  "caught": true,
+  "failing_suites": [
+   "[FAIL] LIVE_PARITY  0 passed, 1 failed"
+  ],
+  "first_detail": [
+   "OPTION_SET wind_dir: live [\"head\",\"tail\"] vs declared [\"1\",\"2\"] | live default \"head\" for wind_dir is not a declared choice"
+  ]
+ },
+ {
+  "control": "string comparison inside formula (wind_et)",
+  "calculator": "wind_et",
+  "exit": 1,
+  "caught": true,
+  "failing_suites": [
+   "[FAIL] ENGINE_UNKNOWN  576 passed, 1 failed",
+   "[FAIL] FORMULA_DISPLAY  0 passed, 1 failed",
+   "[FAIL] LIVE_PARITY  0 passed, 1 failed"
+  ],
+  "first_detail": [
+   "missing 'et_wnd' as undefined -> NOT_APPLICABLE, outputs []"
+  ]
+ },
+ {
+  "control": "hide a bound constant from the legend (bearing p)",
+  "calculator": "bearing_life",
+  "exit": 1,
+  "caught": true,
+  "failing_suites": [
+   "[FAIL] FORMULA_DISPLAY  0 passed, 1 failed"
+  ],
+  "first_detail": [
+   "bound constant p not defined in legend"
+  ]
+ }
+]

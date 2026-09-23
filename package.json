@@ -1,10 +1,10 @@
 {
   "name": "gearhead-labs-verification",
-  "version": "1.11.1",
+  "version": "1.12.0",
   "private": true,
   "description": "Release gate for the Gearhead Labs encyclopedia: static + live-page invariant harnesses",
   "scripts": {
-    "verify": "./verify-all.sh F1_11_1_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
+    "verify": "./verify-all.sh F1_12_0_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
     "test:engine": "node engine.test.js"
   },
   "devDependencies": {

@@ -123,6 +123,7 @@ function unverifiable(id) {
   const f = FORMULAS[id];
   const exprs = f.outputs ? f.outputs.map(o => o.expr) : [f.expr];
   const vars = new Set(f.vars || []);
+  if (f.options) Object.values(f.options).forEach(d => Object.keys(d.params || {}).forEach(n => vars.add(n)));  // D-009 bound constants
   const BUILTIN = /^(Math|Number|Array|String|Boolean|isFinite|isNaN|parseInt|parseFloat|NaN|Infinity|null|undefined|true|false|PI|E|LN2|LN10|abs|pow|sqrt|cbrt|hypot|sign|trunc|min|max|round|floor|ceil|log|log2|log10|exp|expm1|atan|atan2|sin|cos|tan|asin|acos|sinh|cosh|tanh|every|some|find|findIndex|filter|reduce|reduceRight|map|forEach|includes|indexOf|join|slice|concat|length|toFixed|toPrecision|toString)$/;
   for (const e of exprs) {
     if (!e) return 'no expression';
@@ -160,12 +161,29 @@ function unverifiable(id) {
   return null;
 }
 
-function inputsFor(id, overrides = {}) {
+function inputsFor(id, overrides = {}, pick = 0) {
   const f = FORMULAS[id];
   const vars = f.vars || [];
   const labels = f.labels || [];
   const env = {};
   vars.forEach((v, i) => { env[v] = (v in overrides) ? overrides[v] : seed(labels[i], v, i); });
+  return bindOptions(f, env, pick);
+}
+/* D-009 (F1.12.0): an entry with registry-declared options binds named constants.
+ * The categorical input takes a DECLARED choice value (never a numeric seed) and
+ * that choice's constants are added to the environment. pick = index of the choice
+ * to use for every option input (EVAL walks all of them). */
+function optionChoiceCount(f) {
+  if (!f.options) return 1;
+  return Math.max(...Object.values(f.options).map(d => (d.choices || []).length));
+}
+function bindOptions(f, env, pick = 0) {
+  if (!f.options) return env;
+  for (const [v, d] of Object.entries(f.options)) {
+    const ch = d.choices[Math.min(pick, d.choices.length - 1)];
+    env[v] = ch.value;
+    Object.assign(env, ch.bind);
+  }
   return env;
 }
 
@@ -187,9 +205,9 @@ function hasGuard(id) {
   return exprs.some(e => e && (/:\s*NaN/.test(e) || /Number\.isFinite/.test(e) || /every\(Number/.test(e)));
 }
 
-function outputsOf(id, overrides = {}) {
+function outputsOf(id, overrides = {}, pick = 0) {
   const f = FORMULAS[id];
-  const env = inputsFor(id, overrides);
+  const env = inputsFor(id, overrides, pick);
   const outs = [];
   if (f.outputs) {
     for (const o of f.outputs) outs.push({ label: o.out, unit: o.unit, value: evalExpr(o.expr, env) });
@@ -214,7 +232,10 @@ function suiteEval() {
     const skip = unverifiable(id);
     if (skip) { SKIPPED.push({ id, why: skip }); continue; }
     try {
-      const { outs } = outputsOf(id);
+      /* D-009: an entry with options is evaluated under EVERY declared choice. */
+      const nChoices = optionChoiceCount(FORMULAS[id]);
+      let outs = [];
+      for (let k = 0; k < nChoices; k++) outs = outs.concat(outputsOf(id, {}, k).outs);
       if (!outs.length) { record('EVAL', id, false, 'no expr or outputs'); continue; }
       const bad = outs.filter(o => typeof o.value !== 'number' || !isFinite(o.value));
       if (bad.length) {
@@ -391,6 +412,10 @@ function mapVars(id, inputs, fieldLabels) {
   const env = {}; const unmapped = [];
   for (const v of (f.vars || [])) {
     if (v in inputs) { env[v] = inputs[v]; continue; }
+    /* D-009: a declared categorical input read with sv() is not a captured numeric
+     * input. In this sandbox sv() returns '' so the renderer takes its own default,
+     * which is the first declared choice; evalRegistry binds exactly that. */
+    if (f.options && f.options[v]) continue;
     // Only an EXACT field-id match is trustworthy. Registries that use short
     // symbolic names (T, V, hp) cannot be mapped onto render field ids without
     // guessing, and a wrong guess manufactures a fake difference.
@@ -427,6 +452,16 @@ function mapVars(id, inputs, fieldLabels) {
 
 function evalRegistry(id, env) {
   const f = FORMULAS[id];
+  if (f.options) {
+    /* D-009: bind the choice the rendered calculator used (its selector value when
+     * the sandbox captured one), otherwise the live default - the first option,
+     * which is the selector's default for every declared calculator. */
+    env = Object.assign({}, env);
+    for (const [v, d] of Object.entries(f.options)) {
+      const ch = d.choices.find(c => v in env && String(c.value) === String(env[v])) || d.choices[0];
+      env[v] = ch.value; Object.assign(env, ch.bind);
+    }
+  }
   const n = Object.keys(env), vals = n.map(k => env[k]);
   const run = (expr) => new Function(...n, `"use strict"; return (${expr});`)(...vals);
   if (f.outputs) return f.outputs.map(o => ({ label: o.out, value: run(o.expr) }));

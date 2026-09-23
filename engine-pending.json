@@ -1,21 +1,19 @@
 {
- "about": "Calculators that did NOT prove full live parity. Not migrated. Each needs the fix or decision described before it can join engine-migrated.json. Updated at F1.11.1 (M1.2).",
+ "about": "Calculators that did NOT prove full live parity. Not migrated. Each needs the fix or decision described before it can join engine-migrated.json. Updated at F1.12.0 (D-009).",
  "reasons": {
   "REGISTRY_INCOMPLETE": "Live calculator has an input (usually a unit/mode selector or a physical constant exposed as an input) that the registry formula does not have. The registry only matches the live page for the default setting. Fix: add the input to the registry entry, then re-prove.",
   "REGISTRY_STUB": "Registry formula is a simplified stand-in that agrees with the live algorithm only at default inputs.",
   "LIVE_DEFECT": "Live renderer shows a number for physically invalid input, or has an engineering defect found during parity. Needs an owner-visible fix in the live calculator before migration.",
   "UNIT_DIVERGENCE": "Registry and live display the same quantity in different units.",
   "MODE_DEPENDENT": "Calculator has solve-for modes; some registry inputs are not rendered in the default mode, so they cannot be bound. Needs per-mode registry entries.",
-  "NEEDS_CATEGORICAL_INPUT": "Live calculator depends on a text selector (unit From-selector, application, direction). Blocked on the engine categorical-input decision.",
-  "FORMULA_DISPLAY_BLOCKED": "The live math can be expressed in the registry, but only in a form the visitor-facing formula renderer displays incorrectly."
+  "EXACT_PARITY_NOT_EXPRESSIBLE": "The live calculation cannot be reproduced exactly by one registry expression over declared inputs and bound constants."
  },
  "counts": {
   "REGISTRY_STUB": 1,
   "UNIT_DIVERGENCE": 1,
-  "NEEDS_CATEGORICAL_INPUT": 11,
   "MODE_DEPENDENT": 3,
-  "LIVE_DEFECT": 2,
-  "FORMULA_DISPLAY_BLOCKED": 1
+  "LIVE_DEFECT": 3,
+  "EXACT_PARITY_NOT_EXPRESSIBLE": 1
  },
  "pending": {
   "optimal_shift": {
@@ -26,46 +24,6 @@
    "reason": "UNIT_DIVERGENCE",
    "detail": "Registry output \"Motor Power (kW)\" = 340.8 kW; live displays the same power as 457 HP. Per the canonical-units decision (native US/Imperial), the registry output should be HP; that is a formula change and needs re-verification."
   },
-  "distance_converter": {
-   "reason": "NEEDS_CATEGORICAL_INPUT",
-   "detail": "Missing live input is a TEXT selector: d_from = mi|km|ft|m|yd. The engine input contract is numeric-only (strings are UNKNOWN by design). Closing this needs an owner decision: (a) registry-declared option lists validated by the engine (recommended; formula-free, but an engine contract change), or (b) numeric codes (a new convention). M1.2 rules forbid both without approval.",
-   "m12_evidence": "M1.2-INVENTORY.md section B"
-  },
-  "volume_converter": {
-   "reason": "NEEDS_CATEGORICAL_INPUT",
-   "detail": "Missing live input is a TEXT selector: vf = gal|qt|pt|oz|L|mL. The engine input contract is numeric-only (strings are UNKNOWN by design). Closing this needs an owner decision: (a) registry-declared option lists validated by the engine (recommended; formula-free, but an engine contract change), or (b) numeric codes (a new convention). M1.2 rules forbid both without approval.",
-   "m12_evidence": "M1.2-INVENTORY.md section B"
-  },
-  "pressure_converter": {
-   "reason": "NEEDS_CATEGORICAL_INPUT",
-   "detail": "Missing live input is a TEXT selector: pres_from = psi|bar|kpa|atm|mmhg|inhg. The engine input contract is numeric-only (strings are UNKNOWN by design). Closing this needs an owner decision: (a) registry-declared option lists validated by the engine (recommended; formula-free, but an engine contract change), or (b) numeric codes (a new convention). M1.2 rules forbid both without approval.",
-   "m12_evidence": "M1.2-INVENTORY.md section B"
-  },
-  "power_converter": {
-   "reason": "NEEDS_CATEGORICAL_INPUT",
-   "detail": "Missing live input is a TEXT selector: pow_from = hp|kw|ps|watts. The engine input contract is numeric-only (strings are UNKNOWN by design). Closing this needs an owner decision: (a) registry-declared option lists validated by the engine (recommended; formula-free, but an engine contract change), or (b) numeric codes (a new convention). M1.2 rules forbid both without approval.",
-   "m12_evidence": "M1.2-INVENTORY.md section B"
-  },
-  "wind_et": {
-   "reason": "NEEDS_CATEGORICAL_INPUT",
-   "detail": "Missing live input is a TEXT selector: wind_dir = head|tail (registry = headwind case; coefficient matches live 0.01 x 0.1). The engine input contract is numeric-only (strings are UNKNOWN by design). Closing this needs an owner decision: (a) registry-declared option lists validated by the engine (recommended; formula-free, but an engine contract change), or (b) numeric codes (a new convention). M1.2 rules forbid both without approval.",
-   "m12_evidence": "M1.2-INVENTORY.md section B"
-  },
-  "max_rpm": {
-   "reason": "NEEDS_CATEGORICAL_INPUT",
-   "detail": "Missing live input is a TEXT selector: type_mr = street|perf|race. The engine input contract is numeric-only (strings are UNKNOWN by design). Closing this needs an owner decision: (a) registry-declared option lists validated by the engine (recommended; formula-free, but an engine contract change), or (b) numeric codes (a new convention). M1.2 rules forbid both without approval.",
-   "m12_evidence": "M1.2-INVENTORY.md section B"
-  },
-  "fuse_sizing": {
-   "reason": "NEEDS_CATEGORICAL_INPUT",
-   "detail": "Missing live input is a TEXT selector: type_fs = continuous|intermittent|inrush. The engine input contract is numeric-only (strings are UNKNOWN by design). Closing this needs an owner decision: (a) registry-declared option lists validated by the engine (recommended; formula-free, but an engine contract change), or (b) numeric codes (a new convention). M1.2 rules forbid both without approval.",
-   "m12_evidence": "M1.2-INVENTORY.md section B"
-  },
-  "ring_gap": {
-   "reason": "NEEDS_CATEGORICAL_INPUT",
-   "detail": "Missing live input is a TEXT selector: app_rg = street|na_race|nitrous_street|nitrous_race|boost. The engine input contract is numeric-only (strings are UNKNOWN by design). Closing this needs an owner decision: (a) registry-declared option lists validated by the engine (recommended; formula-free, but an engine contract change), or (b) numeric codes (a new convention). M1.2 rules forbid both without approval.",
-   "m12_evidence": "M1.2-INVENTORY.md section B"
-  },
   "hp_quarter_mile": {
    "reason": "MODE_DEPENDENT",
    "detail": "Trap-speed vs ET mode; the ET input is not rendered in the default (trap) mode."
@@ -75,14 +33,14 @@
    "detail": "Live displays 0° (with a warning line) when the axle-to-pivot distance is 0, where the angle is undefined. Unknown/invalid must not display as zero. Engine returns atan(x/0)=90°, also invalid: needs a >0 domain rule in the registry."
   },
   "speed_converter": {
-   "reason": "NEEDS_CATEGORICAL_INPUT",
-   "detail": "Missing live input is a TEXT selector: s_from = mph|kph|mps|fps. The engine input contract is numeric-only (strings are UNKNOWN by design). Closing this needs an owner decision: (a) registry-declared option lists validated by the engine (recommended; formula-free, but an engine contract change), or (b) numeric codes (a new convention). M1.2 rules forbid both without approval.",
-   "m12_evidence": "M1.2-INVENTORY.md section B"
+   "reason": "LIVE_DEFECT",
+   "detail": "Live calculator defect found in the D-009 review: the From selector offers ft/s but the renderer has no fps branch, so 60 ft/s displays as 60 mph, 60 km/h and 60 m/s (correct: ~40.9 mph). D-009 could encode the selector, but exact parity would publish the defect as engineering truth. Needs an owner-approved live-page correction first; the live calculation is NOT modified (scope lock).",
+   "evidence": "D009-RESULTS.md"
   },
   "temp_converter": {
-   "reason": "NEEDS_CATEGORICAL_INPUT",
-   "detail": "Missing live input is a TEXT selector: t_from = F|C|K. The engine input contract is numeric-only (strings are UNKNOWN by design). Closing this needs an owner decision: (a) registry-declared option lists validated by the engine (recommended; formula-free, but an engine contract change), or (b) numeric codes (a new convention). M1.2 rules forbid both without approval.",
-   "m12_evidence": "M1.2-INVENTORY.md section B"
+   "reason": "EXACT_PARITY_NOT_EXPRESSIBLE",
+   "detail": "D-009 can declare F/C/K, but the live renderer rounds a different chain of intermediates per source unit (e.g. from F: K is computed from C already rounded to 2 dp; from K: K is the input itself). No single registry expression over bound constants reproduces every option exactly; it would match only within tolerance. Owner scope lock: stays pending; live formula not altered.",
+   "evidence": "D009-RESULTS.md"
   },
   "time_speed_dist": {
    "reason": "MODE_DEPENDENT",
@@ -92,19 +50,9 @@
    "reason": "LIVE_DEFECT",
    "detail": "Registry hard-codes 5 lugs (ignores the lug-count input). Live mixes measurement conventions (adjacent-stud geometry for 4/5/8 lugs, PCD = measurement for 6) and its fallback branch for other lug counts returns meas/(2 sin(π/n)), a RADIUS, labelled as bolt-circle DIAMETER (2x error). Needs a sourced convention decision."
   },
-  "injector_flow": {
-   "reason": "NEEDS_CATEGORICAL_INPUT",
-   "detail": "Missing live input is a TEXT selector: flow_from = lbhr|ccmin. The engine input contract is numeric-only (strings are UNKNOWN by design). Closing this needs an owner decision: (a) registry-declared option lists validated by the engine (recommended; formula-free, but an engine contract change), or (b) numeric codes (a new convention). M1.2 rules forbid both without approval.",
-   "m12_evidence": "M1.2-INVENTORY.md section B"
-  },
   "diesel_injector_flow": {
    "reason": "MODE_DEPENDENT",
    "detail": "Not all registry inputs are rendered with defaults; needs per-mode review."
-  },
-  "bearing_life": {
-   "reason": "FORMULA_DISPLAY_BLOCKED",
-   "detail": "Registry is missing the live Bearing Type input (select values 3 / 3.33 -> p = 3 ball, 10/3 roller). Every faithful registry expression was tried against the visitor-facing formula renderer (renderExprBlock): a selectable exponent renders as code, and \"^10/3\" reads as ((C/P)^10)/3, which is mathematically misleading. The current registry (ball bearing, p=3, labelled as such) displays correctly, so it was left unchanged. Closing needs an owner decision: (a) teach the formula renderer to typeset a selected exponent, or (b) separate ball / roller registry entries (changes the calculator structure).",
-   "m12_evidence": "M1.2-RESULTS.md"
   }
  }
 }

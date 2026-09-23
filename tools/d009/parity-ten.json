@@ -1,0 +1,211 @@
+{
+ "distance_converter": {
+  "vectors": 20,
+  "checks": 80,
+  "problems": [],
+  "unitNotes": [],
+  "uncovered_live_outputs": [],
+  "binding": {
+   "d_in": {
+    "field": "d_in",
+    "label": "Distance",
+    "unit": ""
+   },
+   "d_from": {
+    "field": "d_from",
+    "label": "From Unit",
+    "unit": ""
+   }
+  }
+ },
+ "volume_converter": {
+  "vectors": 24,
+  "checks": 96,
+  "problems": [],
+  "unitNotes": [],
+  "uncovered_live_outputs": [],
+  "binding": {
+   "vol3": {
+    "field": "vol3",
+    "label": "Volume",
+    "unit": ""
+   },
+   "vf": {
+    "field": "vf",
+    "label": "From",
+    "unit": ""
+   }
+  }
+ },
+ "pressure_converter": {
+  "vectors": 24,
+  "checks": 96,
+  "problems": [],
+  "unitNotes": [],
+  "uncovered_live_outputs": [],
+  "binding": {
+   "pres_in": {
+    "field": "pres_in",
+    "label": "Pressure",
+    "unit": ""
+   },
+   "pres_from": {
+    "field": "pres_from",
+    "label": "From",
+    "unit": ""
+   }
+  }
+ },
+ "power_converter": {
+  "vectors": 16,
+  "checks": 48,
+  "problems": [],
+  "unitNotes": [],
+  "uncovered_live_outputs": [],
+  "binding": {
+   "pow_in": {
+    "field": "pow_in",
+    "label": "Power",
+    "unit": ""
+   },
+   "pow_from": {
+    "field": "pow_from",
+    "label": "From",
+    "unit": ""
+   }
+  }
+ },
+ "injector_flow": {
+  "vectors": 8,
+  "checks": 16,
+  "problems": [],
+  "unitNotes": [],
+  "uncovered_live_outputs": [],
+  "binding": {
+   "flow1": {
+    "field": "flow1",
+    "label": "Flow Rate",
+    "unit": ""
+   },
+   "flow_from": {
+    "field": "flow_from",
+    "label": "From",
+    "unit": ""
+   }
+  }
+ },
+ "wind_et": {
+  "vectors": 12,
+  "checks": 12,
+  "problems": [],
+  "unitNotes": [],
+  "uncovered_live_outputs": [],
+  "binding": {
+   "et_wnd": {
+    "field": "et_wnd",
+    "label": "Current ET (calm)",
+    "unit": "sec"
+   },
+   "wind_spd": {
+    "field": "wind_spd",
+    "label": "Wind Speed",
+    "unit": "mph"
+   },
+   "wind_dir": {
+    "field": "wind_dir",
+    "label": "Wind Direction",
+    "unit": ""
+   }
+  }
+ },
+ "max_rpm": {
+  "vectors": 12,
+  "checks": 12,
+  "problems": [],
+  "unitNotes": [],
+  "uncovered_live_outputs": [],
+  "binding": {
+   "str_mr": {
+    "field": "str_mr",
+    "label": "Stroke↓ use 4.88",
+    "unit": "in"
+   },
+   "type_mr": {
+    "field": "type_mr",
+    "label": "Application",
+    "unit": ""
+   }
+  }
+ },
+ "fuse_sizing": {
+  "vectors": 12,
+  "checks": 12,
+  "problems": [],
+  "unitNotes": [],
+  "uncovered_live_outputs": [
+   "Next Standard Size"
+  ],
+  "binding": {
+   "amps_fs": {
+    "field": "amps_fs",
+    "label": "Continuous Load Current",
+    "unit": "A"
+   },
+   "type_fs": {
+    "field": "type_fs",
+    "label": "Load Type",
+    "unit": ""
+   }
+  }
+ },
+ "ring_gap": {
+  "vectors": 20,
+  "checks": 40,
+  "problems": [],
+  "unitNotes": [],
+  "uncovered_live_outputs": [],
+  "binding": {
+   "bore_rg": {
+    "field": "bore_rg",
+    "label": "Bore↓ use 4.21",
+    "unit": "in"
+   },
+   "app_rg": {
+    "field": "app_rg",
+    "label": "Application",
+    "unit": ""
+   }
+  }
+ },
+ "bearing_life": {
+  "vectors": 16,
+  "checks": 32,
+  "problems": [],
+  "unitNotes": [],
+  "uncovered_live_outputs": [
+   "L10 Life (days @ 24hr)"
+  ],
+  "binding": {
+   "load_br": {
+    "field": "load_br",
+    "label": "Equivalent Dynamic Load",
+    "unit": "lbs"
+   },
+   "rated_load": {
+    "field": "rated_load",
+    "label": "Bearing Dynamic Load Rating",
+    "unit": "lbs"
+   },
+   "rpm_br": {
+    "field": "rpm_br",
+    "label": "Operating Speed↓ use 2800",
+    "unit": "RPM"
+   },
+   "life_exp": {
+    "field": "life_exp",
+    "label": "Bearing Type",
+    "unit": ""
+   }
+  }
+ }
+}

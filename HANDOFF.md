@@ -1,4 +1,36 @@
-# GEARHEAD LABS — HANDOFF (F1.11.1 · M1 in progress)
+# GEARHEAD LABS — HANDOFF (F1.12.0 · D-009 release candidate)
+
+**Current file:** `F1_12_0_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html` · engine `gh-engine@1.1.0`
+
+**Tags:**
+- `F1.12.0-D009-CATEGORICAL`: current
+- rollback: `F1.11.1-M1.2`, `F1.11.0-M1.1-CORE-ENGINE`, `F1.10.6-FINAL`
+
+**Release gate:** `npm install && ./verify-all.sh <file.html>`. All 4 gates and the Node tests must pass.
+
+**Read:** `D009-RESULTS.md` (outcome, proofs, controls, defects, decisions), `ENGINE.md` (categorical inputs), `DECISIONS.md` (D-009, D-010).
+
+## Status
+
+- Migrated **250**, pending **9**.
+- **M1.3 not started** (awaiting owner go-ahead).
+
+## Owner decisions open
+
+1. `speed_converter` live fix (the fps branch)
+2. `temp_converter` representation
+3. Carried: `bolt_pattern`, `pinion_angle_change`, `optimal_shift`, `ev_motor_power`, the MODE_DEPENDENT three, the 4 known formula-display defects
+4. Go-ahead for M1.3 (`understeer_gradient`, D-004)
+
+## Rules added in D-009
+
+- **Selectors are declared, never coded.** Option values = live select values; constants copied from the live tables; the declared set equals the live set exactly.
+- **A harness change that makes coverage drop silently is a defect.** Watch pass counts, not just "0 failed" (static EVAL/DIFFERENTIAL dropped by 10 until fixed).
+- **Prove non-regression by snapshot, not by argument.** `tools/d009/snapshot.js` + `compare.js` byte-compare fingerprints, results and formula HTML.
+
+---
+
+# PREVIOUS HANDOFF — F1.11.1 (M1.2)
 
 **Current file:** `F1_11_1_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html`
 **Rollback / reference:** tags `F1.11.0-M1.1-CORE-ENGINE` and `F1.10.6-FINAL`. Both unchanged, and both pass their own gates.

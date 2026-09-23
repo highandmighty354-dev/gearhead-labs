@@ -1,6 +1,6 @@
 # GH_ENGINE — the Gearhead calculation interface
 
-Engine 1.0.0 · introduced in F1.11.0 (M1, step 1) · status updated at F1.11.1 (M1.2).
+Engine 1.1.0 (F1.12.0, D-009 categorical inputs) · 1.0.0 introduced in F1.11.0 · see D009-RESULTS.md.
 
 ## What it is, and what it is not
 
@@ -27,7 +27,7 @@ Existing verified formula registry   <- the engineering source of truth (unchang
 GH_ENGINE.calculate(id, inputs)   // -> Result
 GH_ENGINE.describe(id)            // -> { canonical_id, registry, formula_version, inputs[{var,label,required}], outputs[{key,label,unit}] } | null
 GH_ENGINE.listCalculators()       // -> 577 ids with a registry formula
-GH_ENGINE.version                 // '1.0.0'
+GH_ENGINE.version                 // '1.1.0'
 
 // Node (My Garage / API / tests):
 const { createEngine } = require('./gh-engine.js');
@@ -50,6 +50,27 @@ If any input is unknown, the result is `INCOMPLETE`, `missing[]` lists the varia
 The page's shared field reader `v(id)` follows the same rule since F1.11.0:
 - A missing, empty or non-numeric field returns `NaN` (unknown).
 - A typed `0` returns `0`.
+
+## Categorical inputs (engine 1.1.0, D-009)
+
+A registry entry may declare:
+
+```json
+"options": { "app_rg": {
+  "params":  { "k_top": "top ring gap per inch of bore", "k_second": "..." },
+  "choices": [ { "value": "street", "label": "Street / Moderate Performance",
+                 "bind": { "k_top": 0.0045, "k_second": 0.0048 } }, ... ] } }
+```
+
+- **Accepted:** only an exact (`===`, same type) declared value.
+- **Otherwise:**
+  - missing → `INCOMPLETE`
+  - anything else → `INCOMPLETE` + `INVALID_OPTION`
+  - a malformed declaration → `NOT_APPLICABLE`
+- **Binding:** the chosen choice's constants are passed to the formula by name. Formulas never see, and may not reference, the option string.
+- **Provenance:** each categorical input records `kind: 'categorical'`, `value`, `option_label` and `bound`.
+- **Display:** an optional `bind_display` (e.g. `"10/3"`) is shown in the legend; the gate proves it equals the bound value exactly.
+- **Declared set:** the declared option set must equal the live selector's options exactly (OPTION_SET).
 
 ## Result object
 
@@ -100,28 +121,21 @@ Values must agree at the precision the page displays, or within 0.1% (the docume
 - A 1% change to one registry formula fails LIVE_PARITY.
 - A one-comment change to the embedded engine fails ENGINE_EMBED.
 
-## Status at F1.11.1
+## Status at F1.12.0
 
 | | Count |
 |---|---|
-| **Migrated: full live parity proven** | **240** (215 in M1.1 + 25 in M1.2) |
-| Pending: see `engine-pending.json` | 19 |
+| **Migrated: full live parity proven** | **250** (215 M1.1 + 25 M1.2 + 10 D-009) |
+| Pending: see `engine-pending.json` | 9 |
 
 Pending breakdown:
 
-| Reason | Count | What closes it |
+| Reason | Count | Calculators |
 |---|---|---|
-| NEEDS_CATEGORICAL_INPUT | 11 | Owner decision D-009 (engine contract for text selectors) |
-| MODE_DEPENDENT | 3 | Per-mode registry entries |
-| LIVE_DEFECT | 2 | `pinion_angle_change`, `bolt_pattern`: owner-visible fixes |
-| REGISTRY_STUB | 1 | `optimal_shift` |
-| UNIT_DIVERGENCE | 1 | `ev_motor_power` kW vs HP |
-| FORMULA_DISPLAY_BLOCKED | 1 | `bearing_life` (see D-008) |
-
-**Proof standard additions in M1.2 (stricter):**
-- A live invalid box must correspond to a null engine output.
-- Unbound live inputs are probed at 0 as well as scaled.
-- Every numeric-select option is tested.
-- **FORMULA_DISPLAY:** the published typeset formula of every migrated calculator must contain no JavaScript.
+| LIVE_DEFECT | 3 | speed_converter, pinion_angle_change, bolt_pattern |
+| MODE_DEPENDENT | 3 | hp_quarter_mile, time_speed_dist, diesel_injector_flow |
+| EXACT_PARITY_NOT_EXPRESSIBLE | 1 | temp_converter |
+| REGISTRY_STUB | 1 | optimal_shift |
+| UNIT_DIVERGENCE | 1 | ev_motor_power |
 
 **Lesson:** the static DIFFERENTIAL suite compares at default inputs only. 44 of its 259 "proven" calculators agree only at defaults. LIVE_PARITY is the proof standard from here on.

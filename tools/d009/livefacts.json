@@ -1,0 +1,633 @@
+{
+ "distance_converter": {
+  "fields": [
+   {
+    "id": "d_in",
+    "tag": "INPUT",
+    "label": "Distance",
+    "value": "1"
+   },
+   {
+    "id": "d_from",
+    "tag": "SELECT",
+    "label": "From Unit",
+    "value": "mi",
+    "options": [
+     {
+      "value": "mi",
+      "label": "Miles"
+     },
+     {
+      "value": "km",
+      "label": "Kilometers"
+     },
+     {
+      "value": "ft",
+      "label": "Feet"
+     },
+     {
+      "value": "m",
+      "label": "Meters"
+     },
+     {
+      "value": "yd",
+      "label": "Yards"
+     }
+    ]
+   }
+  ],
+  "reg": {
+   "registry": "GH_BACKFILL_FORMULAS",
+   "spec": {
+    "labels": [
+     "Distance"
+    ],
+    "vars": [
+     "d_in"
+    ],
+    "outputs": [
+     {
+      "expr": "d_in*1",
+      "out": "Miles",
+      "unit": "mi"
+     },
+     {
+      "expr": "d_in*1.60934",
+      "out": "Kilometers",
+      "unit": "km"
+     },
+     {
+      "expr": "d_in*5280",
+      "out": "Feet",
+      "unit": "ft"
+     },
+     {
+      "expr": "d_in*1609.34",
+      "out": "Meters",
+      "unit": "m"
+     }
+    ]
+   }
+  },
+  "results": [
+   "Miles",
+   "Kilometers",
+   "Feet",
+   "Meters"
+  ]
+ },
+ "volume_converter": {
+  "fields": [
+   {
+    "id": "vol3",
+    "tag": "INPUT",
+    "label": "Volume",
+    "value": "1"
+   },
+   {
+    "id": "vf",
+    "tag": "SELECT",
+    "label": "From",
+    "value": "gal",
+    "options": [
+     {
+      "value": "gal",
+      "label": "Gallons"
+     },
+     {
+      "value": "qt",
+      "label": "Quarts"
+     },
+     {
+      "value": "pt",
+      "label": "Pints"
+     },
+     {
+      "value": "oz",
+      "label": "Fluid oz"
+     },
+     {
+      "value": "L",
+      "label": "Liters"
+     },
+     {
+      "value": "mL",
+      "label": "Milliliters"
+     }
+    ]
+   }
+  ],
+  "reg": {
+   "registry": "GH_BACKFILL_FORMULAS",
+   "spec": {
+    "labels": [
+     "Volume"
+    ],
+    "vars": [
+     "vol3"
+    ],
+    "outputs": [
+     {
+      "expr": "vol3",
+      "out": "Gallons",
+      "unit": "gal"
+     },
+     {
+      "expr": "vol3*3.78541",
+      "out": "Liters",
+      "unit": "L"
+     },
+     {
+      "expr": "vol3*4",
+      "out": "Quarts",
+      "unit": "qt"
+     },
+     {
+      "expr": "vol3*128",
+      "out": "Fluid oz",
+      "unit": "oz"
+     }
+    ]
+   }
+  },
+  "results": [
+   "Gallons",
+   "Liters",
+   "Quarts",
+   "Fluid oz"
+  ]
+ },
+ "pressure_converter": {
+  "fields": [
+   {
+    "id": "pres_in",
+    "tag": "INPUT",
+    "label": "Pressure",
+    "value": "14.7"
+   },
+   {
+    "id": "pres_from",
+    "tag": "SELECT",
+    "label": "From",
+    "value": "psi",
+    "options": [
+     {
+      "value": "psi",
+      "label": "PSI"
+     },
+     {
+      "value": "bar",
+      "label": "bar"
+     },
+     {
+      "value": "kpa",
+      "label": "kPa"
+     },
+     {
+      "value": "atm",
+      "label": "atm"
+     },
+     {
+      "value": "mmhg",
+      "label": "mmHg"
+     },
+     {
+      "value": "inhg",
+      "label": "in Hg"
+     }
+    ]
+   }
+  ],
+  "reg": {
+   "registry": "GH_BACKFILL_FORMULAS",
+   "spec": {
+    "labels": [
+     "Pressure"
+    ],
+    "vars": [
+     "pres_in"
+    ],
+    "outputs": [
+     {
+      "expr": "pres_in",
+      "out": "PSI",
+      "unit": "psi"
+     },
+     {
+      "expr": "pres_in/14.5038",
+      "out": "bar",
+      "unit": "bar"
+     },
+     {
+      "expr": "pres_in/0.145038",
+      "out": "kPa",
+      "unit": "kPa"
+     },
+     {
+      "expr": "pres_in/14.6959",
+      "out": "atm",
+      "unit": "atm"
+     }
+    ]
+   }
+  },
+  "results": [
+   "PSI",
+   "bar",
+   "kPa",
+   "atm"
+  ]
+ },
+ "power_converter": {
+  "fields": [
+   {
+    "id": "pow_in",
+    "tag": "INPUT",
+    "label": "Power",
+    "value": "425"
+   },
+   {
+    "id": "pow_from",
+    "tag": "SELECT",
+    "label": "From",
+    "value": "hp",
+    "options": [
+     {
+      "value": "hp",
+      "label": "HP (SAE)"
+     },
+     {
+      "value": "kw",
+      "label": "kW"
+     },
+     {
+      "value": "ps",
+      "label": "PS / CV (metric)"
+     },
+     {
+      "value": "watts",
+      "label": "Watts"
+     }
+    ]
+   }
+  ],
+  "reg": {
+   "registry": "GH_BACKFILL_FORMULAS",
+   "spec": {
+    "labels": [
+     "Power"
+    ],
+    "vars": [
+     "pow_in"
+    ],
+    "outputs": [
+     {
+      "expr": "pow_in",
+      "out": "HP (SAE)",
+      "unit": "hp"
+     },
+     {
+      "expr": "pow_in*0.745699",
+      "out": "kW",
+      "unit": "kW"
+     },
+     {
+      "expr": "pow_in*0.745699/0.735499",
+      "out": "PS / CV",
+      "unit": "PS"
+     }
+    ]
+   }
+  },
+  "results": [
+   "HP (SAE)",
+   "kW",
+   "PS / CV"
+  ]
+ },
+ "injector_flow": {
+  "fields": [
+   {
+    "id": "flow1",
+    "tag": "INPUT",
+    "label": "Flow Rate",
+    "value": "24"
+   },
+   {
+    "id": "flow_from",
+    "tag": "SELECT",
+    "label": "From",
+    "value": "lbhr",
+    "options": [
+     {
+      "value": "lbhr",
+      "label": "lb/hr"
+     },
+     {
+      "value": "ccmin",
+      "label": "cc/min"
+     }
+    ]
+   }
+  ],
+  "reg": {
+   "registry": "GH_BACKFILL_FORMULAS",
+   "spec": {
+    "labels": [
+     "Flow Rate"
+    ],
+    "vars": [
+     "flow1"
+    ],
+    "expr": "+(flow1*10.5042).toFixed(1)",
+    "out": "cc/min",
+    "unit": "cc/min"
+   }
+  },
+  "results": [
+   "lb/hr",
+   "cc/min"
+  ]
+ },
+ "wind_et": {
+  "fields": [
+   {
+    "id": "et_wnd",
+    "tag": "INPUT",
+    "label": "Current ET (calm)",
+    "value": "12.5"
+   },
+   {
+    "id": "wind_spd",
+    "tag": "INPUT",
+    "label": "Wind Speed",
+    "value": "10"
+   },
+   {
+    "id": "wind_dir",
+    "tag": "SELECT",
+    "label": "Wind Direction",
+    "value": "head",
+    "options": [
+     {
+      "value": "head",
+      "label": "Headwind"
+     },
+     {
+      "value": "tail",
+      "label": "Tailwind"
+     }
+    ]
+   }
+  ],
+  "reg": {
+   "registry": "GH_BACKFILL_FORMULAS",
+   "spec": {
+    "labels": [
+     "Current ET (calm)",
+     "Wind Speed"
+    ],
+    "vars": [
+     "et_wnd",
+     "wind_spd"
+    ],
+    "expr": "et_wnd + wind_spd*0.001",
+    "out": "Corrected ET (headwind)",
+    "unit": "sec"
+   }
+  },
+  "results": [
+   "Corrected ET"
+  ]
+ },
+ "max_rpm": {
+  "fields": [
+   {
+    "id": "str_mr",
+    "tag": "INPUT",
+    "label": "Stroke↓ use 4.88",
+    "value": "3.75"
+   },
+   {
+    "id": "type_mr",
+    "tag": "SELECT",
+    "label": "Application",
+    "value": "street",
+    "options": [
+     {
+      "value": "street",
+      "label": "Street / Daily"
+     },
+     {
+      "value": "perf",
+      "label": "Performance"
+     },
+     {
+      "value": "race",
+      "label": "All-Out Race"
+     }
+    ]
+   }
+  ],
+  "reg": {
+   "registry": "GH_BACKFILL_FORMULAS",
+   "spec": {
+    "labels": [
+     "Stroke"
+    ],
+    "vars": [
+     "str_mr"
+    ],
+    "expr": "Math.round(24000/str_mr)",
+    "out": "Max Safe RPM (Street, 4,000 ft/min piston speed)",
+    "unit": "RPM"
+   }
+  },
+  "results": [
+   "Max Safe RPM"
+  ]
+ },
+ "fuse_sizing": {
+  "fields": [
+   {
+    "id": "amps_fs",
+    "tag": "INPUT",
+    "label": "Continuous Load Current",
+    "value": "20"
+   },
+   {
+    "id": "type_fs",
+    "tag": "SELECT",
+    "label": "Load Type",
+    "value": "continuous",
+    "options": [
+     {
+      "value": "continuous",
+      "label": "Continuous (×1.25)"
+     },
+     {
+      "value": "intermittent",
+      "label": "Intermittent (×1.0)"
+     },
+     {
+      "value": "inrush",
+      "label": "Motor Inrush (×1.5, time-delay)"
+     }
+    ]
+   }
+  ],
+  "reg": {
+   "registry": "GH_BACKFILL_FORMULAS",
+   "spec": {
+    "labels": [
+     "Load Current"
+    ],
+    "vars": [
+     "amps_fs"
+    ],
+    "expr": "Math.round(amps_fs*1.25)",
+    "out": "Minimum Fuse Rating (continuous load)",
+    "unit": "A"
+   }
+  },
+  "results": [
+   "Min Fuse Rating",
+   "Next Standard Size"
+  ]
+ },
+ "ring_gap": {
+  "fields": [
+   {
+    "id": "bore_rg",
+    "tag": "INPUT",
+    "label": "Bore↓ use 4.21",
+    "value": "4.25"
+   },
+   {
+    "id": "app_rg",
+    "tag": "SELECT",
+    "label": "Application",
+    "value": "street",
+    "options": [
+     {
+      "value": "street",
+      "label": "Street / Moderate Performance"
+     },
+     {
+      "value": "na_race",
+      "label": "Race / Naturally Aspirated"
+     },
+     {
+      "value": "nitrous_street",
+      "label": "Nitrous — Street"
+     },
+     {
+      "value": "nitrous_race",
+      "label": "Nitrous — Race"
+     },
+     {
+      "value": "boost",
+      "label": "Turbo / Supercharged"
+     }
+    ]
+   }
+  ],
+  "reg": {
+   "registry": "GH_BACKFILL_FORMULAS",
+   "spec": {
+    "labels": [
+     "Bore"
+    ],
+    "vars": [
+     "bore_rg"
+    ],
+    "outputs": [
+     {
+      "expr": "bore_rg*0.0045",
+      "out": "Top Ring Gap (Street)",
+      "unit": "in"
+     },
+     {
+      "expr": "bore_rg*0.0048",
+      "out": "Second Ring Gap (Street)",
+      "unit": "in"
+     }
+    ]
+   }
+  },
+  "results": [
+   "Top Ring Gap",
+   "Second Ring Gap"
+  ]
+ },
+ "bearing_life": {
+  "fields": [
+   {
+    "id": "load_br",
+    "tag": "INPUT",
+    "label": "Equivalent Dynamic Load",
+    "value": "2000"
+   },
+   {
+    "id": "rated_load",
+    "tag": "INPUT",
+    "label": "Bearing Dynamic Load Rating",
+    "value": "5000"
+   },
+   {
+    "id": "rpm_br",
+    "tag": "INPUT",
+    "label": "Operating Speed↓ use 2800",
+    "value": "3000"
+   },
+   {
+    "id": "life_exp",
+    "tag": "SELECT",
+    "label": "Bearing Type",
+    "value": "3",
+    "options": [
+     {
+      "value": "3",
+      "label": "Ball Bearing (p=3)"
+     },
+     {
+      "value": "3.33",
+      "label": "Roller Bearing (p=10/3)"
+     }
+    ]
+   }
+  ],
+  "reg": {
+   "registry": "GH_BACKFILL_FORMULAS",
+   "spec": {
+    "labels": [
+     "Equivalent Dynamic Load",
+     "Bearing Dynamic Load Rating",
+     "Operating Speed"
+    ],
+    "vars": [
+     "load_br",
+     "rated_load",
+     "rpm_br"
+    ],
+    "outputs": [
+     {
+      "expr": "Math.pow(rated_load/load_br,3)",
+      "out": "L10 Life (ball bearing, p=3)",
+      "unit": "million rev"
+     },
+     {
+      "expr": "Math.pow(rated_load/load_br,3)*1000000/(rpm_br*60)",
+      "out": "L10 Life (hours)",
+      "unit": "hours"
+     }
+    ]
+   }
+  },
+  "results": [
+   "L10 Life",
+   "L10 Life (hours)",
+   "L10 Life (days @ 24hr)"
+  ]
+ }
+}

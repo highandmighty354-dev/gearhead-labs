@@ -2,12 +2,20 @@
 
 Owner decisions and the implementation choices that follow from them. Newest first.
 
-## D-009 · Categorical inputs — OPEN, owner decision needed (F1.11.1)
+## D-010 · D-009 scope locks (owner, 2026-09-23)
 
-- 11 calculators depend on a text selector (unit "From", application, wind direction). `GH_ENGINE` accepts numbers only, by design.
-- Options:
-  - **(a) Recommended.** Registry entries declare allowed option strings (the live values, e.g. `'mi'`, `'head'`); the engine validates them and treats anything else as UNKNOWN. Formula-free; engine contract 1.1.0.
-  - **(b)** Numeric codes. A new convention; not recommended.
+- `speed_converter` is a LIVE CALCULATOR DEFECT. It is not a D-009 closure, and its live calculation stays unmodified until a correction is explicitly approved.
+- `temp_converter` stays pending. Exact live parity is the objective; tolerance-based closure is not accepted.
+- `bearing_life` uses numeric option binding (3 → ball, 3.33 → roller, bound exponent p, 10/3 exact) as one calculator.
+
+## D-009 · Categorical inputs — APPROVED and implemented (F1.12.0, engine 1.1.0)
+
+- Registry entries declare categorical options: exact values (the live select values), visible labels, and bound numeric constants copied from the live calculator.
+- The engine accepts only exact declared values (no coercion, case-folding, trimming, defaults or numeric codes). It passes the chosen constants to the formula, and fails closed on malformed declarations.
+- Formulas may not reference the option input or contain string literals.
+- `v()` unchanged.
+- Fingerprints include option values and constants (not labels). Entries without options keep their exact prior fingerprints.
+- The formula legend defines every bound constant.
 
 ## D-008 · Published formulas must not show code (F1.11.1, implementation decision)
 

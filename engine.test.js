@@ -43,5 +43,56 @@ r = E.calculate('no_such_calculator', {});
 t('unknown calculator -> NOT_APPLICABLE, no throw', r.state === 'NOT_APPLICABLE' && r.outputs.length === 0);
 t('formula version is deterministic', E.describe('bmep').formula_version === createEngine(regs, {}).describe('bmep').formula_version);
 t('every registry calculator is callable', E.listCalculators().length === 577 && E.listCalculators().every(id => E.describe(id)));
-t('engine version', ENGINE_VERSION === '1.0.0');
+t('engine version', ENGINE_VERSION === '1.1.0');
+
+/* ---------------- D-009 categorical inputs (engine 1.1.0) ---------------- */
+r = E.calculate('ring_gap', { bore_rg: 4, app_rg: 'na_race' });
+t('declared option accepted; bound constants used (na_race: 4 x 0.0050)', r.state === 'VALID' && Math.abs(r.outputs[1].value - 0.02) < 1e-12);
+t('provenance records option value, label and bound constants', (() => { const i = r.inputs.find(x => x.var === 'app_rg'); return i.kind === 'categorical' && i.value === 'na_race' && i.option_label && i.bound.k_top === 0.0045 && i.bound.k_second === 0.005; })());
+for (const [what, v] of [['undeclared', 'drag'], ['wrong case', 'Street'], ['leading space', ' street'], ['trailing space', 'street '], ['numeric code', 1], ['zero', 0], ["'0'", '0']]) {
+  r = E.calculate('ring_gap', { bore_rg: 4, app_rg: v });
+  t(`categorical ${what} -> INCOMPLETE + INVALID_OPTION, no output`, r.state === 'INCOMPLETE' && r.warnings.includes('INVALID_OPTION:app_rg') && r.outputs.every(o => o.value === null));
+}
+for (const [what, v] of [['absent', undefined], ['null', null], ['NaN', NaN], ["''", '']]) {
+  const inp = { bore_rg: 4 }; if (v !== undefined) inp.app_rg = v;
+  r = E.calculate('ring_gap', inp);
+  t(`categorical ${what} -> INCOMPLETE, no default substituted`, r.state === 'INCOMPLETE' && r.missing.includes('app_rg') && !r.warnings.some(x => x.startsWith('INVALID_OPTION')) && r.outputs.every(o => o.value === null));
+}
+r = E.calculate('bearing_life', { load_br: 2000, rated_load: 5000, rpm_br: 3000, life_exp: 3 });
+t('bearing_life ball: p === 3', r.inputs.find(x => x.var === 'life_exp').bound.p === 3 && Math.abs(r.outputs[0].value - 15.625) < 1e-12);
+r = E.calculate('bearing_life', { load_br: 2000, rated_load: 5000, rpm_br: 3000, life_exp: 3.33 });
+t('bearing_life roller: p === 10/3 exactly', r.inputs.find(x => x.var === 'life_exp').bound.p === 10 / 3 && r.outputs[0].value === Math.pow(2.5, 10 / 3));
+r = E.calculate('bearing_life', { load_br: 2000, rated_load: 5000, rpm_br: 3000, life_exp: '3.33' });
+t('numeric option given as a string is rejected (no coercion)', r.state === 'INCOMPLETE' && r.warnings.includes('INVALID_OPTION:life_exp'));
+r = E.calculate('ring_gap', { bore_rg: 0, app_rg: 'street' });
+t('numeric zero beside a categorical input stays a KNOWN zero', r.state === 'VALID' && r.outputs[0].value === 0);
+
+/* Fail-closed declarations: a malformed options block -> NOT_APPLICABLE, never evaluated. */
+const clone = () => JSON.parse(JSON.stringify(regs));
+const mk = mut => { const R = clone(); const sp = R.GH_BACKFILL_FORMULAS.ring_gap; mut(sp); return createEngine(R, {}); };
+const bad = [
+  ['duplicate choice value', sp => { sp.options.app_rg.choices[1].value = 'street'; }],
+  ['inconsistent binding set', sp => { delete sp.options.app_rg.choices[2].bind.k_second; }],
+  ['extra bound constant', sp => { sp.options.app_rg.choices[0].bind.k_extra = 1; }],
+  ['non-finite constant', sp => { sp.options.app_rg.choices[0].bind.k_top = null; }],
+  ['constant as string', sp => { sp.options.app_rg.choices[0].bind.k_top = '0.0045'; }],
+  ['invalid constant name', sp => { sp.options.app_rg.params = { '1k': 'x', k_second: 'y' }; sp.options.app_rg.choices.forEach(c => { c.bind['1k'] = c.bind.k_top; delete c.bind.k_top; }); }],
+  ['constant collides with an input', sp => { sp.options.app_rg.params = { bore_rg: 'x', k_second: 'y' }; sp.options.app_rg.choices.forEach(c => { c.bind.bore_rg = c.bind.k_top; delete c.bind.k_top; }); }],
+  ['constant named Math', sp => { sp.options.app_rg.params = { Math: 'x', k_second: 'y' }; sp.options.app_rg.choices.forEach(c => { c.bind.Math = c.bind.k_top; delete c.bind.k_top; }); }],
+  ['constant named NaN', sp => { sp.options.app_rg.params = { NaN: 'x', k_second: 'y' }; sp.options.app_rg.choices.forEach(c => { c.bind.NaN = c.bind.k_top; delete c.bind.k_top; }); }],
+  ['empty choices', sp => { sp.options.app_rg.choices = []; }],
+  ['option on a non-input', sp => { sp.options.nope = sp.options.app_rg; delete sp.options.app_rg; }],
+  ['formula compares the option string', sp => { sp.outputs[0].expr = "app_rg==='street'?bore_rg*0.0045:bore_rg*k_top"; }],
+  ['string literal in formula', sp => { sp.outputs[0].expr = "bore_rg*k_top+('x'.length*0)"; }],
+];
+for (const [what, mut] of bad) {
+  const r2 = mk(mut).calculate('ring_gap', { bore_rg: 4, app_rg: 'street' });
+  t(`fail-closed: ${what} -> NOT_APPLICABLE`, r2.state === 'NOT_APPLICABLE' && r2.warnings.some(x => x.startsWith('INVALID_OPTION_DECLARATION')) && r2.outputs.length === 0);
+}
+/* Fingerprints: option values and bound constants are formula; labels are not. */
+const fp0 = E.describe('ring_gap').formula_version;
+t('fingerprint unchanged when only an option LABEL changes', mk(sp => { sp.options.app_rg.choices[0].label = 'Relabelled'; }).describe('ring_gap').formula_version === fp0);
+t('fingerprint unchanged when only a constant MEANING (legend text) changes', mk(sp => { sp.options.app_rg.params.k_top = 'reworded'; }).describe('ring_gap').formula_version === fp0);
+t('fingerprint CHANGES when a bound constant changes', mk(sp => { sp.options.app_rg.choices[0].bind.k_top = 0.00455; }).describe('ring_gap').formula_version !== fp0);
+t('fingerprint CHANGES when an option value changes', mk(sp => { sp.options.app_rg.choices[0].value = 'street2'; }).describe('ring_gap').formula_version !== fp0);
 console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
