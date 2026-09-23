@@ -1,7 +1,7 @@
 {
  "about": "Calculators whose live result is PROVEN equal to GH_ENGINE.calculate() by LIVE_PARITY in gh-verify-engine.js (defaults, all inputs scaled, each input scaled, each input zeroed, every non-registry live input varied; values, units and validity). The harness FAILS if any listed calculator stops matching. Add a calculator only after it passes.",
  "candidates_from": "gh-verify.js DIFFERENTIAL passes on F1.10.6 (259)",
- "count": 250,
+ "count": 251,
  "calculators": [
   "deck_height",
   "hp_trap_speed",
@@ -252,7 +252,8 @@
   "max_rpm",
   "fuse_sizing",
   "ring_gap",
-  "bearing_life"
+  "bearing_life",
+  "understeer_gradient"
  ],
  "history": [
   {
@@ -307,6 +308,14 @@
     "fuse_sizing",
     "ring_gap",
     "bearing_life"
+   ]
+  },
+  {
+   "version": "F1.12.1",
+   "added": 1,
+   "basis": "M1.3 deliberate correction (Gillespie Kus in deg/g); LIVE_PARITY + DEFAULT_EXAMPLE (EXACT) + FORMULA_DISPLAY + UNDERSTEER_M13",
+   "ids": [
+    "understeer_gradient"
    ]
   }
  ]

@@ -375,6 +375,72 @@ for (const id of MIGRATED.calculators) {
   const ok = !problems.length && !unitNotes.length;
   record('LIVE_PARITY', id, ok, ok ? `${vectors.length} input vectors, ${checks} output comparisons` : [...problems.slice(0, 3), ...unitNotes.slice(0, 2)].join('\n        '));
 }
+/* ---------------- UNDERSTEER_M13 (F1.12.1) --------------------------------
+ * Regression coverage for the M1.3 correction of understeer_gradient:
+ *  - no input id matches any live vehicle-profile / range pattern (PROFILE_FIELD_MAP,
+ *    FIELD_RANGE_RULES), so Save to Vehicle can never write profile.weight from it
+ *  - the real shared save (ghmSaveCurrentToVehicle) leaves a 7,500-lb vehicle at 7,500
+ *    when: untouched / only Front Weight % changed / Vehicle Weight changed to 7,600
+ *  - 3-decimal deg/g display; every invalid input -> "Validation required"
+ *  - metric display converts Vehicle Weight and the result is unchanged
+ *  - verdict sweep: every valid input keeps the verdict the pre-M1.3 calculator gave */
+if (E.describe('understeer_gradient')) try {
+  const U = 'understeer_gradient', rec = (id, ok, d) => record('UNDERSTEER_M13', id, ok, d);
+  const S = () => { const st = w.eval('CALC_PERSISTENT_STATE'); for (const k of Object.keys(st)) delete st[k]; };
+  const openU = (vals) => { S(); container().innerHTML = ''; w.eval(`currentCalc='${U}'`); w.renderCalc(U, false);
+    if (vals) { for (const [k, v] of Object.entries(vals)) { const el = doc.getElementById(k); if (el) el.value = String(v); } w.renderCalc(U, false); } };
+  /* verdict = the verdict line ONLY (the label "Understeer Gradient (Kus)" contains the word Understeer) */
+  const box = () => { const b = container().querySelector('.result-box'); const kids = [...b.children]; const vline = kids.length > 2 ? kids[kids.length - 1].textContent.trim() : '';
+    const verdict = /^Understeer \(push\)/.test(vline) ? 'Understeer' : /^Oversteer \(loose\)/.test(vline) ? 'Oversteer' : /^Neutral balance/.test(vline) ? 'Neutral' : 'NONE';
+    return { label: (b.querySelector('.result-label') || {}).textContent || '', value: ((b.querySelector('.result-value') || {}).textContent || '').trim(), text: b.textContent.replace(/\s+/g, ' ').trim(), verdict }; };
+  // 1. pattern proof against the LIVE regex lists
+  openU();
+  const ids = [...container().querySelectorAll('input,select')].map(e => e.id).filter(Boolean);
+  const PM = w.eval('PROFILE_FIELD_MAP.map(m=>m.pattern)'), RR = w.eval('FIELD_RANGE_RULES.map(r=>r.pattern)');
+  const hits = ids.flatMap(id => [...PM.filter(re => re.test(id)).map(re => `${id}~${re}`), ...RR.filter(re => re.test(id)).map(re => `${id}~${re}`), ...(w.matchProfileField(id) ? [id + '~matchProfileField'] : [])]);
+  rec('no input matches a vehicle-profile/range pattern', !hits.length && ids.includes('ug_vw') && ids.includes('ug_fpct') && !ids.includes('wt_f') && !ids.includes('wt_ug'),
+    hits.length ? 'matches: ' + hits.join(' ') : `ids ${ids.join(',')}; ${PM.length} profile + ${RR.length} range patterns, 0 matches`);
+  // 2. real shared save, vehicle at 7,500 lb
+  const saveCase = (name, vals, check) => {
+    const P = w.eval('getActiveProfile()'); P.weight = 7500; if (P.savedCalculatorInputs) delete P.savedCalculatorInputs[U];
+    openU(vals); w.eval('ghmSaveCurrentToVehicle()');
+    const after = w.eval('getActiveProfile()'); const saved = after.savedCalculatorInputs && after.savedCalculatorInputs[U];
+    const ok = after.weight === 7500 && (!check || check(saved));
+    rec(name, ok, `profile weight 7500 -> ${after.weight}` + (saved ? ` | calculator state ug_vw=${saved.fields.ug_vw && saved.fields.ug_vw.value}` : ''));
+  };
+  saveCase('save: untouched Vehicle Weight (3420) -> profile stays 7500', null);
+  saveCase('save: only Front Weight % changed -> profile stays 7500', { ug_fpct: 55 });
+  saveCase('save: Vehicle Weight changed to 7600 -> profile stays 7500', { ug_vw: 7600 }, sv => sv && sv.fields.ug_vw && sv.fields.ug_vw.value === '7600');
+  // 3. display: 3 decimals, deg/g, verdicts
+  for (const [vals, want, verdict] of [[null, '0.651deg/g', 'Understeer'], [{ cr_stiff: 195 }, '0.000deg/g', 'Neutral'], [{ cr_stiff: 150 }, '-2.736deg/g', 'Oversteer'], [{ ug_vw: 6840 }, '1.303deg/g', 'Understeer']]) {
+    openU(vals); const b = box();
+    rec(`display ${JSON.stringify(vals || 'defaults')}`, b.label === 'Understeer Gradient (Kus)' && b.value === want && b.verdict === verdict, `shows "${b.value}", verdict ${b.verdict}`);
+  }
+  // 4. invalid inputs -> Validation required (live) and not VALID (engine)
+  const base = { cf_stiff: 180, cr_stiff: 210, ug_fpct: 48, ug_vw: 3420 };
+  for (const bad of [{ cf_stiff: 0 }, { cr_stiff: 0 }, { cf_stiff: -180 }, { cr_stiff: -210 }, { ug_fpct: 0 }, { ug_fpct: 100 }, { ug_fpct: 120 }, { ug_fpct: -5 }, { ug_vw: 0 }, { ug_vw: -3420 }]) {
+    openU(bad); const b = box(); const r = E.calculate(U, { ...base, ...bad });
+    rec(`invalid ${JSON.stringify(bad)}`, b.label === 'Validation required' && b.verdict === 'NONE' && !/Infinity|NaN|Oversteer|Neutral|\(push\)/.test(b.text) && r.state === 'OUT_OF_RANGE' && r.outputs[0].value === null, `live "${b.label}", engine ${r.state}`);
+  }
+  // 5. metric: Vehicle Weight shown in kg, result unchanged; a kg entry converts to lb for the math
+  w.eval("setUnit('metric')"); openU(); const kgShown = doc.getElementById('ug_vw').value, unitShown = doc.getElementById('ug_vw').dataset.ghmUnit, mDefault = box().value;
+  openU({ ug_vw: 1814.37 }); const mEdit = box().value;
+  const shownUnit = w.metricUnit(unitShown), lbFromKg = w.convertFromDisplay(1814.37, unitShown); w.eval("setUnit('imperial')");
+  const eng = E.calculate(U, { ...base, ug_vw: lbFromKg }).outputs[0].value;
+  rec('metric: Vehicle Weight in kg, math in lb', /kg/i.test(shownUnit) && Math.abs(Number(kgShown) - 3420 * 0.45359237) < 0.01 && mDefault === '0.651deg/g' && eng !== null && eng !== undefined && mEdit === eng.toFixed(3) + 'deg/g',
+    `default shown ${kgShown} ${shownUnit} (field unit ${unitShown}) -> ${mDefault}; 1814.37 kg = ${lbFromKg.toFixed(2)} lb -> live ${mEdit}, engine ${eng === null || eng === undefined ? 'no value' : eng.toFixed(3)}`);
+  // 6. verdict sweep: new renderer verdict == pre-M1.3 verdict (old expression, verbatim) for every valid input
+  const oldVerdict = (f, cf, cr) => { const kus = +((f / cf) - ((100 - f) / cr)).toFixed(5); const scaled = +(kus * 1000).toFixed(2); return scaled > 0.5 ? 'Understeer' : scaled < -0.5 ? 'Oversteer' : 'Neutral'; };
+  let n = 0, diff = [];
+  for (const f of [10, 25, 40, 48, 50, 52, 60, 75, 90]) for (const cf of [100, 180, 250]) for (const k of [0.5, 0.99, 0.999, 0.9995, 0.99995, 1, 1.00005, 1.0005, 1.001, 1.01, 2]) for (const W of [1500, 3420, 7500]) {
+    const cr = +(cf * (100 - f) / f * k).toPrecision(8); openU({ ...base, ug_fpct: f, cf_stiff: cf, cr_stiff: cr, ug_vw: W }); n++;
+    const nv = box().verdict;
+    const ov = oldVerdict(f, cf, cr); if (nv !== ov) diff.push(`f=${f} cf=${cf} cr=${cr} W=${W}: old ${ov}, new ${nv}`);
+  }
+  rec('verdict sweep vs pre-M1.3 calculator (boundary-dense)', !diff.length, diff.length ? diff.slice(0, 3).join(' | ') : `${n} valid inputs, identical verdicts`);
+  S(); container().innerHTML = '';
+} catch (e) { record('UNDERSTEER_M13', 'suite aborted', false, 'unexpected error (a required field or result is missing): ' + String(e.message).slice(0, 120)); }
+
 finish();
 
 function finish() {
@@ -382,7 +448,7 @@ function finish() {
   console.log('='.repeat(72)); console.log('GEARHEAD LABS - ENGINE VERIFICATION'); console.log(`file     : ${FILE.split('/').pop()}`);
   console.log(`engine   : gh-engine.js ${require(path.join(__dirname, 'gh-engine.js')).ENGINE_VERSION}   migrated calculators: ${MIGRATED.calculators.length}`); console.log('='.repeat(72));
   let fails = 0;
-  for (const s of ['ENGINE_EMBED', 'V_UNKNOWN', 'ENGINE_UNKNOWN', 'OPTION_CONTRACT', 'ENGINE_NODE', 'FORMULA_DISPLAY', 'LIVE_PARITY']) {
+  for (const s of ['ENGINE_EMBED', 'V_UNKNOWN', 'ENGINE_UNKNOWN', 'OPTION_CONTRACT', 'ENGINE_NODE', 'FORMULA_DISPLAY', 'LIVE_PARITY', 'UNDERSTEER_M13']) {
     const b = by[s] || { pass: 0, fail: 0, fails: [] }; fails += b.fail;
     console.log(`\n[${b.fail ? 'FAIL' : 'PASS'}] ${s}  ${b.pass} passed, ${b.fail} failed`);
     b.fails.slice(0, 60).forEach(f => console.log(`    x ${f.id}\n        ${f.detail}`));

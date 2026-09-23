@@ -1,0 +1,36 @@
+{
+ "control": 1,
+ "name": "restore old index formula",
+ "caught": true,
+ "results": {
+  "live": {
+   "exit": 1,
+   "fails": [
+    "[FAIL] DEFAULT_EXAMPLE  605 passed, 1 failed"
+   ],
+   "detail": [
+    "MISMATCH: opens showing [Understeer Gradient (Kus)=19.048deg/g]"
+   ]
+  },
+  "engine": {
+   "exit": 1,
+   "fails": [
+    "[FAIL] UNDERSTEER_M13  16 passed, 4 failed"
+   ],
+   "detail": [
+    "shows \"19.048deg/g\", verdict Understeer",
+    "shows \"-80.000deg/g\", verdict Oversteer"
+   ]
+  },
+  "node": {
+   "exit": 1,
+   "fails": [
+    "FAIL  understeer default: W 3420, f 48, Cf 180, Cr 210 -> 0.651428571... deg/g  19.047619047619037",
+    "FAIL  Kus equals Wf/Cf - Wr/Cr for those axle loads"
+   ],
+   "detail": [
+    "72 passed, 4 failed"
+   ]
+  }
+ }
+}

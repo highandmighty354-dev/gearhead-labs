@@ -1,0 +1,88 @@
+{
+ "defaults": {
+  "fields": [
+   "Front Axle Cornering Stiffness = 180 lbs/deg",
+   "Rear Axle Cornering Stiffness = 210 lbs/deg",
+   "Front Weight % = 48 %",
+   "Vehicle Weight↓ use 7500 = 3420 lbs"
+  ],
+  "result": "Understeer Gradient (Kus) 0.651deg/g Understeer (push) — front reaches limit first"
+ },
+ "cf_stiff=0": "Validation required—Vehicle weight and both axle cornering stiffnesses must be positive; front weight % must be greater than 0 and less than 100.",
+ "cr_stiff=0": "Validation required—Vehicle weight and both axle cornering stiffnesses must be positive; front weight % must be greater than 0 and less than 100.",
+ "f=0": "Validation required—Vehicle weight and both axle cornering stiffnesses must be positive; front weight % must be greater than 0 and less than 100.",
+ "f=100": "Validation required—Vehicle weight and both axle cornering stiffnesses must be positive; front weight % must be greater than 0 and less than 100.",
+ "f=120": "Validation required—Vehicle weight and both axle cornering stiffnesses must be positive; front weight % must be greater than 0 and less than 100.",
+ "W=0": "Validation required—Vehicle weight and both axle cornering stiffnesses must be positive; front weight % must be greater than 0 and less than 100.",
+ "W=-3420": "Validation required—Vehicle weight and both axle cornering stiffnesses must be positive; front weight % must be greater than 0 and less than 100.",
+ "Cf=-180": "Validation required—Vehicle weight and both axle cornering stiffnesses must be positive; front weight % must be greater than 0 and less than 100.",
+ "neutral Cr=195": "Understeer Gradient (Kus) 0.000deg/g Neutral balance",
+ "oversteer Cr=150": "Understeer Gradient (Kus) -2.736deg/g Oversteer (loose) — rear reaches limit first",
+ "W=6840 (x2)": "Understeer Gradient (Kus) 1.303deg/g Understeer (push) — front reaches limit first",
+ "formula_block": "Formula Understeer Gradient (Kus)=wtug · ugfpct100cfstiff − wtug · (100 − ugfpct)100crstiff (deg/g) cfstiff = Front Axle Cornering Stiffnesscrstiff = Rear Axle Cornering Stiffnessugfpct = Front Weight %wtug = Vehicle Weight JS ImplementationUndersteer Gradient (Kus) = ([cf_stiff,cr_stiff,ug_fpct,wt_ug].every(n=>Number.isFinite(n))&&cf_stiff>0&&cr_stiff>0&&ug_fpct>0&&ug_fpct<100&&wt_ug>0) ? (((wt_ug*ug_fpct/100)/cf_stiff)-((wt_ug*(100-ug_fpct)/100)/cr_stiff)) : NaN",
+ "formula_strip": "([cf_stiff,cr_stiff,ug_fpct,wt_ug].every(n=>Number.isFinite(n))&&cf_stiff>0&&cr_stiff>0&&ug_fpct>0&&ug_fpct<100&&wt_ug>0) ? (((wt_ug*ug_fpct/100)/cf_stiff)-((wt_ug*(100-ug_fpct)/100)/cr_stiff)) : NaN",
+ "engine": {
+  "calculator_id": "understeer_gradient",
+  "canonical_id": "understeer_gradient",
+  "engine_version": "1.1.0",
+  "state": "INCOMPLETE",
+  "formula": {
+   "registry": "GH_E1_FORMULAS",
+   "version": "fv1-cdd0ff87"
+  },
+  "inputs": [
+   {
+    "var": "cf_stiff",
+    "label": "Front Axle Cornering Stiffness",
+    "value": null,
+    "known": false,
+    "provenance": null
+   },
+   {
+    "var": "cr_stiff",
+    "label": "Rear Axle Cornering Stiffness",
+    "value": null,
+    "known": false,
+    "provenance": null
+   },
+   {
+    "var": "ug_fpct",
+    "label": "Front Weight %",
+    "value": null,
+    "known": false,
+    "provenance": null
+   },
+   {
+    "var": "wt_ug",
+    "label": "Vehicle Weight",
+    "value": null,
+    "known": false,
+    "provenance": null
+   }
+  ],
+  "missing": [
+   "cf_stiff",
+   "cr_stiff",
+   "ug_fpct",
+   "wt_ug"
+  ],
+  "outputs": [
+   {
+    "key": "understeer_gradient_kus",
+    "label": "Understeer Gradient (Kus)",
+    "unit": "deg/g",
+    "value": null,
+    "state": "INCOMPLETE"
+   }
+  ],
+  "warnings": [],
+  "provenance": {
+   "kind": "calculated",
+   "source": "gh-engine@1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "formula_version": "fv1-cdd0ff87"
+  }
+ },
+ "fingerprint": "fv1-cdd0ff87",
+ "header": "Understeer Gradient HELP ?"
+}

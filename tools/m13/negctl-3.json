@@ -1,0 +1,32 @@
+{
+ "control": 3,
+ "name": "remove validation guard",
+ "caught": true,
+ "results": {
+  "live": {
+   "exit": 0,
+   "fails": [],
+   "detail": []
+  },
+  "engine": {
+   "exit": 1,
+   "fails": [
+    "[FAIL] UNDERSTEER_M13  10 passed, 10 failed"
+   ],
+   "detail": [
+    "live \"Understeer Gradient (Kus)\", engine OUT_OF_RANGE",
+    "live \"Understeer Gradient (Kus)\", engine OUT_OF_RANGE"
+   ]
+  },
+  "node": {
+   "exit": 1,
+   "fails": [
+    "FAIL  understeer invalid {\"cf_stiff\":-1} -> OUT_OF_RANGE, no number",
+    "FAIL  understeer invalid {\"cr_stiff\":-1} -> OUT_OF_RANGE, no number"
+   ],
+   "detail": [
+    "68 passed, 8 failed"
+   ]
+  }
+ }
+}

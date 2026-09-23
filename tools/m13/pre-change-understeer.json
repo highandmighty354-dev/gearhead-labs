@@ -1,0 +1,72 @@
+{
+ "defaults": {
+  "fields": [
+   "Front Axle Cornering Stiffness = 180 lbs/deg",
+   "Rear Axle Cornering Stiffness = 210 lbs/deg",
+   "Front Weight %↓ use 7500 = 48 %"
+  ],
+  "result": "Understeer Gradient (Kus) 19.05 Understeer (push) — front reaches limit first"
+ },
+ "cf_stiff=0": "Understeer Gradient (Kus) Infinity Understeer (push) — front reaches limit first",
+ "cr_stiff=0": "Understeer Gradient (Kus) -Infinity Oversteer (loose) — rear reaches limit first",
+ "wt_f=0": "Understeer Gradient (Kus) -476.19 Oversteer (loose) — rear reaches limit first",
+ "wt_f=100": "Understeer Gradient (Kus) 555.56 Understeer (push) — front reaches limit first",
+ "wt_f=120": "Understeer Gradient (Kus) 761.9 Understeer (push) — front reaches limit first",
+ "cf_stiff empty": "Understeer Gradient (Kus) 19.05 Understeer (push) — front reaches limit first",
+ "neutral 180/195/48": "Understeer Gradient (Kus) 0 Neutral balance",
+ "oversteer 180/150": "Understeer Gradient (Kus) -80 Oversteer (loose) — rear reaches limit first",
+ "formula_block": "Formula Understeer Gradient=(wtfcf − 100 − wtfcr) · 1000 (index) cf = Front Cornering Stiffnesscr = Rear Cornering Stiffnesswtf = Front Weight % JS ImplementationUndersteer Gradient = ((wt_f/cf)-((100-wt_f)/cr))*1000",
+ "formula_strip": "((wt_f/cf)-((100-wt_f)/cr))*1000",
+ "engine": {
+  "calculator_id": "understeer_gradient",
+  "canonical_id": "understeer_gradient",
+  "engine_version": "1.1.0",
+  "state": "VALID",
+  "formula": {
+   "registry": "GH_E1_FORMULAS",
+   "version": "fv1-63d01fb0"
+  },
+  "inputs": [
+   {
+    "var": "cf",
+    "label": "Front Cornering Stiffness",
+    "value": 180,
+    "known": true,
+    "provenance": null
+   },
+   {
+    "var": "cr",
+    "label": "Rear Cornering Stiffness",
+    "value": 210,
+    "known": true,
+    "provenance": null
+   },
+   {
+    "var": "wt_f",
+    "label": "Front Weight %",
+    "value": 48,
+    "known": true,
+    "provenance": null
+   }
+  ],
+  "missing": [],
+  "outputs": [
+   {
+    "key": "understeer_gradient",
+    "label": "Understeer Gradient",
+    "unit": "index",
+    "value": 19.047619047619037,
+    "state": "VALID"
+   }
+  ],
+  "warnings": [],
+  "provenance": {
+   "kind": "calculated",
+   "source": "gh-engine@1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "formula_version": "fv1-63d01fb0"
+  }
+ },
+ "fingerprint": "fv1-63d01fb0",
+ "header": "Understeer Gradient HELP ?"
+}

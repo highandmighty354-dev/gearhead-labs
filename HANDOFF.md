@@ -1,4 +1,18 @@
-# GEARHEAD LABS — HANDOFF (F1.12.0 · D-009 release candidate)
+# GEARHEAD LABS — HANDOFF (F1.12.1 · M1.3 release candidate)
+
+**Current file:** `F1_12_1_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html` · engine `gh-engine@1.1.0`.
+**Tag (after approval):** `F1.12.1-M1.3-UNDERSTEER`. Rollback: `F1.12.0-D009-CATEGORICAL` and earlier.
+**Read:** `M13-RESULTS.md`, `DECISIONS.md` (D-011, D-012).
+
+**Status:** migrated **251**, pending **9**.
+
+**Future architecture item:** shared Save-to-Vehicle change tracking (see M13-RESULTS.md, incidental findings).
+
+**Rule added in M1.3:** read verdicts and labels from the exact element, never by keyword search of a whole result box. The label "Understeer Gradient" contains "Understeer".
+
+---
+
+# PREVIOUS HANDOFF — F1.12.0 (D-009)
 
 **Current file:** `F1_12_0_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html` · engine `gh-engine@1.1.0`
 

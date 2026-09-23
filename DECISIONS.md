@@ -2,6 +2,21 @@
 
 Owner decisions and the implementation choices that follow from them. Newest first.
 
+## D-012 · M1.3 Save-to-Vehicle contract: ALT-A (owner, 2026-09-23)
+
+- The Understeer Gradient Vehicle Weight field is `ug_vw`, and it must **never** write the vehicle profile's weight. The id matches no profile or range pattern.
+- The original `wt_ug` design was rejected: the shared save captures every field, so an untouched 3,420 would overwrite the vehicle's weight.
+- Shared-save change tracking is a separate future architecture item.
+
+## D-011 · M1.3 understeer_gradient (owner, 2026-09-23)
+
+- Kus = Wf/Cf − Wr/Cr (deg/g), with axle stiffness paired with axle load.
+- Vehicle weight defaults to 3,420 lb (the site convention).
+- `wt_f` → `ug_fpct` (mandatory).
+- Validity: W > 0, Cf > 0, Cr > 0, 0 < f < 100.
+- 3 decimals; the existing verdict threshold is preserved exactly.
+- The dead copy is updated identically.
+
 ## D-010 · D-009 scope locks (owner, 2026-09-23)
 
 - `speed_converter` is a LIVE CALCULATOR DEFECT. It is not a D-009 closure, and its live calculation stays unmodified until a correction is explicitly approved.

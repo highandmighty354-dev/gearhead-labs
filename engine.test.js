@@ -67,6 +67,37 @@ t('numeric option given as a string is rejected (no coercion)', r.state === 'INC
 r = E.calculate('ring_gap', { bore_rg: 0, app_rg: 'street' });
 t('numeric zero beside a categorical input stays a KNOWN zero', r.state === 'VALID' && r.outputs[0].value === 0);
 
+/* ---------------- M1.3 understeer_gradient (F1.12.1) ----------------------
+ * Kus = Wf/Cf - Wr/Cr (deg/g), Wf = W*f/100, Wr = W*(100-f)/100; axle stiffness
+ * pairs with axle load. Positive = understeer, negative = oversteer. */
+{
+  const U = 'understeer_gradient', B = { cf_stiff: 180, cr_stiff: 210, ug_fpct: 48, ug_vw: 3420 };
+  const K = (o) => E.calculate(U, { ...B, ...o });
+  const d = E.describe(U);
+  t('understeer: inputs are cf_stiff, cr_stiff, ug_fpct, ug_vw (no wt_f / wt_ug)', JSON.stringify(d.inputs.map(i => i.var)) === '["cf_stiff","cr_stiff","ug_fpct","ug_vw"]');
+  r = K({});
+  t('understeer default: W 3420, f 48, Cf 180, Cr 210 -> 0.651428571... deg/g', r.state === 'VALID' && Math.abs(r.outputs[0].value - 0.65142857142857142857) < 1e-12 && r.outputs[0].value.toFixed(3) === '0.651', String(r.outputs[0].value));
+  t('understeer unit is deg/g', r.outputs[0].unit === 'deg/g' && d.outputs[0].unit === 'deg/g');
+  const Wf = 3420 * 48 / 100, Wr = 3420 * (100 - 48) / 100;
+  t('axle loads: Wf = W*f/100 = 1641.6, Wr = W*(100-f)/100 = 1778.4, Wf + Wr = W', Wf === 1641.6 && Math.abs(Wr - 1778.4) < 1e-9 && Math.abs(Wf + Wr - 3420) < 1e-9);
+  t('Kus equals Wf/Cf - Wr/Cr for those axle loads', Math.abs(r.outputs[0].value - (Wf / 180 - Wr / 210)) < 1e-12);
+  t('Kus scales linearly with vehicle weight (2W -> 2Kus)', Math.abs(K({ ug_vw: 6840 }).outputs[0].value - 2 * r.outputs[0].value) < 1e-12);
+  t('sign: stiffer-than-neutral rear -> positive (understeer)', K({}).outputs[0].value > 0);
+  t('sign: reducing Cr to 150 -> negative (oversteer), -2.736', K({ cr_stiff: 150 }).outputs[0].value < 0 && K({ cr_stiff: 150 }).outputs[0].value.toFixed(3) === '-2.736');
+  t('neutral exact: f 50, Cf = Cr -> Kus === 0', E.calculate(U, { cf_stiff: 200, cr_stiff: 200, ug_fpct: 50, ug_vw: 3420 }).outputs[0].value === 0);
+  t('neutral exact: Cr = Cf*(100-f)/f (f 40, Cf 200 -> Cr 300) -> Kus === 0', E.calculate(U, { cf_stiff: 200, cr_stiff: 300, ug_fpct: 40, ug_vw: 3000 }).outputs[0].value === 0);
+  t('neutral at f 48 (Cr = 195): |Kus| < 2e-15 (IEEE), displays 0.000', Math.abs(K({ cr_stiff: 195 }).outputs[0].value) < 2e-15);
+  t('swapping front/rear loads changes the answer (catches a Wf/Wr swap)', Math.abs((Wr / 180 - Wf / 210) - r.outputs[0].value) > 0.1);
+  for (const bad of [{ cf_stiff: 0 }, { cr_stiff: 0 }, { cf_stiff: -1 }, { cr_stiff: -1 }, { ug_fpct: 0 }, { ug_fpct: 100 }, { ug_fpct: 120 }, { ug_fpct: -5 }, { ug_vw: 0 }, { ug_vw: -3420 }]) {
+    const x = K(bad);
+    t(`understeer invalid ${JSON.stringify(bad)} -> OUT_OF_RANGE, no number`, x.state === 'OUT_OF_RANGE' && x.outputs[0].value === null);
+  }
+  for (const v of ['cf_stiff', 'cr_stiff', 'ug_fpct', 'ug_vw']) {
+    const inp = { ...B }; delete inp[v]; const x = E.calculate(U, inp);
+    t(`understeer missing ${v} -> INCOMPLETE`, x.state === 'INCOMPLETE' && x.missing.includes(v) && x.outputs[0].value === null);
+  }
+}
+
 /* Fail-closed declarations: a malformed options block -> NOT_APPLICABLE, never evaluated. */
 const clone = () => JSON.parse(JSON.stringify(regs));
 const mk = mut => { const R = clone(); const sp = R.GH_BACKFILL_FORMULAS.ring_gap; mut(sp); return createEngine(R, {}); };

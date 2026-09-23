@@ -1,0 +1,32 @@
+{
+ "control": 4,
+ "name": "rename ug_fpct back to wt_f (28 occurrences)",
+ "caught": true,
+ "results": {
+  "live": {
+   "exit": 0,
+   "fails": [],
+   "detail": []
+  },
+  "engine": {
+   "exit": 1,
+   "fails": [
+    "[FAIL] UNDERSTEER_M13  4 passed, 16 failed"
+   ],
+   "detail": [
+    "matches: wt_f~/^wt|weight/i wt_f~/^wt|weight/i wt_f~matchProfileField",
+    "profile weight 7500 -> 48 | calculator state ug_vw=3420"
+   ]
+  },
+  "node": {
+   "exit": 1,
+   "fails": [
+    "FAIL  understeer: inputs are cf_stiff, cr_stiff, ug_fpct, ug_vw (no wt_f / wt_ug)",
+    "FAIL  understeer default: W 3420, f 48, Cf 180, Cr 210 -> 0.651428571... deg/g  null"
+   ],
+   "detail": [
+    "58 passed, 18 failed"
+   ]
+  }
+ }
+}

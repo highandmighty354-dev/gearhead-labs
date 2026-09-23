@@ -1,0 +1,36 @@
+{
+ "control": 2,
+ "name": "swap Wf and Wr",
+ "caught": true,
+ "results": {
+  "live": {
+   "exit": 1,
+   "fails": [
+    "[FAIL] DEFAULT_EXAMPLE  605 passed, 1 failed"
+   ],
+   "detail": [
+    "MISMATCH: opens showing [Understeer Gradient (Kus)=2.063deg/g]"
+   ]
+  },
+  "engine": {
+   "exit": 1,
+   "fails": [
+    "[FAIL] UNDERSTEER_M13  15 passed, 5 failed"
+   ],
+   "detail": [
+    "shows \"2.063deg/g\", verdict Understeer",
+    "shows \"1.462deg/g\", verdict Neutral"
+   ]
+  },
+  "node": {
+   "exit": 1,
+   "fails": [
+    "FAIL  understeer default: W 3420, f 48, Cf 180, Cr 210 -> 0.651428571... deg/g  2.062857142857144",
+    "FAIL  Kus equals Wf/Cf - Wr/Cr for those axle loads"
+   ],
+   "detail": [
+    "70 passed, 6 failed"
+   ]
+  }
+ }
+}

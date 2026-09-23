@@ -1,0 +1,31 @@
+{
+ "understeer_gradient": {
+  "vectors": 10,
+  "checks": 10,
+  "problems": [],
+  "unitNotes": [],
+  "uncovered_live_outputs": [],
+  "binding": {
+   "cf_stiff": {
+    "field": "cf_stiff",
+    "label": "Front Axle Cornering Stiffness",
+    "unit": "lbs/deg"
+   },
+   "cr_stiff": {
+    "field": "cr_stiff",
+    "label": "Rear Axle Cornering Stiffness",
+    "unit": "lbs/deg"
+   },
+   "ug_fpct": {
+    "field": "ug_fpct",
+    "label": "Front Weight %",
+    "unit": "%"
+   },
+   "ug_vw": {
+    "field": "ug_vw",
+    "label": "Vehicle Weight",
+    "unit": "lbs"
+   }
+  }
+ }
+}

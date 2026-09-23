@@ -1,0 +1,28 @@
+{
+ "control": 5,
+ "name": "revert example to old wording",
+ "caught": true,
+ "results": {
+  "live": {
+   "exit": 1,
+   "fails": [
+    "[FAIL] DEFAULT_EXAMPLE  605 passed, 1 failed"
+   ],
+   "detail": [
+    "MISMATCH: opens showing [Understeer Gradient (Kus)=0.651deg/g]"
+   ]
+  },
+  "engine": {
+   "exit": 0,
+   "fails": [],
+   "detail": []
+  },
+  "node": {
+   "exit": 0,
+   "fails": [],
+   "detail": [
+    "76 passed, 0 failed"
+   ]
+  }
+ }
+}

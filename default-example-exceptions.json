@@ -5,7 +5,6 @@
   "NO_STATED_RESULT": 48,
   "MODE_DEPENDENT": 1,
   "INTERACTIVE": 12,
-  "OPEN_DECISION": 1,
   "NON_DEFAULT_SCENARIO": 6
  },
  "exceptions": {
@@ -53,9 +52,9 @@
   },
   "throttle_body": {
    "reason": "NO_STATED_RESULT",
-   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Engine Airflow Demand=665.6 CFM; Required Bore Area=9.128 in²; Required Bore (inches)=3.409 in; Required Bore (metric)=87 mm. Content recommendation: state the result.",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Engine Airflow Demand=665.6 CFM; Required Bore Area=9.128 in\u00b2; Required Bore (inches)=3.409 in; Required Bore (metric)=87 mm. Content recommendation: state the result.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Engine Airflow Demand=665.6 CFM; Required Bore Area=9.128 in²; Required Bore (inches)=3.409 in; Required Bore (metric)=87 mm"
+   "live_at_review": "Engine Airflow Demand=665.6 CFM; Required Bore Area=9.128 in\u00b2; Required Bore (inches)=3.409 in; Required Bore (metric)=87 mm"
   },
   "exhaust_header": {
    "reason": "NO_STATED_RESULT",
@@ -101,9 +100,9 @@
   },
   "cc_to_cubic_inches": {
    "reason": "NO_STATED_RESULT",
-   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Cubic Inches=0.06102374in³. Content recommendation: state the result.",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Cubic Inches=0.06102374in\u00b3. Content recommendation: state the result.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Cubic Inches=0.06102374in³"
+   "live_at_review": "Cubic Inches=0.06102374in\u00b3"
   },
   "cubic_inches_to_liters": {
    "reason": "NO_STATED_RESULT",
@@ -167,15 +166,15 @@
   },
   "tap_drill": {
    "reason": "QUALITATIVE",
-   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Tap Drill Size (M8×1.25)=6.782 mm.",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Tap Drill Size (M8\u00d71.25)=6.782 mm.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Tap Drill Size (M8×1.25)=6.782 mm"
+   "live_at_review": "Tap Drill Size (M8\u00d71.25)=6.782 mm"
   },
   "hydraulic_cylinder_force": {
    "reason": "QUALITATIVE",
-   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Bore Area=3.142 in²; Extend Force=6,283 lbf; Retract Force=4,712 lbf.",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Bore Area=3.142 in\u00b2; Extend Force=6,283 lbf; Retract Force=4,712 lbf.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Bore Area=3.142 in²; Extend Force=6,283 lbf; Retract Force=4,712 lbf"
+   "live_at_review": "Bore Area=3.142 in\u00b2; Extend Force=6,283 lbf; Retract Force=4,712 lbf"
   },
   "hydraulic_cylinder_speed": {
    "reason": "QUALITATIVE",
@@ -191,21 +190,21 @@
   },
   "power_steering_assist": {
    "reason": "NO_STATED_RESULT",
-   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Piston Area=2.405 in²; Max Assist Force=2,886 lbf. Content recommendation: state the result.",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Piston Area=2.405 in\u00b2; Max Assist Force=2,886 lbf. Content recommendation: state the result.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Piston Area=2.405 in²; Max Assist Force=2,886 lbf"
+   "live_at_review": "Piston Area=2.405 in\u00b2; Max Assist Force=2,886 lbf"
   },
   "hydraulic_reservoir_sizing": {
    "reason": "QUALITATIVE",
-   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Total Cylinder Displacement=31.4 in³; Line Volume=14.1 in³; Recommended Reservoir Size=0.25 gal.",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Total Cylinder Displacement=31.4 in\u00b3; Line Volume=14.1 in\u00b3; Recommended Reservoir Size=0.25 gal.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Total Cylinder Displacement=31.4 in³; Line Volume=14.1 in³; Recommended Reservoir Size=0.25 gal"
+   "live_at_review": "Total Cylinder Displacement=31.4 in\u00b3; Line Volume=14.1 in\u00b3; Recommended Reservoir Size=0.25 gal"
   },
   "air_density": {
    "reason": "NO_STATED_RESULT",
-   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Air Density=0.0762lb/ft³. Content recommendation: state the result.",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Air Density=0.0762lb/ft\u00b3. Content recommendation: state the result.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Air Density=0.0762lb/ft³"
+   "live_at_review": "Air Density=0.0762lb/ft\u00b3"
   },
   "grains_water": {
    "reason": "QUALITATIVE",
@@ -221,15 +220,15 @@
   },
   "jetting": {
    "reason": "QUALITATIVE",
-   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Estimated Jet=62; Change=-10 sizes; Direction=—.",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Estimated Jet=62; Change=-10 sizes; Direction=\u2014.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Estimated Jet=62; Change=-10 sizes; Direction=—"
+   "live_at_review": "Estimated Jet=62; Change=-10 sizes; Direction=\u2014"
   },
   "density_altitude": {
    "reason": "QUALITATIVE",
-   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Density Altitude=130ft; Pressure Altitude=0ft; Station Pressure=29.92in Hg; Air Density=0.0024lb/ft³.",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Density Altitude=130ft; Pressure Altitude=0ft; Station Pressure=29.92in Hg; Air Density=0.0024lb/ft\u00b3.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Density Altitude=130ft; Pressure Altitude=0ft; Station Pressure=29.92in Hg; Air Density=0.0024lb/ft³"
+   "live_at_review": "Density Altitude=130ft; Pressure Altitude=0ft; Station Pressure=29.92in Hg; Air Density=0.0024lb/ft\u00b3"
   },
   "sim_curve_editor": {
    "reason": "INTERACTIVE",
@@ -287,15 +286,15 @@
   },
   "brake_rotor_temp": {
    "reason": "QUALITATIVE",
-   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Energy to Rotor=528.9 BTU; Temperature Rise=329.5 °F.",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Energy to Rotor=528.9 BTU; Temperature Rise=329.5 \u00b0F.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Energy to Rotor=528.9 BTU; Temperature Rise=329.5 °F"
+   "live_at_review": "Energy to Rotor=528.9 BTU; Temperature Rise=329.5 \u00b0F"
   },
   "brake_clamp_force": {
    "reason": "NO_STATED_RESULT",
-   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Piston Area (each)=2.405 in²; Total Piston Area=4.811 in²; Clamp Force=5,773 lbf. Content recommendation: state the result.",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Piston Area (each)=2.405 in\u00b2; Total Piston Area=4.811 in\u00b2; Clamp Force=5,773 lbf. Content recommendation: state the result.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Piston Area (each)=2.405 in²; Total Piston Area=4.811 in²; Clamp Force=5,773 lbf"
+   "live_at_review": "Piston Area (each)=2.405 in\u00b2; Total Piston Area=4.811 in\u00b2; Clamp Force=5,773 lbf"
   },
   "brake_torque": {
    "reason": "NO_STATED_RESULT",
@@ -311,9 +310,9 @@
   },
   "rotor_heat": {
    "reason": "QUALITATIVE",
-   "note": "No CONTENT.example text exists for this entry. Live opens showing: Energy to Rotor=528.9 BTU; Temperature Rise=329.5 °F.",
+   "note": "No CONTENT.example text exists for this entry. Live opens showing: Energy to Rotor=528.9 BTU; Temperature Rise=329.5 \u00b0F.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Energy to Rotor=528.9 BTU; Temperature Rise=329.5 °F"
+   "live_at_review": "Energy to Rotor=528.9 BTU; Temperature Rise=329.5 \u00b0F"
   },
   "pedal_force": {
    "reason": "QUALITATIVE",
@@ -383,9 +382,9 @@
   },
   "gear_shift_rpm_drag": {
    "reason": "QUALITATIVE",
-   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: 1st→2nd=4,530 RPM; 2nd→3rd=4,490 RPM; 3rd→4th=4,545 RPM.",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: 1st\u21922nd=4,530 RPM; 2nd\u21923rd=4,490 RPM; 3rd\u21924th=4,545 RPM.",
    "reviewed": "2026-09-22",
-   "live_at_review": "1st→2nd=4,530 RPM; 2nd→3rd=4,490 RPM; 3rd→4th=4,545 RPM"
+   "live_at_review": "1st\u21922nd=4,530 RPM; 2nd\u21923rd=4,490 RPM; 3rd\u21924th=4,545 RPM"
   },
   "delay_box_setting": {
    "reason": "NO_STATED_RESULT",
@@ -401,9 +400,9 @@
   },
   "ct_spring_split": {
    "reason": "NO_STATED_RESULT",
-   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Front Split (LF−RF)=100 lbs/in; Rear Split (RR−LR)=-15 lbs/in; Front Roll Stiffness=1,300 lbs/in; Rear Roll Stiffness=385 lbs/in; F/R Ratio=. Content recommendation: state the result.",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Front Split (LF\u2212RF)=100 lbs/in; Rear Split (RR\u2212LR)=-15 lbs/in; Front Roll Stiffness=1,300 lbs/in; Rear Roll Stiffness=385 lbs/in; F/R Ratio=. Content recommendation: state the result.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Front Split (LF−RF)=100 lbs/in; Rear Split (RR−LR)=-15 lbs/in; Front Roll Stiffness=1,300 lbs/in; Rear Roll Stiffness=385 lbs/in; F/R Ratio="
+   "live_at_review": "Front Split (LF\u2212RF)=100 lbs/in; Rear Split (RR\u2212LR)=-15 lbs/in; Front Roll Stiffness=1,300 lbs/in; Rear Roll Stiffness=385 lbs/in; F/R Ratio="
   },
   "ct_panhard_roll": {
    "reason": "NO_STATED_RESULT",
@@ -431,9 +430,9 @@
   },
   "ct_tire_temp_balance": {
    "reason": "QUALITATIVE",
-   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: F L/R Spread=30 °F; R L/R Spread=30 °F.",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: F L/R Spread=30 \u00b0F; R L/R Spread=30 \u00b0F.",
    "reviewed": "2026-09-22",
-   "live_at_review": "F L/R Spread=30 °F; R L/R Spread=30 °F"
+   "live_at_review": "F L/R Spread=30 \u00b0F; R L/R Spread=30 \u00b0F"
   },
   "ct_push_loose": {
    "reason": "INTERACTIVE",
@@ -463,13 +462,13 @@
    "reason": "QUALITATIVE",
    "note": "Result is a YES/NO viability verdict plus supporting figures; the example states the verdict (\"NOT viable\", slightly negative pace advantage) which matches the live output (NO, -0.2 sec/lap).",
    "reviewed": "2026-09-22",
-   "live_at_review": "Undercut Viable?=NO; Pace Advantage=-0.2 sec/lap; Laps to Recover=— laps; Overcut Laps Needed=22.5 laps"
+   "live_at_review": "Undercut Viable?=NO; Pace Advantage=-0.2 sec/lap; Laps to Recover=\u2014 laps; Overcut Laps Needed=22.5 laps"
   },
   "tap_drill_size": {
    "reason": "QUALITATIVE",
-   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Tap Drill Size (M8×1.25)=6.782 mm.",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Tap Drill Size (M8\u00d71.25)=6.782 mm.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Tap Drill Size (M8×1.25)=6.782 mm"
+   "live_at_review": "Tap Drill Size (M8\u00d71.25)=6.782 mm"
   },
   "bolt_torque_spec": {
    "reason": "NO_STATED_RESULT",
@@ -515,9 +514,9 @@
   },
   "resistor_color": {
    "reason": "QUALITATIVE",
-   "note": "No CONTENT.example text exists for this entry. Live opens showing: Resistance Value=1kΩ ±5%.",
+   "note": "No CONTENT.example text exists for this entry. Live opens showing: Resistance Value=1k\u03a9 \u00b15%.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Resistance Value=1kΩ ±5%"
+   "live_at_review": "Resistance Value=1k\u03a9 \u00b15%"
   },
   "ac_pressure": {
    "reason": "QUALITATIVE",
@@ -587,21 +586,15 @@
   },
   "approach_departure_angle": {
    "reason": "QUALITATIVE",
-   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Approach Angle=15.6 °; Departure Angle=19.3 °.",
+   "note": "Example contains no numeric result to reproduce; it describes the method or the result in words. Live opens showing: Approach Angle=15.6 \u00b0; Departure Angle=19.3 \u00b0.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Approach Angle=15.6 °; Departure Angle=19.3 °"
+   "live_at_review": "Approach Angle=15.6 \u00b0; Departure Angle=19.3 \u00b0"
   },
   "caster_from_camber": {
    "reason": "NO_STATED_RESULT",
-   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Estimated Caster=~2.92°. Content recommendation: state the result.",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Estimated Caster=~2.92\u00b0. Content recommendation: state the result.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Estimated Caster=~2.92°"
-  },
-  "understeer_gradient": {
-   "reason": "OPEN_DECISION",
-   "note": "Example states no number. Separately flagged for a product decision: the live renderer computes (front weight % / front stiffness) - (rear weight % / rear stiffness) x 1000, a sign-correct balance INDEX, and labels it \"Kus\". True Kus in deg/g needs axle weights in lb (i.e. a vehicle-weight input). Sign and balance verdict are correct; the magnitude is not Kus in deg/g.",
-   "reviewed": "2026-09-22",
-   "live_at_review": "Understeer Gradient (Kus)=19.05"
+   "live_at_review": "Estimated Caster=~2.92\u00b0"
   },
   "bump_steer": {
    "reason": "NO_STATED_RESULT",
@@ -611,21 +604,21 @@
   },
   "caster_trail_effect": {
    "reason": "NO_STATED_RESULT",
-   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Camber Gain from Caster=1.553°. Content recommendation: state the result.",
+   "note": "Example restates the default inputs but describes the answer only qualitatively (\"a specific ...\"), so there is no stated number to reproduce. Inputs match the defaults; live opens showing: Camber Gain from Caster=1.553\u00b0. Content recommendation: state the result.",
    "reviewed": "2026-09-22",
-   "live_at_review": "Camber Gain from Caster=1.553°"
+   "live_at_review": "Camber Gain from Caster=1.553\u00b0"
   },
   "kelvin_to_fahrenheit": {
    "reason": "NON_DEFAULT_SCENARIO",
-   "note": "Default is a realistic 293.15 K (room temperature, opens showing Fahrenheit=68°F); the example deliberately uses 1 K to show the offset. Both are correct. Defaulting a converter to 1 K would be a worse product; recommended copy update to the 293.15 K case (owner decision).",
+   "note": "Default is a realistic 293.15 K (room temperature, opens showing Fahrenheit=68\u00b0F); the example deliberately uses 1 K to show the offset. Both are correct. Defaulting a converter to 1 K would be a worse product; recommended copy update to the 293.15 K case (owner decision).",
    "reviewed": "2026-09-22",
-   "live_at_review": "Fahrenheit=68°F"
+   "live_at_review": "Fahrenheit=68\u00b0F"
   },
   "kelvin_to_celsius": {
    "reason": "NON_DEFAULT_SCENARIO",
-   "note": "Default is a realistic 293.15 K (room temperature, opens showing Celsius=20°C); the example deliberately uses 1 K to show the offset. Both are correct. Defaulting a converter to 1 K would be a worse product; recommended copy update to the 293.15 K case (owner decision).",
+   "note": "Default is a realistic 293.15 K (room temperature, opens showing Celsius=20\u00b0C); the example deliberately uses 1 K to show the offset. Both are correct. Defaulting a converter to 1 K would be a worse product; recommended copy update to the 293.15 K case (owner decision).",
    "reviewed": "2026-09-22",
-   "live_at_review": "Celsius=20°C"
+   "live_at_review": "Celsius=20\u00b0C"
   },
   "universal_automotive_converter": {
    "reason": "INTERACTIVE",
