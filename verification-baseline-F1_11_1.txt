@@ -1,0 +1,113 @@
+== GATE 1: script syntax ==
+17 inline script blocks
+  all blocks parse
+
+== GATE 2: static invariants (gh-verify.js) ==
+========================================================================
+GEARHEAD LABS - INVARIANT VERIFICATION
+file     : F1_11_1_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html
+formulas : 577   content entries: 606
+========================================================================
+
+[PASS] EVAL  577 passed, 0 failed
+
+[PASS] DEGENERATE  8 passed, 0 failed
+
+[PASS] STUB  1 passed, 0 failed
+
+[PASS] SHADOWED  1 passed, 0 failed
+
+[PASS] ALIASES  17 passed, 0 failed
+
+[PASS] DIFFERENTIAL  259 passed, 0 failed
+
+[PASS] IDENTICAL  21 passed, 0 failed
+
+[PASS] INVERSE  38 passed, 0 failed
+
+[PASS] IDENTITY  8 passed, 0 failed
+
+[PASS] HOMOGENEITY  9 passed, 0 failed
+
+[PASS] ENVELOPE  34 passed, 0 failed
+
+[PASS] UNIT_ENVELOPE  1 passed, 0 failed
+
+[PASS] ROUNDING  1 passed, 0 failed
+
+[PASS] ORPHAN  2 passed, 0 failed
+
+[PASS] LABELS  1 passed, 0 failed
+
+[INFO] DIFFERENTIAL could not compare 318 formula(s) -- single-path (generic renderer) or unmappable var names
+
+[INFO] ORPHAN: 29 implemented calculator(s) have no single-expression registry formula (simulators, converters, multi-output tools) -- their FORMULA box shows nothing
+
+[INFO] ROUNDING: 10 output(s) shift by <0.1% from rounded intermediates
+    ct_sway_bar / Roll Stiffness Added: shows 18378, exact 18383.46811 (0.0297%)
+    exhaust_diameter / Collector OD: shows 4.422, exact 4.421335306 (0.0150%)
+    helicoil_size / Approx. STI Drill Size: shows 0.4437, exact 0.44375 (0.0113%)
+    refinance_savings / Total Savings: shows 1778.4, exact 1778.228032 (0.0097%)
+    throttle_body / Required Bore Area: shows 9.128, exact 9.128571429 (0.0063%)
+    loan_payment / Total Interest: shows 5218.8, exact 5219.066794 (0.0051%)
+    tire_size / Circumference: shows 80.679, exact 80.67956252 (0.0007%)
+    loan_payment / Total Paid: shows 40218.8, exact 40219.06679 (0.0007%)
+    -> cosmetic, but each is a place the Methodology promise is not literally true
+
+========================================================================
+ALL INVARIANTS HOLD
+========================================================================
+
+== GATE 3: live-page invariants (gh-verify-live.js) ==
+========================================================================
+GEARHEAD LABS - LIVE-PAGE VERIFICATION
+file     : F1_11_1_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html
+content  : 606   aliases: 6   page load errors: 0
+========================================================================
+
+[PASS] LIVE_RENDER  612 passed, 0 failed
+
+[PASS] RENDER_STABLE  612 passed, 0 failed
+
+[PASS] DEFAULT_EXAMPLE  606 passed, 0 failed
+
+[INFO] DEFAULT_EXAMPLE breakdown: EXACT 492, EXCEPTION:NO_STATED_RESULT 48, EXCEPTION:QUALITATIVE 40, EXCEPTION:INTERACTIVE 12, CLOSE 6, EXCEPTION:NON_DEFAULT_SCENARIO 6, EXCEPTION:MODE_DEPENDENT 1, EXCEPTION:OPEN_DECISION 1
+[INFO] 6 reproduce within 0.5% but not at the example's stated precision (example rounds loosely):
+    liters_to_cubic_inches: shows 61.02374409in³, example 61.0237440947
+    oz_to_grams: shows 28.34952313g, example 28.349523125
+    quarts_to_liters: shows 0.94635295L, example 0.946352946
+    gallons_to_liters: shows 3.78541178L, example 3.785411784
+    fluid_oz_to_ml: shows 29.57352956mL, example 29.5735295625
+    cubic_feet_to_liters: shows 28.31684659L, example 28.316846592
+
+========================================================================
+ALL LIVE INVARIANTS HOLD
+========================================================================
+
+== GATE 4: engine (gh-verify-engine.js) ==
+========================================================================
+GEARHEAD LABS - ENGINE VERIFICATION
+file     : F1_11_1_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html
+engine   : gh-engine.js 1.0.0   migrated calculators: 240
+========================================================================
+
+[PASS] ENGINE_EMBED  2 passed, 0 failed
+
+[PASS] V_UNKNOWN  8 passed, 0 failed
+
+[PASS] ENGINE_UNKNOWN  577 passed, 0 failed
+
+[PASS] ENGINE_NODE  1 passed, 0 failed
+
+[PASS] FORMULA_DISPLAY  240 passed, 0 failed
+
+[PASS] LIVE_PARITY  240 passed, 0 failed
+
+[INFO] LIVE_PARITY ran 3724 output comparisons across 240 calculators
+
+========================================================================
+ALL ENGINE INVARIANTS HOLD
+========================================================================
+[PASS] ENGINE_NODE_TESTS  16 passed, 0 failed
+
+RELEASE GATE: PASS

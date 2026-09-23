@@ -1,4 +1,45 @@
-# GEARHEAD LABS — HANDOFF (F1.11.0 · M1 in progress)
+# GEARHEAD LABS — HANDOFF (F1.11.1 · M1 in progress)
+
+**Current file:** `F1_11_1_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html`
+**Rollback / reference:** tags `F1.11.0-M1.1-CORE-ENGINE` and `F1.10.6-FINAL`. Both unchanged, and both pass their own gates.
+**Release gate:** `npm install && ./verify-all.sh <file.html>`. That is 4 gates plus the Node engine tests; all must pass.
+
+**Read next:**
+- `M1.2-RESULTS.md`: the 37-row table, the evidence summary, and what's still blocked
+- `ENGINE.md`
+- `DECISIONS.md`: D-007 to D-009 are new
+- `engine-pending.json`
+
+## M1 status
+
+| Step | Version | Status |
+|---|---|---|
+| M1.1 | F1.11.0 | Done: `v()` Unknown≠Zero; GH_ENGINE; 215 proven |
+| M1.2 | F1.11.1 | **25 of 37 closed**; 12 blocked on owner decisions |
+
+Engine migrated: **240**. Pending: **19**.
+
+## Next steps
+
+1. **Owner decisions:**
+   - **D-009 categorical inputs** (closes 11)
+   - `bearing_life` display
+   - the 4 pre-existing formula-display defects
+   - `bolt_pattern` / `pinion_angle_change` / `optimal_shift` / `ev_motor_power`
+2. **M1.3 — `understeer_gradient` per D-004.** Add vehicle weight; Kus = Wf/Cf − Wr/Cr in deg/g. This deliberately changes a displayed value, so it goes in its own version.
+3. **M1.4 — retire duplicated math.** Migrated renderers take their numbers from `GH_ENGINE.calculate()`, one family at a time, with every gate green after each.
+4. **M2:** canonical fields and value model (Supabase/Postgres per D-001 to D-003).
+
+## Rules added in M1.2
+
+- **Check what visitors read, not only what they compute.** A registry change passed parity yet published a misleading formula; FORMULA_DISPLAY now gates this.
+- **A registry must never return 0 for an input the product rejects.** Use `NaN`, which the engine reports as `OUT_OF_RANGE`.
+- **Fix harness defects before judging data.** Every harness change must make it stricter. Re-run the whole migrated set after any harness change.
+- **Every duplicate registry id appears once in the file text.** At runtime, `Object.assign(GH_LEGACY_FORMULAS, GH_BACKFILL_FORMULAS)` shares the same object between the two registries, so copies cannot drift; edit the backfill entry.
+
+---
+
+# PREVIOUS HANDOFF — F1.11.0 (M1.1)
 
 **Current file:** `F1_11_0_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html`
 **Frozen reference / rollback:** `F1.10.6-FINAL` (git tag). Unchanged, and still passes its own gate.

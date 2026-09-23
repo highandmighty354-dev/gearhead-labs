@@ -1,6 +1,6 @@
 # GH_ENGINE — the Gearhead calculation interface
 
-Engine 1.0.0 · introduced in F1.11.0 (M1, step 1).
+Engine 1.0.0 · introduced in F1.11.0 (M1, step 1) · status updated at F1.11.1 (M1.2).
 
 ## What it is, and what it is not
 
@@ -100,23 +100,28 @@ Values must agree at the precision the page displays, or within 0.1% (the docume
 - A 1% change to one registry formula fails LIVE_PARITY.
 - A one-comment change to the embedded engine fails ENGINE_EMBED.
 
-## Status at F1.11.0
+## Status at F1.11.1
 
 | | Count |
 |---|---|
-| Candidates (static DIFFERENTIAL passes on F1.10.6) | 259 |
-| **Migrated: full live parity proven** | **215** (3,176 output comparisons) |
-| Pending: see `engine-pending.json` | 44 |
+| **Migrated: full live parity proven** | **240** (215 in M1.1 + 25 in M1.2) |
+| Pending: see `engine-pending.json` | 19 |
 
 Pending breakdown:
 
-| Reason | Count | What it means |
+| Reason | Count | What closes it |
 |---|---|---|
-| DOMAIN_RULES_NEEDED | 24 | Live rejects a 0 input the registry evaluates. Fix: add the live guard to the registry expression using the pattern the registry already uses: `[..].every(n=>n>0) ? expr : NaN` |
-| REGISTRY_INCOMPLETE | 13 | Live has an input the registry lacks (unit "From" selectors, Application selectors, `hp_from_specs` air density) |
-| MODE_DEPENDENT | 3 | Solve-for modes hide registry inputs in the default mode |
-| LIVE_DEFECT | 2 | `pinion_angle_change` shows 0° for invalid geometry; `bolt_pattern` mixes measurement conventions and returns a radius labelled diameter |
-| REGISTRY_STUB | 1 | `optimal_shift`: the registry is a stand-in for a 7-input search |
-| UNIT_DIVERGENCE | 1 | `ev_motor_power`: registry kW vs live HP |
+| NEEDS_CATEGORICAL_INPUT | 11 | Owner decision D-009 (engine contract for text selectors) |
+| MODE_DEPENDENT | 3 | Per-mode registry entries |
+| LIVE_DEFECT | 2 | `pinion_angle_change`, `bolt_pattern`: owner-visible fixes |
+| REGISTRY_STUB | 1 | `optimal_shift` |
+| UNIT_DIVERGENCE | 1 | `ev_motor_power` kW vs HP |
+| FORMULA_DISPLAY_BLOCKED | 1 | `bearing_life` (see D-008) |
+
+**Proof standard additions in M1.2 (stricter):**
+- A live invalid box must correspond to a null engine output.
+- Unbound live inputs are probed at 0 as well as scaled.
+- Every numeric-select option is tested.
+- **FORMULA_DISPLAY:** the published typeset formula of every migrated calculator must contain no JavaScript.
 
 **Lesson:** the static DIFFERENTIAL suite compares at default inputs only. 44 of its 259 "proven" calculators agree only at defaults. LIVE_PARITY is the proof standard from here on.

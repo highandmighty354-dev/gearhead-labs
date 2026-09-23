@@ -1,0 +1,2406 @@
+{
+ "weight_reduction": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Current Horsepower",
+     "Current Vehicle Weight",
+     "Weight to Remove"
+    ],
+    "vars": [
+     "hp3",
+     "wt3",
+     "red"
+    ],
+    "expr": "hp3*(red/(wt3-red))",
+    "out": "Equivalent HP Gain",
+    "unit": "HP"
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS"
+  ],
+  "live_full": "weight_reduction(){\n    const hp3=vd('hp3',425), wt3=vd('wt3',3420), red=vd('red',100);\n    const newWt3 = wt3 - red;\n    const gain = ([hp3,wt3,red].every(Number.isFinite) && newWt3 > 0) ? +(hp3*(red/newWt3)).toFixed(1) : NaN;\n    return `${headerHTML('Weight Reduction HP Gain','Every pound saved is worth HP at the track. Uses the formula: HP Gain = HP × (weight reduction / new weight).')}\n    <div class=\"calc-body\">\n      ${field('Current Horsepower','hp3',425,'HP')}\n      ${field('Current Vehicle Weight','wt3',3420,getU('weight'))}\n      ${field('Weight to Remove','red',100,getU('weight'))}\n      ${resultHTML('Equivalent HP Gain', gain, 'HP', true)}\n    </div>${calcFooter('Weight Reduction')}`;\n  }",
+  "live_logic": "weight_reduction(){\n    const hp3=vd('hp3',425), wt3=vd('wt3',3420), red=vd('red',100);\n    const newWt3 = wt3 - red;\n    const gain = ([hp3,wt3,red].every(Number.isFinite) && newWt3 > 0) ? +(hp3*(red/newWt3)).toFixed(1) : NaN;\n      ${field('Current Horsepower','hp3',425,'HP')}\n      ${field('Current Vehicle Weight','wt3',3420,getU('weight'))}\n      ${field('Weight to Remove','red',100,getU('weight'))}\n  }",
+  "before": {
+   "vectors": 8,
+   "checks": 8,
+   "problems": [
+    "wt3=0: validity differs - engine VALID -425, live shows \"—HP\""
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "hp3": {
+     "field": "hp3",
+     "label": "Current Horsepower↓ use 370",
+     "unit": "HP"
+    },
+    "wt3": {
+     "field": "wt3",
+     "label": "Current Vehicle Weight↓ use 7500",
+     "unit": "lbs"
+    },
+    "red": {
+     "field": "red",
+     "label": "Weight to Remove",
+     "unit": "lbs"
+    }
+   }
+  }
+ },
+ "static_compression": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Bore",
+     "Stroke",
+     "Chamber Volume",
+     "Head Gasket Volume",
+     "Piston Volume (+dome / −dish)"
+    ],
+    "vars": [
+     "bore2",
+     "stroke2",
+     "chamber",
+     "gasket",
+     "piston"
+    ],
+    "outputs": [
+     {
+      "expr": "((Math.PI/4)*Math.pow(bore2,2)*stroke2)*16.387064",
+      "out": "Swept Volume",
+      "unit": "cc"
+     },
+     {
+      "expr": "chamber+gasket-piston",
+      "out": "Clearance Volume",
+      "unit": "cc"
+     },
+     {
+      "expr": "(bore2>0&&stroke2>0&&chamber>=0&&gasket>=0&&(chamber+gasket-piston)>0)?+(((((Math.PI/4)*Math.pow(bore2,2)*stroke2)*16.387064)+(chamber+gasket-piston))/(chamber+gasket-piston)).toFixed(3):0",
+      "out": "Static Compression Ratio",
+      "unit": ":1"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS"
+  ],
+  "live_full": "static_compression(){\n    const bore2=vd('bore2',4.2500), stroke2=vd('str2',3.7500), chamber=vd('dcv',64.000), gasket=vd('hgv',8.000), piston=vd('pv2',0.000);\n    const sweptIn3=(Math.PI/4)*Math.pow(bore2,2)*stroke2;\n    const sweptCC=sweptIn3*16.387064;\n    const clearance=chamber+gasket-piston;\n    const valid=bore2>0&&stroke2>0&&chamber>=0&&gasket>=0&&clearance>0;\n    const ratio=valid?+((sweptCC+clearance)/clearance).toFixed(3):0;\n    return `${headerHTML('Static Compression Ratio','All chamber, gasket and piston volumes are normalized to cc before calculation. CR = (swept volume + clearance volume) / clearance volume. Piston volume is entered as positive for dome volume (subtracts from clearance) and negative for a dish (adds to clearance).')}\n    <div class=\"calc-body\">\n      ${field('Bore','bore2',4.2500,getU('length'))}\n      ${field('Stroke','str2',3.7500,getU('length'))}\n      ${field('Chamber Volume','dcv',64.000,'cc')}\n      ${field('Head Gasket Volume','hgv',8.000,'cc')}\n      ${field('Piston Volume (+dome / −dish)','pv2',0.000,'cc')}\n      ${valid?multiResult([{label:'Swept Volume',value:sweptCC,unit:'cc'},{label:'Clearance Volume',value:clearance,unit:'cc'},{label:'Static Compression Ratio',value:ratio,unit:':1'}]):`<div class=\"result-box\"><div class=\"result-value\">Invalid compression-volume inputs</div><div class=\"help-note\">Clearance volume must be greater than zero.</div></div>`}\n    </div>${calcFooter('Compression Ratio')}`;\n  }",
+  "live_logic": "static_compression(){\n    const bore2=vd('bore2',4.2500), stroke2=vd('str2',3.7500), chamber=vd('dcv',64.000), gasket=vd('hgv',8.000), piston=vd('pv2',0.000);\n    const sweptIn3=(Math.PI/4)*Math.pow(bore2,2)*stroke2;\n    const sweptCC=sweptIn3*16.387064;\n    const clearance=chamber+gasket-piston;\n    const valid=bore2>0&&stroke2>0&&chamber>=0&&gasket>=0&&clearance>0;\n    const ratio=valid?+((sweptCC+clearance)/clearance).toFixed(3):0;\n      ${field('Bore','bore2',4.2500,getU('length'))}\n      ${field('Stroke','str2',3.7500,getU('length'))}\n      ${field('Chamber Volume','dcv',64.000,'cc')}\n      ${field('Head Gasket Volume','hgv',8.000,'cc')}\n      ${field('Piston Volume (+dome / −dish)','pv2',0.000,'cc')}\n  }",
+  "before": {
+   "vectors": 11,
+   "checks": 27,
+   "problems": [
+    "bore2=0: output 'Swept Volume' has no matching live result (live: )",
+    "bore2=0: output 'Clearance Volume' has no matching live result (live: )",
+    "bore2=0: output 'Static Compression Ratio' has no matching live result (live: )",
+    "stroke2=0: output 'Swept Volume' has no matching live result (live: )",
+    "stroke2=0: output 'Clearance Volume' has no matching live result (live: )",
+    "stroke2=0: output 'Static Compression Ratio' has no matching live result (live: )"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "bore2": {
+     "field": "bore2",
+     "label": "Bore↓ use 4.21",
+     "unit": "in"
+    },
+    "stroke2": {
+     "field": "str2",
+     "label": "Stroke↓ use 4.88",
+     "unit": "in"
+    },
+    "chamber": {
+     "field": "dcv",
+     "label": "Chamber Volume",
+     "unit": "cc"
+    },
+    "gasket": {
+     "field": "hgv",
+     "label": "Head Gasket Volume",
+     "unit": "cc"
+    },
+    "piston": {
+     "field": "pv2",
+     "label": "Piston Volume (+dome / −dish)",
+     "unit": "cc"
+    }
+   }
+  }
+ },
+ "crawl_ratio_tire": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Raw Crawl Ratio",
+     "Stock Tire Diameter",
+     "Fitted Tire Diameter"
+    ],
+    "vars": [
+     "raw_cr",
+     "stock_d",
+     "new_d"
+    ],
+    "outputs": [
+     {
+      "expr": "([raw_cr,stock_d,new_d].every(Number.isFinite)&&raw_cr>0&&stock_d>0&&new_d>0) ? +(new_d/stock_d).toFixed(4) : NaN",
+      "out": "Tire Factor",
+      "unit": "x"
+     },
+     {
+      "expr": "([raw_cr,stock_d,new_d].every(Number.isFinite)&&raw_cr>0&&stock_d>0&&new_d>0) ? +(raw_cr/(([raw_cr,stock_d,new_d].every(Number.isFinite)&&raw_cr>0&&stock_d>0&&new_d>0) ? +(new_d/stock_d).toFixed(4) : NaN)).toFixed(2) : NaN",
+      "out": "Adjusted Crawl Ratio",
+      "unit": ":1"
+     },
+     {
+      "expr": "([raw_cr,stock_d,new_d].every(Number.isFinite)&&raw_cr>0&&stock_d>0&&new_d>0) ? +((((([raw_cr,stock_d,new_d].every(Number.isFinite)&&raw_cr>0&&stock_d>0&&new_d>0) ? +(raw_cr/(([raw_cr,stock_d,new_d].every(Number.isFinite)&&raw_cr>0&&stock_d>0&&new_d>0) ? +(new_d/stock_d).toFixed(4) : NaN)).toFixed(2) : NaN)/raw_cr)-1)*100).toFixed(1) : NaN",
+      "out": "Change vs Stock",
+      "unit": "%"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS"
+  ],
+  "live_full": "crawl_ratio_tire(){\n    /* WAVE 1 P0 (off-road brief, Sept 2026). Tire-adjusted effective crawl ratio.\n       Larger tires raise the effective final drive, reducing usable crawl ratio:\n         tire factor  = fitted diameter / stock diameter\n         adjusted CR  = raw CR / tire factor\n       Related: Crawl Ratio (raw), Effective Gear Ratio (Tires), Tire Size. */\n    const raw_cr=vd('cr_raw',80.0), stock_d=vd('cr_stock_d',31.0), new_d=vd('cr_new_d',37.0);\n    const ok=[raw_cr,stock_d,new_d].every(Number.isFinite)&&raw_cr>0&&stock_d>0&&new_d>0;\n    const factor = ok ? +(new_d/stock_d).toFixed(4) : NaN;\n    const adj = ok ? +(raw_cr/factor).toFixed(2) : NaN;\n    const delta = ok ? +(((adj/raw_cr)-1)*100).toFixed(1) : NaN;\n    function useCase(cr){\n      if(!Number.isFinite(cr)) return '';\n      if(cr<25) return 'Daily driver / light trail — limited low-speed control';\n      if(cr<40) return 'General 4WD — adequate for forest roads and mild obstacles';\n      if(cr<55) return 'Moderate off-road — good throttle control on rough terrain';\n      if(cr<85) return 'Rock crawling — strong low-speed control';\n      return 'Competition crawling — very deep reduction';\n    }\n    const regear = ok && delta <= -15;\n    return `${headerHTML('Tire-Adjusted Crawl Ratio','Fitting taller tires effectively raises your final drive and reduces usable crawl ratio. Tire factor = fitted diameter / stock diameter; adjusted crawl ratio = raw crawl ratio / tire factor. Use the Crawl Ratio calculator first if you need the raw figure.')}\n    <div class=\"calc-body\">\n      ${field('Raw Crawl Ratio','cr_raw',80.0,':1')}\n      ${field('Stock Tire Diameter','cr_stock_d',31.0,'in')}\n      ${field('Fitted Tire Diameter','cr_new_d',37.0,'in')}\n      ${ok?multiResult([\n        {label:'Tire Factor',value:factor,unit:'x',precision:4},\n        {label:'Adjusted Crawl Ratio',value:adj,unit:':1',precision:2},\n        {label:'Change vs Stock',value:delta,unit:'%',precision:1}\n      ]):`<div class=\"result-box\"><div class=\"result-label\">Validation required</div><div class=\"result-value\">\\u2014</div><div class=\"help-note\">Crawl ratio and both tire diameters must be greater than zero.</div></div>`}\n      ${ok?`<div style=\"margin-top:10px;font-size:13px;color:var(--muted)\">Effective use case: ${useCase(adj)}</div>`:''}\n      ${regear?`<div style=\"margin-top:8px;font-size:13px;color:var(--red)\">Crawl ratio dropped ${Math.abs(delta)}% — regearing the axle is worth considering to recover low-speed control.</div>`:''}\n      <div class=\"help-note\">This adjusts the ratio only. Taller tires also raise the vehicle, change speedometer reading and increase driveline load — see Tire Size, Speedometer Calibration and Effective Gear Ratio (Tires).</div>\n    </div>${calcFooter('Tire-Adjusted Crawl')}`;\n  }",
+  "live_logic": "crawl_ratio_tire(){\n    /* WAVE 1 P0 (off-road brief, Sept 2026). Tire-adjusted effective crawl ratio.\n       Larger tires raise the effective final drive, reducing usable crawl ratio:\n         tire factor  = fitted diameter / stock diameter\n         adjusted CR  = raw CR / tire factor\n       Related: Crawl Ratio (raw), Effective Gear Ratio (Tires), Tire Size. */\n    const raw_cr=vd('cr_raw',80.0), stock_d=vd('cr_stock_d',31.0), new_d=vd('cr_new_d',37.0);\n    const ok=[raw_cr,stock_d,new_d].every(Number.isFinite)&&raw_cr>0&&stock_d>0&&new_d>0;\n    const factor = ok ? +(new_d/stock_d).toFixed(4) : NaN;\n    const adj = ok ? +(raw_cr/factor).toFixed(2) : NaN;\n    const delta = ok ? +(((adj/raw_cr)-1)*100).toFixed(1) : NaN;\n    function useCase(cr){\n      if(!Number.isFinite(cr)) return '';\n      if(cr<25) return 'Daily driver / light trail — limited low-speed control';\n      if(cr<40) return 'General 4WD — adequate for forest roads and mild obstacles';\n      if(cr<55) return 'Moderate off-road — good throttle control on rough terrain';\n      if(cr<85) return 'Rock crawling — strong low-speed control';\n      return 'Competition crawling — very deep reduction';\n    }\n    const regear = ok && delta <= -15;\n      ${field('Raw Crawl Ratio','cr_raw',80.0,':1')}\n      ${field('Stock Tire Diameter','cr_stock_d',31.0,'in')}\n      ${field('Fitted Tire Diameter','cr_new_d',37.0,'in')}\n        {label:'Tire Factor',value:factor,unit:'x',precision:4},\n        {label:'Adjusted Crawl Ratio',value:adj,unit:':1',precision:2},\n        {label:'Change vs Stock',value:delta,unit:'%',precision:1}\n  }",
+  "before": {
+   "vectors": 8,
+   "checks": 15,
+   "problems": [
+    "raw_cr=0: output 'Tire Factor' has no matching live result (live: Validation required)",
+    "raw_cr=0: output 'Adjusted Crawl Ratio' has no matching live result (live: Validation required)",
+    "raw_cr=0: output 'Change vs Stock' has no matching live result (live: Validation required)",
+    "stock_d=0: output 'Tire Factor' has no matching live result (live: Validation required)",
+    "stock_d=0: output 'Adjusted Crawl Ratio' has no matching live result (live: Validation required)",
+    "stock_d=0: output 'Change vs Stock' has no matching live result (live: Validation required)",
+    "new_d=0: output 'Tire Factor' has no matching live result (live: Validation required)",
+    "new_d=0: output 'Adjusted Crawl Ratio' has no matching live result (live: Validation required)",
+    "new_d=0: output 'Change vs Stock' has no matching live result (live: Validation required)"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "raw_cr": {
+     "field": "cr_raw",
+     "label": "Raw Crawl Ratio",
+     "unit": ":1"
+    },
+    "stock_d": {
+     "field": "cr_stock_d",
+     "label": "Stock Tire Diameter",
+     "unit": "in"
+    },
+    "new_d": {
+     "field": "cr_new_d",
+     "label": "Fitted Tire Diameter",
+     "unit": "in"
+    }
+   }
+  }
+ },
+ "tire_size": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Section Width",
+     "Aspect Ratio",
+     "Wheel Diameter"
+    ],
+    "vars": [
+     "tw",
+     "ar",
+     "wr"
+    ],
+    "outputs": [
+     {
+      "expr": "(tw>0 && ar>0 && wr>0)?(tw*ar/100)/25.4:0",
+      "out": "Sidewall Height",
+      "unit": "in"
+     },
+     {
+      "expr": "(tw>0 && ar>0 && wr>0)?+(wr+2*((tw>0 && ar>0 && wr>0)?(tw*ar/100)/25.4:0)).toFixed(3):0",
+      "out": "Overall Diameter",
+      "unit": "in"
+     },
+     {
+      "expr": "(tw>0 && ar>0 && wr>0)?+(((tw>0 && ar>0 && wr>0)?+(wr+2*((tw>0 && ar>0 && wr>0)?(tw*ar/100)/25.4:0)).toFixed(3):0)*Math.PI).toFixed(3):0",
+      "out": "Circumference",
+      "unit": "in"
+     },
+     {
+      "expr": "(tw>0 && ar>0 && wr>0)?+(63360/((tw>0 && ar>0 && wr>0)?+(((tw>0 && ar>0 && wr>0)?+(wr+2*((tw>0 && ar>0 && wr>0)?(tw*ar/100)/25.4:0)).toFixed(3):0)*Math.PI).toFixed(3):0)).toFixed(1):0",
+      "out": "Rev/Mile",
+      "unit": "rev"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS"
+  ],
+  "live_full": "tire_size(){\n    const tw=vd('tw',245), ar=vd('ar',45), wr=vd('wr',17);\n    const valid=tw>0 && ar>0 && wr>0;\n    const sidewall=valid?(tw*ar/100)/25.4:0;\n    const dia=valid?+(wr+2*sidewall).toFixed(3):0;\n    const circ=valid?+(dia*Math.PI).toFixed(3):0;\n    const rpmile=valid?+(63360/circ).toFixed(1):0;\n    return `${headerHTML('Tire Size','Decodes metric tire size into overall diameter, circumference, and revolutions per mile. Overall diameter = wheel diameter + 2 × sidewall height. Comparing an old size against a new one? Use Tire Size Comparison instead — it runs this same math for both sizes side by side and shows the speedometer and gearing effect of the change.')}\n    <div class=\"calc-body\">\n      ${field('Section Width','tw',245,'mm')}\n      ${field('Aspect Ratio','ar',45,'%')}\n      ${field('Wheel Diameter','wr',17,'in')}\n      ${valid?multiResult([{label:'Sidewall Height',value:sidewall,unit:'in'},{label:'Overall Diameter',value:dia,unit:'in'},{label:'Circumference',value:circ,unit:'in'},{label:'Rev/Mile',value:rpmile,unit:'rev'}]):`<div class=\"result-box\"><div class=\"result-value\">Invalid tire dimensions</div></div>`}\n      <div class=\"help-note\">Feed the Overall Diameter above into Effective Gear Ratio (Tires) or Speedometer Calibration to see how this size affects gearing and speedometer accuracy.</div>\n    </div>${calcFooter('Tire Size')}`;\n  }",
+  "live_logic": "tire_size(){\n    const tw=vd('tw',245), ar=vd('ar',45), wr=vd('wr',17);\n    const valid=tw>0 && ar>0 && wr>0;\n    const sidewall=valid?(tw*ar/100)/25.4:0;\n    const dia=valid?+(wr+2*sidewall).toFixed(3):0;\n    const circ=valid?+(dia*Math.PI).toFixed(3):0;\n    const rpmile=valid?+(63360/circ).toFixed(1):0;\n      ${field('Section Width','tw',245,'mm')}\n      ${field('Aspect Ratio','ar',45,'%')}\n      ${field('Wheel Diameter','wr',17,'in')}\n  }",
+  "before": {
+   "vectors": 8,
+   "checks": 20,
+   "problems": [
+    "tw=0: output 'Sidewall Height' has no matching live result (live: )",
+    "tw=0: output 'Overall Diameter' has no matching live result (live: )",
+    "tw=0: output 'Circumference' has no matching live result (live: )",
+    "tw=0: output 'Rev/Mile' has no matching live result (live: )",
+    "ar=0: output 'Sidewall Height' has no matching live result (live: )",
+    "ar=0: output 'Overall Diameter' has no matching live result (live: )",
+    "ar=0: output 'Circumference' has no matching live result (live: )",
+    "ar=0: output 'Rev/Mile' has no matching live result (live: )",
+    "wr=0: output 'Sidewall Height' has no matching live result (live: )",
+    "wr=0: output 'Overall Diameter' has no matching live result (live: )",
+    "wr=0: output 'Circumference' has no matching live result (live: )",
+    "wr=0: output 'Rev/Mile' has no matching live result (live: )"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "tw": {
+     "field": "tw",
+     "label": "Section Width",
+     "unit": "mm"
+    },
+    "ar": {
+     "field": "ar",
+     "label": "Aspect Ratio",
+     "unit": "%"
+    },
+    "wr": {
+     "field": "wr",
+     "label": "Wheel Diameter",
+     "unit": "in"
+    }
+   }
+  }
+ },
+ "air_density": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Temperature",
+     "Barometric Pressure",
+     "Relative Humidity"
+    ],
+    "vars": [
+     "tempF",
+     "presInHg",
+     "rh"
+    ],
+    "expr": "(Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100)?+(((Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100)?((Math.max(0,((Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100)?presInHg*3386.389:0)-((Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100)?(rh/100)*(610.94*Math.exp((17.625*(tempF-32)/1.8)/((tempF-32)/1.8+243.04))):0)))/(287.058*((tempF+459.67)*5/9))+((Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100)?(rh/100)*(610.94*Math.exp((17.625*(tempF-32)/1.8)/((tempF-32)/1.8+243.04))):0)/(461.495*((tempF+459.67)*5/9))):0)/16.0184634).toFixed(6):0",
+    "out": "Air Density",
+    "unit": "lb/ft³"
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS"
+  ],
+  "live_full": "air_density(){\n    const tempF=vd('temp3',59), presInHg=vd('pres',29.92), rh=vd('rh2',50);\n    const valid=Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100;\n    const T=(tempF+459.67)*5/9;\n    // Tetens saturation vapor pressure, Pa; adequate for normal shop/track conditions.\n    const es=610.94*Math.exp((17.625*(tempF-32)/1.8)/((tempF-32)/1.8+243.04));\n    const pv=valid?(rh/100)*es:0;\n    const p=valid?presInHg*3386.389:0;\n    const pd=Math.max(0,p-pv);\n    const rhoKg=valid?(pd/(287.058*T)+pv/(461.495*T)):0;\n    const rhoLbFt3=valid?+(rhoKg/16.0184634).toFixed(6):0;\n    return `${headerHTML('Air Density','Calculates moist-air density from temperature, pressure and relative humidity. For a direct cross-check against Density Altitude, use the SAME station pressure used by the DA calculation (not the altimeter setting). Result is in lb/ft³ (pound-mass per cubic foot). Water vapor is less dense than dry air, so humidity slightly lowers density at fixed temperature and pressure.')}\n    <div class=\"calc-body\">\n      ${field('Temperature','temp3',59,'°F')}\n      ${field('Barometric Pressure','pres',29.92,'in Hg')}\n      ${field('Relative Humidity','rh2',50,'%')}\n      ${valid?resultHTML('Air Density',rhoLbFt3,'lb/ft³'):`<div class=\"result-box\"><div class=\"result-value\">Invalid atmospheric inputs</div></div>`}\n    </div>${calcFooter('Air Density')}`;\n  }",
+  "live_logic": "air_density(){\n    const tempF=vd('temp3',59), presInHg=vd('pres',29.92), rh=vd('rh2',50);\n    const valid=Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100;\n    const T=(tempF+459.67)*5/9;\n    // Tetens saturation vapor pressure, Pa; adequate for normal shop/track conditions.\n    const es=610.94*Math.exp((17.625*(tempF-32)/1.8)/((tempF-32)/1.8+243.04));\n    const pv=valid?(rh/100)*es:0;\n    const p=valid?presInHg*3386.389:0;\n    const pd=Math.max(0,p-pv);\n    const rhoKg=valid?(pd/(287.058*T)+pv/(461.495*T)):0;\n    const rhoLbFt3=valid?+(rhoKg/16.0184634).toFixed(6):0;\n      ${field('Temperature','temp3',59,'°F')}\n      ${field('Barometric Pressure','pres',29.92,'in Hg')}\n      ${field('Relative Humidity','rh2',50,'%')}\n  }",
+  "before": {
+   "vectors": 8,
+   "checks": 8,
+   "problems": [
+    "presInHg=0: validity differs - engine VALID 0, live shows \"Invalid atmospheric inputs\""
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "tempF": {
+     "field": "temp3",
+     "label": "Temperature",
+     "unit": "°F"
+    },
+    "presInHg": {
+     "field": "pres",
+     "label": "Barometric Pressure",
+     "unit": "in Hg"
+    },
+    "rh": {
+     "field": "rh2",
+     "label": "Relative Humidity",
+     "unit": "%"
+    }
+   }
+  }
+ },
+ "dyno_correction": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Measured HP",
+     "Density Altitude",
+     "Air Temp"
+    ],
+    "vars": [
+     "hp_raw",
+     "da3",
+     "temp5"
+    ],
+    "outputs": [
+     {
+      "expr": "(hp_raw>0&&Number.isFinite(da3)&&Number.isFinite(temp5))?+( (1+(da3/1000*0.03))*(1+((temp5-77)/100*0.01)) ).toFixed(4):0",
+      "out": "Estimated Correction Factor",
+      "unit": "×"
+     },
+     {
+      "expr": "(hp_raw>0&&Number.isFinite(da3)&&Number.isFinite(temp5))?Math.round(hp_raw*((hp_raw>0&&Number.isFinite(da3)&&Number.isFinite(temp5))?+( (1+(da3/1000*0.03))*(1+((temp5-77)/100*0.01)) ).toFixed(4):0)):0",
+      "out": "Estimated Corrected HP",
+      "unit": "HP"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS"
+  ],
+  "live_full": "dyno_correction(){\n    const hp_raw=vd('hp_raw',420), da3=vd('da3',500), temp5=vd('temp5',85);\n    const valid=hp_raw>0&&Number.isFinite(da3)&&Number.isFinite(temp5);\n    const cf=valid?+( (1+(da3/1000*0.03))*(1+((temp5-77)/100*0.01)) ).toFixed(4):0;\n    const hp_corr=valid?Math.round(hp_raw*cf):0;\n    return `${headerHTML('Dyno HP Correction — Simplified Estimate','This is a simplified correction estimate. It is NOT a full SAE J1349 implementation because humidity and dry-air pressure inputs are not supplied.')}\n    <div class=\"calc-body\">\n      ${field('Measured HP','hp_raw',420,'HP')}\n      ${field('Density Altitude','da3',500,'ft')}\n      ${field('Air Temp','temp5',85,'°F')}\n      ${valid?multiResult([{label:'Estimated Correction Factor',value:cf,unit:'×'},{label:'Estimated Corrected HP',value:hp_corr,unit:'HP'}]):`<div class=\"result-box\"><div class=\"result-value\">Invalid dyno inputs</div></div>`}\n    </div>${calcFooter('Dyno Correction')}`;\n  }",
+  "live_logic": "dyno_correction(){\n    const hp_raw=vd('hp_raw',420), da3=vd('da3',500), temp5=vd('temp5',85);\n    const valid=hp_raw>0&&Number.isFinite(da3)&&Number.isFinite(temp5);\n    const cf=valid?+( (1+(da3/1000*0.03))*(1+((temp5-77)/100*0.01)) ).toFixed(4):0;\n    const hp_corr=valid?Math.round(hp_raw*cf):0;\n      ${field('Measured HP','hp_raw',420,'HP')}\n      ${field('Density Altitude','da3',500,'ft')}\n      ${field('Air Temp','temp5',85,'°F')}\n  }",
+  "before": {
+   "vectors": 8,
+   "checks": 14,
+   "problems": [
+    "hp_raw=0: output 'Estimated Correction Factor' has no matching live result (live: )",
+    "hp_raw=0: output 'Estimated Corrected HP' has no matching live result (live: )"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "hp_raw": {
+     "field": "hp_raw",
+     "label": "Measured HP↓ use 370",
+     "unit": "HP"
+    },
+    "da3": {
+     "field": "da3",
+     "label": "Density Altitude",
+     "unit": "ft"
+    },
+    "temp5": {
+     "field": "temp5",
+     "label": "Air Temp",
+     "unit": "°F"
+    }
+   }
+  }
+ },
+ "ev_quarter_mile": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Vehicle Weight",
+     "Peak Motor Power",
+     "Drivetrain Utilization"
+    ],
+    "vars": [
+     "wt",
+     "hp",
+     "util"
+    ],
+    "outputs": [
+     {
+      "expr": "([wt,hp,util].every(Number.isFinite)&&wt>0&&hp>0&&util>0) ? hp*util : NaN",
+      "out": "Effective Power",
+      "unit": "HP"
+     },
+     {
+      "expr": "([wt,hp,util].every(Number.isFinite)&&wt>0&&hp>0&&util>0) ? +(2.447*Math.pow(wt/(([wt,hp,util].every(Number.isFinite)&&wt>0&&hp>0&&util>0) ? hp*util : NaN),1/3)).toFixed(2) : NaN",
+      "out": "Estimated 0-60",
+      "unit": "sec"
+     },
+     {
+      "expr": "([wt,hp,util].every(Number.isFinite)&&wt>0&&hp>0&&util>0) ? +(5.825*Math.pow(wt/(([wt,hp,util].every(Number.isFinite)&&wt>0&&hp>0&&util>0) ? hp*util : NaN),1/3)).toFixed(2) : NaN",
+      "out": "Quarter-Mile ET",
+      "unit": "sec"
+     },
+     {
+      "expr": "([wt,hp,util].every(Number.isFinite)&&wt>0&&hp>0&&util>0) ? +(234*Math.pow((([wt,hp,util].every(Number.isFinite)&&wt>0&&hp>0&&util>0) ? hp*util : NaN)/wt,1/3)).toFixed(1) : NaN",
+      "out": "Trap Speed",
+      "unit": "mph"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS"
+  ],
+  "live_full": "ev_quarter_mile(){\n    /* WAVE 2 P0 (EV brief, Sept 2026). Quarter-mile ET and trap from power-to-weight.\n       The classic constants (ET 5.825, trap 234) are empirical and were derived from\n       ICE cars, so they embed shift losses and a launch-traction profile an EV does not\n       share. Rather than silently substituting a different magic constant, the\n       drivetrain utilization factor is exposed as a user input: 1.00 reproduces the\n       ICE-derived baseline, and values above 1.00 credit an EV's uninterrupted torque\n       delivery. Verified: the underlying ET/trap relations match the site's existing\n       ICE calculators at utilization 1.00. */\n    const wt=vd('evq_wt',4200), hp=vd('evq_hp',500), util=vd('evq_util',1.06);\n    const ok=[wt,hp,util].every(Number.isFinite)&&wt>0&&hp>0&&util>0;\n    const eff_hp = ok ? hp*util : NaN;\n    const et  = ok ? +(5.825*Math.pow(wt/eff_hp,1/3)).toFixed(2) : NaN;\n    const trap= ok ? +(234*Math.pow(eff_hp/wt,1/3)).toFixed(1) : NaN;\n    const sixty = ok ? +(2.447*Math.pow(wt/eff_hp,1/3)).toFixed(2) : NaN;\n    return `${headerHTML('EV Quarter-Mile Estimate','Power-to-weight estimate of quarter-mile ET and trap speed. ET = 5.825 x (weight / effective HP)^(1/3); trap = 234 x (effective HP / weight)^(1/3). These constants are empirical and ICE-derived, so a utilization factor is applied rather than assuming EV and ICE launch behave identically.')}\n    <div class=\"calc-body\">\n      ${field('Vehicle Weight','evq_wt',4200,getU('weight'))}\n      ${field('Peak Motor Power','evq_hp',500,'HP')}\n      ${field('Drivetrain Utilization','evq_util',1.06,'x')}\n      ${ok?multiResult([\n        {label:'Effective Power',value:eff_hp,unit:'HP',precision:0},\n        {label:'Estimated 0-60',value:sixty,unit:'sec',precision:2},\n        {label:'Quarter-Mile ET',value:et,unit:'sec',precision:2},\n        {label:'Trap Speed',value:trap,unit:'mph',precision:1}\n      ]):`<div class=\"result-box\"><div class=\"result-label\">Validation required</div><div class=\"result-value\">\\u2014</div><div class=\"help-note\">Weight, power and utilization must all be greater than zero.</div></div>`}\n      <div class=\"help-note\">Utilization 1.00 reproduces the ICE-derived baseline used elsewhere on this site. An EV typically holds a larger fraction of peak power through the run because there are no shift interruptions, which is why a figure slightly above 1.00 is a reasonable default — but this is a stated assumption, not a measured constant. Battery state of charge, thermal derate, launch traction and gearing all move the real number. Not a substitute for a timeslip.</div>\n    </div>${calcFooter('EV Quarter-Mile')}`;\n  }",
+  "live_logic": "ev_quarter_mile(){\n    /* WAVE 2 P0 (EV brief, Sept 2026). Quarter-mile ET and trap from power-to-weight.\n       The classic constants (ET 5.825, trap 234) are empirical and were derived from\n       ICE cars, so they embed shift losses and a launch-traction profile an EV does not\n       share. Rather than silently substituting a different magic constant, the\n       drivetrain utilization factor is exposed as a user input: 1.00 reproduces the\n       ICE-derived baseline, and values above 1.00 credit an EV's uninterrupted torque\n       delivery. Verified: the underlying ET/trap relations match the site's existing\n       ICE calculators at utilization 1.00. */\n    const wt=vd('evq_wt',4200), hp=vd('evq_hp',500), util=vd('evq_util',1.06);\n    const ok=[wt,hp,util].every(Number.isFinite)&&wt>0&&hp>0&&util>0;\n    const eff_hp = ok ? hp*util : NaN;\n    const et  = ok ? +(5.825*Math.pow(wt/eff_hp,1/3)).toFixed(2) : NaN;\n    const trap= ok ? +(234*Math.pow(eff_hp/wt,1/3)).toFixed(1) : NaN;\n    const sixty = ok ? +(2.447*Math.pow(wt/eff_hp,1/3)).toFixed(2) : NaN;\n      ${field('Vehicle Weight','evq_wt',4200,getU('weight'))}\n      ${field('Peak Motor Power','evq_hp',500,'HP')}\n      ${field('Drivetrain Utilization','evq_util',1.06,'x')}\n        {label:'Effective Power',value:eff_hp,unit:'HP',precision:0},\n        {label:'Estimated 0-60',value:sixty,unit:'sec',precision:2},\n        {label:'Quarter-Mile ET',value:et,unit:'sec',precision:2},\n        {label:'Trap Speed',value:trap,unit:'mph',precision:1}\n  }",
+  "before": {
+   "vectors": 8,
+   "checks": 20,
+   "problems": [
+    "wt=0: output 'Effective Power' has no matching live result (live: Validation required)",
+    "wt=0: output 'Estimated 0-60' has no matching live result (live: Validation required)",
+    "wt=0: output 'Quarter-Mile ET' has no matching live result (live: Validation required)",
+    "wt=0: output 'Trap Speed' has no matching live result (live: Validation required)",
+    "hp=0: output 'Effective Power' has no matching live result (live: Validation required)",
+    "hp=0: output 'Estimated 0-60' has no matching live result (live: Validation required)",
+    "hp=0: output 'Quarter-Mile ET' has no matching live result (live: Validation required)",
+    "hp=0: output 'Trap Speed' has no matching live result (live: Validation required)",
+    "util=0: output 'Effective Power' has no matching live result (live: Validation required)",
+    "util=0: output 'Estimated 0-60' has no matching live result (live: Validation required)",
+    "util=0: output 'Quarter-Mile ET' has no matching live result (live: Validation required)",
+    "util=0: output 'Trap Speed' has no matching live result (live: Validation required)"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "wt": {
+     "field": "evq_wt",
+     "label": "Vehicle Weight",
+     "unit": "lbs"
+    },
+    "hp": {
+     "field": "evq_hp",
+     "label": "Peak Motor Power",
+     "unit": "HP"
+    },
+    "util": {
+     "field": "evq_util",
+     "label": "Drivetrain Utilization",
+     "unit": "x"
+    }
+   }
+  }
+ },
+ "valve_lash": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Cam Lobe Lift",
+     "Rocker Ratio",
+     "Target Lash (hot)"
+    ],
+    "vars": [
+     "base_lift",
+     "rocker_r",
+     "target_lash"
+    ],
+    "outputs": [
+     {
+      "expr": "(base_lift>=0 && rocker_r>0 && target_lash>=0)?+(base_lift*rocker_r).toFixed(4):0",
+      "out": "Gross Valve Lift",
+      "unit": "in"
+     },
+     {
+      "expr": "(base_lift>=0 && rocker_r>0 && target_lash>=0)?+(((base_lift>=0 && rocker_r>0 && target_lash>=0)?+(base_lift*rocker_r).toFixed(4):0)-target_lash).toFixed(4):0",
+      "out": "Net Valve Lift",
+      "unit": "in"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS"
+  ],
+  "live_full": "valve_lash(){\n    const base_lift=vd('base_lift',0.0500), rocker_r=vd('rocker_r',1.500), target_lash=vd('target_lash',0.0200);\n    const valid=base_lift>=0 && rocker_r>0 && target_lash>=0;\n    const gross_lift=valid?+(base_lift*rocker_r).toFixed(4):0;\n    const net_lift=valid?+(gross_lift-target_lash).toFixed(4):0;\n    return `${headerHTML('Valve Lash Calculator','Gross valve lift = cam lobe lift × rocker ratio. Net lift is gross lift minus the specified lash. Pushrod length is not part of this simple lift calculation.')}\n    <div class=\"calc-body\">\n      ${field('Cam Lobe Lift','base_lift',0.0500,'in')}\n      ${field('Rocker Ratio','rocker_r',1.500,':1')}\n      ${field('Target Lash (hot)','target_lash',0.0200,'in')}\n      ${valid?multiResult([{label:'Gross Valve Lift',value:gross_lift,unit:'in'},{label:'Net Valve Lift',value:net_lift,unit:'in'}]):`<div class=\"result-box\"><div class=\"result-value\">Invalid input</div></div>`}\n    </div>${calcFooter('Valve Lash')}`;\n  }",
+  "live_logic": "valve_lash(){\n    const base_lift=vd('base_lift',0.0500), rocker_r=vd('rocker_r',1.500), target_lash=vd('target_lash',0.0200);\n    const valid=base_lift>=0 && rocker_r>0 && target_lash>=0;\n    const gross_lift=valid?+(base_lift*rocker_r).toFixed(4):0;\n    const net_lift=valid?+(gross_lift-target_lash).toFixed(4):0;\n      ${field('Cam Lobe Lift','base_lift',0.0500,'in')}\n      ${field('Rocker Ratio','rocker_r',1.500,':1')}\n      ${field('Target Lash (hot)','target_lash',0.0200,'in')}\n  }",
+  "before": {
+   "vectors": 8,
+   "checks": 14,
+   "problems": [
+    "rocker_r=0: output 'Gross Valve Lift' has no matching live result (live: )",
+    "rocker_r=0: output 'Net Valve Lift' has no matching live result (live: )"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "base_lift": {
+     "field": "base_lift",
+     "label": "Cam Lobe Lift",
+     "unit": "in"
+    },
+    "rocker_r": {
+     "field": "rocker_r",
+     "label": "Rocker Ratio",
+     "unit": ":1"
+    },
+    "target_lash": {
+     "field": "target_lash",
+     "label": "Target Lash (hot)",
+     "unit": "in"
+    }
+   }
+  }
+ },
+ "valve_spring_rate": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Wire Diameter",
+     "Active Coils",
+     "Mean Coil Diameter",
+     "Seat Pressure (installed)",
+     "Valve Lift"
+    ],
+    "vars": [
+     "d",
+     "n",
+     "D",
+     "seat",
+     "lift"
+    ],
+    "outputs": [
+     {
+      "expr": "(d>0 && n>0 && D>d && seat>=0 && lift>=0)?+(((11500000)*Math.pow(d,4))/(8*n*Math.pow(D,3))).toFixed(1):0",
+      "out": "Spring Rate",
+      "unit": "lbs/in"
+     },
+     {
+      "expr": "(d>0 && n>0 && D>d && seat>=0 && lift>=0)?+(seat+((d>0 && n>0 && D>d && seat>=0 && lift>=0)?+(((11500000)*Math.pow(d,4))/(8*n*Math.pow(D,3))).toFixed(1):0)*lift).toFixed(0):0",
+      "out": "Open Pressure",
+      "unit": "lbs"
+     },
+     {
+      "expr": "(d>0 && n>0 && D>d && seat>=0 && lift>=0)?+(D/d).toFixed(2):0",
+      "out": "Spring Index",
+      "unit": ":1"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS"
+  ],
+  "live_full": "valve_spring_rate(){\n    const d=vd('d_vs',0.148), n=vd('n_vs',8), D=vd('D_vs',0.9), seat=vd('seat_load',130), lift=vd('lift_vs',0.550);\n    const G=11500000; // psi, steel spring shear modulus\n    const valid=d>0 && n>0 && D>d && seat>=0 && lift>=0;\n    const rate=valid?+((G*Math.pow(d,4))/(8*n*Math.pow(D,3))).toFixed(1):0;\n    const open=valid?+(seat+rate*lift).toFixed(0):0;\n    const index=valid?+(D/d).toFixed(2):0;\n    return `${headerHTML('Valve Spring Rate','Basic helical compression-spring rate: k = Gd⁴/(8D³Nₐ). D is mean coil diameter and Nₐ is active coils. Open pressure is seat pressure plus spring rate × valve lift.')}\n    <div class=\"calc-body\">\n      ${field('Wire Diameter','d_vs',0.148,'in')}\n      ${field('Active Coils','n_vs',8,'')}\n      ${field('Mean Coil Diameter','D_vs',0.9,'in')}\n      ${field('Seat Pressure (installed)','seat_load',130,'lbs')}\n      ${field('Valve Lift','lift_vs',0.550,'in')}\n      ${valid?multiResult([{label:'Spring Rate',value:rate,unit:'lbs/in'},{label:'Open Pressure',value:open,unit:'lbs'},{label:'Spring Index',value:index,unit:':1'}]):`<div class=\"result-box\"><div class=\"result-value\">Invalid spring geometry</div><div class=\"help-note\">Require D &gt; wire diameter and positive active-coil count.</div></div>`}\n    </div>${calcFooter('Valve Spring Rate')}`;\n  }",
+  "live_logic": "valve_spring_rate(){\n    const d=vd('d_vs',0.148), n=vd('n_vs',8), D=vd('D_vs',0.9), seat=vd('seat_load',130), lift=vd('lift_vs',0.550);\n    const G=11500000; // psi, steel spring shear modulus\n    const valid=d>0 && n>0 && D>d && seat>=0 && lift>=0;\n    const rate=valid?+((G*Math.pow(d,4))/(8*n*Math.pow(D,3))).toFixed(1):0;\n    const open=valid?+(seat+rate*lift).toFixed(0):0;\n    const index=valid?+(D/d).toFixed(2):0;\n      ${field('Wire Diameter','d_vs',0.148,'in')}\n      ${field('Active Coils','n_vs',8,'')}\n      ${field('Mean Coil Diameter','D_vs',0.9,'in')}\n      ${field('Seat Pressure (installed)','seat_load',130,'lbs')}\n      ${field('Valve Lift','lift_vs',0.550,'in')}\n  }",
+  "before": {
+   "vectors": 12,
+   "checks": 27,
+   "problems": [
+    "d=0: output 'Spring Rate' has no matching live result (live: )",
+    "d=0: output 'Open Pressure' has no matching live result (live: )",
+    "d=0: output 'Spring Index' has no matching live result (live: )",
+    "n=0: output 'Spring Rate' has no matching live result (live: )",
+    "n=0: output 'Open Pressure' has no matching live result (live: )",
+    "n=0: output 'Spring Index' has no matching live result (live: )",
+    "D=0: output 'Spring Rate' has no matching live result (live: )",
+    "D=0: output 'Open Pressure' has no matching live result (live: )",
+    "D=0: output 'Spring Index' has no matching live result (live: )"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "d": {
+     "field": "d_vs",
+     "label": "Wire Diameter",
+     "unit": "in"
+    },
+    "n": {
+     "field": "n_vs",
+     "label": "Active Coils",
+     "unit": ""
+    },
+    "D": {
+     "field": "D_vs",
+     "label": "Mean Coil Diameter",
+     "unit": "in"
+    },
+    "seat": {
+     "field": "seat_load",
+     "label": "Seat Pressure (installed)",
+     "unit": "lbs"
+    },
+    "lift": {
+     "field": "lift_vs",
+     "label": "Valve Lift",
+     "unit": "in"
+    }
+   }
+  }
+ },
+ "breakover_angle": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Wheelbase",
+     "Ground Clearance (at center)"
+    ],
+    "vars": [
+     "wb",
+     "ground"
+    ],
+    "expr": "(wb>0 && ground>=0)?+(2*Math.atan(2*ground/wb)*180/Math.PI).toFixed(1):0",
+    "out": "Breakover Angle",
+    "unit": "°"
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS"
+  ],
+  "live_full": "breakover_angle(){\n    const wb=vd('wb_ba',108), ground=vd('ground_cl',6);\n    const valid=wb>0 && ground>=0;\n    // Idealized breakover geometry: 2 × atan(2h / wheelbase).\n    const ba=valid?+(2*Math.atan(2*ground/wb)*180/Math.PI).toFixed(1):0;\n    return `${headerHTML('Breakover Angle','Idealized breakover angle = 2 × atan(2 × ground clearance / wheelbase). This assumes the lowest point is at the wheelbase midpoint and ignores tire deflection and body geometry.')}\n    <div class=\"calc-body\">\n      ${field('Wheelbase','wb_ba',108,'in')}\n      ${field('Ground Clearance (at center)','ground_cl',6,'in')}\n      ${valid?resultHTML('Breakover Angle',ba,'°'):`<div class=\"result-box\"><div class=\"result-value\">Invalid geometry</div></div>`}\n    </div>${calcFooter('Breakover Angle')}`;\n  }",
+  "live_logic": "breakover_angle(){\n    const wb=vd('wb_ba',108), ground=vd('ground_cl',6);\n    const valid=wb>0 && ground>=0;\n    // Idealized breakover geometry: 2 × atan(2h / wheelbase).\n    const ba=valid?+(2*Math.atan(2*ground/wb)*180/Math.PI).toFixed(1):0;\n      ${field('Wheelbase','wb_ba',108,'in')}\n      ${field('Ground Clearance (at center)','ground_cl',6,'in')}\n  }",
+  "before": {
+   "vectors": 6,
+   "checks": 6,
+   "problems": [
+    "wb=0: validity differs - engine VALID 0, live shows \"Invalid geometry\""
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "wb": {
+     "field": "wb_ba",
+     "label": "Wheelbase",
+     "unit": "in"
+    },
+    "ground": {
+     "field": "ground_cl",
+     "label": "Ground Clearance (at center)",
+     "unit": "in"
+    }
+   }
+  }
+ },
+ "rc_downforce": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Downforce Coefficient (Cl)",
+     "Wing / Splitter Area",
+     "Speed",
+     "Drag Coefficient (Cd)"
+    ],
+    "vars": [
+     "cl",
+     "area",
+     "speed",
+     "cd"
+    ],
+    "expr": "(cl>=0 && area>0 && speed>=0 && cd>=0)?+((0.5*(0.0023769)*(speed*5280/3600)*(speed*5280/3600))*cl*area).toFixed(0):0",
+    "out": "Downforce at Speed",
+    "unit": "lbs"
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS"
+  ],
+  "live_full": "rc_downforce(){\n    const cl=vd('cl_rc',1.2), area=vd('area_rc',8), speed=vd('spd_rc',100), cd=vd('cd_rc',0.30);\n    const rho=0.0023769; // standard sea-level air density, SLUG/ft³ (already mass-consistent)\n    const valid=cl>=0 && area>0 && speed>=0 && cd>=0;\n    const vfps=speed*5280/3600;\n    const q=0.5*rho*vfps*vfps; // FIX (audit 2026-09): rho is already slug/ft³; dividing by g again made downforce 32x low\n    const downforce=valid?+(q*cl*area).toFixed(0):0;\n    const df150=+(0.5*rho*Math.pow(150*5280/3600,2)*cl*area).toFixed(0);\n    const df200=+(0.5*rho*Math.pow(200*5280/3600,2)*cl*area).toFixed(0);\n    const drag=valid?+(q*cd*area).toFixed(0):0;\n    return `${headerHTML('Wing Downforce','Downforce uses D = ½ρV²ClA. This version uses positive Cl as downforce magnitude and a separate Cd for drag, avoiding the previous sign ambiguity and the incorrect Cl×0.3 drag shortcut.')}\n    <div class=\"calc-body\">\n      ${field('Downforce Coefficient (Cl)','cl_rc',1.2,'')}\n      ${field('Wing / Splitter Area','area_rc',8,'sq ft')}\n      ${field('Speed','spd_rc',100,'mph')}\n      ${field('Drag Coefficient (Cd)','cd_rc',0.30,'')}\n      ${valid?resultHTML('Downforce at Speed',downforce,'lbs'):`<div class=\"result-box\"><div class=\"result-value\">Invalid aero inputs</div></div>`}\n      ${multiResult([{label:'Downforce @ 150 mph',value:df150,unit:'lbs'},{label:'Downforce @ 200 mph',value:df200,unit:'lbs'},{label:'Estimated Drag',value:drag,unit:'lbs'}])}\n    </div>${calcFooter('Wing Downforce')}`;\n  }",
+  "live_logic": "rc_downforce(){\n    const cl=vd('cl_rc',1.2), area=vd('area_rc',8), speed=vd('spd_rc',100), cd=vd('cd_rc',0.30);\n    const rho=0.0023769; // standard sea-level air density, SLUG/ft³ (already mass-consistent)\n    const valid=cl>=0 && area>0 && speed>=0 && cd>=0;\n    const vfps=speed*5280/3600;\n    const q=0.5*rho*vfps*vfps; // FIX (audit 2026-09): rho is already slug/ft³; dividing by g again made downforce 32x low\n    const downforce=valid?+(q*cl*area).toFixed(0):0;\n    const df150=+(0.5*rho*Math.pow(150*5280/3600,2)*cl*area).toFixed(0);\n    const df200=+(0.5*rho*Math.pow(200*5280/3600,2)*cl*area).toFixed(0);\n    const drag=valid?+(q*cd*area).toFixed(0):0;\n      ${field('Downforce Coefficient (Cl)','cl_rc',1.2,'')}\n      ${field('Wing / Splitter Area','area_rc',8,'sq ft')}\n      ${field('Speed','spd_rc',100,'mph')}\n      ${field('Drag Coefficient (Cd)','cd_rc',0.30,'')}\n  }",
+  "before": {
+   "vectors": 10,
+   "checks": 9,
+   "problems": [
+    "area=0: output 'Downforce at Speed' has no matching live result (live:  / Downforce @ 150 mph / Downforce @ 200 mph / Estimated Drag)"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [
+    "Downforce @ 150 mph",
+    "Downforce @ 200 mph",
+    "Estimated Drag"
+   ],
+   "binding": {
+    "cl": {
+     "field": "cl_rc",
+     "label": "Downforce Coefficient (Cl)",
+     "unit": ""
+    },
+    "area": {
+     "field": "area_rc",
+     "label": "Wing / Splitter Area",
+     "unit": "sq ft"
+    },
+    "speed": {
+     "field": "spd_rc",
+     "label": "Speed",
+     "unit": "mph"
+    },
+    "cd": {
+     "field": "cd_rc",
+     "label": "Drag Coefficient (Cd)",
+     "unit": ""
+    }
+   }
+  }
+ },
+ "winch_line_pull": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Vehicle GVWR",
+     "Recovery Difficulty Multiplier",
+     "Winch Rated Line Pull",
+     "Number of Snatch Blocks"
+    ],
+    "vars": [
+     "gvwr",
+     "mult",
+     "rated",
+     "blocks"
+    ],
+    "outputs": [
+     {
+      "expr": "([gvwr,mult,rated,blocks].every(Number.isFinite)&&gvwr>0&&mult>0&&rated>0&&blocks>=0) ? +(gvwr*mult).toFixed(0) : NaN",
+      "out": "Recommended Minimum Line Pull",
+      "unit": "lb"
+     },
+     {
+      "expr": "([gvwr,mult,rated,blocks].every(Number.isFinite)&&gvwr>0&&mult>0&&rated>0&&blocks>=0) ? Math.pow(2,Math.round(blocks)) : NaN",
+      "out": "Mechanical Advantage",
+      "unit": "x"
+     },
+     {
+      "expr": "([gvwr,mult,rated,blocks].every(Number.isFinite)&&gvwr>0&&mult>0&&rated>0&&blocks>=0) ? +(rated*(([gvwr,mult,rated,blocks].every(Number.isFinite)&&gvwr>0&&mult>0&&rated>0&&blocks>=0) ? Math.pow(2,Math.round(blocks)) : NaN)).toFixed(0) : NaN",
+      "out": "Effective Pull With Blocks",
+      "unit": "lb"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS"
+  ],
+  "live_full": "winch_line_pull(){\n    /* WAVE 1 P1 (off-road brief, Sept 2026). Winch rating recommendation and\n       mechanical-advantage-adjusted pull with snatch blocks.\n       Minimum recommended line pull = GVWR × recovery difficulty multiplier.\n       1.5x-2x GVWR is the widely used off-road recovery convention, not a\n       physical law — stated explicitly rather than presented as derived.\n       Mechanical advantage from blocks assumes a simple compounding double-line\n       rig: MA = 2^N for N redirect blocks. Real MA depends on the actual rigging\n       and friction losses reduce it in practice.\n       Related: Recovery Point / Shackle Rating. */\n    const gvwr=vd('wlp_gvwr',5500), mult=vd('wlp_mult',1.5), rated=vd('wlp_rated',9500), blocks=vd('wlp_blocks',0);\n    const ok=[gvwr,mult,rated,blocks].every(Number.isFinite)&&gvwr>0&&mult>0&&rated>0&&blocks>=0;\n    const minRec = ok ? +(gvwr*mult).toFixed(0) : NaN;\n    const ma = ok ? Math.pow(2,Math.round(blocks)) : NaN;\n    const effective = ok ? +(rated*ma).toFixed(0) : NaN;\n    const meets = ok && rated >= minRec;\n    return `${headerHTML('Winch Line Pull & Recovery Rating','Recommended minimum line pull = GVWR × recovery difficulty multiplier (1.5x is a common baseline; 2x or higher for mud, steep incline or single-tire recovery). Mechanical advantage with N snatch blocks in a simple doubled-line rig is modeled as 2^N — a stated rigging assumption, not a universal constant, and real-world friction loss will reduce it somewhat.')}\n    <div class=\"calc-body\">\n      ${field('Vehicle GVWR','wlp_gvwr',5500,'lb')}\n      ${field('Recovery Difficulty Multiplier','wlp_mult',1.5,'x')}\n      ${field('Winch Rated Line Pull','wlp_rated',9500,'lb')}\n      ${field('Number of Snatch Blocks','wlp_blocks',0,'count')}\n      ${ok?multiResult([\n        {label:'Recommended Minimum Line Pull',value:minRec,unit:'lb',precision:0},\n        {label:'Mechanical Advantage',value:ma,unit:'x',precision:0},\n        {label:'Effective Pull With Blocks',value:effective,unit:'lb',precision:0}\n      ]):`<div class=\"result-box\"><div class=\"result-label\">Validation required</div><div class=\"result-value\">—</div><div class=\"help-note\">All values must be zero or greater, and GVWR, multiplier and rated pull must be greater than zero.</div></div>`}\n      ${ok?`<div style=\"margin-top:10px;font-size:13px;color:${meets?'var(--muted)':'var(--red)'}\">${meets?'Winch rating meets the recommended minimum for a direct pull.':'Winch rating is below the recommended minimum for a direct pull — a snatch block or a higher-rated winch is worth considering.'}</div>`:''}\n      <div class=\"help-note\">This is a planning estimate, not a rigging safety certification. Verify shackle, tree-strap and line ratings independently, and never exceed the lowest-rated component in the system. See Recovery Point / Shackle Rating for anchor-point capacity.</div>\n    </div>${calcFooter('Winch Line Pull')}`;\n  }",
+  "live_logic": "winch_line_pull(){\n    /* WAVE 1 P1 (off-road brief, Sept 2026). Winch rating recommendation and\n       mechanical-advantage-adjusted pull with snatch blocks.\n       Minimum recommended line pull = GVWR × recovery difficulty multiplier.\n       1.5x-2x GVWR is the widely used off-road recovery convention, not a\n       physical law — stated explicitly rather than presented as derived.\n       Mechanical advantage from blocks assumes a simple compounding double-line\n       rig: MA = 2^N for N redirect blocks. Real MA depends on the actual rigging\n       and friction losses reduce it in practice.\n       Related: Recovery Point / Shackle Rating. */\n    const gvwr=vd('wlp_gvwr',5500), mult=vd('wlp_mult',1.5), rated=vd('wlp_rated',9500), blocks=vd('wlp_blocks',0);\n    const ok=[gvwr,mult,rated,blocks].every(Number.isFinite)&&gvwr>0&&mult>0&&rated>0&&blocks>=0;\n    const minRec = ok ? +(gvwr*mult).toFixed(0) : NaN;\n    const ma = ok ? Math.pow(2,Math.round(blocks)) : NaN;\n    const effective = ok ? +(rated*ma).toFixed(0) : NaN;\n    const meets = ok && rated >= minRec;\n      ${field('Vehicle GVWR','wlp_gvwr',5500,'lb')}\n      ${field('Recovery Difficulty Multiplier','wlp_mult',1.5,'x')}\n      ${field('Winch Rated Line Pull','wlp_rated',9500,'lb')}\n      ${field('Number of Snatch Blocks','wlp_blocks',0,'count')}\n        {label:'Recommended Minimum Line Pull',value:minRec,unit:'lb',precision:0},\n        {label:'Mechanical Advantage',value:ma,unit:'x',precision:0},\n        {label:'Effective Pull With Blocks',value:effective,unit:'lb',precision:0}\n  }",
+  "before": {
+   "vectors": 9,
+   "checks": 18,
+   "problems": [
+    "gvwr=0: output 'Recommended Minimum Line Pull' has no matching live result (live: Validation required)",
+    "gvwr=0: output 'Mechanical Advantage' has no matching live result (live: Validation required)",
+    "gvwr=0: output 'Effective Pull With Blocks' has no matching live result (live: Validation required)",
+    "mult=0: output 'Recommended Minimum Line Pull' has no matching live result (live: Validation required)",
+    "mult=0: output 'Mechanical Advantage' has no matching live result (live: Validation required)",
+    "mult=0: output 'Effective Pull With Blocks' has no matching live result (live: Validation required)",
+    "rated=0: output 'Recommended Minimum Line Pull' has no matching live result (live: Validation required)",
+    "rated=0: output 'Mechanical Advantage' has no matching live result (live: Validation required)",
+    "rated=0: output 'Effective Pull With Blocks' has no matching live result (live: Validation required)"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "gvwr": {
+     "field": "wlp_gvwr",
+     "label": "Vehicle GVWR",
+     "unit": "lb"
+    },
+    "mult": {
+     "field": "wlp_mult",
+     "label": "Recovery Difficulty Multiplier",
+     "unit": "x"
+    },
+    "rated": {
+     "field": "wlp_rated",
+     "label": "Winch Rated Line Pull",
+     "unit": "lb"
+    },
+    "blocks": {
+     "field": "wlp_blocks",
+     "label": "Number of Snatch Blocks",
+     "unit": "count"
+    }
+   }
+  }
+ },
+ "dynamic_compression": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Bore",
+     "Stroke",
+     "Rod Length",
+     "Static Compression Ratio",
+     "Intake Closing Angle (ABDC)"
+    ],
+    "vars": [
+     "bore",
+     "stroke3",
+     "rod",
+     "scr",
+     "ica"
+    ],
+    "expr": "(((Math.PI*bore*bore/4)*((stroke3/2)*(1-Math.cos(Math.PI+ica*Math.PI/180))+rod-Math.sqrt(rod*rod-Math.pow((stroke3/2)*Math.sin(Math.PI+ica*Math.PI/180),2))))+((Math.PI*bore*bore/4)*stroke3/(scr-1)))/((Math.PI*bore*bore/4)*stroke3/(scr-1))",
+    "out": "Dynamic Compression Ratio",
+    "unit": ":1"
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "function(){var html=oldDCR();return html.replace('</div>'+calcFooter('Dynamic CR'),'<button class=\"footer-btn\" onclick=\"GHM_USE_CAM_IVC()\">↓ Pull IVC from Cam Card</button></div>'+calcFooter('Dynamic CR'));}",
+  "live_logic": "",
+  "before": {
+   "vectors": 12,
+   "checks": 12,
+   "problems": [
+    "scr=0: validity differs - engine VALID 0.06746504815769658, live shows \"—\""
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [
+    "Trapped Swept Volume"
+   ],
+   "binding": {
+    "bore": {
+     "field": "dcr_bore",
+     "label": "Bore",
+     "unit": "in"
+    },
+    "stroke3": {
+     "field": "str3",
+     "label": "Stroke↓ use 4.88",
+     "unit": "in"
+    },
+    "rod": {
+     "field": "dcr_rod",
+     "label": "Rod Length",
+     "unit": "in"
+    },
+    "scr": {
+     "field": "scr",
+     "label": "Static Compression Ratio",
+     "unit": ":1"
+    },
+    "ica": {
+     "field": "ica",
+     "label": "Intake Closing Angle (ABDC)",
+     "unit": "°"
+    }
+   }
+  }
+ },
+ "reverse_displacement": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Target Displacement",
+     "Cylinders",
+     "Known Bore (solve for stroke)",
+     "Known Stroke (solve for bore)"
+    ],
+    "vars": [
+     "disp2",
+     "cyl2",
+     "tb",
+     "ts"
+    ],
+    "outputs": [
+     {
+      "expr": "+(Math.sqrt((disp2*4)/(Math.PI*ts*cyl2))).toFixed(4)",
+      "out": "Solved Bore",
+      "unit": "in"
+     },
+     {
+      "expr": "+((disp2*4)/(Math.PI*Math.pow(tb,2)*cyl2)).toFixed(4)",
+      "out": "Solved Stroke",
+      "unit": "in"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "reverse_displacement(){\n    const disp2=vd('disp2',426), cyl2=vd('cyl2',8), targetBore=vd('tb',4.25), targetStr=vd('ts',3.75);\n    const boreSolve = targetStr>0 ? +(Math.sqrt((disp2*4)/(Math.PI*targetStr*cyl2))).toFixed(4) : 0;\n    const strSolve = targetBore>0 ? +((disp2*4)/(Math.PI*Math.pow(targetBore,2)*cyl2)).toFixed(4) : 0;\n    return `${headerHTML('Reverse Displacement','Solve for bore or stroke from a target displacement.')}\n    <div class=\"calc-body\">\n      ${field('Target Displacement','disp2',426,getU('displacement'))}\n      ${field('Cylinders','cyl2',8,'')}\n      ${field('Known Bore (solve for stroke)','tb',4.2500,getU('length'))}\n      ${field('Known Stroke (solve for bore)','ts',3.7500,getU('length'))}\n      ${multiResult([{label:'Solved Bore',value:boreSolve||'—',unit:getU('length')},{label:'Solved Stroke',value:strSolve||'—',unit:getU('length')}])}\n    </div>${calcFooter('Reverse Disp')}`;\n  }",
+  "live_logic": "reverse_displacement(){\n    const disp2=vd('disp2',426), cyl2=vd('cyl2',8), targetBore=vd('tb',4.25), targetStr=vd('ts',3.75);\n    const boreSolve = targetStr>0 ? +(Math.sqrt((disp2*4)/(Math.PI*targetStr*cyl2))).toFixed(4) : 0;\n    const strSolve = targetBore>0 ? +((disp2*4)/(Math.PI*Math.pow(targetBore,2)*cyl2)).toFixed(4) : 0;\n      ${field('Target Displacement','disp2',426,getU('displacement'))}\n      ${field('Cylinders','cyl2',8,'')}\n      ${field('Known Bore (solve for stroke)','tb',4.2500,getU('length'))}\n      ${field('Known Stroke (solve for bore)','ts',3.7500,getU('length'))}\n  }",
+  "before": {
+   "vectors": 10,
+   "checks": 20,
+   "problems": [
+    "disp2=0: validity differs - engine VALID 0, live shows \"— in\"",
+    "disp2=0: validity differs - engine VALID 0, live shows \"— in\""
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "disp2": {
+     "field": "disp2",
+     "label": "Target Displacement↓ use 408",
+     "unit": "ci"
+    },
+    "cyl2": {
+     "field": "cyl2",
+     "label": "Cylinders↓ use 6",
+     "unit": ""
+    },
+    "tb": {
+     "field": "tb",
+     "label": "Known Bore (solve for stroke)",
+     "unit": "in"
+    },
+    "ts": {
+     "field": "ts",
+     "label": "Known Stroke (solve for bore)",
+     "unit": "in"
+    }
+   }
+  }
+ },
+ "portal_gear_reduction": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Axle Ratio",
+     "Portal Reduction Ratio",
+     "Portal Drop Height"
+    ],
+    "vars": [
+     "pgr_axle",
+     "pgr_portal",
+     "pgr_drop"
+    ],
+    "outputs": [
+     {
+      "expr": "+(pgr_axle*pgr_portal).toFixed(2)",
+      "out": "Combined Effective Axle Ratio",
+      "unit": ":1"
+     },
+     {
+      "expr": "pgr_drop",
+      "out": "Ground Clearance Gain",
+      "unit": "in"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "portal_gear_reduction(){\n    /* WAVE 1 P2 (off-road brief, Sept 2026). Portal box combined ratio and\n       ground-clearance gain.\n         combined ratio  = axle ratio × portal reduction ratio\n         clearance gain  = portal drop height (direct geometric addition)\n       Related: Crawl Ratio, Tire-Adjusted Crawl Ratio, Ground Clearance. */\n    const axle=vd('pgr_axle',4.10), portal=vd('pgr_portal',1.40), drop=vd('pgr_drop',3.5);\n    const ok=[axle,portal,drop].every(Number.isFinite)&&axle>0&&portal>0&&drop>=0;\n    const combined = ok ? +(axle*portal).toFixed(2) : NaN;\n    return `${headerHTML('Portal Gear Reduction','Combined effective axle ratio = axle ratio × portal box reduction ratio. Ground-clearance gain is the portal drop height added directly, since a portal box relocates the axle centerline upward relative to the wheel hub.')}\n    <div class=\"calc-body\">\n      ${field('Axle Ratio','pgr_axle',4.10,':1')}\n      ${field('Portal Reduction Ratio','pgr_portal',1.40,':1')}\n      ${field('Portal Drop Height','pgr_drop',3.5,'in')}\n      ${ok?multiResult([\n        {label:'Combined Effective Axle Ratio',value:combined,unit:':1',precision:2},\n        {label:'Ground Clearance Gain',value:drop,unit:'in',precision:1}\n      ]):`<div class=\"result-box\"><div class=\"result-label\">Validation required</div><div class=\"result-value\">—</div><div class=\"help-note\">Axle ratio and portal ratio must be greater than zero; drop height must be zero or greater.</div></div>`}\n      <div class=\"help-note\">Feed the combined ratio into Crawl Ratio or Tire-Adjusted Crawl Ratio in place of a plain axle ratio to see the full drivetrain effect.</div>\n    </div>${calcFooter('Portal Gear Reduction')}`;\n  }",
+  "live_logic": "portal_gear_reduction(){\n    /* WAVE 1 P2 (off-road brief, Sept 2026). Portal box combined ratio and\n       ground-clearance gain.\n         combined ratio  = axle ratio × portal reduction ratio\n         clearance gain  = portal drop height (direct geometric addition)\n       Related: Crawl Ratio, Tire-Adjusted Crawl Ratio, Ground Clearance. */\n    const axle=vd('pgr_axle',4.10), portal=vd('pgr_portal',1.40), drop=vd('pgr_drop',3.5);\n    const ok=[axle,portal,drop].every(Number.isFinite)&&axle>0&&portal>0&&drop>=0;\n    const combined = ok ? +(axle*portal).toFixed(2) : NaN;\n      ${field('Axle Ratio','pgr_axle',4.10,':1')}\n      ${field('Portal Reduction Ratio','pgr_portal',1.40,':1')}\n      ${field('Portal Drop Height','pgr_drop',3.5,'in')}\n        {label:'Combined Effective Axle Ratio',value:combined,unit:':1',precision:2},\n        {label:'Ground Clearance Gain',value:drop,unit:'in',precision:1}\n  }",
+  "before": {
+   "vectors": 8,
+   "checks": 12,
+   "problems": [
+    "pgr_axle=0: output 'Combined Effective Axle Ratio' has no matching live result (live: Validation required)",
+    "pgr_axle=0: output 'Ground Clearance Gain' has no matching live result (live: Validation required)",
+    "pgr_portal=0: output 'Combined Effective Axle Ratio' has no matching live result (live: Validation required)",
+    "pgr_portal=0: output 'Ground Clearance Gain' has no matching live result (live: Validation required)"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "pgr_axle": {
+     "field": "pgr_axle",
+     "label": "Axle Ratio",
+     "unit": ":1"
+    },
+    "pgr_portal": {
+     "field": "pgr_portal",
+     "label": "Portal Reduction Ratio",
+     "unit": ":1"
+    },
+    "pgr_drop": {
+     "field": "pgr_drop",
+     "label": "Portal Drop Height",
+     "unit": "in"
+    }
+   }
+  }
+ },
+ "e85_blend": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Current Fuel Volume",
+     "Current Ethanol %",
+     "Target Ethanol %",
+     "E85 Actual Ethanol Content"
+    ],
+    "vars": [
+     "tank_gal",
+     "cur_e",
+     "target_e",
+     "e85_pct"
+    ],
+    "outputs": [
+     {
+      "expr": "((target_e>cur_e && e85_pct>target_e)||(target_e<cur_e && e85_pct<target_e))?+(tank_gal*(target_e-cur_e)/(e85_pct-target_e)).toFixed(2):0",
+      "out": "E85 to Add",
+      "unit": "gal"
+     },
+     {
+      "expr": "(target_e<cur_e)?Math.abs(+(tank_gal*(cur_e-target_e)/(target_e-e85_pct)).toFixed(2)):NaN",
+      "out": "Fuel to Remove / Replace",
+      "unit": "gal"
+     },
+     {
+      "expr": "+(14.7 - 5.7*(target_e/100)).toFixed(2)",
+      "out": "Target Blend Stoich AFR",
+      "unit": ":1"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "e85_blend(){\n    const currentVol=vd('tank_gal',16), cur_e=vd('cur_e',10), target_e=vd('target_e',60), e85_pct=vd('e85_pct',75);\n    const denom=e85_pct-target_e;\n    let e85add=0, remove=0, status='';\n    if(target_e===cur_e){\n      status='Target already matches the current ethanol content.';\n    } else if((target_e>cur_e && e85_pct>target_e) || (target_e<cur_e && e85_pct<target_e)){\n      e85add=+(currentVol*(target_e-cur_e)/denom).toFixed(2);\n      status='E85 amount is solved by volume-weighted ethanol balance.';\n    } else if(target_e<cur_e){\n      // E85 cannot lower an ethanol concentration. Solve for the amount of zero/low ethanol fuel\n      // needed to dilute to the target, and report that as removal/replace guidance.\n      const addLow = +(currentVol*(cur_e-target_e)/(target_e-(e85_pct))).toFixed(2);\n      remove=Math.abs(addLow);\n      status='Target is below the current ethanol content; E85 alone cannot achieve it. Remove fuel and replace with lower-ethanol fuel.';\n    } else {\n      status='Target is outside the achievable range for the selected E85 content.';\n    }\n    const stoich_e = +(14.7 - 5.7*(target_e/100)).toFixed(2);\n    return `${headerHTML('E85 Ethanol Blend Calculator','Uses a volume-weighted ethanol balance. E85 content varies by season and fuel source, so enter the tested ethanol content when accuracy matters.')}\n    <div class=\"calc-body\">\n      ${field('Current Fuel Volume','tank_gal',16,'gal')}\n      ${field('Current Ethanol %','cur_e',10,'%')}\n      ${field('Target Ethanol %','target_e',60,'%')}\n      ${field('E85 Actual Ethanol Content','e85_pct',75,'%')}\n      ${multiResult([\n        {label:'E85 to Add',value:e85add>0?e85add:'—',unit:'gal'},\n        {label:'Fuel to Remove / Replace',value:remove>0?remove:'—',unit:'gal'},\n        {label:'Target Blend Stoich AFR',value:stoich_e,unit:':1'}\n      ])}\n      <div class=\"calc-note\">${status} The simple top-off solve assumes the current fuel volume remains in the tank and only E85 is added.</div>\n    </div>${calcFooter('E85 Blend')}`;\n  }",
+  "live_logic": "e85_blend(){\n    const currentVol=vd('tank_gal',16), cur_e=vd('cur_e',10), target_e=vd('target_e',60), e85_pct=vd('e85_pct',75);\n    const denom=e85_pct-target_e;\n    let e85add=0, remove=0, status='';\n    if(target_e===cur_e){\n      status='Target already matches the current ethanol content.';\n    } else if((target_e>cur_e && e85_pct>target_e) || (target_e<cur_e && e85_pct<target_e)){\n      e85add=+(currentVol*(target_e-cur_e)/denom).toFixed(2);\n      status='E85 amount is solved by volume-weighted ethanol balance.';\n    } else if(target_e<cur_e){\n      // E85 cannot lower an ethanol concentration. Solve for the amount of zero/low ethanol fuel\n      // needed to dilute to the target, and report that as removal/replace guidance.\n      const addLow = +(currentVol*(cur_e-target_e)/(target_e-(e85_pct))).toFixed(2);\n      remove=Math.abs(addLow);\n      status='Target is below the current ethanol content; E85 alone cannot achieve it. Remove fuel and replace with lower-ethanol fuel.';\n    } else {\n      status='Target is outside the achievable range for the selected E85 content.';\n    }\n    const stoich_e = +(14.7 - 5.7*(target_e/100)).toFixed(2);\n      ${field('Current Fuel Volume','tank_gal',16,'gal')}\n      ${field('Current Ethanol %','cur_e',10,'%')}\n      ${field('Target Ethanol %','target_e',60,'%')}\n      ${field('E85 Actual Ethanol Content','e85_pct',75,'%')}\n        {label:'E85 to Add',value:e85add>0?e85add:'—',unit:'gal'},\n        {label:'Fuel to Remove / Replace',value:remove>0?remove:'—',unit:'gal'},\n        {label:'Target Blend Stoich AFR',value:stoich_e,unit:':1'}\n      ])}\n  }",
+  "before": {
+   "vectors": 10,
+   "checks": 30,
+   "problems": [
+    "tank_gal=0: validity differs - engine VALID 0, live shows \"— gal\"",
+    "target_e=0: validity differs - engine VALID 0, live shows \"— gal\"",
+    "e85_pct=0: validity differs - engine VALID 0, live shows \"— gal\""
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "tank_gal": {
+     "field": "tank_gal",
+     "label": "Current Fuel Volume",
+     "unit": "gal"
+    },
+    "cur_e": {
+     "field": "cur_e",
+     "label": "Current Ethanol %",
+     "unit": "%"
+    },
+    "target_e": {
+     "field": "target_e",
+     "label": "Target Ethanol %",
+     "unit": "%"
+    },
+    "e85_pct": {
+     "field": "e85_pct",
+     "label": "E85 Actual Ethanol Content",
+     "unit": "%"
+    }
+   }
+  }
+ },
+ "curtain_area": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Valve Diameter",
+     "Valve Lift",
+     "Port Area"
+    ],
+    "vars": [
+     "vd",
+     "vlift2",
+     "port_ca"
+    ],
+    "outputs": [
+     {
+      "expr": "Math.PI*vd*vlift2",
+      "out": "Curtain Area",
+      "unit": "sq in"
+     },
+     {
+      "expr": "(vd===null||vlift2===null?NaN:Math.PI*vd*vlift2)/port_ca*100",
+      "out": "% of Port Area",
+      "unit": "%"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "()=>{const d=certValue('vd',2.02),l=certValue('vlift2',.45),a=certValue('port_ca',2);const area=d===null||l===null?NaN:Math.PI*d*l;return `${headerHTML('Valve Curtain Area','Curtain area = π × valve diameter × valve lift.')}<div class=\"calc-body\">${field('Valve Diameter','vd',2.02,'in')}${field('Valve Lift','vlift2',.45,'in')}${field('Port Area','port_ca',2,'sq in')}${Number.isFinite(area)&&a>0?multiResult([{label:'Curtain Area',value:area,unit:'sq in'},{label:'% of Port Area',value:area/a*100,unit:'%'}]):certError('Use positive diameter, lift, and port area values.')}</div>${calcFooter('Curtain Area')}`;}",
+  "live_logic": "",
+  "before": {
+   "vectors": 8,
+   "checks": 14,
+   "problems": [
+    "port_ca=0: output 'Curtain Area' has no matching live result (live: Validation required)",
+    "port_ca=0: output '% of Port Area' has no matching live result (live: Validation required)"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "vd": {
+     "field": "vd",
+     "label": "Valve Diameter",
+     "unit": "in"
+    },
+    "vlift2": {
+     "field": "vlift2",
+     "label": "Valve Lift",
+     "unit": "in"
+    },
+    "port_ca": {
+     "field": "port_ca",
+     "label": "Port Area",
+     "unit": "sq in"
+    }
+   }
+  }
+ },
+ "mach_index": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Port Flow",
+     "Effective Flow Area",
+     "Speed of Sound"
+    ],
+    "vars": [
+     "mi_q",
+     "mi_a",
+     "mi_c"
+    ],
+    "outputs": [
+     {
+      "expr": "(mi_q*144)/(mi_a*60)",
+      "out": "Average Velocity",
+      "unit": "ft/sec"
+     },
+     {
+      "expr": "+((([mi_q,mi_a,mi_c].every(x=>Number.isFinite(x))&&mi_q>0&&mi_a>0&&mi_c>0)?(mi_q*144)/(mi_a*60):NaN)/mi_c).toFixed(3)",
+      "out": "Mach Index",
+      "unit": ""
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "() => {\n    const q_mi=vd('mi_q',350), a_mi=vd('mi_a',2.8), c_mi=vd('mi_c',1116);\n    const valid=[q_mi,a_mi,c_mi].every(x=>Number.isFinite(x))&&q_mi>0&&a_mi>0&&c_mi>0;\n    const vel=valid?(q_mi*144)/(a_mi*60):NaN;\n    const mach=valid?+(vel/c_mi).toFixed(3):NaN;\n    return `${headerHTML('Mach Index of Intake Port','Starts from port flow (CFM) and area, derives average velocity, then divides by the speed of sound to get Mach index \\u2014 the same Mach index concept as Mach Index / Velocity, just starting from flow and area instead of a directly-known velocity and air temperature. Values above roughly 0.5-0.6 indicate the port is approaching choked-flow territory.')}\n    <div class=\"calc-body\">\n      ${field('Port Flow','mi_q',350,'CFM')}\n      ${field('Effective Flow Area','mi_a',2.8,'sq in')}\n      ${field('Speed of Sound','mi_c',1116,'ft/sec')}\n      ${valid?multiResult([{label:'Average Velocity',value:vel,unit:'ft/sec',precision:1},{label:'Mach Index',value:mach,unit:'',precision:3}]):`<div class=\"result-box\"><div class=\"result-label\">Validation required</div><div class=\"result-value\">\\u2014</div><div class=\"help-note\">All values must be greater than zero.</div></div>`}\n    </div>${calcFooter('Mach Index')}`;\n  }",
+  "live_logic": "() => {\n    const q_mi=vd('mi_q',350), a_mi=vd('mi_a',2.8), c_mi=vd('mi_c',1116);\n    const valid=[q_mi,a_mi,c_mi].every(x=>Number.isFinite(x))&&q_mi>0&&a_mi>0&&c_mi>0;\n    const vel=valid?(q_mi*144)/(a_mi*60):NaN;\n    const mach=valid?+(vel/c_mi).toFixed(3):NaN;\n      ${field('Port Flow','mi_q',350,'CFM')}\n      ${field('Effective Flow Area','mi_a',2.8,'sq in')}\n      ${field('Speed of Sound','mi_c',1116,'ft/sec')}\n  }",
+  "before": {
+   "vectors": 8,
+   "checks": 10,
+   "problems": [
+    "mi_q=0: output 'Average Velocity' has no matching live result (live: Validation required)",
+    "mi_q=0: output 'Mach Index' has no matching live result (live: Validation required)",
+    "mi_a=0: output 'Average Velocity' has no matching live result (live: Validation required)",
+    "mi_a=0: output 'Mach Index' has no matching live result (live: Validation required)",
+    "mi_c=0: output 'Average Velocity' has no matching live result (live: Validation required)",
+    "mi_c=0: output 'Mach Index' has no matching live result (live: Validation required)"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "mi_q": {
+     "field": "mi_q",
+     "label": "Port Flow",
+     "unit": "CFM"
+    },
+    "mi_a": {
+     "field": "mi_a",
+     "label": "Effective Flow Area",
+     "unit": "sq in"
+    },
+    "mi_c": {
+     "field": "mi_c",
+     "label": "Speed of Sound",
+     "unit": "ft/sec"
+    }
+   }
+  }
+ },
+ "rc_watt_link": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Panhard Bar Length",
+     "Vertical Suspension Travel from Ride Height",
+     "Wheelbase (for rear-steer angle)"
+    ],
+    "vars": [
+     "ph_len",
+     "ph_travel",
+     "ph_wb"
+    ],
+    "outputs": [
+     {
+      "expr": "(ph_len>(Math.abs(ph_travel)) && ph_len>0 && ph_wb>0)?+(ph_len-Math.sqrt(ph_len*ph_len-(Math.abs(ph_travel))*(Math.abs(ph_travel)))).toFixed(4):0",
+      "out": "Lateral Axle Move",
+      "unit": "in"
+     },
+     {
+      "expr": "+(Math.atan(((ph_len>(Math.abs(ph_travel)) && ph_len>0 && ph_wb>0)?+(ph_len-Math.sqrt(ph_len*ph_len-(Math.abs(ph_travel))*(Math.abs(ph_travel)))).toFixed(4):0)/ph_wb)*180/Math.PI).toFixed(4)",
+      "out": "Induced Rear Steer",
+      "unit": "°"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "rc_watt_link(){\n    const L=vd('ph_len',40), travel=Math.abs(vd('ph_travel',3)), wb=vd('ph_wb',108);\n    const valid=L>travel && L>0 && wb>0;\n    // With a horizontal Panhard bar at ride height, lateral axle shift at vertical travel h:\n    // Δx = L - sqrt(L² - h²). Rear-steer angle is atan(Δx / wheelbase).\n    const lat=valid?+(L-Math.sqrt(L*L-travel*travel)).toFixed(4):0;\n    const rear=valid?+(Math.atan(lat/wb)*180/Math.PI).toFixed(4):0;\n    return `${headerHTML(\"Watt's Link vs Panhard Bar\",\"A Watt's link constrains lateral axle motion. A Panhard bar follows an arc; for a horizontal bar, the lateral shift at vertical travel h is L − √(L²−h²).\")}\n    <div class=\"calc-body\">\n      <div style=\"background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--muted);line-height:1.6\">\n        <strong style=\"color:var(--red)\">Watt's Link:</strong> Designed to keep the axle centered laterally.<br><br>\n        <strong style=\"color:var(--red)\">Panhard Bar:</strong> The axle moves laterally as the bar swings through its arc.\n      </div>\n      ${field('Panhard Bar Length','ph_len',40,'in')}\n      ${field('Vertical Suspension Travel from Ride Height','ph_travel',3,'in')}\n      ${field('Wheelbase (for rear-steer angle)','ph_wb',108,'in')}\n      ${valid?multiResult([{label:'Lateral Axle Move',value:lat,unit:'in'},{label:'Induced Rear Steer',value:rear,unit:'°'}]):`<div class=\"result-box\"><div class=\"result-value\">Invalid geometry</div><div class=\"help-note\">Bar length must exceed vertical travel and wheelbase must be positive.</div></div>`}\n    </div>${calcFooter(\"Watt's Link\")}`;\n  }",
+  "live_logic": "rc_watt_link(){\n    const L=vd('ph_len',40), travel=Math.abs(vd('ph_travel',3)), wb=vd('ph_wb',108);\n    const valid=L>travel && L>0 && wb>0;\n    // With a horizontal Panhard bar at ride height, lateral axle shift at vertical travel h:\n    // Δx = L - sqrt(L² - h²). Rear-steer angle is atan(Δx / wheelbase).\n    const lat=valid?+(L-Math.sqrt(L*L-travel*travel)).toFixed(4):0;\n    const rear=valid?+(Math.atan(lat/wb)*180/Math.PI).toFixed(4):0;\n      ${field('Panhard Bar Length','ph_len',40,'in')}\n      ${field('Vertical Suspension Travel from Ride Height','ph_travel',3,'in')}\n      ${field('Wheelbase (for rear-steer angle)','ph_wb',108,'in')}\n  }",
+  "before": {
+   "vectors": 8,
+   "checks": 12,
+   "problems": [
+    "ph_len=0: output 'Lateral Axle Move' has no matching live result (live: )",
+    "ph_len=0: output 'Induced Rear Steer' has no matching live result (live: )",
+    "ph_wb=0: output 'Lateral Axle Move' has no matching live result (live: )",
+    "ph_wb=0: output 'Induced Rear Steer' has no matching live result (live: )"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "ph_len": {
+     "field": "ph_len",
+     "label": "Panhard Bar Length",
+     "unit": "in"
+    },
+    "ph_travel": {
+     "field": "ph_travel",
+     "label": "Vertical Suspension Travel from Ride Height",
+     "unit": "in"
+    },
+    "ph_wb": {
+     "field": "ph_wb",
+     "label": "Wheelbase (for rear-steer angle)",
+     "unit": "in"
+    }
+   }
+  }
+ },
+ "diesel_airflow": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Displacement",
+     "RPM",
+     "Volumetric Efficiency",
+     "Air Density"
+    ],
+    "vars": [
+     "da_disp",
+     "da_rpm",
+     "da_ve",
+     "da_air"
+    ],
+    "outputs": [
+     {
+      "expr": "da_disp*da_rpm*da_ve/3456",
+      "out": "Engine Airflow",
+      "unit": "CFM"
+     },
+     {
+      "expr": "([da_disp,da_rpm,da_ve,da_air].every(Number.isFinite)&&da_disp>0&&da_rpm>0&&da_ve>0&&da_air>0?da_disp*da_rpm*da_ve/3456:NaN)*da_air",
+      "out": "Air Mass Flow",
+      "unit": "lb/min"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "()=>{const disp=certValue('da_disp',408),rpm=certValue('da_rpm',2800),ve=certValue('da_ve',.9),rho=certValue('da_air',.075);const cfm=[disp,rpm,ve,rho].every(Number.isFinite)&&disp>0&&rpm>0&&ve>0&&rho>0?disp*rpm*ve/3456:NaN,lbmin=Number.isFinite(cfm)?cfm*rho:NaN;return `${headerHTML('Diesel Engine Airflow','Four-stroke CFM = CID × RPM × VE ÷ 3456. Mass flow = CFM × air density.')}<div class=\"calc-body\">${field('Displacement','da_disp',408,'ci')}${field('RPM','da_rpm',2800,'RPM')}${field('Volumetric Efficiency','da_ve',.9,'')}${field('Air Density','da_air',.075,'lb/ft³')}${Number.isFinite(cfm)?multiResult([{label:'Engine Airflow',value:cfm,unit:'CFM'},{label:'Air Mass Flow',value:lbmin,unit:'lb/min',precision:2}]):certError('Use positive displacement, RPM, VE and air density.')}</div>${calcFooter('Diesel Airflow')}`;}",
+  "live_logic": "",
+  "before": {
+   "vectors": 10,
+   "checks": 12,
+   "problems": [
+    "da_disp=0: output 'Engine Airflow' has no matching live result (live: Validation required)",
+    "da_disp=0: output 'Air Mass Flow' has no matching live result (live: Validation required)",
+    "da_rpm=0: output 'Engine Airflow' has no matching live result (live: Validation required)",
+    "da_rpm=0: output 'Air Mass Flow' has no matching live result (live: Validation required)",
+    "da_ve=0: output 'Engine Airflow' has no matching live result (live: Validation required)",
+    "da_ve=0: output 'Air Mass Flow' has no matching live result (live: Validation required)",
+    "da_air=0: output 'Engine Airflow' has no matching live result (live: Validation required)",
+    "da_air=0: output 'Air Mass Flow' has no matching live result (live: Validation required)"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "da_disp": {
+     "field": "da_disp",
+     "label": "Displacement",
+     "unit": "ci"
+    },
+    "da_rpm": {
+     "field": "da_rpm",
+     "label": "RPM",
+     "unit": "RPM"
+    },
+    "da_ve": {
+     "field": "da_ve",
+     "label": "Volumetric Efficiency",
+     "unit": ""
+    },
+    "da_air": {
+     "field": "da_air",
+     "label": "Air Density",
+     "unit": "lb/ft³"
+    }
+   }
+  }
+ },
+ "tire_size_comparison": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Old Section Width",
+     "Old Aspect Ratio",
+     "Old Wheel Diameter",
+     "New Section Width",
+     "New Aspect Ratio",
+     "New Wheel Diameter"
+    ],
+    "vars": [
+     "tsc_ow",
+     "tsc_oa",
+     "tsc_od",
+     "tsc_nw",
+     "tsc_na",
+     "tsc_nd"
+    ],
+    "outputs": [
+     {
+      "expr": "({dia:(+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3)),circ:(+((+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3))*Math.PI).toFixed(3)),rpmile:(+(63360/(+((+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3))*Math.PI).toFixed(3))).toFixed(1))}).dia",
+      "out": "Old Diameter",
+      "unit": "in"
+     },
+     {
+      "expr": "({dia:(+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3)),circ:(+((+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3))*Math.PI).toFixed(3)),rpmile:(+(63360/(+((+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3))*Math.PI).toFixed(3))).toFixed(1))}).dia",
+      "out": "New Diameter",
+      "unit": "in"
+     },
+     {
+      "expr": "({dia:(+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3)),circ:(+((+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3))*Math.PI).toFixed(3)),rpmile:(+(63360/(+((+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3))*Math.PI).toFixed(3))).toFixed(1))}).rpmile",
+      "out": "Old Rev/Mile",
+      "unit": "rev"
+     },
+     {
+      "expr": "({dia:(+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3)),circ:(+((+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3))*Math.PI).toFixed(3)),rpmile:(+(63360/(+((+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3))*Math.PI).toFixed(3))).toFixed(1))}).rpmile",
+      "out": "New Rev/Mile",
+      "unit": "rev"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "tire_size_comparison(){\n    /* ADD (audit, 2026-09): the single most-requested missing piece from the\n       tire cluster — compares two full tire sizes side by side (diameter,\n       circumference, rev/mile, speedometer error) instead of making the user\n       run Tire Size twice and do the subtraction by hand. */\n    function decode(w,a,d){\n      const valid=w>0&&a>0&&d>0;\n      if(!valid) return null;\n      const sidewall=(w*a/100)/25.4;\n      const dia=+(d+2*sidewall).toFixed(3);\n      const circ=+(dia*Math.PI).toFixed(3);\n      const rpmile=+(63360/circ).toFixed(1);\n      return {dia,circ,rpmile};\n    }\n    const ow=vd('tsc_ow',235), oa=vd('tsc_oa',75), od=vd('tsc_od',15);\n    const nw=vd('tsc_nw',265), na=vd('tsc_na',70), nd=vd('tsc_nd',17);\n    const oldT=decode(ow,oa,od), newT=decode(nw,na,nd);\n    const valid=oldT!==null && newT!==null;\n    const diaDeltaPct=valid?+(((newT.dia-oldT.dia)/oldT.dia)*100).toFixed(2):0;\n    const clearanceDeltaIn=valid?+((newT.dia-oldT.dia)/2).toFixed(3):0;\n    const speedoAtIndicated60=valid?+(60*(newT.dia/oldT.dia)).toFixed(1):0;\n    const speedoErrorAt60=valid?+(speedoAtIndicated60-60).toFixed(1):0;\n    return `${headerHTML('Tire Size Comparison','Runs the same decode as Tire Size for two tires at once and shows what actually changes: diameter delta, ground-clearance change, and how far off your speedometer reads at an indicated 60 mph. For the gear-ratio and full speedometer-calibration math using these diameters directly, continue to Effective Gear Ratio (Tires) or Speedometer Calibration.')}\n    <div class=\"calc-body\">\n      <div class=\"gh-e1-fields\">\n        <div class=\"field\"><label class=\"field-label\" style=\"font-weight:700\">Old Tire</label></div>\n        ${field('Old Section Width','tsc_ow',235,'mm')}\n        ${field('Old Aspect Ratio','tsc_oa',75,'%')}\n        ${field('Old Wheel Diameter','tsc_od',15,'in')}\n        <div class=\"field\"><label class=\"field-label\" style=\"font-weight:700\">New Tire</label></div>\n        ${field('New Section Width','tsc_nw',265,'mm')}\n        ${field('New Aspect Ratio','tsc_na',70,'%')}\n        ${field('New Wheel Diameter','tsc_nd',17,'in')}\n      </div>\n      ${valid?multiResult([\n        {label:'Old Diameter',value:oldT.dia,unit:'in'},\n        {label:'New Diameter',value:newT.dia,unit:'in'},\n        {label:'Diameter Change',value:diaDeltaPct,unit:'%'},\n        {label:'Ground Clearance Change',value:clearanceDeltaIn,unit:'in'},\n        {label:'Old Rev/Mile',value:oldT.rpmile,unit:'rev'},\n        {label:'New Rev/Mile',value:newT.rpmile,unit:'rev'},\n        {label:'Actual Speed at Indicated 60',value:speedoAtIndicated60,unit:'mph'},\n        {label:'Speedometer Error at 60',value:speedoErrorAt60,unit:'mph'}\n      ]):`<div class=\"result-box\"><div class=\"result-value\">Invalid tire dimensions</div><div class=\"help-note\">All widths, aspect ratios and wheel diameters must be greater than zero.</div></div>`}\n      <div class=\"help-note\">A positive diameter change means the new tire is taller. Ground clearance change assumes no suspension change. For the effect on your specific axle ratio, use Effective Gear Ratio (Tires) with these two diameters.</div>\n    </div>${calcFooter('Tire Comparison')}`;\n  }",
+  "live_logic": "tire_size_comparison(){\n    /* ADD (audit, 2026-09): the single most-requested missing piece from the\n       tire cluster — compares two full tire sizes side by side (diameter,\n       circumference, rev/mile, speedometer error) instead of making the user\n       run Tire Size twice and do the subtraction by hand. */\n    function decode(w,a,d){\n      const valid=w>0&&a>0&&d>0;\n      if(!valid) return null;\n      const sidewall=(w*a/100)/25.4;\n      const dia=+(d+2*sidewall).toFixed(3);\n      const circ=+(dia*Math.PI).toFixed(3);\n      const rpmile=+(63360/circ).toFixed(1);\n      return {dia,circ,rpmile};\n    }\n    const ow=vd('tsc_ow',235), oa=vd('tsc_oa',75), od=vd('tsc_od',15);\n    const nw=vd('tsc_nw',265), na=vd('tsc_na',70), nd=vd('tsc_nd',17);\n    const oldT=decode(ow,oa,od), newT=decode(nw,na,nd);\n    const valid=oldT!==null && newT!==null;\n    const diaDeltaPct=valid?+(((newT.dia-oldT.dia)/oldT.dia)*100).toFixed(2):0;\n    const clearanceDeltaIn=valid?+((newT.dia-oldT.dia)/2).toFixed(3):0;\n    const speedoAtIndicated60=valid?+(60*(newT.dia/oldT.dia)).toFixed(1):0;\n    const speedoErrorAt60=valid?+(speedoAtIndicated60-60).toFixed(1):0;\n        ${field('Old Section Width','tsc_ow',235,'mm')}\n        ${field('Old Aspect Ratio','tsc_oa',75,'%')}\n        ${field('Old Wheel Diameter','tsc_od',15,'in')}\n        ${field('New Section Width','tsc_nw',265,'mm')}\n        ${field('New Aspect Ratio','tsc_na',70,'%')}\n        ${field('New Wheel Diameter','tsc_nd',17,'in')}\n        {label:'Old Diameter',value:oldT.dia,unit:'in'},\n        {label:'New Diameter',value:newT.dia,unit:'in'},\n        {label:'Diameter Change',value:diaDeltaPct,unit:'%'},\n        {label:'Ground Clearance Change',value:clearanceDeltaIn,unit:'in'},\n        {label:'Old Rev/Mile',value:oldT.rpmile,unit:'rev'},\n        {label:'New Rev/Mile',value:newT.rpmile,unit:'rev'},\n        {label:'Actual Speed at Indicated 60',value:speedoAtIndicated60,unit:'mph'},\n        {label:'Speedometer Error at 60',value:speedoErrorAt60,unit:'mph'}\n  }",
+  "before": {
+   "vectors": 14,
+   "checks": 32,
+   "problems": [
+    "tsc_ow=0: output 'Old Diameter' has no matching live result (live: )",
+    "tsc_ow=0: output 'New Diameter' has no matching live result (live: )",
+    "tsc_ow=0: output 'Old Rev/Mile' has no matching live result (live: )",
+    "tsc_ow=0: output 'New Rev/Mile' has no matching live result (live: )",
+    "tsc_oa=0: output 'Old Diameter' has no matching live result (live: )",
+    "tsc_oa=0: output 'New Diameter' has no matching live result (live: )",
+    "tsc_oa=0: output 'Old Rev/Mile' has no matching live result (live: )",
+    "tsc_oa=0: output 'New Rev/Mile' has no matching live result (live: )",
+    "tsc_od=0: output 'Old Diameter' has no matching live result (live: )",
+    "tsc_od=0: output 'New Diameter' has no matching live result (live: )",
+    "tsc_od=0: output 'Old Rev/Mile' has no matching live result (live: )",
+    "tsc_od=0: output 'New Rev/Mile' has no matching live result (live: )",
+    "tsc_nw=0: output 'Old Diameter' has no matching live result (live: )",
+    "tsc_nw=0: output 'New Diameter' has no matching live result (live: )",
+    "tsc_nw=0: output 'Old Rev/Mile' has no matching live result (live: )",
+    "tsc_nw=0: output 'New Rev/Mile' has no matching live result (live: )",
+    "tsc_na=0: output 'Old Diameter' has no matching live result (live: )",
+    "tsc_na=0: output 'New Diameter' has no matching live result (live: )",
+    "tsc_na=0: output 'Old Rev/Mile' has no matching live result (live: )",
+    "tsc_na=0: output 'New Rev/Mile' has no matching live result (live: )",
+    "tsc_nd=0: output 'Old Diameter' has no matching live result (live: )",
+    "tsc_nd=0: output 'New Diameter' has no matching live result (live: )",
+    "tsc_nd=0: output 'Old Rev/Mile' has no matching live result (live: )",
+    "tsc_nd=0: output 'New Rev/Mile' has no matching live result (live: )"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [
+    "Diameter Change",
+    "Ground Clearance Change",
+    "Actual Speed at Indicated 60",
+    "Speedometer Error at 60"
+   ],
+   "binding": {
+    "tsc_ow": {
+     "field": "tsc_ow",
+     "label": "Old Section Width",
+     "unit": "mm"
+    },
+    "tsc_oa": {
+     "field": "tsc_oa",
+     "label": "Old Aspect Ratio",
+     "unit": "%"
+    },
+    "tsc_od": {
+     "field": "tsc_od",
+     "label": "Old Wheel Diameter",
+     "unit": "in"
+    },
+    "tsc_nw": {
+     "field": "tsc_nw",
+     "label": "New Section Width",
+     "unit": "mm"
+    },
+    "tsc_na": {
+     "field": "tsc_na",
+     "label": "New Aspect Ratio",
+     "unit": "%"
+    },
+    "tsc_nd": {
+     "field": "tsc_nd",
+     "label": "New Wheel Diameter",
+     "unit": "in"
+    }
+   }
+  }
+ },
+ "brake_bias": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Vehicle Weight",
+     "Wheelbase",
+     "CG Height",
+     "Target Deceleration"
+    ],
+    "vars": [
+     "wt_bb",
+     "wb_bb",
+     "cg_bb",
+     "dec_bb"
+    ],
+    "expr": "wt_bb*cg_bb*dec_bb/wb_bb",
+    "out": "Weight Transfer to Front",
+    "unit": "lb"
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "brake_bias(){\n    /* REBUILD (audit, 2026-09): previously only took raw front/rear force as\n       inputs, which a user can't independently know without already having\n       solved the bias question. Added a Vehicle Dynamics mode that computes\n       the ideal dynamic bias from weight, wheelbase, CG height, static weight\n       distribution and target deceleration (accounting for weight transfer\n       under braking) — this is the actual engineering answer to \"what brake\n       bias should my car have.\" The original Measured Force mode is kept for\n       checking the bias of an already-built proportioning setup. */\n    const mode_bb = GHM_STORAGE.get('bb_mode')||'dynamic';\n    let body, fb, rb;\n    if(mode_bb==='dynamic'){\n      const wt_bb=vd('wt_bb',3420), wb_bb=vd('wb_bb',108), cg_bb=vd('cg_bb',18), fpct_bb=vd('fpct_bb',52), dec_bb=vd('dec_bb',1.0);\n      const valid=[wt_bb,wb_bb,cg_bb,fpct_bb,dec_bb].every(n=>Number.isFinite(n))&&wt_bb>0&&wb_bb>0&&cg_bb>=0&&fpct_bb>0&&fpct_bb<100&&dec_bb>=0;\n      const staticFront = valid ? wt_bb*(fpct_bb/100) : NaN;\n      const staticRear = valid ? wt_bb-staticFront : NaN;\n      const transfer = valid ? wt_bb*cg_bb*dec_bb/wb_bb : NaN;\n      const dynFront = valid ? staticFront+transfer : NaN;\n      const dynRear = valid ? staticRear-transfer : NaN;\n      fb = valid ? +((dynFront/wt_bb)*100).toFixed(1) : NaN;\n      rb = valid ? +(100-fb).toFixed(1) : NaN;\n      body = `${field('Vehicle Weight','wt_bb',3420,'lb')}\n      ${field('Wheelbase','wb_bb',108,'in')}\n      ${field('CG Height','cg_bb',18,'in')}\n      ${field('Static Front Weight','fpct_bb',52,'%')}\n      ${field('Target Deceleration','dec_bb',1.0,'g')}\n      ${valid?multiResult([\n        {label:'Weight Transfer to Front',value:transfer,unit:'lb',precision:0},\n        {label:'Dynamic Front Load',value:dynFront,unit:'lb',precision:0},\n        {label:'Dynamic Rear Load',value:dynRear,unit:'lb',precision:0},\n        {label:'Ideal Front Bias',value:fb,unit:'%'},\n        {label:'Ideal Rear Bias',value:rb,unit:'%'}\n      ]):`<div class=\"result-box\"><div class=\"result-label\">Validation required</div><div class=\"result-value\">\\u2014</div><div class=\"help-note\">Weight, wheelbase and static front % must be positive; static front % must be under 100; deceleration and CG height must be zero or greater.</div></div>`}`;\n    } else {\n      const fp=vd('fp',800), rp=vd('rp',600);\n      const total=fp+rp;\n      fb = +((fp/total)*100).toFixed(1);\n      rb = +((rp/total)*100).toFixed(1);\n      body = `${field('Front Brake Force','fp',800,'lbf')}\n      ${field('Rear Brake Force','rp',600,'lbf')}\n      ${multiResult([{label:'Front Bias',value:fb,unit:'%'},{label:'Rear Bias',value:rb,unit:'%'}])}`;\n    }\n    return `${headerHTML('Brake Bias','Vehicle Dynamics mode computes the ideal bias for your car from weight distribution, CG height, wheelbase and target deceleration, accounting for weight transfer under braking. Measured Force mode checks the bias of forces you already have from an existing proportioning setup. Most performance cars land near 60-65% front, but the correct number depends on your specific weight distribution and CG height, not a universal rule.')}\n    <div class=\"calc-body\">\n      <div class=\"segment\">\n        <button class=\"seg-btn ${mode_bb==='dynamic'?'active':''}\" onclick=\"GHM_STORAGE.set('bb_mode','dynamic');renderCalc('brake_bias',false)\">Vehicle Dynamics</button>\n        <button class=\"seg-btn ${mode_bb==='measured'?'active':''}\" onclick=\"GHM_STORAGE.set('bb_mode','measured');renderCalc('brake_bias',false)\">Measured Force</button>\n      </div>\n      ${body}\n    </div>${calcFooter('Brake Bias')}`;\n  }",
+  "live_logic": "brake_bias(){\n    /* REBUILD (audit, 2026-09): previously only took raw front/rear force as\n       inputs, which a user can't independently know without already having\n       solved the bias question. Added a Vehicle Dynamics mode that computes\n       the ideal dynamic bias from weight, wheelbase, CG height, static weight\n       distribution and target deceleration (accounting for weight transfer\n       under braking) — this is the actual engineering answer to \"what brake\n       bias should my car have.\" The original Measured Force mode is kept for\n       checking the bias of an already-built proportioning setup. */\n    const mode_bb = GHM_STORAGE.get('bb_mode')||'dynamic';\n    let body, fb, rb;\n    if(mode_bb==='dynamic'){\n      const wt_bb=vd('wt_bb',3420), wb_bb=vd('wb_bb',108), cg_bb=vd('cg_bb',18), fpct_bb=vd('fpct_bb',52), dec_bb=vd('dec_bb',1.0);\n      const valid=[wt_bb,wb_bb,cg_bb,fpct_bb,dec_bb].every(n=>Number.isFinite(n))&&wt_bb>0&&wb_bb>0&&cg_bb>=0&&fpct_bb>0&&fpct_bb<100&&dec_bb>=0;\n      const staticFront = valid ? wt_bb*(fpct_bb/100) : NaN;\n      const staticRear = valid ? wt_bb-staticFront : NaN;\n      const transfer = valid ? wt_bb*cg_bb*dec_bb/wb_bb : NaN;\n      const dynFront = valid ? staticFront+transfer : NaN;\n      const dynRear = valid ? staticRear-transfer : NaN;\n      fb = valid ? +((dynFront/wt_bb)*100).toFixed(1) : NaN;\n      rb = valid ? +(100-fb).toFixed(1) : NaN;\n      body = `${field('Vehicle Weight','wt_bb',3420,'lb')}\n      ${field('Wheelbase','wb_bb',108,'in')}\n      ${field('CG Height','cg_bb',18,'in')}\n      ${field('Static Front Weight','fpct_bb',52,'%')}\n      ${field('Target Deceleration','dec_bb',1.0,'g')}\n        {label:'Weight Transfer to Front',value:transfer,unit:'lb',precision:0},\n        {label:'Dynamic Front Load',value:dynFront,unit:'lb',precision:0},\n        {label:'Dynamic Rear Load',value:dynRear,unit:'lb',precision:0},\n        {label:'Ideal Front Bias',value:fb,unit:'%'},\n        {label:'Ideal Rear Bias',value:rb,unit:'%'}\n    } else {\n      const fp=vd('fp',800), rp=vd('rp',600);\n      const total=fp+rp;\n      fb = +((fp/total)*100).toFixed(1);\n      rb = +((rp/total)*100).toFixed(1);\n      body = `${field('Front Brake Force','fp',800,'lbf')}\n      ${field('Rear Brake Force','rp',600,'lbf')}\n    }\n  }",
+  "before": {
+   "vectors": 10,
+   "checks": 10,
+   "problems": [
+    "wt_bb=0: validity differs - engine VALID 0, live shows \"—\""
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [
+    "Dynamic Front Load",
+    "Dynamic Rear Load",
+    "Ideal Front Bias",
+    "Ideal Rear Bias"
+   ],
+   "binding": {
+    "wt_bb": {
+     "field": "wt_bb",
+     "label": "Vehicle Weight↓ use 7500",
+     "unit": "lb"
+    },
+    "wb_bb": {
+     "field": "wb_bb",
+     "label": "Wheelbase",
+     "unit": "in"
+    },
+    "cg_bb": {
+     "field": "cg_bb",
+     "label": "CG Height",
+     "unit": "in"
+    },
+    "dec_bb": {
+     "field": "dec_bb",
+     "label": "Target Deceleration",
+     "unit": "g"
+    }
+   }
+  }
+ },
+ "master_cylinder": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Driver Pedal Force",
+     "Pedal Ratio",
+     "Target Line Pressure"
+    ],
+    "vars": [
+     "mc_pedal",
+     "mc_ratio",
+     "mc_pressure"
+    ],
+    "outputs": [
+     {
+      "expr": "mc_pedal*mc_ratio",
+      "out": "Pushrod Force",
+      "unit": "lbf"
+     },
+     {
+      "expr": "(([mc_pedal,mc_ratio,mc_pressure].every(n=>Number.isFinite(n)&&n>0)) ? mc_pedal*mc_ratio : NaN)/mc_pressure",
+      "out": "Required Piston Area",
+      "unit": "in²"
+     },
+     {
+      "expr": "Math.sqrt((([mc_pedal,mc_ratio,mc_pressure].every(n=>Number.isFinite(n)&&n>0)) ? (([mc_pedal,mc_ratio,mc_pressure].every(n=>Number.isFinite(n)&&n>0)) ? mc_pedal*mc_ratio : NaN)/mc_pressure : NaN)*4/Math.PI)",
+      "out": "Required Bore Diameter",
+      "unit": "in"
+     },
+     {
+      "expr": "mc_pedal*mc_ratio",
+      "out": "Pushrod Force",
+      "unit": "lbf"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "master_cylinder(){\n    /* FIX (audit, 2026-09): this previously computed clamp force from pressure and\n       bore, which duplicates the separate 'Brake Clamp Force' calculator and did not\n       match this calculator's name. It now actually SIZES the master-cylinder bore\n       from pedal force, pedal ratio and target line pressure, per its catalog name.\n       IMPROVE (audit, 2026-09): added the reverse-solve direction — given an\n       existing bore, what line pressure does it actually produce. */\n    const mode_mc = GHM_STORAGE.get('mc_mode')||'bore';\n    const pf=vd('mc_pedal',100), ratio=vd('mc_ratio',6);\n    let body;\n    if(mode_mc==='bore'){\n      const pressure=vd('mc_pressure',1200);\n      const valid=[pf,ratio,pressure].every(n=>Number.isFinite(n)&&n>0);\n      const rodForce = valid ? pf*ratio : NaN;\n      const area = valid ? rodForce/pressure : NaN;\n      const bore = valid ? Math.sqrt(area*4/Math.PI) : NaN;\n      body = `${field('Driver Pedal Force','mc_pedal',100,'lbf')}\n      ${field('Pedal Ratio','mc_ratio',6,':1')}\n      ${field('Target Line Pressure','mc_pressure',1200,'psi')}\n      ${valid?multiResult([{label:'Pushrod Force',value:rodForce,unit:'lbf',precision:0},{label:'Required Piston Area',value:area,unit:'in\\u00b2',precision:4},{label:'Required Bore Diameter',value:bore,unit:'in',precision:3}]):`<div class=\"result-box\"><div class=\"result-label\">Validation required</div><div class=\"result-value\">\\u2014</div><div class=\"help-note\">Pedal force, pedal ratio and target pressure must all be greater than zero.</div></div>`}`;\n    } else {\n      const bore_mc=vd('mc_bore',0.798);\n      const valid=[pf,ratio,bore_mc].every(n=>Number.isFinite(n)&&n>0);\n      const rodForce = valid ? pf*ratio : NaN;\n      const area = valid ? Math.PI*Math.pow(bore_mc,2)/4 : NaN;\n      const pressure = valid ? rodForce/area : NaN;\n      body = `${field('Driver Pedal Force','mc_pedal',100,'lbf')}\n      ${field('Pedal Ratio','mc_ratio',6,':1')}\n      ${field('Master Cylinder Bore','mc_bore',0.798,'in')}\n      ${valid?multiResult([{label:'Pushrod Force',value:rodForce,unit:'lbf',precision:0},{label:'Piston Area',value:area,unit:'in\\u00b2',precision:4},{label:'Resulting Line Pressure',value:pressure,unit:'psi',precision:0}]):`<div class=\"result-box\"><div class=\"result-label\">Validation required</div><div class=\"result-value\">\\u2014</div><div class=\"help-note\">Pedal force, pedal ratio and bore must all be greater than zero.</div></div>`}`;\n    }\n    return `${headerHTML('Master Cylinder Sizing','Sizes master-cylinder bore from driver pedal force, pedal ratio and target line pressure — or, in reverse, tells you the line pressure an existing bore actually produces. For clamp force from a known bore, use Brake Clamp Force.')}\n    <div class=\"calc-body\">\n      <div class=\"segment\">\n        <button class=\"seg-btn ${mode_mc==='bore'?'active':''}\" onclick=\"GHM_STORAGE.set('mc_mode','bore');renderCalc('master_cylinder',false)\">Solve for Bore</button>\n        <button class=\"seg-btn ${mode_mc==='pressure'?'active':''}\" onclick=\"GHM_STORAGE.set('mc_mode','pressure');renderCalc('master_cylinder',false)\">Solve for Pressure</button>\n      </div>\n      ${body}\n    </div>${calcFooter('Master Cylinder')}`;\n  }",
+  "live_logic": "master_cylinder(){\n    /* FIX (audit, 2026-09): this previously computed clamp force from pressure and\n       bore, which duplicates the separate 'Brake Clamp Force' calculator and did not\n       match this calculator's name. It now actually SIZES the master-cylinder bore\n       from pedal force, pedal ratio and target line pressure, per its catalog name.\n       IMPROVE (audit, 2026-09): added the reverse-solve direction — given an\n       existing bore, what line pressure does it actually produce. */\n    const mode_mc = GHM_STORAGE.get('mc_mode')||'bore';\n    const pf=vd('mc_pedal',100), ratio=vd('mc_ratio',6);\n    let body;\n    if(mode_mc==='bore'){\n      const pressure=vd('mc_pressure',1200);\n      const valid=[pf,ratio,pressure].every(n=>Number.isFinite(n)&&n>0);\n      const rodForce = valid ? pf*ratio : NaN;\n      const area = valid ? rodForce/pressure : NaN;\n      const bore = valid ? Math.sqrt(area*4/Math.PI) : NaN;\n      body = `${field('Driver Pedal Force','mc_pedal',100,'lbf')}\n      ${field('Pedal Ratio','mc_ratio',6,':1')}\n      ${field('Target Line Pressure','mc_pressure',1200,'psi')}\n    } else {\n      const bore_mc=vd('mc_bore',0.798);\n      const valid=[pf,ratio,bore_mc].every(n=>Number.isFinite(n)&&n>0);\n      const rodForce = valid ? pf*ratio : NaN;\n      const area = valid ? Math.PI*Math.pow(bore_mc,2)/4 : NaN;\n      const pressure = valid ? rodForce/area : NaN;\n      body = `${field('Driver Pedal Force','mc_pedal',100,'lbf')}\n      ${field('Pedal Ratio','mc_ratio',6,':1')}\n      ${field('Master Cylinder Bore','mc_bore',0.798,'in')}\n    }\n  }",
+  "before": {
+   "vectors": 8,
+   "checks": 20,
+   "problems": [
+    "mc_pedal=0: output 'Pushrod Force' has no matching live result (live: Validation required)",
+    "mc_pedal=0: output 'Required Piston Area' has no matching live result (live: Validation required)",
+    "mc_pedal=0: output 'Required Bore Diameter' has no matching live result (live: Validation required)",
+    "mc_pedal=0: output 'Pushrod Force' has no matching live result (live: Validation required)",
+    "mc_ratio=0: output 'Pushrod Force' has no matching live result (live: Validation required)",
+    "mc_ratio=0: output 'Required Piston Area' has no matching live result (live: Validation required)",
+    "mc_ratio=0: output 'Required Bore Diameter' has no matching live result (live: Validation required)",
+    "mc_ratio=0: output 'Pushrod Force' has no matching live result (live: Validation required)",
+    "mc_pressure=0: output 'Pushrod Force' has no matching live result (live: Validation required)",
+    "mc_pressure=0: output 'Required Piston Area' has no matching live result (live: Validation required)",
+    "mc_pressure=0: output 'Required Bore Diameter' has no matching live result (live: Validation required)",
+    "mc_pressure=0: output 'Pushrod Force' has no matching live result (live: Validation required)"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "mc_pedal": {
+     "field": "mc_pedal",
+     "label": "Driver Pedal Force",
+     "unit": "lbf"
+    },
+    "mc_ratio": {
+     "field": "mc_ratio",
+     "label": "Pedal Ratio",
+     "unit": ":1"
+    },
+    "mc_pressure": {
+     "field": "mc_pressure",
+     "label": "Target Line Pressure",
+     "unit": "psi"
+    }
+   }
+  }
+ },
+ "throttle_body": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Displacement",
+     "Peak RPM",
+     "Volumetric Efficiency",
+     "Target Bore Velocity"
+    ],
+    "vars": [
+     "tb_cid",
+     "tb_rpm",
+     "tb_ve",
+     "tb_vel"
+    ],
+    "outputs": [
+     {
+      "expr": "+(tb_cid*tb_rpm*tb_ve/3456).toFixed(1)",
+      "out": "Engine Airflow Demand",
+      "unit": "CFM"
+     },
+     {
+      "expr": "+((([tb_cid,tb_rpm,tb_ve,tb_vel].every(Number.isFinite)&&tb_cid>0&&tb_rpm>0&&tb_ve>0&&tb_vel>0) ? +(tb_cid*tb_rpm*tb_ve/3456).toFixed(1) : NaN)*144/(tb_vel*60)).toFixed(3)",
+      "out": "Required Bore Area",
+      "unit": "in²"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "throttle_body(){\n    /* REBUILT (audit 2026-09): the previous version tried to derive bore diameter\n       directly from horsepower via sqrt((hp*2)/(cyl*0.58))/pi*2. There is no such\n       closed-form relationship, and it returned 8.62 in (219 mm) for a 425 HP V8 --\n       roughly 2.4x too large. Replaced with the derivable chain actually used to size\n       a throttle body:\n         1. airflow demand   CFM = CID * RPM * VE / 3456\n         2. required area    A   = CFM * 144 / (v * 60)\n         3. bore diameter    D   = 2 * sqrt(A / pi)\n       Target velocity is a user input rather than a hidden constant. Verified against\n       factory hardware: LS3 376ci/6600/90mm = 157 ft/s, SBC 350ci/6000/75mm = 181 ft/s. */\n    const tb_cid=vd('tb_cid',426), tb_rpm=vd('tb_rpm',6000), tb_ve=vd('tb_ve',0.90),\n          tb_vel=vd('tb_vel',175), tb_dia=vd('tb_dia',0);\n    const ok=[tb_cid,tb_rpm,tb_ve,tb_vel].every(Number.isFinite)&&tb_cid>0&&tb_rpm>0&&tb_ve>0&&tb_vel>0;\n    const cfm_tb = ok ? +(tb_cid*tb_rpm*tb_ve/3456).toFixed(1) : NaN;\n    const area_tb = ok ? +(cfm_tb*144/(tb_vel*60)).toFixed(3) : NaN;\n    const dia_in = ok ? +(2*Math.sqrt(area_tb/Math.PI)).toFixed(3) : NaN;\n    const dia_mm = ok ? +(dia_in*25.4).toFixed(0) : NaN;\n    const chk_vel = (tb_dia>0 && ok) ? +(cfm_tb*144/((Math.PI/4*tb_dia*tb_dia)*60)).toFixed(0) : null;\n    return `${headerHTML('Throttle Body Sizing','Sizes the bore from actual airflow demand rather than a horsepower rule. CFM = CID x RPM x VE / 3456, required area = CFM x 144 / (velocity x 60), bore = 2*sqrt(A/pi). Factory throttle bodies typically run 150-200 ft/sec at peak; 175 is a sound starting target.')}\n    <div class=\"calc-body\">\n      ${field('Displacement','tb_cid',426,'ci')}\n      ${field('Peak RPM','tb_rpm',6000,'rpm')}\n      ${field('Volumetric Efficiency','tb_ve',0.90,'')}\n      ${field('Target Bore Velocity','tb_vel',175,'ft/sec')}\n      ${ok?multiResult([\n        {label:'Engine Airflow Demand',value:cfm_tb,unit:'CFM',precision:1},\n        {label:'Required Bore Area',value:area_tb,unit:'in\\u00b2',precision:3},\n        {label:'Required Bore (inches)',value:dia_in,unit:'in',precision:3},\n        {label:'Required Bore (metric)',value:dia_mm,unit:'mm',precision:0}\n      ]):`<div class=\"result-box\"><div class=\"result-label\">Validation required</div><div class=\"result-value\">\\u2014</div><div class=\"help-note\">Displacement, RPM, VE and target velocity must all be greater than zero.</div></div>`}\n      <div style=\"border-top:1px solid var(--border);margin:16px 0;padding-top:16px\">\n        ${field('OR check a specific bore','tb_dia',0,'in')}\n        ${chk_vel!==null?resultHTML('Velocity Through That Bore', chk_vel, 'ft/sec'):''}\n      </div>\n      <div class=\"help-note\">This gives the bore area the engine's airflow actually requires. It is not a flow rating: two throttle bodies of the same diameter can flow differently depending on blade thickness, shaft blockage, bore taper and entry radius. Cross-check the final choice against the manufacturer's measured CFM.</div>\n    </div>${calcFooter('Throttle Body')}`;\n  }",
+  "live_logic": "throttle_body(){\n    /* REBUILT (audit 2026-09): the previous version tried to derive bore diameter\n       directly from horsepower via sqrt((hp*2)/(cyl*0.58))/pi*2. There is no such\n       closed-form relationship, and it returned 8.62 in (219 mm) for a 425 HP V8 --\n       roughly 2.4x too large. Replaced with the derivable chain actually used to size\n       a throttle body:\n         1. airflow demand   CFM = CID * RPM * VE / 3456\n         2. required area    A   = CFM * 144 / (v * 60)\n         3. bore diameter    D   = 2 * sqrt(A / pi)\n       Target velocity is a user input rather than a hidden constant. Verified against\n       factory hardware: LS3 376ci/6600/90mm = 157 ft/s, SBC 350ci/6000/75mm = 181 ft/s. */\n    const tb_cid=vd('tb_cid',426), tb_rpm=vd('tb_rpm',6000), tb_ve=vd('tb_ve',0.90),\n          tb_vel=vd('tb_vel',175), tb_dia=vd('tb_dia',0);\n    const ok=[tb_cid,tb_rpm,tb_ve,tb_vel].every(Number.isFinite)&&tb_cid>0&&tb_rpm>0&&tb_ve>0&&tb_vel>0;\n    const cfm_tb = ok ? +(tb_cid*tb_rpm*tb_ve/3456).toFixed(1) : NaN;\n    const area_tb = ok ? +(cfm_tb*144/(tb_vel*60)).toFixed(3) : NaN;\n    const dia_in = ok ? +(2*Math.sqrt(area_tb/Math.PI)).toFixed(3) : NaN;\n    const dia_mm = ok ? +(dia_in*25.4).toFixed(0) : NaN;\n    const chk_vel = (tb_dia>0 && ok) ? +(cfm_tb*144/((Math.PI/4*tb_dia*tb_dia)*60)).toFixed(0) : null;\n      ${field('Displacement','tb_cid',426,'ci')}\n      ${field('Peak RPM','tb_rpm',6000,'rpm')}\n      ${field('Volumetric Efficiency','tb_ve',0.90,'')}\n      ${field('Target Bore Velocity','tb_vel',175,'ft/sec')}\n        {label:'Engine Airflow Demand',value:cfm_tb,unit:'CFM',precision:1},\n        {label:'Required Bore Area',value:area_tb,unit:'in\\u00b2',precision:3},\n        {label:'Required Bore (inches)',value:dia_in,unit:'in',precision:3},\n        {label:'Required Bore (metric)',value:dia_mm,unit:'mm',precision:0}\n        ${field('OR check a specific bore','tb_dia',0,'in')}\n  }",
+  "before": {
+   "vectors": 10,
+   "checks": 12,
+   "problems": [
+    "tb_cid=0: output 'Engine Airflow Demand' has no matching live result (live: Validation required)",
+    "tb_cid=0: output 'Required Bore Area' has no matching live result (live: Validation required)",
+    "tb_rpm=0: output 'Engine Airflow Demand' has no matching live result (live: Validation required)",
+    "tb_rpm=0: output 'Required Bore Area' has no matching live result (live: Validation required)",
+    "tb_ve=0: output 'Engine Airflow Demand' has no matching live result (live: Validation required)",
+    "tb_ve=0: output 'Required Bore Area' has no matching live result (live: Validation required)",
+    "tb_vel=0: output 'Engine Airflow Demand' has no matching live result (live: Validation required)",
+    "tb_vel=0: output 'Required Bore Area' has no matching live result (live: Validation required)"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [
+    "Required Bore (inches)",
+    "Required Bore (metric)"
+   ],
+   "binding": {
+    "tb_cid": {
+     "field": "tb_cid",
+     "label": "Displacement",
+     "unit": "ci"
+    },
+    "tb_rpm": {
+     "field": "tb_rpm",
+     "label": "Peak RPM",
+     "unit": "rpm"
+    },
+    "tb_ve": {
+     "field": "tb_ve",
+     "label": "Volumetric Efficiency",
+     "unit": ""
+    },
+    "tb_vel": {
+     "field": "tb_vel",
+     "label": "Target Bore Velocity",
+     "unit": "ft/sec"
+    }
+   }
+  }
+ },
+ "hp_from_specs": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Displacement",
+     "Peak RPM",
+     "Volumetric Efficiency",
+     "Target AFR",
+     "BSFC"
+    ],
+    "vars": [
+     "cid2",
+     "rpm_s",
+     "ve4",
+     "afr_s",
+     "bsfc_s"
+    ],
+    "outputs": [
+     {
+      "expr": "cid2*rpm_s*ve4/3456",
+      "out": "Estimated Airflow",
+      "unit": "CFM"
+     },
+     {
+      "expr": "(cid2*rpm_s*ve4/3456)*0.0765/afr_s",
+      "out": "Fuel Flow",
+      "unit": "lb/min"
+     },
+     {
+      "expr": "((cid2*rpm_s*ve4/3456)*0.0765/afr_s)*60/bsfc_s",
+      "out": "Estimated HP",
+      "unit": "HP"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS"
+  ],
+  "live_full": "hp_from_specs(){\n    /* FIX (audit, 2026-09): fuel flow was computed by dividing volumetric\n       airflow (CFM) directly by AFR, skipping the air-density conversion\n       needed to turn a volume into a mass — this produced 6,390 HP at\n       default inputs for a naturally aspirated 426ci engine, physically\n       impossible. Airflow is now converted to a mass flow via air density\n       before dividing by AFR, matching the deferred-issues suspected fix. */\n    const cid2=vd('cid2',350), rpm_s=vd('rpm_s',6000), ve4=vd('ve4',0.85), bsfc_s=vd('bsfc_s',0.50), afr_s=vd('afr_s',12.5), air_density_s=vd('air_density_s',0.0765);\n    const air_cfm=cid2*rpm_s*ve4/3456;\n    const air_lbmin=air_cfm*air_density_s;\n    const fuel_lbmin=air_lbmin/afr_s;\n    const hp_s=fuel_lbmin*60/bsfc_s;\n    return `${headerHTML('HP from CID / RPM / VE / BSFC / AFR','Estimates crank horsepower from estimated engine airflow and fuel consumption. Airflow (CFM) is converted to a mass flow using air density before applying AFR. Compression ratio is not a unique horsepower determinant, so it is intentionally not used in this airflow/BSFC model.')}\n    <div class=\"calc-body\">\n      ${field('Displacement','cid2',350,'ci')}\n      ${field('Peak RPM','rpm_s',6000,'RPM')}\n      ${field('Volumetric Efficiency','ve4',0.85,'')}\n      ${field('Air Density','air_density_s',0.0765,'lb/ft³')}\n      ${field('BSFC','bsfc_s',0.50,'lb/hp-hr')}\n      ${field('Target AFR','afr_s',12.5,':1')}\n      ${multiResult([{label:'Estimated Airflow',value:air_cfm,unit:'CFM',precision:1},{label:'Air Mass Flow',value:air_lbmin,unit:'lb/min',precision:2},{label:'Fuel Flow',value:fuel_lbmin,unit:'lb/min',precision:2},{label:'Estimated HP',value:hp_s,unit:'HP',precision:0}])}\n      <div class=\"help-note\">This is an airflow/BSFC estimate. Actual power depends on combustion efficiency, pumping losses, fuel, spark, VE curve and many other factors.</div>\n    </div>${calcFooter('HP from Specs')}`;\n  }",
+  "live_logic": "hp_from_specs(){\n    /* FIX (audit, 2026-09): fuel flow was computed by dividing volumetric\n       airflow (CFM) directly by AFR, skipping the air-density conversion\n       needed to turn a volume into a mass — this produced 6,390 HP at\n       default inputs for a naturally aspirated 426ci engine, physically\n       impossible. Airflow is now converted to a mass flow via air density\n       before dividing by AFR, matching the deferred-issues suspected fix. */\n    const cid2=vd('cid2',350), rpm_s=vd('rpm_s',6000), ve4=vd('ve4',0.85), bsfc_s=vd('bsfc_s',0.50), afr_s=vd('afr_s',12.5), air_density_s=vd('air_density_s',0.0765);\n    const air_cfm=cid2*rpm_s*ve4/3456;\n    const air_lbmin=air_cfm*air_density_s;\n    const fuel_lbmin=air_lbmin/afr_s;\n    const hp_s=fuel_lbmin*60/bsfc_s;\n      ${field('Displacement','cid2',350,'ci')}\n      ${field('Peak RPM','rpm_s',6000,'RPM')}\n      ${field('Volumetric Efficiency','ve4',0.85,'')}\n      ${field('Air Density','air_density_s',0.0765,'lb/ft³')}\n      ${field('BSFC','bsfc_s',0.50,'lb/hp-hr')}\n      ${field('Target AFR','afr_s',12.5,':1')}\n  }",
+  "before": {
+   "vectors": 12,
+   "checks": 36,
+   "problems": [
+    "live input 'Air Density' (air_density_s) changes the result but has no registry variable"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [
+    "Air Mass Flow"
+   ],
+   "binding": {
+    "cid2": {
+     "field": "cid2",
+     "label": "Displacement",
+     "unit": "ci"
+    },
+    "rpm_s": {
+     "field": "rpm_s",
+     "label": "Peak RPM↓ use 2800",
+     "unit": "RPM"
+    },
+    "ve4": {
+     "field": "ve4",
+     "label": "Volumetric Efficiency",
+     "unit": ""
+    },
+    "afr_s": {
+     "field": "afr_s",
+     "label": "Target AFR",
+     "unit": ":1"
+    },
+    "bsfc_s": {
+     "field": "bsfc_s",
+     "label": "BSFC",
+     "unit": "lb/hp-hr"
+    }
+   }
+  }
+ },
+ "distance_converter": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Distance"
+    ],
+    "vars": [
+     "d_in"
+    ],
+    "outputs": [
+     {
+      "expr": "d_in*1",
+      "out": "Miles",
+      "unit": "mi"
+     },
+     {
+      "expr": "d_in*1.60934",
+      "out": "Kilometers",
+      "unit": "km"
+     },
+     {
+      "expr": "d_in*5280",
+      "out": "Feet",
+      "unit": "ft"
+     },
+     {
+      "expr": "d_in*1609.34",
+      "out": "Meters",
+      "unit": "m"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "distance_converter(){\n    const d_in=vd('d_in',1), d_from=sv('d_from')||'mi';\n    let mi=d_in,km=d_in,ft2=d_in,m2=d_in,yd=d_in;\n    const conv={'mi':[1,1.60934,5280,1609.34,1760],'km':[0.621371,1,3280.84,1000,1093.61],'ft':[1/5280,0.0003048,1,0.3048,1/3],'m':[0.000621371,0.001,3.28084,1,1.09361],'yd':[1/1760,0.000914,3,0.9144,1]};\n    const c = conv[d_from];\n    return `${headerHTML('Distance Converter','Convert between miles, kilometers, feet, meters, yards.')}\n    <div class=\"calc-body\">\n      ${field('Distance','d_in',1,'')}\n      ${selectField('From Unit','d_from',[{v:'mi',l:'Miles'},{v:'km',l:'Kilometers'},{v:'ft',l:'Feet'},{v:'m',l:'Meters'},{v:'yd',l:'Yards'}],d_from)}\n      ${multiResult([\n        {label:'Miles',value:+(d_in*c[0]).toFixed(4),unit:'mi'},\n        {label:'Kilometers',value:+(d_in*c[1]).toFixed(4),unit:'km'},\n        {label:'Feet',value:+(d_in*c[2]).toFixed(2),unit:'ft'},\n        {label:'Meters',value:+(d_in*c[3]).toFixed(3),unit:'m'}\n      ])}\n    </div>${calcFooter('Distance')}`;\n  }",
+  "live_logic": "distance_converter(){\n    const d_in=vd('d_in',1), d_from=sv('d_from')||'mi';\n    let mi=d_in,km=d_in,ft2=d_in,m2=d_in,yd=d_in;\n    const conv={'mi':[1,1.60934,5280,1609.34,1760],'km':[0.621371,1,3280.84,1000,1093.61],'ft':[1/5280,0.0003048,1,0.3048,1/3],'m':[0.000621371,0.001,3.28084,1,1.09361],'yd':[1/1760,0.000914,3,0.9144,1]};\n    const c = conv[d_from];\n      ${field('Distance','d_in',1,'')}\n        {label:'Miles',value:+(d_in*c[0]).toFixed(4),unit:'mi'},\n        {label:'Kilometers',value:+(d_in*c[1]).toFixed(4),unit:'km'},\n        {label:'Feet',value:+(d_in*c[2]).toFixed(2),unit:'ft'},\n        {label:'Meters',value:+(d_in*c[3]).toFixed(3),unit:'m'}\n      ])}\n  }",
+  "before": {
+   "vectors": 4,
+   "checks": 16,
+   "problems": [
+    "live input 'From Unit' (d_from) changes the result but has no registry variable"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "d_in": {
+     "field": "d_in",
+     "label": "Distance",
+     "unit": ""
+    }
+   }
+  }
+ },
+ "volume_converter": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Volume"
+    ],
+    "vars": [
+     "vol3"
+    ],
+    "outputs": [
+     {
+      "expr": "vol3",
+      "out": "Gallons",
+      "unit": "gal"
+     },
+     {
+      "expr": "vol3*3.78541",
+      "out": "Liters",
+      "unit": "L"
+     },
+     {
+      "expr": "vol3*4",
+      "out": "Quarts",
+      "unit": "qt"
+     },
+     {
+      "expr": "vol3*128",
+      "out": "Fluid oz",
+      "unit": "oz"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "volume_converter(){\n    const vol3=vd('vol3',1), vf=sv('vf')||'gal';\n    const to_gal={'gal':1,'qt':0.25,'pt':0.125,'oz':1/128,'L':0.264172,'mL':0.000264172,'cc_v':0.000264172};\n    const gals = vol3*(to_gal[vf]||1);\n    return `${headerHTML('Volume Converter','Convert between gallons, quarts, pints, liters, and more.')}\n    <div class=\"calc-body\">\n      ${field('Volume','vol3',1,'')}\n      ${selectField('From','vf',[{v:'gal',l:'Gallons'},{v:'qt',l:'Quarts'},{v:'pt',l:'Pints'},{v:'oz',l:'Fluid oz'},{v:'L',l:'Liters'},{v:'mL',l:'Milliliters'}],vf)}\n      ${multiResult([\n        {label:'Gallons',value:+(gals).toFixed(4),unit:'gal'},\n        {label:'Liters',value:+(gals*3.78541).toFixed(4),unit:'L'},\n        {label:'Quarts',value:+(gals*4).toFixed(3),unit:'qt'},\n        {label:'Fluid oz',value:+(gals*128).toFixed(2),unit:'oz'}\n      ])}\n    </div>${calcFooter('Volume')}`;\n  }",
+  "live_logic": "volume_converter(){\n    const vol3=vd('vol3',1), vf=sv('vf')||'gal';\n    const to_gal={'gal':1,'qt':0.25,'pt':0.125,'oz':1/128,'L':0.264172,'mL':0.000264172,'cc_v':0.000264172};\n    const gals = vol3*(to_gal[vf]||1);\n      ${field('Volume','vol3',1,'')}\n        {label:'Gallons',value:+(gals).toFixed(4),unit:'gal'},\n        {label:'Liters',value:+(gals*3.78541).toFixed(4),unit:'L'},\n        {label:'Quarts',value:+(gals*4).toFixed(3),unit:'qt'},\n        {label:'Fluid oz',value:+(gals*128).toFixed(2),unit:'oz'}\n      ])}\n  }",
+  "before": {
+   "vectors": 4,
+   "checks": 16,
+   "problems": [
+    "live input 'From' (vf) changes the result but has no registry variable"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "vol3": {
+     "field": "vol3",
+     "label": "Volume",
+     "unit": ""
+    }
+   }
+  }
+ },
+ "pressure_converter": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Pressure"
+    ],
+    "vars": [
+     "pres_in"
+    ],
+    "outputs": [
+     {
+      "expr": "pres_in",
+      "out": "PSI",
+      "unit": "psi"
+     },
+     {
+      "expr": "pres_in/14.5038",
+      "out": "bar",
+      "unit": "bar"
+     },
+     {
+      "expr": "pres_in/0.145038",
+      "out": "kPa",
+      "unit": "kPa"
+     },
+     {
+      "expr": "pres_in/14.6959",
+      "out": "atm",
+      "unit": "atm"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "pressure_converter(){\n    const pres_in=vd('pres_in',14.7), pres_from=sv('pres_from')||'psi';\n    const to_psi={psi:1,bar:14.5038,kpa:0.145038,atm:14.6959,mmhg:0.0193368,inhg:0.491154};\n    const psi_val = pres_in*(to_psi[pres_from]||1);\n    return `${headerHTML('Pressure Converter','Convert between PSI, bar, kPa, atm, mmHg, and in Hg.')}\n    <div class=\"calc-body\">\n      ${field('Pressure','pres_in',14.7,'')}\n      ${selectField('From','pres_from',[{v:'psi',l:'PSI'},{v:'bar',l:'bar'},{v:'kpa',l:'kPa'},{v:'atm',l:'atm'},{v:'mmhg',l:'mmHg'},{v:'inhg',l:'in Hg'}],pres_from)}\n      ${multiResult([\n        {label:'PSI',value:+(psi_val).toFixed(4),unit:'psi'},\n        {label:'bar',value:+(psi_val/14.5038).toFixed(4),unit:'bar'},\n        {label:'kPa',value:+(psi_val/0.145038).toFixed(3),unit:'kPa'},\n        {label:'atm',value:+(psi_val/14.6959).toFixed(5),unit:'atm'}\n      ])}\n    </div>${calcFooter('Pressure Converter')}`;\n  }",
+  "live_logic": "pressure_converter(){\n    const pres_in=vd('pres_in',14.7), pres_from=sv('pres_from')||'psi';\n    const to_psi={psi:1,bar:14.5038,kpa:0.145038,atm:14.6959,mmhg:0.0193368,inhg:0.491154};\n    const psi_val = pres_in*(to_psi[pres_from]||1);\n      ${field('Pressure','pres_in',14.7,'')}\n        {label:'PSI',value:+(psi_val).toFixed(4),unit:'psi'},\n        {label:'bar',value:+(psi_val/14.5038).toFixed(4),unit:'bar'},\n        {label:'kPa',value:+(psi_val/0.145038).toFixed(3),unit:'kPa'},\n        {label:'atm',value:+(psi_val/14.6959).toFixed(5),unit:'atm'}\n      ])}\n  }",
+  "before": {
+   "vectors": 4,
+   "checks": 16,
+   "problems": [
+    "live input 'From' (pres_from) changes the result but has no registry variable"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "pres_in": {
+     "field": "pres_in",
+     "label": "Pressure",
+     "unit": ""
+    }
+   }
+  }
+ },
+ "power_converter": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Power"
+    ],
+    "vars": [
+     "pow_in"
+    ],
+    "outputs": [
+     {
+      "expr": "pow_in",
+      "out": "HP (SAE)",
+      "unit": "hp"
+     },
+     {
+      "expr": "pow_in*0.745699",
+      "out": "kW",
+      "unit": "kW"
+     },
+     {
+      "expr": "pow_in*0.745699/0.735499",
+      "out": "PS / CV",
+      "unit": "PS"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "power_converter(){\n    const pow_in=vd('pow_in',425), pow_from=sv('pow_from')||'hp';\n    const to_kw={hp:0.745699,kw:1,ps:0.735499,ftlbs:0.00135582,watts:0.001};\n    const kw_val = pow_in*(to_kw[pow_from]||1);\n    const hp_val = +(kw_val/0.745699).toFixed(2);\n    const ps_val = +(kw_val/0.735499).toFixed(2);\n    return `${headerHTML('Power Converter (HP / kW / PS)','Convert between horsepower (SAE), kilowatts, metric horsepower (PS/CV), and watts.')}\n    <div class=\"calc-body\">\n      ${field('Power','pow_in',425,'')}\n      ${selectField('From','pow_from',[{v:'hp',l:'HP (SAE)'},{v:'kw',l:'kW'},{v:'ps',l:'PS / CV (metric)'},{v:'watts',l:'Watts'}],pow_from)}\n      ${multiResult([\n        {label:'HP (SAE)',value:hp_val,unit:'hp'},\n        {label:'kW',value:+(kw_val).toFixed(2),unit:'kW'},\n        {label:'PS / CV',value:ps_val,unit:'PS'}\n      ])}\n    </div>${calcFooter('Power Converter')}`;\n  }",
+  "live_logic": "power_converter(){\n    const pow_in=vd('pow_in',425), pow_from=sv('pow_from')||'hp';\n    const to_kw={hp:0.745699,kw:1,ps:0.735499,ftlbs:0.00135582,watts:0.001};\n    const kw_val = pow_in*(to_kw[pow_from]||1);\n    const hp_val = +(kw_val/0.745699).toFixed(2);\n    const ps_val = +(kw_val/0.735499).toFixed(2);\n      ${field('Power','pow_in',425,'')}\n        {label:'HP (SAE)',value:hp_val,unit:'hp'},\n        {label:'kW',value:+(kw_val).toFixed(2),unit:'kW'},\n        {label:'PS / CV',value:ps_val,unit:'PS'}\n      ])}\n  }",
+  "before": {
+   "vectors": 4,
+   "checks": 12,
+   "problems": [
+    "live input 'From' (pow_from) changes the result but has no registry variable"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "pow_in": {
+     "field": "pow_in",
+     "label": "Power",
+     "unit": ""
+    }
+   }
+  }
+ },
+ "wind_et": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Current ET (calm)",
+     "Wind Speed"
+    ],
+    "vars": [
+     "et_wnd",
+     "wind_spd"
+    ],
+    "expr": "et_wnd + wind_spd*0.001",
+    "out": "Corrected ET (headwind)",
+    "unit": "sec"
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "wind_et(){\n    const et_wnd=vd('et_wnd',12.5), wind_spd=vd('wind_spd',10), wind_dir=sv('wind_dir')||'head';\n    const factor = wind_dir==='head' ? 0.01 : -0.01;\n    const new_et3 = +(et_wnd+(wind_spd*factor*0.1)).toFixed(3);\n    return `${headerHTML('Wind Effect on ET','Headwind hurts; tailwind helps. Approx 0.001 sec per mph of headwind, 0.001 sec gain per mph of tailwind.')}\n    <div class=\"calc-body\">\n      ${field('Current ET (calm)','et_wnd',12.5,'sec')}\n      ${field('Wind Speed','wind_spd',10,'mph')}\n      ${selectField('Wind Direction','wind_dir',[{v:'head',l:'Headwind'},{v:'tail',l:'Tailwind'}],wind_dir)}\n      ${resultHTML('Corrected ET', new_et3, 'sec', true)}\n    </div>${calcFooter('Wind/ET')}`;\n  }",
+  "live_logic": "wind_et(){\n    const et_wnd=vd('et_wnd',12.5), wind_spd=vd('wind_spd',10), wind_dir=sv('wind_dir')||'head';\n    const factor = wind_dir==='head' ? 0.01 : -0.01;\n    const new_et3 = +(et_wnd+(wind_spd*factor*0.1)).toFixed(3);\n      ${field('Current ET (calm)','et_wnd',12.5,'sec')}\n      ${field('Wind Speed','wind_spd',10,'mph')}\n  }",
+  "before": {
+   "vectors": 6,
+   "checks": 6,
+   "problems": [
+    "live input 'Wind Direction' (wind_dir) changes the result but has no registry variable"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "et_wnd": {
+     "field": "et_wnd",
+     "label": "Current ET (calm)",
+     "unit": "sec"
+    },
+    "wind_spd": {
+     "field": "wind_spd",
+     "label": "Wind Speed",
+     "unit": "mph"
+    }
+   }
+  }
+ },
+ "max_rpm": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Stroke"
+    ],
+    "vars": [
+     "str_mr"
+    ],
+    "expr": "Math.round(24000/str_mr)",
+    "out": "Max Safe RPM (Street, 4,000 ft/min piston speed)",
+    "unit": "RPM"
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "max_rpm(){\n    const str_mr=vd('str_mr',3.75), type_mr=sv('type_mr')||'street';\n    const limits = {street:4000,perf:4500,race:5000};\n    const mps_limit = limits[type_mr];\n    const max_r = Math.round((mps_limit*12)/(str_mr*2));\n    return `${headerHTML('Max Safe RPM','Based on mean piston speed limits: Street 4,000 ft/min, Performance 4,500 ft/min, Race 5,000 ft/min.')}\n    <div class=\"calc-body\">\n      ${field('Stroke','str_mr',3.75,'in')}\n      ${selectField('Application','type_mr',[{v:'street',l:'Street / Daily'},{v:'perf',l:'Performance'},{v:'race',l:'All-Out Race'}],type_mr)}\n      ${resultHTML('Max Safe RPM', max_r, 'RPM')}\n    </div>${calcFooter('Max RPM')}`;\n  }",
+  "live_logic": "max_rpm(){\n    const str_mr=vd('str_mr',3.75), type_mr=sv('type_mr')||'street';\n    const limits = {street:4000,perf:4500,race:5000};\n    const mps_limit = limits[type_mr];\n    const max_r = Math.round((mps_limit*12)/(str_mr*2));\n      ${field('Stroke','str_mr',3.75,'in')}\n  }",
+  "before": {
+   "vectors": 4,
+   "checks": 4,
+   "problems": [
+    "live input 'Application' (type_mr) changes the result but has no registry variable"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "str_mr": {
+     "field": "str_mr",
+     "label": "Stroke↓ use 4.88",
+     "unit": "in"
+    }
+   }
+  }
+ },
+ "fuse_sizing": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Load Current"
+    ],
+    "vars": [
+     "amps_fs"
+    ],
+    "expr": "Math.round(amps_fs*1.25)",
+    "out": "Minimum Fuse Rating (continuous load)",
+    "unit": "A"
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "fuse_sizing(){\n    const amps_fs=vd('amps_fs',20), type_fs=sv('type_fs')||'continuous';\n    /* FIX (audit 2026-09): the inrush factor was 0.5, which returned a fuse SMALLER\n       than the continuous load (10A for a 20A motor) under a label reading \"Min Fuse\n       Rating\". A motor/inrush circuit is never fused below its running current; it is\n       fused above it with a time-delay element. 1.5x is the common convention -- the\n       exact multiplier is a convention, but the direction is not. */\n    const factor = {continuous:1.25, intermittent:1.0, inrush:1.5}[type_fs]||1.25;\n    const fuse_a = +(amps_fs*factor).toFixed(0);\n    const std_sizes = [1,2,3,5,7.5,10,15,20,25,30,35,40,50,60,70,80,100];\n    const next_std = std_sizes.find(s=>s>=fuse_a)||100;\n    return `${headerHTML('Fuse Sizing','Fuse = load amps × 125% for continuous loads. Pick next standard size up. Never upsize a fuse to \"fix\" a blowing fuse — find the cause.')}\n    <div class=\"calc-body\">\n      ${field('Continuous Load Current','amps_fs',20,'A')}\n      ${selectField('Load Type','type_fs',[{v:'continuous',l:'Continuous (×1.25)'},{v:'intermittent',l:'Intermittent (×1.0)'},{v:'inrush',l:'Motor Inrush (×1.5, time-delay)'}],type_fs)}\n      ${multiResult([\n        {label:'Min Fuse Rating',value:fuse_a,unit:'A'},\n        {label:'Next Standard Size',value:next_std,unit:'A'}\n      ])}\n      <div class=\"help-note\">Motor and other inrush loads should use a time-delay (slow-blow) fuse so the starting surge does not blow a correctly sized element. Never fuse an inrush circuit below its running current, and size the wire for the fuse — not the other way round.</div>\n    </div>${calcFooter('Fuse Sizing')}`;\n  }",
+  "live_logic": "fuse_sizing(){\n    const amps_fs=vd('amps_fs',20), type_fs=sv('type_fs')||'continuous';\n    /* FIX (audit 2026-09): the inrush factor was 0.5, which returned a fuse SMALLER\n       than the continuous load (10A for a 20A motor) under a label reading \"Min Fuse\n       Rating\". A motor/inrush circuit is never fused below its running current; it is\n       fused above it with a time-delay element. 1.5x is the common convention -- the\n       exact multiplier is a convention, but the direction is not. */\n    const factor = {continuous:1.25, intermittent:1.0, inrush:1.5}[type_fs]||1.25;\n    const fuse_a = +(amps_fs*factor).toFixed(0);\n    const std_sizes = [1,2,3,5,7.5,10,15,20,25,30,35,40,50,60,70,80,100];\n    const next_std = std_sizes.find(s=>s>=fuse_a)||100;\n      ${field('Continuous Load Current','amps_fs',20,'A')}\n        {label:'Min Fuse Rating',value:fuse_a,unit:'A'},\n        {label:'Next Standard Size',value:next_std,unit:'A'}\n      ])}\n  }",
+  "before": {
+   "vectors": 4,
+   "checks": 0,
+   "problems": [
+    "defaults: output 'Minimum Fuse Rating (continuous load)' has no matching live result (live: Min Fuse Rating / Next Standard Size)",
+    "all x1.07: output 'Minimum Fuse Rating (continuous load)' has no matching live result (live: Min Fuse Rating / Next Standard Size)",
+    "amps_fs x1.13: output 'Minimum Fuse Rating (continuous load)' has no matching live result (live: Min Fuse Rating / Next Standard Size)",
+    "amps_fs=0: output 'Minimum Fuse Rating (continuous load)' has no matching live result (live: Min Fuse Rating / Next Standard Size)"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [
+    "Min Fuse Rating",
+    "Next Standard Size"
+   ],
+   "binding": {
+    "amps_fs": {
+     "field": "amps_fs",
+     "label": "Continuous Load Current",
+     "unit": "A"
+    }
+   }
+  }
+ },
+ "ring_gap": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Bore"
+    ],
+    "vars": [
+     "bore_rg"
+    ],
+    "outputs": [
+     {
+      "expr": "bore_rg*0.0045",
+      "out": "Top Ring Gap (Street)",
+      "unit": "in"
+     },
+     {
+      "expr": "bore_rg*0.0048",
+      "out": "Second Ring Gap (Street)",
+      "unit": "in"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "ring_gap(){\n    const bore_rg=vd('bore_rg',4.2500), app_rg=sv('app_rg')||'street';\n    const factors={street:[0.0045,0.0048],na_race:[0.0045,0.0050],nitrous_street:[0.0050,0.0055],nitrous_race:[0.0070,0.0075],boost:[0.0070,0.0075]};\n    const f=factors[app_rg]||factors.street;\n    const top=bore_rg*f[0], second=bore_rg*f[1];\n    return `${headerHTML('Piston Ring Gap','Uses application-specific bore multipliers based on published MAHLE/Wiseco guidance. Always follow the piston/ring manufacturer specification when it differs.')}\n    <div class=\"calc-body\">\n      ${field('Bore','bore_rg',4.2500,'in')}\n      ${selectField('Application','app_rg',[{v:'street',l:'Street / Moderate Performance'},{v:'na_race',l:'Race / Naturally Aspirated'},{v:'nitrous_street',l:'Nitrous — Street'},{v:'nitrous_race',l:'Nitrous — Race'},{v:'boost',l:'Turbo / Supercharged'}],app_rg)}\n      ${multiResult([{label:'Top Ring Gap',value:top,unit:'in',precision:4},{label:'Second Ring Gap',value:second,unit:'in',precision:4}])}\n      <div class=\"help-note\">Ring gaps vary with ring material, width, fuel, temperature and application. Manufacturer specs take precedence.</div>\n    </div>${calcFooter('Ring Gap')}`;\n  }",
+  "live_logic": "ring_gap(){\n    const bore_rg=vd('bore_rg',4.2500), app_rg=sv('app_rg')||'street';\n    const factors={street:[0.0045,0.0048],na_race:[0.0045,0.0050],nitrous_street:[0.0050,0.0055],nitrous_race:[0.0070,0.0075],boost:[0.0070,0.0075]};\n    const f=factors[app_rg]||factors.street;\n    const top=bore_rg*f[0], second=bore_rg*f[1];\n      ${field('Bore','bore_rg',4.2500,'in')}\n  }",
+  "before": {
+   "vectors": 4,
+   "checks": 8,
+   "problems": [
+    "live input 'Application' (app_rg) changes the result but has no registry variable"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "bore_rg": {
+     "field": "bore_rg",
+     "label": "Bore↓ use 4.21",
+     "unit": "in"
+    }
+   }
+  }
+ },
+ "bearing_life": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Equivalent Dynamic Load",
+     "Bearing Dynamic Load Rating",
+     "Operating Speed"
+    ],
+    "vars": [
+     "load_br",
+     "rated_load",
+     "rpm_br"
+    ],
+    "outputs": [
+     {
+      "expr": "Math.pow(rated_load/load_br,3)",
+      "out": "L10 Life (ball bearing, p=3)",
+      "unit": "million rev"
+     },
+     {
+      "expr": "Math.pow(rated_load/load_br,3)*1000000/(rpm_br*60)",
+      "out": "L10 Life (hours)",
+      "unit": "hours"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "bearing_life(){\n    const load=vd('load_br',2000), C=vd('rated_load',5000), rpm=vd('rpm_br',3000), life_exp=vd('life_exp',3);\n    const p=life_exp===3?3:(life_exp===3.33?10/3:NaN);\n    const valid=load>0 && C>0 && rpm>0 && Number.isFinite(p);\n    const l10=valid?Math.pow(C/load,p):0;\n    const hours=valid?(l10*1000000)/(rpm*60):0;\n    const days=valid?hours/24:0;\n    return `${headerHTML('Bearing Life (L10)','Basic ISO 281 rating life: L10 = (C/P)^p million revolutions; p=3 for ball bearings and 10/3 for roller bearings. Hours = L10×10⁶/(60×RPM). This is nominal L10 life, not a guarantee.')}\n    <div class=\"calc-body\">\n      ${field('Equivalent Dynamic Load','load_br',2000,'lbs')}\n      ${field('Bearing Dynamic Load Rating','rated_load',5000,'lbs')}\n      ${field('Operating Speed','rpm_br',3000,'RPM')}\n      ${selectField('Bearing Type','life_exp',[{v:'3',l:'Ball Bearing (p=3)'},{v:'3.33',l:'Roller Bearing (p=10/3)'}],life_exp)}\n      ${valid?multiResult([{label:'L10 Life',value:+l10.toFixed(1),unit:'M revolutions'},{label:'L10 Life (hours)',value:Math.round(hours),unit:'hrs'},{label:'L10 Life (days @ 24hr)',value:Math.round(days),unit:'days'}]):`<div class=\"result-box\"><div class=\"result-value\">Invalid bearing inputs</div><div class=\"help-note\">Load, dynamic rating, and RPM must all be greater than zero.</div></div>`}\n    </div>${calcFooter('Bearing Life')}`;\n  }",
+  "live_logic": "bearing_life(){\n    const load=vd('load_br',2000), C=vd('rated_load',5000), rpm=vd('rpm_br',3000), life_exp=vd('life_exp',3);\n    const p=life_exp===3?3:(life_exp===3.33?10/3:NaN);\n    const valid=load>0 && C>0 && rpm>0 && Number.isFinite(p);\n    const l10=valid?Math.pow(C/load,p):0;\n    const hours=valid?(l10*1000000)/(rpm*60):0;\n    const days=valid?hours/24:0;\n      ${field('Equivalent Dynamic Load','load_br',2000,'lbs')}\n      ${field('Bearing Dynamic Load Rating','rated_load',5000,'lbs')}\n      ${field('Operating Speed','rpm_br',3000,'RPM')}\n  }",
+  "before": {
+   "vectors": 8,
+   "checks": 10,
+   "problems": [
+    "load_br=0: output 'L10 Life (ball bearing, p=3)' has no matching live result (live: )",
+    "load_br=0: output 'L10 Life (hours)' has no matching live result (live: )",
+    "rated_load=0: output 'L10 Life (ball bearing, p=3)' has no matching live result (live: )",
+    "rated_load=0: output 'L10 Life (hours)' has no matching live result (live: )",
+    "rpm_br=0: output 'L10 Life (ball bearing, p=3)' has no matching live result (live: )",
+    "rpm_br=0: output 'L10 Life (hours)' has no matching live result (live: )",
+    "live input 'Bearing Type' (life_exp) changes the result but has no registry variable"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [
+    "L10 Life (days @ 24hr)"
+   ],
+   "binding": {
+    "load_br": {
+     "field": "load_br",
+     "label": "Equivalent Dynamic Load",
+     "unit": "lbs"
+    },
+    "rated_load": {
+     "field": "rated_load",
+     "label": "Bearing Dynamic Load Rating",
+     "unit": "lbs"
+    },
+    "rpm_br": {
+     "field": "rpm_br",
+     "label": "Operating Speed↓ use 2800",
+     "unit": "RPM"
+    }
+   }
+  }
+ },
+ "speed_converter": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Speed"
+    ],
+    "vars": [
+     "s_in"
+    ],
+    "outputs": [
+     {
+      "expr": "s_in",
+      "out": "MPH",
+      "unit": "mph"
+     },
+     {
+      "expr": "+(s_in*1.60934).toFixed(2)",
+      "out": "KM/H",
+      "unit": "km/h"
+     },
+     {
+      "expr": "+(s_in*0.44704).toFixed(3)",
+      "out": "M/S",
+      "unit": "m/s"
+     },
+     {
+      "expr": "+(s_in*1.46667).toFixed(2)",
+      "out": "FT/S",
+      "unit": "ft/s"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "speed_converter(){\n    const s_in=vd('s_in',60), s_from=sv('s_from')||'mph';\n    let mph=s_in, kph=s_in, mps=s_in, fps=s_in;\n    if(s_from==='mph'){ kph=+(s_in*1.60934).toFixed(2); mps=+(s_in*0.44704).toFixed(3); fps=+(s_in*1.46667).toFixed(2); }\n    else if(s_from==='kph'){ mph=+(s_in/1.60934).toFixed(2); mps=+(s_in/3.6).toFixed(3); fps=+(s_in*0.91134).toFixed(2); }\n    else if(s_from==='mps'){ mph=+(s_in*2.23694).toFixed(2); kph=+(s_in*3.6).toFixed(2); fps=+(s_in*3.28084).toFixed(2); }\n    return `${headerHTML('Speed Converter','Convert between mph, km/h, m/s, and ft/s.')}\n    <div class=\"calc-body\">\n      ${field('Speed','s_in',60,'')}\n      ${selectField('From Unit','s_from',[{v:'mph',l:'mph'},{v:'kph',l:'km/h'},{v:'mps',l:'m/s'},{v:'fps',l:'ft/s'}],s_from)}\n      ${multiResult([{label:'MPH',value:mph,unit:'mph'},{label:'KM/H',value:kph,unit:'km/h'},{label:'M/S',value:mps,unit:'m/s'},{label:'FT/S',value:fps,unit:'ft/s'}])}\n    </div>${calcFooter('Speed Converter')}`;\n  }",
+  "live_logic": "speed_converter(){\n    const s_in=vd('s_in',60), s_from=sv('s_from')||'mph';\n    let mph=s_in, kph=s_in, mps=s_in, fps=s_in;\n    if(s_from==='mph'){ kph=+(s_in*1.60934).toFixed(2); mps=+(s_in*0.44704).toFixed(3); fps=+(s_in*1.46667).toFixed(2); }\n    else if(s_from==='kph'){ mph=+(s_in/1.60934).toFixed(2); mps=+(s_in/3.6).toFixed(3); fps=+(s_in*0.91134).toFixed(2); }\n    else if(s_from==='mps'){ mph=+(s_in*2.23694).toFixed(2); kph=+(s_in*3.6).toFixed(2); fps=+(s_in*3.28084).toFixed(2); }\n      ${field('Speed','s_in',60,'')}\n  }",
+  "before": {
+   "vectors": 4,
+   "checks": 16,
+   "problems": [
+    "live input 'From Unit' (s_from) changes the result but has no registry variable"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "s_in": {
+     "field": "s_in",
+     "label": "Speed",
+     "unit": ""
+    }
+   }
+  }
+ },
+ "temp_converter": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Temperature"
+    ],
+    "vars": [
+     "t_in"
+    ],
+    "outputs": [
+     {
+      "expr": "t_in",
+      "out": "°F",
+      "unit": "°F"
+     },
+     {
+      "expr": "+((t_in-32)*5/9).toFixed(2)",
+      "out": "°C",
+      "unit": "°C"
+     },
+     {
+      "expr": "+((+((t_in-32)*5/9).toFixed(2))+273.15).toFixed(2)",
+      "out": "K",
+      "unit": "K"
+     },
+     {
+      "expr": "+(t_in+459.67).toFixed(2)",
+      "out": "°R",
+      "unit": "°R"
+     }
+    ]
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "temp_converter(){\n    const t_in=vd('t_in',70), t_from=sv('t_from')||'F';\n    let F=t_in, C=t_in, K=t_in, R=t_in;\n    if(t_from==='F'){ C=+((t_in-32)*5/9).toFixed(2); K=+(C+273.15).toFixed(2); R=+(t_in+459.67).toFixed(2); }\n    else if(t_from==='C'){ F=+(t_in*9/5+32).toFixed(2); K=+(t_in+273.15).toFixed(2); R=+(F+459.67).toFixed(2); }\n    else if(t_from==='K'){ C=+(t_in-273.15).toFixed(2); F=+(C*9/5+32).toFixed(2); R=+(F+459.67).toFixed(2); }\n    return `${headerHTML('Temperature Converter','Convert between Fahrenheit, Celsius, Kelvin, and Rankine.')}\n    <div class=\"calc-body\">\n      ${field('Temperature','t_in',70,'')}\n      ${selectField('From','t_from',[{v:'F',l:'°F Fahrenheit'},{v:'C',l:'°C Celsius'},{v:'K',l:'K Kelvin'}],t_from)}\n      ${multiResult([{label:'°F',value:F,unit:'°F'},{label:'°C',value:C,unit:'°C'},{label:'K',value:K,unit:'K'},{label:'°R',value:R,unit:'°R'}])}\n    </div>${calcFooter('Temp Converter')}`;\n  }",
+  "live_logic": "temp_converter(){\n    const t_in=vd('t_in',70), t_from=sv('t_from')||'F';\n    let F=t_in, C=t_in, K=t_in, R=t_in;\n    if(t_from==='F'){ C=+((t_in-32)*5/9).toFixed(2); K=+(C+273.15).toFixed(2); R=+(t_in+459.67).toFixed(2); }\n    else if(t_from==='C'){ F=+(t_in*9/5+32).toFixed(2); K=+(t_in+273.15).toFixed(2); R=+(F+459.67).toFixed(2); }\n    else if(t_from==='K'){ C=+(t_in-273.15).toFixed(2); F=+(C*9/5+32).toFixed(2); R=+(F+459.67).toFixed(2); }\n      ${field('Temperature','t_in',70,'')}\n  }",
+  "before": {
+   "vectors": 4,
+   "checks": 16,
+   "problems": [
+    "live input 'From' (t_from) changes the result but has no registry variable"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [],
+   "binding": {
+    "t_in": {
+     "field": "t_in",
+     "label": "Temperature",
+     "unit": ""
+    }
+   }
+  }
+ },
+ "injector_flow": {
+  "registry": {
+   "registry": "GH_LEGACY_FORMULAS",
+   "spec": {
+    "labels": [
+     "Flow Rate"
+    ],
+    "vars": [
+     "flow1"
+    ],
+    "expr": "+(flow1*10.5042).toFixed(1)",
+    "out": "cc/min",
+    "unit": "cc/min"
+   }
+  },
+  "registries_with_id": [
+   "GH_LEGACY_FORMULAS",
+   "GH_BACKFILL_FORMULAS"
+  ],
+  "live_full": "injector_flow(){\n    const flow1=vd('flow1',24), flow_from=sv('flow_from')||'lbhr';\n    let lb_hr2=flow1, cc_min2=flow1;\n    if(flow_from==='lbhr'){ cc_min2=+(flow1*10.5042).toFixed(1); }\n    else { lb_hr2=+(flow1/10.5042).toFixed(2); }\n    return `${headerHTML('Fuel Injector Flow Converter','Convert between lb/hr and cc/min injector flow ratings.')}\n    <div class=\"calc-body\">\n      ${field('Flow Rate','flow1',24,'')}\n      ${selectField('From','flow_from',[{v:'lbhr',l:'lb/hr'},{v:'ccmin',l:'cc/min'}],flow_from)}\n      ${multiResult([{label:'lb/hr',value:lb_hr2,unit:'lb/hr'},{label:'cc/min',value:cc_min2,unit:'cc/min'}])}\n    </div>${calcFooter('Injector Flow')}`;\n  }",
+  "live_logic": "injector_flow(){\n    const flow1=vd('flow1',24), flow_from=sv('flow_from')||'lbhr';\n    let lb_hr2=flow1, cc_min2=flow1;\n    if(flow_from==='lbhr'){ cc_min2=+(flow1*10.5042).toFixed(1); }\n    else { lb_hr2=+(flow1/10.5042).toFixed(2); }\n      ${field('Flow Rate','flow1',24,'')}\n  }",
+  "before": {
+   "vectors": 4,
+   "checks": 4,
+   "problems": [
+    "live input 'From' (flow_from) changes the result but has no registry variable"
+   ],
+   "unitNotes": [],
+   "uncovered_live_outputs": [
+    "lb/hr"
+   ],
+   "binding": {
+    "flow1": {
+     "field": "flow1",
+     "label": "Flow Rate",
+     "unit": ""
+    }
+   }
+  }
+ }
+}

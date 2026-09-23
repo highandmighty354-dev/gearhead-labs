@@ -1,0 +1,1201 @@
+{
+ "weight_reduction": {
+  "registries": 1,
+  "note": "live: gain = (finite && newWt>0) ? ... : NaN",
+  "before": {
+   "labels": [
+    "Current Horsepower",
+    "Current Vehicle Weight",
+    "Weight to Remove"
+   ],
+   "vars": [
+    "hp3",
+    "wt3",
+    "red"
+   ],
+   "expr": "hp3*(red/(wt3-red))",
+   "out": "Equivalent HP Gain",
+   "unit": "HP"
+  },
+  "after": {
+   "labels": [
+    "Current Horsepower",
+    "Current Vehicle Weight",
+    "Weight to Remove"
+   ],
+   "vars": [
+    "hp3",
+    "wt3",
+    "red"
+   ],
+   "expr": "([hp3,wt3,red].every(Number.isFinite)&&(wt3-red)>0) ? (hp3*(red/(wt3-red))) : NaN",
+   "out": "Equivalent HP Gain",
+   "unit": "HP"
+  }
+ },
+ "static_compression": {
+  "registries": 1,
+  "note": "live: invalid box for all outputs unless valid",
+  "before": {
+   "labels": [
+    "Bore",
+    "Stroke",
+    "Chamber Volume",
+    "Head Gasket Volume",
+    "Piston Volume (+dome / −dish)"
+   ],
+   "vars": [
+    "bore2",
+    "stroke2",
+    "chamber",
+    "gasket",
+    "piston"
+   ],
+   "outputs": [
+    {
+     "expr": "((Math.PI/4)*Math.pow(bore2,2)*stroke2)*16.387064",
+     "out": "Swept Volume",
+     "unit": "cc"
+    },
+    {
+     "expr": "chamber+gasket-piston",
+     "out": "Clearance Volume",
+     "unit": "cc"
+    },
+    {
+     "expr": "(bore2>0&&stroke2>0&&chamber>=0&&gasket>=0&&(chamber+gasket-piston)>0)?+(((((Math.PI/4)*Math.pow(bore2,2)*stroke2)*16.387064)+(chamber+gasket-piston))/(chamber+gasket-piston)).toFixed(3):0",
+     "out": "Static Compression Ratio",
+     "unit": ":1"
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Bore",
+    "Stroke",
+    "Chamber Volume",
+    "Head Gasket Volume",
+    "Piston Volume (+dome / −dish)"
+   ],
+   "vars": [
+    "bore2",
+    "stroke2",
+    "chamber",
+    "gasket",
+    "piston"
+   ],
+   "outputs": [
+    {
+     "expr": "(bore2>0&&stroke2>0&&chamber>=0&&gasket>=0&&(chamber+gasket-piston)>0) ? (((Math.PI/4)*Math.pow(bore2,2)*stroke2)*16.387064) : NaN",
+     "out": "Swept Volume",
+     "unit": "cc"
+    },
+    {
+     "expr": "(bore2>0&&stroke2>0&&chamber>=0&&gasket>=0&&(chamber+gasket-piston)>0) ? (chamber+gasket-piston) : NaN",
+     "out": "Clearance Volume",
+     "unit": "cc"
+    },
+    {
+     "expr": "(bore2>0&&stroke2>0&&chamber>=0&&gasket>=0&&(chamber+gasket-piston)>0) ? ((bore2>0&&stroke2>0&&chamber>=0&&gasket>=0&&(chamber+gasket-piston)>0)?+(((((Math.PI/4)*Math.pow(bore2,2)*stroke2)*16.387064)+(chamber+gasket-piston))/(chamber+gasket-piston)).toFixed(3):0) : NaN",
+     "out": "Static Compression Ratio",
+     "unit": ":1"
+    }
+   ]
+  }
+ },
+ "tire_size": {
+  "registries": 1,
+  "note": "live: invalid box unless valid (registry returned 0)",
+  "before": {
+   "labels": [
+    "Section Width",
+    "Aspect Ratio",
+    "Wheel Diameter"
+   ],
+   "vars": [
+    "tw",
+    "ar",
+    "wr"
+   ],
+   "outputs": [
+    {
+     "expr": "(tw>0 && ar>0 && wr>0)?(tw*ar/100)/25.4:0",
+     "out": "Sidewall Height",
+     "unit": "in"
+    },
+    {
+     "expr": "(tw>0 && ar>0 && wr>0)?+(wr+2*((tw>0 && ar>0 && wr>0)?(tw*ar/100)/25.4:0)).toFixed(3):0",
+     "out": "Overall Diameter",
+     "unit": "in"
+    },
+    {
+     "expr": "(tw>0 && ar>0 && wr>0)?+(((tw>0 && ar>0 && wr>0)?+(wr+2*((tw>0 && ar>0 && wr>0)?(tw*ar/100)/25.4:0)).toFixed(3):0)*Math.PI).toFixed(3):0",
+     "out": "Circumference",
+     "unit": "in"
+    },
+    {
+     "expr": "(tw>0 && ar>0 && wr>0)?+(63360/((tw>0 && ar>0 && wr>0)?+(((tw>0 && ar>0 && wr>0)?+(wr+2*((tw>0 && ar>0 && wr>0)?(tw*ar/100)/25.4:0)).toFixed(3):0)*Math.PI).toFixed(3):0)).toFixed(1):0",
+     "out": "Rev/Mile",
+     "unit": "rev"
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Section Width",
+    "Aspect Ratio",
+    "Wheel Diameter"
+   ],
+   "vars": [
+    "tw",
+    "ar",
+    "wr"
+   ],
+   "outputs": [
+    {
+     "expr": "(tw>0 && ar>0 && wr>0) ? ((tw>0 && ar>0 && wr>0)?(tw*ar/100)/25.4:0) : NaN",
+     "out": "Sidewall Height",
+     "unit": "in"
+    },
+    {
+     "expr": "(tw>0 && ar>0 && wr>0) ? ((tw>0 && ar>0 && wr>0)?+(wr+2*((tw>0 && ar>0 && wr>0)?(tw*ar/100)/25.4:0)).toFixed(3):0) : NaN",
+     "out": "Overall Diameter",
+     "unit": "in"
+    },
+    {
+     "expr": "(tw>0 && ar>0 && wr>0) ? ((tw>0 && ar>0 && wr>0)?+(((tw>0 && ar>0 && wr>0)?+(wr+2*((tw>0 && ar>0 && wr>0)?(tw*ar/100)/25.4:0)).toFixed(3):0)*Math.PI).toFixed(3):0) : NaN",
+     "out": "Circumference",
+     "unit": "in"
+    },
+    {
+     "expr": "(tw>0 && ar>0 && wr>0) ? ((tw>0 && ar>0 && wr>0)?+(63360/((tw>0 && ar>0 && wr>0)?+(((tw>0 && ar>0 && wr>0)?+(wr+2*((tw>0 && ar>0 && wr>0)?(tw*ar/100)/25.4:0)).toFixed(3):0)*Math.PI).toFixed(3):0)).toFixed(1):0) : NaN",
+     "out": "Rev/Mile",
+     "unit": "rev"
+    }
+   ]
+  }
+ },
+ "air_density": {
+  "registries": 1,
+  "note": "live: invalid box unless valid (registry returned 0)",
+  "before": {
+   "labels": [
+    "Temperature",
+    "Barometric Pressure",
+    "Relative Humidity"
+   ],
+   "vars": [
+    "tempF",
+    "presInHg",
+    "rh"
+   ],
+   "expr": "(Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100)?+(((Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100)?((Math.max(0,((Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100)?presInHg*3386.389:0)-((Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100)?(rh/100)*(610.94*Math.exp((17.625*(tempF-32)/1.8)/((tempF-32)/1.8+243.04))):0)))/(287.058*((tempF+459.67)*5/9))+((Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100)?(rh/100)*(610.94*Math.exp((17.625*(tempF-32)/1.8)/((tempF-32)/1.8+243.04))):0)/(461.495*((tempF+459.67)*5/9))):0)/16.0184634).toFixed(6):0",
+   "out": "Air Density",
+   "unit": "lb/ft³"
+  },
+  "after": {
+   "labels": [
+    "Temperature",
+    "Barometric Pressure",
+    "Relative Humidity"
+   ],
+   "vars": [
+    "tempF",
+    "presInHg",
+    "rh"
+   ],
+   "expr": "(Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100) ? ((Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100)?+(((Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100)?((Math.max(0,((Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100)?presInHg*3386.389:0)-((Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100)?(rh/100)*(610.94*Math.exp((17.625*(tempF-32)/1.8)/((tempF-32)/1.8+243.04))):0)))/(287.058*((tempF+459.67)*5/9))+((Number.isFinite(tempF)&&Number.isFinite(presInHg)&&Number.isFinite(rh)&&presInHg>0&&rh>=0&&rh<=100)?(rh/100)*(610.94*Math.exp((17.625*(tempF-32)/1.8)/((tempF-32)/1.8+243.04))):0)/(461.495*((tempF+459.67)*5/9))):0)/16.0184634).toFixed(6):0) : NaN",
+   "out": "Air Density",
+   "unit": "lb/ft³"
+  }
+ },
+ "dyno_correction": {
+  "registries": 1,
+  "note": "live: invalid box unless valid (registry returned 0)",
+  "before": {
+   "labels": [
+    "Measured HP",
+    "Density Altitude",
+    "Air Temp"
+   ],
+   "vars": [
+    "hp_raw",
+    "da3",
+    "temp5"
+   ],
+   "outputs": [
+    {
+     "expr": "(hp_raw>0&&Number.isFinite(da3)&&Number.isFinite(temp5))?+( (1+(da3/1000*0.03))*(1+((temp5-77)/100*0.01)) ).toFixed(4):0",
+     "out": "Estimated Correction Factor",
+     "unit": "×"
+    },
+    {
+     "expr": "(hp_raw>0&&Number.isFinite(da3)&&Number.isFinite(temp5))?Math.round(hp_raw*((hp_raw>0&&Number.isFinite(da3)&&Number.isFinite(temp5))?+( (1+(da3/1000*0.03))*(1+((temp5-77)/100*0.01)) ).toFixed(4):0)):0",
+     "out": "Estimated Corrected HP",
+     "unit": "HP"
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Measured HP",
+    "Density Altitude",
+    "Air Temp"
+   ],
+   "vars": [
+    "hp_raw",
+    "da3",
+    "temp5"
+   ],
+   "outputs": [
+    {
+     "expr": "(hp_raw>0&&Number.isFinite(da3)&&Number.isFinite(temp5)) ? ((hp_raw>0&&Number.isFinite(da3)&&Number.isFinite(temp5))?+( (1+(da3/1000*0.03))*(1+((temp5-77)/100*0.01)) ).toFixed(4):0) : NaN",
+     "out": "Estimated Correction Factor",
+     "unit": "×"
+    },
+    {
+     "expr": "(hp_raw>0&&Number.isFinite(da3)&&Number.isFinite(temp5)) ? ((hp_raw>0&&Number.isFinite(da3)&&Number.isFinite(temp5))?Math.round(hp_raw*((hp_raw>0&&Number.isFinite(da3)&&Number.isFinite(temp5))?+( (1+(da3/1000*0.03))*(1+((temp5-77)/100*0.01)) ).toFixed(4):0)):0) : NaN",
+     "out": "Estimated Corrected HP",
+     "unit": "HP"
+    }
+   ]
+  }
+ },
+ "valve_lash": {
+  "registries": 1,
+  "note": "live: invalid box unless valid (registry returned 0)",
+  "before": {
+   "labels": [
+    "Cam Lobe Lift",
+    "Rocker Ratio",
+    "Target Lash (hot)"
+   ],
+   "vars": [
+    "base_lift",
+    "rocker_r",
+    "target_lash"
+   ],
+   "outputs": [
+    {
+     "expr": "(base_lift>=0 && rocker_r>0 && target_lash>=0)?+(base_lift*rocker_r).toFixed(4):0",
+     "out": "Gross Valve Lift",
+     "unit": "in"
+    },
+    {
+     "expr": "(base_lift>=0 && rocker_r>0 && target_lash>=0)?+(((base_lift>=0 && rocker_r>0 && target_lash>=0)?+(base_lift*rocker_r).toFixed(4):0)-target_lash).toFixed(4):0",
+     "out": "Net Valve Lift",
+     "unit": "in"
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Cam Lobe Lift",
+    "Rocker Ratio",
+    "Target Lash (hot)"
+   ],
+   "vars": [
+    "base_lift",
+    "rocker_r",
+    "target_lash"
+   ],
+   "outputs": [
+    {
+     "expr": "(base_lift>=0 && rocker_r>0 && target_lash>=0) ? ((base_lift>=0 && rocker_r>0 && target_lash>=0)?+(base_lift*rocker_r).toFixed(4):0) : NaN",
+     "out": "Gross Valve Lift",
+     "unit": "in"
+    },
+    {
+     "expr": "(base_lift>=0 && rocker_r>0 && target_lash>=0) ? ((base_lift>=0 && rocker_r>0 && target_lash>=0)?+(((base_lift>=0 && rocker_r>0 && target_lash>=0)?+(base_lift*rocker_r).toFixed(4):0)-target_lash).toFixed(4):0) : NaN",
+     "out": "Net Valve Lift",
+     "unit": "in"
+    }
+   ]
+  }
+ },
+ "valve_spring_rate": {
+  "registries": 1,
+  "note": "live: invalid box unless valid (registry returned 0)",
+  "before": {
+   "labels": [
+    "Wire Diameter",
+    "Active Coils",
+    "Mean Coil Diameter",
+    "Seat Pressure (installed)",
+    "Valve Lift"
+   ],
+   "vars": [
+    "d",
+    "n",
+    "D",
+    "seat",
+    "lift"
+   ],
+   "outputs": [
+    {
+     "expr": "(d>0 && n>0 && D>d && seat>=0 && lift>=0)?+(((11500000)*Math.pow(d,4))/(8*n*Math.pow(D,3))).toFixed(1):0",
+     "out": "Spring Rate",
+     "unit": "lbs/in"
+    },
+    {
+     "expr": "(d>0 && n>0 && D>d && seat>=0 && lift>=0)?+(seat+((d>0 && n>0 && D>d && seat>=0 && lift>=0)?+(((11500000)*Math.pow(d,4))/(8*n*Math.pow(D,3))).toFixed(1):0)*lift).toFixed(0):0",
+     "out": "Open Pressure",
+     "unit": "lbs"
+    },
+    {
+     "expr": "(d>0 && n>0 && D>d && seat>=0 && lift>=0)?+(D/d).toFixed(2):0",
+     "out": "Spring Index",
+     "unit": ":1"
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Wire Diameter",
+    "Active Coils",
+    "Mean Coil Diameter",
+    "Seat Pressure (installed)",
+    "Valve Lift"
+   ],
+   "vars": [
+    "d",
+    "n",
+    "D",
+    "seat",
+    "lift"
+   ],
+   "outputs": [
+    {
+     "expr": "(d>0 && n>0 && D>d && seat>=0 && lift>=0) ? ((d>0 && n>0 && D>d && seat>=0 && lift>=0)?+(((11500000)*Math.pow(d,4))/(8*n*Math.pow(D,3))).toFixed(1):0) : NaN",
+     "out": "Spring Rate",
+     "unit": "lbs/in"
+    },
+    {
+     "expr": "(d>0 && n>0 && D>d && seat>=0 && lift>=0) ? ((d>0 && n>0 && D>d && seat>=0 && lift>=0)?+(seat+((d>0 && n>0 && D>d && seat>=0 && lift>=0)?+(((11500000)*Math.pow(d,4))/(8*n*Math.pow(D,3))).toFixed(1):0)*lift).toFixed(0):0) : NaN",
+     "out": "Open Pressure",
+     "unit": "lbs"
+    },
+    {
+     "expr": "(d>0 && n>0 && D>d && seat>=0 && lift>=0) ? ((d>0 && n>0 && D>d && seat>=0 && lift>=0)?+(D/d).toFixed(2):0) : NaN",
+     "out": "Spring Index",
+     "unit": ":1"
+    }
+   ]
+  }
+ },
+ "breakover_angle": {
+  "registries": 1,
+  "note": "live: invalid box unless valid (registry returned 0)",
+  "before": {
+   "labels": [
+    "Wheelbase",
+    "Ground Clearance (at center)"
+   ],
+   "vars": [
+    "wb",
+    "ground"
+   ],
+   "expr": "(wb>0 && ground>=0)?+(2*Math.atan(2*ground/wb)*180/Math.PI).toFixed(1):0",
+   "out": "Breakover Angle",
+   "unit": "°"
+  },
+  "after": {
+   "labels": [
+    "Wheelbase",
+    "Ground Clearance (at center)"
+   ],
+   "vars": [
+    "wb",
+    "ground"
+   ],
+   "expr": "(wb>0 && ground>=0) ? ((wb>0 && ground>=0)?+(2*Math.atan(2*ground/wb)*180/Math.PI).toFixed(1):0) : NaN",
+   "out": "Breakover Angle",
+   "unit": "°"
+  }
+ },
+ "rc_downforce": {
+  "registries": 1,
+  "note": "live: main result invalid box unless valid (registry returned 0)",
+  "before": {
+   "labels": [
+    "Downforce Coefficient (Cl)",
+    "Wing / Splitter Area",
+    "Speed",
+    "Drag Coefficient (Cd)"
+   ],
+   "vars": [
+    "cl",
+    "area",
+    "speed",
+    "cd"
+   ],
+   "expr": "(cl>=0 && area>0 && speed>=0 && cd>=0)?+((0.5*(0.0023769)*(speed*5280/3600)*(speed*5280/3600))*cl*area).toFixed(0):0",
+   "out": "Downforce at Speed",
+   "unit": "lbs"
+  },
+  "after": {
+   "labels": [
+    "Downforce Coefficient (Cl)",
+    "Wing / Splitter Area",
+    "Speed",
+    "Drag Coefficient (Cd)"
+   ],
+   "vars": [
+    "cl",
+    "area",
+    "speed",
+    "cd"
+   ],
+   "expr": "(cl>=0 && area>0 && speed>=0 && cd>=0) ? ((cl>=0 && area>0 && speed>=0 && cd>=0)?+((0.5*(0.0023769)*(speed*5280/3600)*(speed*5280/3600))*cl*area).toFixed(0):0) : NaN",
+   "out": "Downforce at Speed",
+   "unit": "lbs"
+  }
+ },
+ "dynamic_compression": {
+  "registries": 1,
+  "note": "live (captured object method via oldDCR wrapper): validation box unless guard holds; registry had no guard",
+  "before": {
+   "labels": [
+    "Bore",
+    "Stroke",
+    "Rod Length",
+    "Static Compression Ratio",
+    "Intake Closing Angle (ABDC)"
+   ],
+   "vars": [
+    "bore",
+    "stroke3",
+    "rod",
+    "scr",
+    "ica"
+   ],
+   "expr": "(((Math.PI*bore*bore/4)*((stroke3/2)*(1-Math.cos(Math.PI+ica*Math.PI/180))+rod-Math.sqrt(rod*rod-Math.pow((stroke3/2)*Math.sin(Math.PI+ica*Math.PI/180),2))))+((Math.PI*bore*bore/4)*stroke3/(scr-1)))/((Math.PI*bore*bore/4)*stroke3/(scr-1))",
+   "out": "Dynamic Compression Ratio",
+   "unit": ":1"
+  },
+  "after": {
+   "labels": [
+    "Bore",
+    "Stroke",
+    "Rod Length",
+    "Static Compression Ratio",
+    "Intake Closing Angle (ABDC)"
+   ],
+   "vars": [
+    "bore",
+    "stroke3",
+    "rod",
+    "scr",
+    "ica"
+   ],
+   "expr": "([bore,stroke3,rod,scr,ica].every(Number.isFinite)&&bore>0&&stroke3>0&&rod>stroke3/2&&scr>1&&ica>=0&&ica<180) ? ((((Math.PI*bore*bore/4)*((stroke3/2)*(1-Math.cos(Math.PI+ica*Math.PI/180))+rod-Math.sqrt(rod*rod-Math.pow((stroke3/2)*Math.sin(Math.PI+ica*Math.PI/180),2))))+((Math.PI*bore*bore/4)*stroke3/(scr-1)))/((Math.PI*bore*bore/4)*stroke3/(scr-1))) : NaN",
+   "out": "Dynamic Compression Ratio",
+   "unit": ":1"
+  }
+ },
+ "reverse_displacement": {
+  "registries": 1,
+  "note": "live: v = known>0 ? expr : 0, displayed v||'—' (a 0 result shows unknown)",
+  "before": {
+   "labels": [
+    "Target Displacement",
+    "Cylinders",
+    "Known Bore (solve for stroke)",
+    "Known Stroke (solve for bore)"
+   ],
+   "vars": [
+    "disp2",
+    "cyl2",
+    "tb",
+    "ts"
+   ],
+   "outputs": [
+    {
+     "expr": "+(Math.sqrt((disp2*4)/(Math.PI*ts*cyl2))).toFixed(4)",
+     "out": "Solved Bore",
+     "unit": "in"
+    },
+    {
+     "expr": "+((disp2*4)/(Math.PI*Math.pow(tb,2)*cyl2)).toFixed(4)",
+     "out": "Solved Stroke",
+     "unit": "in"
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Target Displacement",
+    "Cylinders",
+    "Known Bore (solve for stroke)",
+    "Known Stroke (solve for bore)"
+   ],
+   "vars": [
+    "disp2",
+    "cyl2",
+    "tb",
+    "ts"
+   ],
+   "outputs": [
+    {
+     "expr": "(ts>0 && (+(Math.sqrt((disp2*4)/(Math.PI*ts*cyl2))).toFixed(4))!==0) ? (+(Math.sqrt((disp2*4)/(Math.PI*ts*cyl2))).toFixed(4)) : NaN",
+     "out": "Solved Bore",
+     "unit": "in"
+    },
+    {
+     "expr": "(tb>0 && (+((disp2*4)/(Math.PI*Math.pow(tb,2)*cyl2)).toFixed(4))!==0) ? (+((disp2*4)/(Math.PI*Math.pow(tb,2)*cyl2)).toFixed(4)) : NaN",
+     "out": "Solved Stroke",
+     "unit": "in"
+    }
+   ]
+  }
+ },
+ "portal_gear_reduction": {
+  "registries": 1,
+  "note": "live: validation box unless ok (both outputs)",
+  "before": {
+   "labels": [
+    "Axle Ratio",
+    "Portal Reduction Ratio",
+    "Portal Drop Height"
+   ],
+   "vars": [
+    "pgr_axle",
+    "pgr_portal",
+    "pgr_drop"
+   ],
+   "outputs": [
+    {
+     "expr": "+(pgr_axle*pgr_portal).toFixed(2)",
+     "out": "Combined Effective Axle Ratio",
+     "unit": ":1"
+    },
+    {
+     "expr": "pgr_drop",
+     "out": "Ground Clearance Gain",
+     "unit": "in"
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Axle Ratio",
+    "Portal Reduction Ratio",
+    "Portal Drop Height"
+   ],
+   "vars": [
+    "pgr_axle",
+    "pgr_portal",
+    "pgr_drop"
+   ],
+   "outputs": [
+    {
+     "expr": "([pgr_axle,pgr_portal,pgr_drop].every(Number.isFinite)&&pgr_axle>0&&pgr_portal>0&&pgr_drop>=0) ? (+(pgr_axle*pgr_portal).toFixed(2)) : NaN",
+     "out": "Combined Effective Axle Ratio",
+     "unit": ":1"
+    },
+    {
+     "expr": "([pgr_axle,pgr_portal,pgr_drop].every(Number.isFinite)&&pgr_axle>0&&pgr_portal>0&&pgr_drop>=0) ? (pgr_drop) : NaN",
+     "out": "Ground Clearance Gain",
+     "unit": "in"
+    }
+   ]
+  }
+ },
+ "e85_blend": {
+  "registries": 1,
+  "note": "live: add solved only in the balance branch, remove only when target<current AND E85 cannot reach it; both display '—' when <= 0; stoich unconditional (unchanged)",
+  "before": {
+   "labels": [
+    "Current Fuel Volume",
+    "Current Ethanol %",
+    "Target Ethanol %",
+    "E85 Actual Ethanol Content"
+   ],
+   "vars": [
+    "tank_gal",
+    "cur_e",
+    "target_e",
+    "e85_pct"
+   ],
+   "outputs": [
+    {
+     "expr": "((target_e>cur_e && e85_pct>target_e)||(target_e<cur_e && e85_pct<target_e))?+(tank_gal*(target_e-cur_e)/(e85_pct-target_e)).toFixed(2):0",
+     "out": "E85 to Add",
+     "unit": "gal"
+    },
+    {
+     "expr": "(target_e<cur_e)?Math.abs(+(tank_gal*(cur_e-target_e)/(target_e-e85_pct)).toFixed(2)):NaN",
+     "out": "Fuel to Remove / Replace",
+     "unit": "gal"
+    },
+    {
+     "expr": "+(14.7 - 5.7*(target_e/100)).toFixed(2)",
+     "out": "Target Blend Stoich AFR",
+     "unit": ":1"
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Current Fuel Volume",
+    "Current Ethanol %",
+    "Target Ethanol %",
+    "E85 Actual Ethanol Content"
+   ],
+   "vars": [
+    "tank_gal",
+    "cur_e",
+    "target_e",
+    "e85_pct"
+   ],
+   "outputs": [
+    {
+     "expr": "((((target_e>cur_e && e85_pct>target_e)||(target_e<cur_e && e85_pct<target_e))?+(tank_gal*(target_e-cur_e)/(e85_pct-target_e)).toFixed(2):0)>0) ? (((target_e>cur_e && e85_pct>target_e)||(target_e<cur_e && e85_pct<target_e))?+(tank_gal*(target_e-cur_e)/(e85_pct-target_e)).toFixed(2):0) : NaN",
+     "out": "E85 to Add",
+     "unit": "gal"
+    },
+    {
+     "expr": "(target_e<cur_e && !(e85_pct<target_e) && ((target_e<cur_e)?Math.abs(+(tank_gal*(cur_e-target_e)/(target_e-e85_pct)).toFixed(2)):NaN)>0) ? ((target_e<cur_e)?Math.abs(+(tank_gal*(cur_e-target_e)/(target_e-e85_pct)).toFixed(2)):NaN) : NaN",
+     "out": "Fuel to Remove / Replace",
+     "unit": "gal"
+    },
+    {
+     "expr": "+(14.7 - 5.7*(target_e/100)).toFixed(2)",
+     "out": "Target Blend Stoich AFR",
+     "unit": ":1"
+    }
+   ]
+  }
+ },
+ "curtain_area": {
+  "registries": 1,
+  "note": "live: error box for both outputs unless finite area && port area > 0",
+  "before": {
+   "labels": [
+    "Valve Diameter",
+    "Valve Lift",
+    "Port Area"
+   ],
+   "vars": [
+    "vd",
+    "vlift2",
+    "port_ca"
+   ],
+   "outputs": [
+    {
+     "expr": "Math.PI*vd*vlift2",
+     "out": "Curtain Area",
+     "unit": "sq in"
+    },
+    {
+     "expr": "(vd===null||vlift2===null?NaN:Math.PI*vd*vlift2)/port_ca*100",
+     "out": "% of Port Area",
+     "unit": "%"
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Valve Diameter",
+    "Valve Lift",
+    "Port Area"
+   ],
+   "vars": [
+    "vd",
+    "vlift2",
+    "port_ca"
+   ],
+   "outputs": [
+    {
+     "expr": "(Number.isFinite(Math.PI*vd*vlift2) && port_ca>0) ? (Math.PI*vd*vlift2) : NaN",
+     "out": "Curtain Area",
+     "unit": "sq in"
+    },
+    {
+     "expr": "(Number.isFinite(Math.PI*vd*vlift2) && port_ca>0) ? ((vd===null||vlift2===null?NaN:Math.PI*vd*vlift2)/port_ca*100) : NaN",
+     "out": "% of Port Area",
+     "unit": "%"
+    }
+   ]
+  }
+ },
+ "mach_index": {
+  "registries": 1,
+  "note": "live: validation box unless valid; output 1 had no guard",
+  "before": {
+   "labels": [
+    "Port Flow",
+    "Effective Flow Area",
+    "Speed of Sound"
+   ],
+   "vars": [
+    "mi_q",
+    "mi_a",
+    "mi_c"
+   ],
+   "outputs": [
+    {
+     "expr": "(mi_q*144)/(mi_a*60)",
+     "out": "Average Velocity",
+     "unit": "ft/sec"
+    },
+    {
+     "expr": "+((([mi_q,mi_a,mi_c].every(x=>Number.isFinite(x))&&mi_q>0&&mi_a>0&&mi_c>0)?(mi_q*144)/(mi_a*60):NaN)/mi_c).toFixed(3)",
+     "out": "Mach Index",
+     "unit": ""
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Port Flow",
+    "Effective Flow Area",
+    "Speed of Sound"
+   ],
+   "vars": [
+    "mi_q",
+    "mi_a",
+    "mi_c"
+   ],
+   "outputs": [
+    {
+     "expr": "([mi_q,mi_a,mi_c].every(x=>Number.isFinite(x))&&mi_q>0&&mi_a>0&&mi_c>0) ? ((mi_q*144)/(mi_a*60)) : NaN",
+     "out": "Average Velocity",
+     "unit": "ft/sec"
+    },
+    {
+     "expr": "+((([mi_q,mi_a,mi_c].every(x=>Number.isFinite(x))&&mi_q>0&&mi_a>0&&mi_c>0)?(mi_q*144)/(mi_a*60):NaN)/mi_c).toFixed(3)",
+     "out": "Mach Index",
+     "unit": ""
+    }
+   ]
+  }
+ },
+ "rc_watt_link": {
+  "registries": 1,
+  "note": "live: invalid box unless valid (registry returned 0)",
+  "before": {
+   "labels": [
+    "Panhard Bar Length",
+    "Vertical Suspension Travel from Ride Height",
+    "Wheelbase (for rear-steer angle)"
+   ],
+   "vars": [
+    "ph_len",
+    "ph_travel",
+    "ph_wb"
+   ],
+   "outputs": [
+    {
+     "expr": "(ph_len>(Math.abs(ph_travel)) && ph_len>0 && ph_wb>0)?+(ph_len-Math.sqrt(ph_len*ph_len-(Math.abs(ph_travel))*(Math.abs(ph_travel)))).toFixed(4):0",
+     "out": "Lateral Axle Move",
+     "unit": "in"
+    },
+    {
+     "expr": "+(Math.atan(((ph_len>(Math.abs(ph_travel)) && ph_len>0 && ph_wb>0)?+(ph_len-Math.sqrt(ph_len*ph_len-(Math.abs(ph_travel))*(Math.abs(ph_travel)))).toFixed(4):0)/ph_wb)*180/Math.PI).toFixed(4)",
+     "out": "Induced Rear Steer",
+     "unit": "°"
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Panhard Bar Length",
+    "Vertical Suspension Travel from Ride Height",
+    "Wheelbase (for rear-steer angle)"
+   ],
+   "vars": [
+    "ph_len",
+    "ph_travel",
+    "ph_wb"
+   ],
+   "outputs": [
+    {
+     "expr": "(ph_len>(Math.abs(ph_travel)) && ph_len>0 && ph_wb>0) ? ((ph_len>(Math.abs(ph_travel)) && ph_len>0 && ph_wb>0)?+(ph_len-Math.sqrt(ph_len*ph_len-(Math.abs(ph_travel))*(Math.abs(ph_travel)))).toFixed(4):0) : NaN",
+     "out": "Lateral Axle Move",
+     "unit": "in"
+    },
+    {
+     "expr": "(ph_len>(Math.abs(ph_travel)) && ph_len>0 && ph_wb>0) ? (+(Math.atan(((ph_len>(Math.abs(ph_travel)) && ph_len>0 && ph_wb>0)?+(ph_len-Math.sqrt(ph_len*ph_len-(Math.abs(ph_travel))*(Math.abs(ph_travel)))).toFixed(4):0)/ph_wb)*180/Math.PI).toFixed(4)) : NaN",
+     "out": "Induced Rear Steer",
+     "unit": "°"
+    }
+   ]
+  }
+ },
+ "diesel_airflow": {
+  "registries": 1,
+  "note": "live: error box unless valid; output 1 had no guard",
+  "before": {
+   "labels": [
+    "Displacement",
+    "RPM",
+    "Volumetric Efficiency",
+    "Air Density"
+   ],
+   "vars": [
+    "da_disp",
+    "da_rpm",
+    "da_ve",
+    "da_air"
+   ],
+   "outputs": [
+    {
+     "expr": "da_disp*da_rpm*da_ve/3456",
+     "out": "Engine Airflow",
+     "unit": "CFM"
+    },
+    {
+     "expr": "([da_disp,da_rpm,da_ve,da_air].every(Number.isFinite)&&da_disp>0&&da_rpm>0&&da_ve>0&&da_air>0?da_disp*da_rpm*da_ve/3456:NaN)*da_air",
+     "out": "Air Mass Flow",
+     "unit": "lb/min"
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Displacement",
+    "RPM",
+    "Volumetric Efficiency",
+    "Air Density"
+   ],
+   "vars": [
+    "da_disp",
+    "da_rpm",
+    "da_ve",
+    "da_air"
+   ],
+   "outputs": [
+    {
+     "expr": "([da_disp,da_rpm,da_ve,da_air].every(Number.isFinite)&&da_disp>0&&da_rpm>0&&da_ve>0&&da_air>0) ? (da_disp*da_rpm*da_ve/3456) : NaN",
+     "out": "Engine Airflow",
+     "unit": "CFM"
+    },
+    {
+     "expr": "([da_disp,da_rpm,da_ve,da_air].every(Number.isFinite)&&da_disp>0&&da_rpm>0&&da_ve>0&&da_air>0?da_disp*da_rpm*da_ve/3456:NaN)*da_air",
+     "out": "Air Mass Flow",
+     "unit": "lb/min"
+    }
+   ]
+  }
+ },
+ "tire_size_comparison": {
+  "registries": 1,
+  "note": "live: all outputs hidden unless BOTH tires valid",
+  "before": {
+   "labels": [
+    "Old Section Width",
+    "Old Aspect Ratio",
+    "Old Wheel Diameter",
+    "New Section Width",
+    "New Aspect Ratio",
+    "New Wheel Diameter"
+   ],
+   "vars": [
+    "tsc_ow",
+    "tsc_oa",
+    "tsc_od",
+    "tsc_nw",
+    "tsc_na",
+    "tsc_nd"
+   ],
+   "outputs": [
+    {
+     "expr": "({dia:(+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3)),circ:(+((+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3))*Math.PI).toFixed(3)),rpmile:(+(63360/(+((+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3))*Math.PI).toFixed(3))).toFixed(1))}).dia",
+     "out": "Old Diameter",
+     "unit": "in"
+    },
+    {
+     "expr": "({dia:(+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3)),circ:(+((+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3))*Math.PI).toFixed(3)),rpmile:(+(63360/(+((+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3))*Math.PI).toFixed(3))).toFixed(1))}).dia",
+     "out": "New Diameter",
+     "unit": "in"
+    },
+    {
+     "expr": "({dia:(+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3)),circ:(+((+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3))*Math.PI).toFixed(3)),rpmile:(+(63360/(+((+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3))*Math.PI).toFixed(3))).toFixed(1))}).rpmile",
+     "out": "Old Rev/Mile",
+     "unit": "rev"
+    },
+    {
+     "expr": "({dia:(+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3)),circ:(+((+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3))*Math.PI).toFixed(3)),rpmile:(+(63360/(+((+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3))*Math.PI).toFixed(3))).toFixed(1))}).rpmile",
+     "out": "New Rev/Mile",
+     "unit": "rev"
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Old Section Width",
+    "Old Aspect Ratio",
+    "Old Wheel Diameter",
+    "New Section Width",
+    "New Aspect Ratio",
+    "New Wheel Diameter"
+   ],
+   "vars": [
+    "tsc_ow",
+    "tsc_oa",
+    "tsc_od",
+    "tsc_nw",
+    "tsc_na",
+    "tsc_nd"
+   ],
+   "outputs": [
+    {
+     "expr": "(tsc_ow>0&&tsc_oa>0&&tsc_od>0&&tsc_nw>0&&tsc_na>0&&tsc_nd>0) ? (({dia:(+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3)),circ:(+((+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3))*Math.PI).toFixed(3)),rpmile:(+(63360/(+((+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3))*Math.PI).toFixed(3))).toFixed(1))}).dia) : NaN",
+     "out": "Old Diameter",
+     "unit": "in"
+    },
+    {
+     "expr": "(tsc_ow>0&&tsc_oa>0&&tsc_od>0&&tsc_nw>0&&tsc_na>0&&tsc_nd>0) ? (({dia:(+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3)),circ:(+((+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3))*Math.PI).toFixed(3)),rpmile:(+(63360/(+((+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3))*Math.PI).toFixed(3))).toFixed(1))}).dia) : NaN",
+     "out": "New Diameter",
+     "unit": "in"
+    },
+    {
+     "expr": "(tsc_ow>0&&tsc_oa>0&&tsc_od>0&&tsc_nw>0&&tsc_na>0&&tsc_nd>0) ? (({dia:(+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3)),circ:(+((+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3))*Math.PI).toFixed(3)),rpmile:(+(63360/(+((+(tsc_od+2*((tsc_ow*tsc_oa/100)/25.4)).toFixed(3))*Math.PI).toFixed(3))).toFixed(1))}).rpmile) : NaN",
+     "out": "Old Rev/Mile",
+     "unit": "rev"
+    },
+    {
+     "expr": "(tsc_ow>0&&tsc_oa>0&&tsc_od>0&&tsc_nw>0&&tsc_na>0&&tsc_nd>0) ? (({dia:(+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3)),circ:(+((+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3))*Math.PI).toFixed(3)),rpmile:(+(63360/(+((+(tsc_nd+2*((tsc_nw*tsc_na/100)/25.4)).toFixed(3))*Math.PI).toFixed(3))).toFixed(1))}).rpmile) : NaN",
+     "out": "New Rev/Mile",
+     "unit": "rev"
+    }
+   ]
+  }
+ },
+ "brake_bias": {
+  "registries": 1,
+  "note": "live validity requires Static Front Weight % in (0,100); input added for the guard only, transfer formula unchanged",
+  "before": {
+   "labels": [
+    "Vehicle Weight",
+    "Wheelbase",
+    "CG Height",
+    "Target Deceleration"
+   ],
+   "vars": [
+    "wt_bb",
+    "wb_bb",
+    "cg_bb",
+    "dec_bb"
+   ],
+   "expr": "wt_bb*cg_bb*dec_bb/wb_bb",
+   "out": "Weight Transfer to Front",
+   "unit": "lb"
+  },
+  "after": {
+   "labels": [
+    "Vehicle Weight",
+    "Wheelbase",
+    "CG Height",
+    "Target Deceleration",
+    "Static Front Weight"
+   ],
+   "vars": [
+    "wt_bb",
+    "wb_bb",
+    "cg_bb",
+    "dec_bb",
+    "fpct_bb"
+   ],
+   "expr": "([wt_bb,wb_bb,cg_bb,fpct_bb,dec_bb].every(n=>Number.isFinite(n))&&wt_bb>0&&wb_bb>0&&cg_bb>=0&&fpct_bb>0&&fpct_bb<100&&dec_bb>=0) ? (wt_bb*cg_bb*dec_bb/wb_bb) : NaN",
+   "out": "Weight Transfer to Front",
+   "unit": "lb"
+  }
+ },
+ "master_cylinder": {
+  "registries": 1,
+  "note": "live (bore mode, default): validation box unless all > 0; output 1 had no guard; removed byte-identical duplicate output 4",
+  "before": {
+   "labels": [
+    "Driver Pedal Force",
+    "Pedal Ratio",
+    "Target Line Pressure"
+   ],
+   "vars": [
+    "mc_pedal",
+    "mc_ratio",
+    "mc_pressure"
+   ],
+   "outputs": [
+    {
+     "expr": "mc_pedal*mc_ratio",
+     "out": "Pushrod Force",
+     "unit": "lbf"
+    },
+    {
+     "expr": "(([mc_pedal,mc_ratio,mc_pressure].every(n=>Number.isFinite(n)&&n>0)) ? mc_pedal*mc_ratio : NaN)/mc_pressure",
+     "out": "Required Piston Area",
+     "unit": "in²"
+    },
+    {
+     "expr": "Math.sqrt((([mc_pedal,mc_ratio,mc_pressure].every(n=>Number.isFinite(n)&&n>0)) ? (([mc_pedal,mc_ratio,mc_pressure].every(n=>Number.isFinite(n)&&n>0)) ? mc_pedal*mc_ratio : NaN)/mc_pressure : NaN)*4/Math.PI)",
+     "out": "Required Bore Diameter",
+     "unit": "in"
+    },
+    {
+     "expr": "mc_pedal*mc_ratio",
+     "out": "Pushrod Force",
+     "unit": "lbf"
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Driver Pedal Force",
+    "Pedal Ratio",
+    "Target Line Pressure"
+   ],
+   "vars": [
+    "mc_pedal",
+    "mc_ratio",
+    "mc_pressure"
+   ],
+   "outputs": [
+    {
+     "expr": "([mc_pedal,mc_ratio,mc_pressure].every(n=>Number.isFinite(n)&&n>0)) ? (mc_pedal*mc_ratio) : NaN",
+     "out": "Pushrod Force",
+     "unit": "lbf"
+    },
+    {
+     "expr": "(([mc_pedal,mc_ratio,mc_pressure].every(n=>Number.isFinite(n)&&n>0)) ? mc_pedal*mc_ratio : NaN)/mc_pressure",
+     "out": "Required Piston Area",
+     "unit": "in²"
+    },
+    {
+     "expr": "Math.sqrt((([mc_pedal,mc_ratio,mc_pressure].every(n=>Number.isFinite(n)&&n>0)) ? (([mc_pedal,mc_ratio,mc_pressure].every(n=>Number.isFinite(n)&&n>0)) ? mc_pedal*mc_ratio : NaN)/mc_pressure : NaN)*4/Math.PI)",
+     "out": "Required Bore Diameter",
+     "unit": "in"
+    }
+   ]
+  }
+ },
+ "throttle_body": {
+  "registries": 1,
+  "note": "live: validation box unless ok; output 1 had no guard",
+  "before": {
+   "labels": [
+    "Displacement",
+    "Peak RPM",
+    "Volumetric Efficiency",
+    "Target Bore Velocity"
+   ],
+   "vars": [
+    "tb_cid",
+    "tb_rpm",
+    "tb_ve",
+    "tb_vel"
+   ],
+   "outputs": [
+    {
+     "expr": "+(tb_cid*tb_rpm*tb_ve/3456).toFixed(1)",
+     "out": "Engine Airflow Demand",
+     "unit": "CFM"
+    },
+    {
+     "expr": "+((([tb_cid,tb_rpm,tb_ve,tb_vel].every(Number.isFinite)&&tb_cid>0&&tb_rpm>0&&tb_ve>0&&tb_vel>0) ? +(tb_cid*tb_rpm*tb_ve/3456).toFixed(1) : NaN)*144/(tb_vel*60)).toFixed(3)",
+     "out": "Required Bore Area",
+     "unit": "in²"
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Displacement",
+    "Peak RPM",
+    "Volumetric Efficiency",
+    "Target Bore Velocity"
+   ],
+   "vars": [
+    "tb_cid",
+    "tb_rpm",
+    "tb_ve",
+    "tb_vel"
+   ],
+   "outputs": [
+    {
+     "expr": "([tb_cid,tb_rpm,tb_ve,tb_vel].every(Number.isFinite)&&tb_cid>0&&tb_rpm>0&&tb_ve>0&&tb_vel>0) ? (+(tb_cid*tb_rpm*tb_ve/3456).toFixed(1)) : NaN",
+     "out": "Engine Airflow Demand",
+     "unit": "CFM"
+    },
+    {
+     "expr": "+((([tb_cid,tb_rpm,tb_ve,tb_vel].every(Number.isFinite)&&tb_cid>0&&tb_rpm>0&&tb_ve>0&&tb_vel>0) ? +(tb_cid*tb_rpm*tb_ve/3456).toFixed(1) : NaN)*144/(tb_vel*60)).toFixed(3)",
+     "out": "Required Bore Area",
+     "unit": "in²"
+    }
+   ]
+  }
+ },
+ "hp_from_specs": {
+  "registries": 1,
+  "note": "live: air mass = CFM x air_density_s (input, default 0.0765); registry hard-coded 0.0765",
+  "before": {
+   "labels": [
+    "Displacement",
+    "Peak RPM",
+    "Volumetric Efficiency",
+    "Target AFR",
+    "BSFC"
+   ],
+   "vars": [
+    "cid2",
+    "rpm_s",
+    "ve4",
+    "afr_s",
+    "bsfc_s"
+   ],
+   "outputs": [
+    {
+     "expr": "cid2*rpm_s*ve4/3456",
+     "out": "Estimated Airflow",
+     "unit": "CFM"
+    },
+    {
+     "expr": "(cid2*rpm_s*ve4/3456)*0.0765/afr_s",
+     "out": "Fuel Flow",
+     "unit": "lb/min"
+    },
+    {
+     "expr": "((cid2*rpm_s*ve4/3456)*0.0765/afr_s)*60/bsfc_s",
+     "out": "Estimated HP",
+     "unit": "HP"
+    }
+   ]
+  },
+  "after": {
+   "labels": [
+    "Displacement",
+    "Peak RPM",
+    "Volumetric Efficiency",
+    "Target AFR",
+    "BSFC",
+    "Air Density"
+   ],
+   "vars": [
+    "cid2",
+    "rpm_s",
+    "ve4",
+    "afr_s",
+    "bsfc_s",
+    "air_density_s"
+   ],
+   "outputs": [
+    {
+     "expr": "cid2*rpm_s*ve4/3456",
+     "out": "Estimated Airflow",
+     "unit": "CFM"
+    },
+    {
+     "expr": "(cid2*rpm_s*ve4/3456)*air_density_s/afr_s",
+     "out": "Fuel Flow",
+     "unit": "lb/min"
+    },
+    {
+     "expr": "((cid2*rpm_s*ve4/3456)*air_density_s/afr_s)*60/bsfc_s",
+     "out": "Estimated HP",
+     "unit": "HP"
+    }
+   ]
+  }
+ }
+}

@@ -1,7 +1,7 @@
 {
  "about": "Calculators whose live result is PROVEN equal to GH_ENGINE.calculate() by LIVE_PARITY in gh-verify-engine.js (defaults, all inputs scaled, each input scaled, each input zeroed, every non-registry live input varied; values, units and validity). The harness FAILS if any listed calculator stops matching. Add a calculator only after it passes.",
  "candidates_from": "gh-verify.js DIFFERENTIAL passes on F1.10.6 (259)",
- "count": 215,
+ "count": 240,
  "calculators": [
   "deck_height",
   "hp_trap_speed",
@@ -217,6 +217,70 @@
   "camshaft_advance_retard",
   "intake_port_cfm",
   "exhaust_port_cfm",
-  "intake_flow_per_cylinder"
+  "intake_flow_per_cylinder",
+  "weight_reduction",
+  "static_compression",
+  "crawl_ratio_tire",
+  "tire_size",
+  "air_density",
+  "dyno_correction",
+  "ev_quarter_mile",
+  "valve_lash",
+  "valve_spring_rate",
+  "breakover_angle",
+  "rc_downforce",
+  "winch_line_pull",
+  "dynamic_compression",
+  "reverse_displacement",
+  "portal_gear_reduction",
+  "e85_blend",
+  "curtain_area",
+  "mach_index",
+  "rc_watt_link",
+  "diesel_airflow",
+  "tire_size_comparison",
+  "brake_bias",
+  "master_cylinder",
+  "throttle_body",
+  "hp_from_specs"
+ ],
+ "history": [
+  {
+   "version": "F1.11.0",
+   "added": 215,
+   "basis": "LIVE_PARITY (M1.1)"
+  },
+  {
+   "version": "F1.11.1",
+   "added": 25,
+   "basis": "LIVE_PARITY (M1.2, stricter harness: invalid-state equivalence, extra live inputs probed at 0, every numeric-select option)",
+   "ids": [
+    "weight_reduction",
+    "static_compression",
+    "crawl_ratio_tire",
+    "tire_size",
+    "air_density",
+    "dyno_correction",
+    "ev_quarter_mile",
+    "valve_lash",
+    "valve_spring_rate",
+    "breakover_angle",
+    "rc_downforce",
+    "winch_line_pull",
+    "dynamic_compression",
+    "reverse_displacement",
+    "portal_gear_reduction",
+    "e85_blend",
+    "curtain_area",
+    "mach_index",
+    "rc_watt_link",
+    "diesel_airflow",
+    "tire_size_comparison",
+    "brake_bias",
+    "master_cylinder",
+    "throttle_body",
+    "hp_from_specs"
+   ]
+  }
  ]
 }

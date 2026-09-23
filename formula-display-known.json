@@ -1,0 +1,9 @@
+{
+ "about": "Migrated calculators whose visitor-facing TYPESET formula (ghFormulaBlockHTML, excluding the JS Implementation listing) already contained JavaScript artifacts at F1.11.0, before M1.2. Recorded, not fixed: fixing them changes published formula text on frozen calculators and needs an owner-visible change. FORMULA_DISPLAY fails on any NEW artifact and on any entry here that no longer has one (stale).",
+ "known": {
+  "wire_gauge": "Piecewise gauge table typesets as a chained ?: expression.",
+  "loan_payment": "Zero-APR guard (apr>0 ? amortization : simple) typesets with '?'.",
+  "lease_vs_buy": "Conditional in one output typesets with '?'.",
+  "refinance_savings": "Zero-APR guard typesets with '?'."
+ }
+}

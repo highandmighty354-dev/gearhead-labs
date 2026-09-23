@@ -2,6 +2,23 @@
 
 Owner decisions and the implementation choices that follow from them. Newest first.
 
+## D-009 · Categorical inputs — OPEN, owner decision needed (F1.11.1)
+
+- 11 calculators depend on a text selector (unit "From", application, wind direction). `GH_ENGINE` accepts numbers only, by design.
+- Options:
+  - **(a) Recommended.** Registry entries declare allowed option strings (the live values, e.g. `'mi'`, `'head'`); the engine validates them and treats anything else as UNKNOWN. Formula-free; engine contract 1.1.0.
+  - **(b)** Numeric codes. A new convention; not recommended.
+
+## D-008 · Published formulas must not show code (F1.11.1, implementation decision)
+
+- A registry change that makes the visitor-facing typeset formula show JavaScript is rejected, even if LIVE_PARITY passes.
+- Enforced by FORMULA_DISPLAY. This is why `bearing_life` was reverted and left pending.
+
+## D-007 · Registry domain rules mirror the live renderer (F1.11.1, implementation decision)
+
+- Validity rules live in the registry, in the existing form `guard ? (formula) : NaN`. They are copied from the live renderer, never invented, and proven by LIVE_PARITY including zero inputs.
+- A registry must never return `0` for an input the product rejects.
+
 ## D-006 · Engine migration proof standard (F1.11.0, implementation decision)
 
 - A calculator is "migrated" to `GH_ENGINE` only after **LIVE_PARITY** passes (see ENGINE.md).

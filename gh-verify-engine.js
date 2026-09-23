@@ -18,6 +18,8 @@
  *   ENGINE_NODE    the Node build of gh-engine.js, fed the registry extracted
  *                  from the page, returns results identical to the in-page engine
  *                  (same engine for Free, Garage, API).
+ *   FORMULA_DISPLAY the typeset formula visitors read shows no JavaScript artifacts
+ *                  (known pre-existing cases in formula-display-known.json).
  *   LIVE_PARITY    for every calculator in engine-migrated.json, the live page
  *                  and calculate() are driven with the same inputs -- defaults,
  *                  all inputs scaled, each input scaled alone, each input set to
@@ -25,8 +27,11 @@
  *                  within 0.1%, the documented intermediate-rounding bound), same
  *                  unit, same validity (live shows no number <=> engine is not
  *                  VALID). Any disagreement fails. Every live input that has NO
- *                  registry variable is also changed: if the live result moves,
- *                  the registry is missing an input (a stub) and the calculator fails.
+ *                  registry variable is also changed (every other select option;
+ *                  numbers x1.13 and =0): if a registry-covered result or its
+ *                  validity moves, the registry is missing an input and it fails.
+ *                  A live 'Validation required'/'Invalid' box means INVALID: the
+ *                  engine must return null for that output, or it fails.
  */
 const fs = require('fs');
 const path = require('path');
@@ -37,6 +42,10 @@ const REPORT = process.argv.includes('--report') ? process.argv[process.argv.ind
 if (!FILE) { console.error('usage: node gh-verify-engine.js <file.html> [--report out.json]'); process.exit(2); }
 const ENGINE_SRC = fs.readFileSync(path.join(__dirname, 'gh-engine.js'), 'utf8');
 const MIGRATED = JSON.parse(fs.readFileSync(path.join(__dirname, 'engine-migrated.json'), 'utf8'));
+/* --ids a,b,c : DIAGNOSTIC ONLY - run LIVE_PARITY on these ids instead of the
+ * migrated list (used to prove candidates before promotion). The release gate
+ * never passes this flag. */
+if (process.argv.includes('--ids')) MIGRATED.calculators = process.argv[process.argv.indexOf('--ids') + 1].split(',').filter(Boolean);
 const html = fs.readFileSync(FILE, 'utf8');
 
 const RESULTS = [];
@@ -111,6 +120,23 @@ for (const id of ALL) {
   record('ENGINE_NODE', `${ALL.length} calculators`, diff === 0, diff ? `${diff} differ between browser and Node engine, first: ${first}` : 'Node engine == in-page engine for every calculator');
 }
 
+/* ---------------- FORMULA_DISPLAY (M1.2) ----------------------------------
+ * The typeset formula a visitor reads (ghFormulaBlockHTML, minus the "JS
+ * Implementation" code listing) must not show JavaScript artifacts. Registry
+ * guards are fine in code; they must not leak into published math. Known
+ * pre-existing cases live in formula-display-known.json; stale entries fail. */
+{
+  const KNOWN = JSON.parse(fs.readFileSync(path.join(__dirname, 'formula-display-known.json'), 'utf8')).known;
+  const ART = /===|!==|\|\||&&|\bNaN\b|\?|Number\.isFinite|\.every\(|=>/g;
+  for (const id of MIGRATED.calculators) {
+    const d = doc.createElement('div'); d.innerHTML = (typeof w.ghFormulaBlockHTML === 'function' && w.ghFormulaBlockHTML(id)) || '';
+    const t = d.textContent.replace(/\s+/g, ' '); const k = t.indexOf('JS Implementation');
+    const art = (k < 0 ? t : t.slice(0, k)).match(ART);
+    if (KNOWN[id]) record('FORMULA_DISPLAY', id, !!art, art ? `known pre-existing: ${KNOWN[id]}` : 'stale: no longer has artifacts - remove from formula-display-known.json');
+    else record('FORMULA_DISPLAY', id, !art, art ? `typeset formula shows code: ${[...new Set(art)].join(' ')}` : '');
+  }
+}
+
 /* ---------------- LIVE_PARITY -------------------------------------------- */
 const norm = s => String(s || '').toLowerCase().replace(/&amp;/g, '&').replace(/[^a-z0-9%]/g, '');
 const container = () => doc.getElementById('calc-container');
@@ -147,7 +173,7 @@ function sameNumber(engineVal, shown) {
 }
 function openFresh(id) { const s = w.eval('CALC_PERSISTENT_STATE'); delete s[id]; container().innerHTML = ''; w.renderCalc(id, false); }
 function setAndRender(id, binding, values) {
-  for (const [v, b] of Object.entries(binding)) { if (b.tag === 'SELECT') continue; const el = doc.getElementById(b.id); if (el) el.value = String(values[v]); }
+  for (const [v, b] of Object.entries(binding)) { const el = doc.getElementById(b.id); if (!el) continue; if (b.tag === 'SELECT' && ![...el.options].some(o => Number(o.value) === values[v])) continue; el.value = b.tag === 'SELECT' ? [...el.options].find(o => Number(o.value) === values[v]).value : String(values[v]); }
   w.renderCalc(id, false);
 }
 
@@ -176,6 +202,9 @@ for (const id of MIGRATED.calculators) {
   vectors.push(['all x1.07', Object.fromEntries(Object.entries(base).map(([k, x]) => [k, editable.includes(k) ? +(x * 1.07).toPrecision(6) : x]))]);
   for (const v of editable) vectors.push([`${v} x1.13`, { ...base, [v]: +(base[v] * 1.13 || 1.13).toPrecision(6) }]);
   for (const v of editable) if (base[v] !== 0) vectors.push([`${v}=0`, { ...base, [v]: 0 }]);
+  /* M1.2: a registry input bound to a NUMERIC select is tested with every option. */
+  for (const [v, b] of Object.entries(binding)) if (b.tag === 'SELECT')
+    [...b.el.options].map(o => Number(o.value)).filter(x => isFinite(x) && x !== base[v]).forEach(x => vectors.push([`${v}=option ${x}`, { ...base, [v]: x }]));
 
   const problems = [], unitNotes = [];
   let checks = 0;
@@ -186,7 +215,21 @@ for (const id of MIGRATED.calculators) {
     for (const o of r.outputs) {
       const L = live.length === 1 && r.outputs.length === 1 ? live[0]
         : live.find(x => norm(x.label) === norm(o.label)) || live.find(x => norm(x.label) && (norm(x.label).startsWith(norm(o.label)) || norm(o.label).startsWith(norm(x.label))));
-      if (!L) { problems.push(`${name}: output '${o.label}' has no matching live result (live: ${live.map(x => x.label).join(' / ')})`); continue; }
+      if (!L) {
+        /* H1 (M1.2): the live page may reject the inputs with a "Validation
+         * required" / "Invalid ..." box whose label matches no output. That is
+         * a live INVALID state for this output: the engine must then return
+         * null. An engine number here still FAILS. Only boxes that are clearly
+         * invalid-state boxes count (empty or validation label, no number). */
+        const invalidBox = live.find(x => !isFinite(parseShown(x.text).value) &&
+          (x.label === '' || /validation|invalid|error/i.test(x.label)) );
+        if (invalidBox) {
+          checks++;
+          if (o.value !== null) problems.push(`${name}: validity differs - engine ${o.state} ${o.value}, live shows invalid "${invalidBox.text.slice(0, 60)}"`);
+          continue;
+        }
+        problems.push(`${name}: output '${o.label}' has no matching live result (live: ${live.map(x => x.label).join(' / ')})`); continue;
+      }
       const shown = parseShown(L.text);
       checks++;
       const liveValid = isFinite(shown.value);
@@ -218,16 +261,21 @@ for (const id of MIGRATED.calculators) {
   const extraOutputs = liveNow.filter(r => !mappedLabels.has(r.label)).map(r => r.label);
   const extraProblems = [];
   for (const f of extras) {
-    openFresh(id);
-    const el = doc.getElementById(f.id); if (!el) continue;
-    if (el.tagName === 'SELECT') {
-      const opts = [...el.options].map(o => o.value).filter(v => v !== el.value);
-      if (!opts.length) continue; el.value = opts[0];
-    } else {
-      const x = Number(el.value); el.value = String(isFinite(x) && x !== 0 ? +(x * 1.13).toPrecision(6) : 1.5);
+    /* Each unbound live input is probed with every alternative select option,
+     * or, for a number, scaled x1.13 AND set to 0 (H2, M1.2: an input that only
+     * controls VALIDITY, e.g. brake_bias Static Front Weight %, is still a
+     * registry input). */
+    const probes = [];
+    { const el0 = doc.getElementById(f.id);
+      if (!el0) continue;
+      if (el0.tagName === 'SELECT') [...el0.options].map(o => o.value).filter(v => v !== el0.value).forEach(v => probes.push(['option ' + v, v]));
+      else { const x = Number(el0.value); probes.push(['x1.13', String(isFinite(x) && x !== 0 ? +(x * 1.13).toPrecision(6) : 1.5)]); if (x !== 0) probes.push(['=0', '0']); } }
+    for (const [how, val] of probes) {
+      openFresh(id);
+      const el = doc.getElementById(f.id); if (!el) continue;
+      el.value = val; w.renderCalc(id, false);
+      if (pick(resultsNow()) !== baseline) { extraProblems.push(`live input '${f.label || f.id}' (${f.id}) ${how} changes a registry-covered result but has no registry variable`); break; }
     }
-    w.renderCalc(id, false);
-    if (pick(resultsNow()) !== baseline) extraProblems.push(`live input '${f.label || f.id}' (${f.id}) changes the result but has no registry variable`);
   }
   problems.push(...extraProblems);
   openFresh(id);
@@ -242,7 +290,7 @@ function finish() {
   console.log('='.repeat(72)); console.log('GEARHEAD LABS - ENGINE VERIFICATION'); console.log(`file     : ${FILE.split('/').pop()}`);
   console.log(`engine   : gh-engine.js ${require(path.join(__dirname, 'gh-engine.js')).ENGINE_VERSION}   migrated calculators: ${MIGRATED.calculators.length}`); console.log('='.repeat(72));
   let fails = 0;
-  for (const s of ['ENGINE_EMBED', 'V_UNKNOWN', 'ENGINE_UNKNOWN', 'ENGINE_NODE', 'LIVE_PARITY']) {
+  for (const s of ['ENGINE_EMBED', 'V_UNKNOWN', 'ENGINE_UNKNOWN', 'ENGINE_NODE', 'FORMULA_DISPLAY', 'LIVE_PARITY']) {
     const b = by[s] || { pass: 0, fail: 0, fails: [] }; fails += b.fail;
     console.log(`\n[${b.fail ? 'FAIL' : 'PASS'}] ${s}  ${b.pass} passed, ${b.fail} failed`);
     b.fails.slice(0, 60).forEach(f => console.log(`    x ${f.id}\n        ${f.detail}`));
