@@ -1,0 +1,15 @@
+{
+  "name": "gearhead-labs-data-foundation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DATA-FOUNDATION 1.0.0 - canonical engineering data model (Postgres/Supabase schema, RLS, catalog, tests). Independent of the F1 application.",
+  "scripts": {
+    "catalog": "node tools/export-engine-catalog.js",
+    "catalog:check": "node tools/export-engine-catalog.js --check",
+    "test": "./tests/run-tests.sh"
+  },
+  "devDependencies": {
+    "jsdom": "24.1.3",
+    "pg": "8.13.1"
+  }
+}

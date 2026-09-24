@@ -1,0 +1,1316 @@
+[
+ {
+  "group": "schema",
+  "name": "migrations apply cleanly from an empty database",
+  "ok": true,
+  "detail": "0001-0005"
+ },
+ {
+  "group": "schema",
+  "name": "re-applying all migrations is a no-op (schema dump byte-identical, seed unchanged)",
+  "ok": true,
+  "detail": "dump 51309 bytes; rows {\"c\":\"583\",\"f\":\"577\"}"
+ },
+ {
+  "group": "schema",
+  "name": "exactly the 10 specified tables exist",
+  "ok": true,
+  "detail": "accounts,calculation_records,calculators,canonical_fields,component_connections,components,formula_versions,garages,machines,value_records"
+ },
+ {
+  "group": "schema",
+  "name": "RLS enabled AND forced on all 10 tables",
+  "ok": true,
+  "detail": "all"
+ },
+ {
+  "group": "schema",
+  "name": "columns, types and nullability: accounts",
+  "ok": true,
+  "detail": "3 columns"
+ },
+ {
+  "group": "schema",
+  "name": "columns, types and nullability: garages",
+  "ok": true,
+  "detail": "6 columns"
+ },
+ {
+  "group": "schema",
+  "name": "columns, types and nullability: machines",
+  "ok": true,
+  "detail": "12 columns"
+ },
+ {
+  "group": "schema",
+  "name": "columns, types and nullability: components",
+  "ok": true,
+  "detail": "12 columns"
+ },
+ {
+  "group": "schema",
+  "name": "columns, types and nullability: component_connections",
+  "ok": true,
+  "detail": "8 columns"
+ },
+ {
+  "group": "schema",
+  "name": "columns, types and nullability: canonical_fields",
+  "ok": true,
+  "detail": "6 columns"
+ },
+ {
+  "group": "schema",
+  "name": "columns, types and nullability: value_records",
+  "ok": true,
+  "detail": "14 columns"
+ },
+ {
+  "group": "schema",
+  "name": "columns, types and nullability: calculators",
+  "ok": true,
+  "detail": "3 columns"
+ },
+ {
+  "group": "schema",
+  "name": "columns, types and nullability: formula_versions",
+  "ok": true,
+  "detail": "5 columns"
+ },
+ {
+  "group": "schema",
+  "name": "columns, types and nullability: calculation_records",
+  "ok": true,
+  "detail": "16 columns"
+ },
+ {
+  "group": "schema",
+  "name": "enum machine_type_enum",
+  "ok": true,
+  "detail": "automotive,motorcycle,atv_three_wheeler,side_by_side_utv,snowmobile,marine,go_kart,other_custom"
+ },
+ {
+  "group": "schema",
+  "name": "enum marine_type_enum",
+  "ok": true,
+  "detail": "power_boat,pwc,sailboat,auxiliary_sailboat,other"
+ },
+ {
+  "group": "schema",
+  "name": "enum propulsion_enum",
+  "ok": true,
+  "detail": "outboard,inboard,v_drive,sterndrive_io,forward_drive,pod,jet,surface_drive,saildrive,electric,custom"
+ },
+ {
+  "group": "schema",
+  "name": "enum power_source_enum",
+  "ok": true,
+  "detail": "gasoline,diesel,electric,hybrid,other"
+ },
+ {
+  "group": "schema",
+  "name": "enum component_kind_enum",
+  "ok": true,
+  "detail": "engine,transmission,transfer_case,differential_final_drive,axle,wheel_tire,other_custom"
+ },
+ {
+  "group": "schema",
+  "name": "enum provenance_enum",
+  "ok": true,
+  "detail": "calculated,measured,manufacturer_specified,user_entered,derived,empirical,estimated,unknown"
+ },
+ {
+  "group": "schema",
+  "name": "enum value_context_enum",
+  "ok": true,
+  "detail": "specification,operating_state"
+ },
+ {
+  "group": "schema",
+  "name": "enum result_state_enum",
+  "ok": true,
+  "detail": "valid,valid_with_warning,estimated,incomplete,out_of_range,non_convergent,not_applicable"
+ },
+ {
+  "group": "schema",
+  "name": "all 12 composite ownership / same-machine / formula-version foreign keys present (2 columns each)",
+  "ok": true,
+  "detail": "12/12"
+ },
+ {
+  "group": "schema",
+  "name": "specified indexes and unique constraints present",
+  "ok": true,
+  "detail": "10/10"
+ },
+ {
+  "group": "schema",
+  "name": "reference seed = engine catalog: 583 calculators (577 + 6 aliases), 577 formula versions, 252 engine-proven",
+  "ok": true,
+  "detail": "583 / 577 / 252"
+ },
+ {
+  "group": "schema",
+  "name": "canonical_fields not seeded (seed scope OPEN #16)",
+  "ok": true,
+  "detail": "empty"
+ },
+ {
+  "group": "ownership",
+  "name": "sign-up creates the Account row server-side (auth.users trigger)",
+  "ok": true,
+  "detail": "3 accounts"
+ },
+ {
+  "group": "invalid",
+  "name": "machine without name rejected",
+  "ok": true,
+  "detail": "23502 null value in column \"name\" of relation \"machines\" violates not-null constraint"
+ },
+ {
+  "group": "invalid",
+  "name": "machine with blank name rejected",
+  "ok": true,
+  "detail": "23514 new row for relation \"machines\" violates check constraint \"machines_name_check\""
+ },
+ {
+  "group": "invalid",
+  "name": "invalid machine_type rejected",
+  "ok": true,
+  "detail": "22P02 invalid input value for enum machine_type_enum: \"car\""
+ },
+ {
+  "group": "invalid",
+  "name": "marine_type on a non-marine machine rejected",
+  "ok": true,
+  "detail": "23514 new row for relation \"machines\" violates check constraint \"machines_marine_type_only_marine\""
+ },
+ {
+  "group": "invalid",
+  "name": "marine_type on a marine machine accepted; propulsion and power source independent",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "invalid",
+  "name": "hypothetical machine accepted",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "invalid",
+  "name": "component as its own parent rejected",
+  "ok": true,
+  "detail": "23514 new row for relation \"components\" violates check constraint \"components_not_own_parent\""
+ },
+ {
+  "group": "invalid",
+  "name": "self-connection rejected",
+  "ok": true,
+  "detail": "23514 new row for relation \"component_connections\" violates check constraint \"connections_not_self\""
+ },
+ {
+  "group": "invalid",
+  "name": "duplicate connection rejected",
+  "ok": true,
+  "detail": "23505 duplicate key value violates unique constraint \"connections_unique\""
+ },
+ {
+  "group": "invalid",
+  "name": "second active garage for the same account rejected",
+  "ok": true,
+  "detail": "23505 duplicate key value violates unique constraint \"garages_one_active_per_owner\""
+ },
+ {
+  "group": "invalid",
+  "name": "malformed formula_version rejected",
+  "ok": true,
+  "detail": "23514 new row for relation \"formula_versions\" violates check constraint \"formula_versions_formula_version_check\""
+ },
+ {
+  "group": "invalid",
+  "name": "categorical field with an empty option rejected",
+  "ok": true,
+  "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_option_nonempty\""
+ },
+ {
+  "group": "foreign-key",
+  "name": "orphan machine (no such garage) rejected",
+  "ok": true,
+  "detail": "23503 insert or update on table \"machines\" violates foreign key constraint \"machines_garage_same_owner_fk\""
+ },
+ {
+  "group": "foreign-key",
+  "name": "A machine in B garage rejected by composite FK",
+  "ok": true,
+  "detail": "23503 insert or update on table \"machines\" violates foreign key constraint \"machines_garage_same_owner_fk\""
+ },
+ {
+  "group": "foreign-key",
+  "name": "A component on B machine rejected by composite FK",
+  "ok": true,
+  "detail": "23503 insert or update on table \"components\" violates foreign key constraint \"components_machine_same_owner_fk\""
+ },
+ {
+  "group": "foreign-key",
+  "name": "component parent on another machine rejected",
+  "ok": true,
+  "detail": "23503 insert or update on table \"components\" violates foreign key constraint \"components_parent_same_machine_fk\""
+ },
+ {
+  "group": "foreign-key",
+  "name": "connection across machines rejected",
+  "ok": true,
+  "detail": "23503 insert or update on table \"component_connections\" violates foreign key constraint \"connections_to_same_machine_fk\""
+ },
+ {
+  "group": "foreign-key",
+  "name": "A value on B machine rejected by composite FK",
+  "ok": true,
+  "detail": "23503 insert or update on table \"value_records\" violates foreign key constraint \"values_machine_same_owner_fk\""
+ },
+ {
+  "group": "foreign-key",
+  "name": "value component from another machine rejected",
+  "ok": true,
+  "detail": "23503 insert or update on table \"value_records\" violates foreign key constraint \"values_component_same_machine_fk\""
+ },
+ {
+  "group": "foreign-key",
+  "name": "A value citing B calculation rejected by composite FK",
+  "ok": true,
+  "detail": "23503 insert or update on table \"value_records\" violates foreign key constraint \"values_calculation_same_owner_fk\""
+ },
+ {
+  "group": "foreign-key",
+  "name": "A calculation on B machine rejected by composite FK",
+  "ok": true,
+  "detail": "23503 insert or update on table \"calculation_records\" violates foreign key constraint \"calc_machine_same_owner_fk\""
+ },
+ {
+  "group": "foreign-key",
+  "name": "value with an unknown canonical field rejected",
+  "ok": true,
+  "detail": "23503 DF_VALUE: unknown canonical field no_such_field"
+ },
+ {
+  "group": "rls",
+  "name": "accounts: owner sees own row",
+  "ok": true,
+  "detail": "got 1 row(s), expected 1"
+ },
+ {
+  "group": "rls",
+  "name": "accounts: other user cannot see A",
+  "ok": true,
+  "detail": "got 0 row(s), expected 0"
+ },
+ {
+  "group": "rls",
+  "name": "accounts: anon denied",
+  "ok": true,
+  "detail": "42501 permission denied for table accounts"
+ },
+ {
+  "group": "rls",
+  "name": "accounts: client INSERT denied",
+  "ok": true,
+  "detail": "42501 permission denied for table accounts"
+ },
+ {
+  "group": "rls",
+  "name": "accounts: client UPDATE denied",
+  "ok": true,
+  "detail": "42501 permission denied for table accounts"
+ },
+ {
+  "group": "rls",
+  "name": "accounts: client DELETE denied",
+  "ok": true,
+  "detail": "42501 permission denied for table accounts"
+ },
+ {
+  "group": "rls",
+  "name": "garages: owner sees own row",
+  "ok": true,
+  "detail": "got 1 row(s), expected 1"
+ },
+ {
+  "group": "rls",
+  "name": "garages: other user cannot see A row",
+  "ok": true,
+  "detail": "got 0 row(s), expected 0"
+ },
+ {
+  "group": "rls",
+  "name": "garages: other user sees only own rows",
+  "ok": true,
+  "detail": "got 0 row(s), expected 0"
+ },
+ {
+  "group": "rls",
+  "name": "garages: anon denied",
+  "ok": true,
+  "detail": "42501 permission denied for table garages"
+ },
+ {
+  "group": "rls",
+  "name": "garages: client DELETE denied (owner)",
+  "ok": true,
+  "detail": "42501 permission denied for table garages"
+ },
+ {
+  "group": "rls",
+  "name": "machines: owner sees own row",
+  "ok": true,
+  "detail": "got 1 row(s), expected 1"
+ },
+ {
+  "group": "rls",
+  "name": "machines: other user cannot see A row",
+  "ok": true,
+  "detail": "got 0 row(s), expected 0"
+ },
+ {
+  "group": "rls",
+  "name": "machines: other user sees only own rows",
+  "ok": true,
+  "detail": "got 0 row(s), expected 0"
+ },
+ {
+  "group": "rls",
+  "name": "machines: anon denied",
+  "ok": true,
+  "detail": "42501 permission denied for table machines"
+ },
+ {
+  "group": "rls",
+  "name": "machines: client DELETE denied (owner)",
+  "ok": true,
+  "detail": "42501 permission denied for table machines"
+ },
+ {
+  "group": "rls",
+  "name": "components: owner sees own row",
+  "ok": true,
+  "detail": "got 1 row(s), expected 1"
+ },
+ {
+  "group": "rls",
+  "name": "components: other user cannot see A row",
+  "ok": true,
+  "detail": "got 0 row(s), expected 0"
+ },
+ {
+  "group": "rls",
+  "name": "components: other user sees only own rows",
+  "ok": true,
+  "detail": "got 0 row(s), expected 0"
+ },
+ {
+  "group": "rls",
+  "name": "components: anon denied",
+  "ok": true,
+  "detail": "42501 permission denied for table components"
+ },
+ {
+  "group": "rls",
+  "name": "components: client DELETE denied (owner)",
+  "ok": true,
+  "detail": "42501 permission denied for table components"
+ },
+ {
+  "group": "rls",
+  "name": "component_connections: owner sees own row",
+  "ok": true,
+  "detail": "got 1 row(s), expected 1"
+ },
+ {
+  "group": "rls",
+  "name": "component_connections: other user cannot see A row",
+  "ok": true,
+  "detail": "got 0 row(s), expected 0"
+ },
+ {
+  "group": "rls",
+  "name": "component_connections: other user sees only own rows",
+  "ok": true,
+  "detail": "got 0 row(s), expected 0"
+ },
+ {
+  "group": "rls",
+  "name": "component_connections: anon denied",
+  "ok": true,
+  "detail": "42501 permission denied for table component_connections"
+ },
+ {
+  "group": "rls",
+  "name": "component_connections: client DELETE denied (owner)",
+  "ok": true,
+  "detail": "42501 permission denied for table component_connections"
+ },
+ {
+  "group": "rls",
+  "name": "value_records: owner sees own row",
+  "ok": true,
+  "detail": "got 1 row(s), expected 1"
+ },
+ {
+  "group": "rls",
+  "name": "value_records: other user cannot see A row",
+  "ok": true,
+  "detail": "got 0 row(s), expected 0"
+ },
+ {
+  "group": "rls",
+  "name": "value_records: other user sees only own rows",
+  "ok": true,
+  "detail": "got 0 row(s), expected 0"
+ },
+ {
+  "group": "rls",
+  "name": "value_records: anon denied",
+  "ok": true,
+  "detail": "42501 permission denied for table value_records"
+ },
+ {
+  "group": "rls",
+  "name": "value_records: client DELETE denied (owner)",
+  "ok": true,
+  "detail": "42501 permission denied for table value_records"
+ },
+ {
+  "group": "rls",
+  "name": "calculation_records: owner sees own row",
+  "ok": true,
+  "detail": "got 1 row(s), expected 1"
+ },
+ {
+  "group": "rls",
+  "name": "calculation_records: other user cannot see A row",
+  "ok": true,
+  "detail": "got 0 row(s), expected 0"
+ },
+ {
+  "group": "rls",
+  "name": "calculation_records: other user sees only own rows",
+  "ok": true,
+  "detail": "got 0 row(s), expected 0"
+ },
+ {
+  "group": "rls",
+  "name": "calculation_records: anon denied",
+  "ok": true,
+  "detail": "42501 permission denied for table calculation_records"
+ },
+ {
+  "group": "rls",
+  "name": "calculation_records: client DELETE denied (owner)",
+  "ok": true,
+  "detail": "42501 permission denied for table calculation_records"
+ },
+ {
+  "group": "rls",
+  "name": "garages: new account creates its garage; owner_id comes from auth.uid()",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "rls",
+  "name": "garages: spoofed owner_id rejected",
+  "ok": true,
+  "detail": "42501 new row violates row-level security policy for table \"garages\""
+ },
+ {
+  "group": "rls",
+  "name": "machines: owner inserts into own garage",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "rls",
+  "name": "machines: spoofed owner_id rejected",
+  "ok": true,
+  "detail": "42501 new row violates row-level security policy for table \"machines\""
+ },
+ {
+  "group": "rls",
+  "name": "machines: B cannot place a machine in A garage",
+  "ok": true,
+  "detail": "23503 insert or update on table \"machines\" violates foreign key constraint \"machines_garage_same_owner_fk\""
+ },
+ {
+  "group": "rls",
+  "name": "components: B cannot attach to A machine",
+  "ok": true,
+  "detail": "23503 insert or update on table \"components\" violates foreign key constraint \"components_machine_same_owner_fk\""
+ },
+ {
+  "group": "rls",
+  "name": "components: spoofed owner_id rejected",
+  "ok": true,
+  "detail": "42501 new row violates row-level security policy for table \"components\""
+ },
+ {
+  "group": "rls",
+  "name": "connections: B cannot connect A components",
+  "ok": true,
+  "detail": "23503 insert or update on table \"component_connections\" violates foreign key constraint \"connections_machine_same_owner_fk\""
+ },
+ {
+  "group": "rls",
+  "name": "value_records: owner inserts own value; owner from auth.uid()",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "rls",
+  "name": "value_records: spoofed owner_id rejected",
+  "ok": true,
+  "detail": "42501 new row violates row-level security policy for table \"value_records\""
+ },
+ {
+  "group": "rls",
+  "name": "value_records: B cannot add a value to A machine",
+  "ok": true,
+  "detail": "23503 insert or update on table \"value_records\" violates foreign key constraint \"values_machine_same_owner_fk\""
+ },
+ {
+  "group": "rls",
+  "name": "calculation_records: client INSERT blocked (no Calculation API yet)",
+  "ok": true,
+  "detail": "42501 permission denied for table calculation_records"
+ },
+ {
+  "group": "rls",
+  "name": "calculation_records: controlled service path can insert",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "rls",
+  "name": "garages: owner renames own garage",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "rls",
+  "name": "garages: other user UPDATE affects 0 rows",
+  "ok": true,
+  "detail": "got 0 row(s), expected 0"
+ },
+ {
+  "group": "rls",
+  "name": "garages: owner_id not updatable by client",
+  "ok": true,
+  "detail": "42501 permission denied for table garages"
+ },
+ {
+  "group": "rls",
+  "name": "garages: created_at not updatable by client",
+  "ok": true,
+  "detail": "42501 permission denied for table garages"
+ },
+ {
+  "group": "rls",
+  "name": "machines: owner updates identity fields",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "rls",
+  "name": "machines: garage_id not updatable by client",
+  "ok": true,
+  "detail": "42501 permission denied for table machines"
+ },
+ {
+  "group": "rls",
+  "name": "machines: other user UPDATE affects 0 rows",
+  "ok": true,
+  "detail": "got 0 row(s), expected 0"
+ },
+ {
+  "group": "rls",
+  "name": "components: machine_id not updatable by client",
+  "ok": true,
+  "detail": "42501 permission denied for table components"
+ },
+ {
+  "group": "rls",
+  "name": "connections: only deleted_at updatable by client",
+  "ok": true,
+  "detail": "42501 permission denied for table component_connections"
+ },
+ {
+  "group": "rls",
+  "name": "value_records: no client UPDATE",
+  "ok": true,
+  "detail": "42501 permission denied for table value_records"
+ },
+ {
+  "group": "rls",
+  "name": "calculation_records: no client UPDATE",
+  "ok": true,
+  "detail": "42501 permission denied for table calculation_records"
+ },
+ {
+  "group": "rls",
+  "name": "canonical_fields: authenticated read",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "rls",
+  "name": "canonical_fields: authenticated write denied",
+  "ok": true,
+  "detail": "42501 permission denied for table canonical_fields"
+ },
+ {
+  "group": "rls",
+  "name": "canonical_fields: anon denied (OPEN #17 not granted)",
+  "ok": true,
+  "detail": "42501 permission denied for table canonical_fields"
+ },
+ {
+  "group": "rls",
+  "name": "calculators: authenticated read",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "rls",
+  "name": "calculators: authenticated write denied",
+  "ok": true,
+  "detail": "42501 permission denied for table calculators"
+ },
+ {
+  "group": "rls",
+  "name": "calculators: anon denied (OPEN #17 not granted)",
+  "ok": true,
+  "detail": "42501 permission denied for table calculators"
+ },
+ {
+  "group": "rls",
+  "name": "formula_versions: authenticated read",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "rls",
+  "name": "formula_versions: authenticated write denied",
+  "ok": true,
+  "detail": "42501 permission denied for table formula_versions"
+ },
+ {
+  "group": "rls",
+  "name": "formula_versions: anon denied (OPEN #17 not granted)",
+  "ok": true,
+  "detail": "42501 permission denied for table formula_versions"
+ },
+ {
+  "group": "unknown-vs-zero",
+  "name": "zero is a KNOWN value (0, user_entered)",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "unknown-vs-zero",
+  "name": "unknown = no value + provenance unknown",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "unknown-vs-zero",
+  "name": "no value with a known provenance rejected",
+  "ok": true,
+  "detail": "23514 DF_KIND: test_weight is numeric"
+ },
+ {
+  "group": "unknown-vs-zero",
+  "name": "a number with provenance unknown rejected",
+  "ok": true,
+  "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_unknown_has_no_value\""
+ },
+ {
+  "group": "unknown-vs-zero",
+  "name": "zero with provenance unknown rejected (zero is not unknown)",
+  "ok": true,
+  "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_unknown_has_no_value\""
+ },
+ {
+  "group": "unknown-vs-zero",
+  "name": "both numeric and option rejected",
+  "ok": true,
+  "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_known_has_exactly_one\""
+ },
+ {
+  "group": "unknown-vs-zero",
+  "name": "categorical field given a number rejected",
+  "ok": true,
+  "detail": "23514 DF_KIND: test_transmission is categorical"
+ },
+ {
+  "group": "unknown-vs-zero",
+  "name": "numeric field given an option rejected",
+  "ok": true,
+  "detail": "23514 DF_KIND: test_weight is numeric"
+ },
+ {
+  "group": "unknown-vs-zero",
+  "name": "categorical field with a declared option accepted",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "unknown-vs-zero",
+  "name": "non-finite 'NaN' rejected as a known value",
+  "ok": true,
+  "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_numeric_finite\""
+ },
+ {
+  "group": "unknown-vs-zero",
+  "name": "non-finite 'Infinity' rejected as a known value",
+  "ok": true,
+  "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_numeric_finite\""
+ },
+ {
+  "group": "unknown-vs-zero",
+  "name": "non-finite '-Infinity' rejected as a known value",
+  "ok": true,
+  "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_numeric_finite\""
+ },
+ {
+  "group": "units",
+  "name": "value in a non-canonical unit rejected (kg for an lb field)",
+  "ok": true,
+  "detail": "23514 DF_UNIT: test_weight must be stored in its canonical engine-native unit lb (got kg)"
+ },
+ {
+  "group": "units",
+  "name": "value in the canonical engine-native unit accepted",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "provenance",
+  "name": "calculated without calculation_id rejected",
+  "ok": true,
+  "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_calculated_needs_calculation\""
+ },
+ {
+  "group": "provenance",
+  "name": "derived without calculation_id rejected",
+  "ok": true,
+  "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_calculated_needs_calculation\""
+ },
+ {
+  "group": "provenance",
+  "name": "calculated linked to its own Calculation accepted",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "provenance",
+  "name": "derived linked to its own Calculation accepted",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "provenance",
+  "name": "provenance measured accepted",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "provenance",
+  "name": "provenance manufacturer_specified accepted",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "provenance",
+  "name": "provenance user_entered accepted",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "provenance",
+  "name": "provenance empirical accepted",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "provenance",
+  "name": "provenance estimated accepted",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "provenance",
+  "name": "'imported' is not a provenance category",
+  "ok": true,
+  "detail": "22P02 invalid input value for enum provenance_enum: \"imported\""
+ },
+ {
+  "group": "provenance",
+  "name": "import channel recorded in source with original provenance kept",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "provenance",
+  "name": "operating_state context accepted separately from specification",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "immutability",
+  "name": "value UPDATE refused for super",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: UPDATE on value_records is not permitted (values are append-only)"
+ },
+ {
+  "group": "immutability",
+  "name": "value DELETE refused for super",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: DELETE on value_records is not permitted (values are append-only)"
+ },
+ {
+  "group": "immutability",
+  "name": "calculation UPDATE refused for super",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: UPDATE on calculation_records is not permitted (calculation history is immutable)"
+ },
+ {
+  "group": "immutability",
+  "name": "calculation DELETE refused for super",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: DELETE on calculation_records is not permitted (calculation history is immutable)"
+ },
+ {
+  "group": "immutability",
+  "name": "value UPDATE refused for service",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: UPDATE on value_records is not permitted (values are append-only)"
+ },
+ {
+  "group": "immutability",
+  "name": "value DELETE refused for service",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: DELETE on value_records is not permitted (values are append-only)"
+ },
+ {
+  "group": "immutability",
+  "name": "calculation UPDATE refused for service",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: UPDATE on calculation_records is not permitted (calculation history is immutable)"
+ },
+ {
+  "group": "immutability",
+  "name": "calculation DELETE refused for service",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: DELETE on calculation_records is not permitted (calculation history is immutable)"
+ },
+ {
+  "group": "immutability",
+  "name": "value TRUNCATE refused",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: TRUNCATE on value_records is not permitted (values are append-only)"
+ },
+ {
+  "group": "immutability",
+  "name": "calculation TRUNCATE refused",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: TRUNCATE on calculation_records is not permitted (calculation history is immutable)"
+ },
+ {
+  "group": "immutability",
+  "name": "formula version UPDATE refused",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: UPDATE on formula_versions is not permitted (formula versions are never altered or deleted)"
+ },
+ {
+  "group": "immutability",
+  "name": "formula version DELETE refused",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: DELETE on formula_versions is not permitted (formula versions are never altered or deleted)"
+ },
+ {
+  "group": "immutability",
+  "name": "owner_id change refused even for service role",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: owner_id cannot change on machines"
+ },
+ {
+  "group": "immutability",
+  "name": "component machine_id change refused even for service role",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: component machine_id cannot change"
+ },
+ {
+  "group": "immutability",
+  "name": "connection can only be soft-deleted (service role)",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: a connection can only be soft-deleted"
+ },
+ {
+  "group": "immutability",
+  "name": "client-supplied created_at ignored: server time used",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "immutability",
+  "name": "client-supplied recorded_at ignored: server time used",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "immutability",
+  "name": "service-role UPDATE cannot rewrite created_at",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "immutability",
+  "name": "correction = new row superseding the old; current value follows the chain",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "immutability",
+  "name": "a value can be superseded only once (linear history)",
+  "ok": true,
+  "detail": "23505 duplicate key value violates unique constraint \"values_superseded_once\""
+ },
+ {
+  "group": "immutability",
+  "name": "superseding a different field rejected",
+  "ok": true,
+  "detail": "23514 DF_SUPERSEDE: a value can only supersede the same machine/component/field/context"
+ },
+ {
+  "group": "immutability",
+  "name": "superseding across contexts rejected",
+  "ok": true,
+  "detail": "23514 DF_SUPERSEDE: a value can only supersede the same machine/component/field/context"
+ },
+ {
+  "group": "fingerprint",
+  "name": "calculation with an unknown formula_version rejected",
+  "ok": true,
+  "detail": "23503 insert or update on table \"calculation_records\" violates foreign key constraint \"calc_formula_version_fk\""
+ },
+ {
+  "group": "fingerprint",
+  "name": "calculation citing another calculator’s fingerprint rejected",
+  "ok": true,
+  "detail": "23503 insert or update on table \"calculation_records\" violates foreign key constraint \"calc_formula_version_fk\""
+ },
+ {
+  "group": "fingerprint",
+  "name": "alias recorded with requested id and catalog canonical id (carb_cfm -> carb_sizing)",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "fingerprint",
+  "name": "canonical_id not matching the catalog rejected",
+  "ok": true,
+  "detail": "23514 DF_CALC: canonical_id tow_tongue_percent does not match catalog carb_sizing for carb_cfm"
+ },
+ {
+  "group": "fingerprint",
+  "name": "input_value_ids citing another user’s value rejected",
+  "ok": true,
+  "detail": "23503 DF_CALC: input_value_ids must reference the owner's own values"
+ },
+ {
+  "group": "fingerprint",
+  "name": "engine round trip tow_tongue_percent (VALID, fv1-45220ce4)",
+  "ok": true,
+  "detail": "outputs [10]"
+ },
+ {
+  "group": "fingerprint",
+  "name": "engine round trip tow_tongue_percent (INCOMPLETE, fv1-45220ce4)",
+  "ok": true,
+  "detail": "outputs [null]"
+ },
+ {
+  "group": "fingerprint",
+  "name": "engine round trip speed_converter (VALID, fv1-19f016a5)",
+  "ok": true,
+  "detail": "outputs [40.90899793409561,65.83711896767397,18.287999414784018,60]"
+ },
+ {
+  "group": "fingerprint",
+  "name": "engine round trip understeer_gradient (VALID, fv1-9a86b9e9)",
+  "ok": true,
+  "detail": "outputs [0.6514285714285695]"
+ },
+ {
+  "group": "fingerprint",
+  "name": "recalculation creates a NEW record; the original is unchanged",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "deletion",
+  "name": "owner can soft-delete own machine (Decision B function)",
+  "ok": true,
+  "detail": "rows 1"
+ },
+ {
+  "group": "deletion",
+  "name": "after soft delete: machine/components/connections hidden; value + history survive; deleted row not updatable",
+  "ok": true,
+  "detail": "{\"m\":0,\"c\":0,\"cn\":0,\"v\":1,\"h\":1,\"again\":0}"
+ },
+ {
+  "group": "deletion",
+  "name": "soft-deleting the garage hides all its machines",
+  "ok": true,
+  "detail": "{\"g\":0,\"m\":0}"
+ },
+ {
+  "group": "deletion",
+  "name": "hard DELETE of garages refused even for the superuser",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: DELETE on garages is not permitted (soft delete only)"
+ },
+ {
+  "group": "deletion",
+  "name": "hard DELETE of machines refused even for the superuser",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: DELETE on machines is not permitted (soft delete only)"
+ },
+ {
+  "group": "deletion",
+  "name": "hard DELETE of components refused even for the superuser",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: DELETE on components is not permitted (soft delete only)"
+ },
+ {
+  "group": "deletion",
+  "name": "hard DELETE of component_connections refused even for the superuser",
+  "ok": true,
+  "detail": "P0001 DF_IMMUTABLE: DELETE on component_connections is not permitted (soft delete only)"
+ },
+ {
+  "group": "deletion",
+  "name": "a new active garage is allowed after soft-deleting the previous one",
+  "ok": true,
+  "detail": "1"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_garage: owner succeeds; row hidden from owner SELECT; deleted_at set server-side",
+  "ok": true,
+  "detail": "{\"call\":{\"ok\":true},\"visible\":0}"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_garage: owner_id and created_at unchanged",
+  "ok": true,
+  "detail": "unchanged"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_garage: repeat on an already-deleted row -> DF_NOT_FOUND, deleted_at not re-stamped",
+  "ok": true,
+  "detail": "{\"again\":{\"ok\":false,\"code\":\"P0002\",\"msg\":\"DF_NOT_FOUND: no active garage owned by the caller\"},\"same\":true}"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_garage: another user cannot delete A's row (same error as not found; row untouched)",
+  "ok": true,
+  "detail": "{\"call\":{\"ok\":false,\"code\":\"P0002\",\"msg\":\"DF_NOT_FOUND: no active garage owned by the caller\"},\"still\":true}"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_garage: anon cannot execute",
+  "ok": true,
+  "detail": "42501 permission denied for function df_soft_delete_garage"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_garage: signed-in session without a user id rejected (DF_AUTH)",
+  "ok": true,
+  "detail": "42501 DF_AUTH: authentication required"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_garage: non-existent id -> DF_NOT_FOUND",
+  "ok": true,
+  "detail": "P0002 DF_NOT_FOUND: no active garage owned by the caller"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_machine: owner succeeds; row hidden from owner SELECT; deleted_at set server-side",
+  "ok": true,
+  "detail": "{\"call\":{\"ok\":true},\"visible\":0}"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_machine: owner_id and created_at unchanged",
+  "ok": true,
+  "detail": "unchanged"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_machine: repeat on an already-deleted row -> DF_NOT_FOUND, deleted_at not re-stamped",
+  "ok": true,
+  "detail": "{\"again\":{\"ok\":false,\"code\":\"P0002\",\"msg\":\"DF_NOT_FOUND: no active machine owned by the caller\"},\"same\":true}"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_machine: another user cannot delete A's row (same error as not found; row untouched)",
+  "ok": true,
+  "detail": "{\"call\":{\"ok\":false,\"code\":\"P0002\",\"msg\":\"DF_NOT_FOUND: no active machine owned by the caller\"},\"still\":true}"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_machine: anon cannot execute",
+  "ok": true,
+  "detail": "42501 permission denied for function df_soft_delete_machine"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_machine: signed-in session without a user id rejected (DF_AUTH)",
+  "ok": true,
+  "detail": "42501 DF_AUTH: authentication required"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_machine: non-existent id -> DF_NOT_FOUND",
+  "ok": true,
+  "detail": "P0002 DF_NOT_FOUND: no active machine owned by the caller"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_component: owner succeeds; row hidden from owner SELECT; deleted_at set server-side",
+  "ok": true,
+  "detail": "{\"call\":{\"ok\":true},\"visible\":0}"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_component: owner_id and created_at unchanged",
+  "ok": true,
+  "detail": "unchanged"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_component: repeat on an already-deleted row -> DF_NOT_FOUND, deleted_at not re-stamped",
+  "ok": true,
+  "detail": "{\"again\":{\"ok\":false,\"code\":\"P0002\",\"msg\":\"DF_NOT_FOUND: no active component owned by the caller\"},\"same\":true}"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_component: another user cannot delete A's row (same error as not found; row untouched)",
+  "ok": true,
+  "detail": "{\"call\":{\"ok\":false,\"code\":\"P0002\",\"msg\":\"DF_NOT_FOUND: no active component owned by the caller\"},\"still\":true}"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_component: anon cannot execute",
+  "ok": true,
+  "detail": "42501 permission denied for function df_soft_delete_component"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_component: signed-in session without a user id rejected (DF_AUTH)",
+  "ok": true,
+  "detail": "42501 DF_AUTH: authentication required"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_component: non-existent id -> DF_NOT_FOUND",
+  "ok": true,
+  "detail": "P0002 DF_NOT_FOUND: no active component owned by the caller"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_connection: owner succeeds; row hidden from owner SELECT; deleted_at set server-side",
+  "ok": true,
+  "detail": "{\"call\":{\"ok\":true},\"visible\":0}"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_connection: owner_id and created_at unchanged",
+  "ok": true,
+  "detail": "unchanged"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_connection: repeat on an already-deleted row -> DF_NOT_FOUND, deleted_at not re-stamped",
+  "ok": true,
+  "detail": "{\"again\":{\"ok\":false,\"code\":\"P0002\",\"msg\":\"DF_NOT_FOUND: no active connection owned by the caller\"},\"same\":true}"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_connection: anon cannot execute",
+  "ok": true,
+  "detail": "42501 permission denied for function df_soft_delete_connection"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_connection: signed-in session without a user id rejected (DF_AUTH)",
+  "ok": true,
+  "detail": "42501 DF_AUTH: authentication required"
+ },
+ {
+  "group": "soft-delete",
+  "name": "df_soft_delete_connection: non-existent id -> DF_NOT_FOUND",
+  "ok": true,
+  "detail": "P0002 DF_NOT_FOUND: no active connection owned by the caller"
+ },
+ {
+  "group": "soft-delete",
+  "name": "deleting one component leaves its machine and sibling components visible (no cascade invented)",
+  "ok": true,
+  "detail": "{\"machine\":1,\"other\":1,\"gone\":0}"
+ },
+ {
+  "group": "soft-delete",
+  "name": "WHERE-less owner UPDATE of deleted_at can only affect the caller’s own rows; another user’s row is untouched",
+  "ok": true,
+  "detail": "update succeeded; caller's own garage soft-deleted; B garage active: true"
+ },
+ {
+  "group": "soft-delete",
+  "name": "direct owner UPDATE of deleted_at with a WHERE clause is still rejected by RLS (why Decision B exists)",
+  "ok": true,
+  "detail": "42501 new row violates row-level security policy for table \"machines\""
+ },
+ {
+  "group": "soft-delete",
+  "name": "exactly four fixed-table soft-delete functions, one uuid argument each (no general-purpose mechanism)",
+  "ok": true,
+  "detail": "df_soft_delete_component(p_id uuid), df_soft_delete_connection(p_id uuid), df_soft_delete_garage(p_id uuid), df_soft_delete_machine(p_id uuid)"
+ },
+ {
+  "group": "soft-delete",
+  "name": "each is SECURITY DEFINER with a fixed empty search_path",
+  "ok": true,
+  "detail": "[[\"search_path=\\\"\\\"\"],[\"search_path=\\\"\\\"\"],[\"search_path=\\\"\\\"\"],[\"search_path=\\\"\\\"\"]]"
+ },
+ {
+  "group": "soft-delete",
+  "name": "EXECUTE: authenticated only; not anon, not PUBLIC",
+  "ok": true,
+  "detail": "postgres=X/postgres,authenticated=X/postgres | postgres=X/postgres,authenticated=X/postgres | postgres=X/postgres,authenticated=X/postgres | postgres=X/postgres,authenticated=X/postgres"
+ },
+ {
+  "group": "idempotency",
+  "name": "same (owner, request_id) twice rejected",
+  "ok": true,
+  "detail": "23505 duplicate key value violates unique constraint \"calc_request_idempotent\""
+ },
+ {
+  "group": "idempotency",
+  "name": "the same request_id is independent per owner (A and B fixtures share RQ1)",
+  "ok": true,
+  "detail": "2 owners"
+ }
+]

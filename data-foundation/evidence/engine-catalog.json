@@ -1,0 +1,6982 @@
+{
+ "source": {
+  "tag": "F1.12.3-UI-MOBILE-HEADER",
+  "commit": "257b2cc6617f68db4b7c672c30c75ee30e242689",
+  "page": "F1_12_3_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
+  "page_sha256": "02b0ceeed36b17c5ac64daa480c26ea52146f0ade94ac60b6d8f1027ec102c27",
+  "engine_version": "1.1.0"
+ },
+ "counts": {
+  "registry_entries": 577,
+  "aliases": 6,
+  "calculators_rows": 583,
+  "formula_versions_rows": 577,
+  "engine_proven": 252,
+  "migrated_list": 252,
+  "pending_list": 8
+ },
+ "verification": {
+  "browser_equals_node": true,
+  "fingerprints_match_F1_12_2_snapshot": true,
+  "embedded_engine_identical": true,
+  "manifest_verified": true
+ },
+ "calculators": [
+  {
+   "calculator_id": "ac_compressor",
+   "canonical_id": "ac_compressor",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ac_vent_temp",
+   "canonical_id": "ac_vent_temp",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ackermann",
+   "canonical_id": "ackermann",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ackermann_angle",
+   "canonical_id": "ackermann_angle",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "advanced_et",
+   "canonical_id": "advanced_et",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "aero_balance",
+   "canonical_id": "aero_balance",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "aero_hp",
+   "canonical_id": "aero_hp",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "afr_from_lambda",
+   "canonical_id": "afr_from_lambda",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "afr_lambda",
+   "canonical_id": "afr_lambda",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "air_density",
+   "canonical_id": "air_density",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "air_filter",
+   "canonical_id": "air_filter",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "air_fuel_mass",
+   "canonical_id": "air_fuel_mass",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "air_standard_otto",
+   "canonical_id": "air_standard_otto",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "airflow_from_ve",
+   "canonical_id": "engine_airflow",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "alternator_capacity",
+   "canonical_id": "alternator_capacity",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "alternator_rpm",
+   "canonical_id": "alternator_rpm",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "anti_dive",
+   "canonical_id": "anti_dive",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "anti_squat",
+   "canonical_id": "anti_squat",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "approach_departure_angle",
+   "canonical_id": "approach_departure_angle",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "articulation_index",
+   "canonical_id": "articulation_index",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "bar_to_psi",
+   "canonical_id": "bar_to_psi",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "baro_correction",
+   "canonical_id": "baro_correction",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "battery_ah",
+   "canonical_id": "battery_ah",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "battery_cca",
+   "canonical_id": "battery_cca",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "beam_deflection",
+   "canonical_id": "beam_deflection",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "bearing_life",
+   "canonical_id": "bearing_life",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "belt_length",
+   "canonical_id": "belt_length",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "bend_allowance",
+   "canonical_id": "bend_allowance",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "bending_stress",
+   "canonical_id": "bending_stress",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "bmep",
+   "canonical_id": "bmep",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "bmep_from_torque",
+   "canonical_id": "bmep_from_torque",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "bolt_pattern",
+   "canonical_id": "bolt_pattern",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "bolt_stretch",
+   "canonical_id": "bolt_stretch",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "bolt_torque_spec",
+   "canonical_id": "bolt_torque_spec",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "boost_cr",
+   "canonical_id": "boost_cr",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "boost_for_hp",
+   "canonical_id": "boost_for_hp",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "bore_stroke_ratio",
+   "canonical_id": "bore_stroke_ratio",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "brake_bias",
+   "canonical_id": "brake_bias",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "brake_bias_hydraulic",
+   "canonical_id": "brake_bias_hydraulic",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "brake_clamp_force",
+   "canonical_id": "brake_clamp_force",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "brake_energy",
+   "canonical_id": "brake_energy",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "brake_fade_energy",
+   "canonical_id": "brake_fade_energy",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "brake_hydraulic_ratio",
+   "canonical_id": "brake_hydraulic_ratio",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "brake_pedal_effort",
+   "canonical_id": "brake_pedal_effort",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "brake_rotor_temp",
+   "canonical_id": "brake_rotor_temp",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "brake_torque",
+   "canonical_id": "brake_torque",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "braking_distance",
+   "canonical_id": "braking_distance",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "breakout_calc",
+   "canonical_id": "breakout_calc",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "breakover_angle",
+   "canonical_id": "breakover_angle",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "bsfc",
+   "canonical_id": "bsfc",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "btu_hr_to_kw",
+   "canonical_id": "btu_hr_to_kw",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "btu_to_joules",
+   "canonical_id": "btu_to_joules",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "build_budget",
+   "canonical_id": "build_budget",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "bump_steer",
+   "canonical_id": "bump_steer",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "cam_duration_rpm",
+   "canonical_id": "cam_duration_rpm",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "camshaft_advance_retard",
+   "canonical_id": "camshaft_advance_retard",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "camshaft_events",
+   "canonical_id": "camshaft_events",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "camshaft_intake_centerline",
+   "canonical_id": "camshaft_intake_centerline",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "can_bitrate",
+   "canonical_id": "can_bitrate",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "carb_cfm",
+   "canonical_id": "carb_sizing",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "carb_sizing",
+   "canonical_id": "carb_sizing",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "caster_from_camber",
+   "canonical_id": "caster_from_camber",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "caster_trail_effect",
+   "canonical_id": "caster_trail_effect",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "cc_to_cubic_inches",
+   "canonical_id": "cc_to_cubic_inches",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "celsius_to_fahrenheit",
+   "canonical_id": "celsius_to_fahrenheit",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "celsius_to_kelvin",
+   "canonical_id": "celsius_to_kelvin",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "cfm_velocity_csa",
+   "canonical_id": "cfm_velocity_csa",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "cg_3d",
+   "canonical_id": "cg_3d",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "cg_lateral",
+   "canonical_id": "cg_lateral",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "cg_longitudinal",
+   "canonical_id": "cg_longitudinal",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "chip_load",
+   "canonical_id": "chip_load",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "christmas_tree",
+   "canonical_id": "christmas_tree",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "clamp_load",
+   "canonical_id": "clamp_load",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "climb_rate",
+   "canonical_id": "climb_rate",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "clutch_fork_ratio",
+   "canonical_id": "clutch_fork_ratio",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "clutch_hydraulic_ratio",
+   "canonical_id": "clutch_hydraulic_ratio",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "clutch_pedal_effort",
+   "canonical_id": "clutch_pedal_effort",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "clutch_pedal_ratio",
+   "canonical_id": "clutch_pedal_ratio",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "clutch_release_force",
+   "canonical_id": "clutch_release_force",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "clutch_torque_capacity",
+   "canonical_id": "clutch_torque_capacity",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "cm_to_inches",
+   "canonical_id": "cm_to_inches",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "cog_height",
+   "canonical_id": "cog_height",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "coil_spring",
+   "canonical_id": "coil_spring",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "compressor_efficiency",
+   "canonical_id": "compressor_efficiency",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "compressor_outlet_temp",
+   "canonical_id": "compressor_outlet_temp",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "compressor_pr",
+   "canonical_id": "compressor_pr",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "consistency_calc",
+   "canonical_id": "consistency_calc",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "control_error",
+   "canonical_id": "control_error",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "converter_slip",
+   "canonical_id": "converter_slip",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "coolant_flow",
+   "canonical_id": "coolant_flow",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "coolant_ratio",
+   "canonical_id": "coolant_ratio",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "corner_weight_analysis",
+   "canonical_id": "corner_weight_analysis",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "cornering_speed",
+   "canonical_id": "cornering_speed",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "cornering_stiffness",
+   "canonical_id": "cornering_stiffness",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "cost_per_mile",
+   "canonical_id": "cost_per_mile",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "countersink_depth",
+   "canonical_id": "countersink_depth",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "crank_journal_overlap",
+   "canonical_id": "crank_journal_overlap",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "cranking_compression",
+   "canonical_id": "cranking_compression",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "crawl_ratio",
+   "canonical_id": "crawl_ratio",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "crawl_ratio_tire",
+   "canonical_id": "crawl_ratio_tire",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "cross_weight",
+   "canonical_id": "cross_weight",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "crosswind_force",
+   "canonical_id": "crosswind_force",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ct_fuel_stint",
+   "canonical_id": "ct_fuel_stint",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ct_ideal_stagger",
+   "canonical_id": "ct_ideal_stagger",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ct_jacking_bolt",
+   "canonical_id": "ct_jacking_bolt",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ct_lap_time_est",
+   "canonical_id": "ct_lap_time_est",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ct_moment_center",
+   "canonical_id": "ct_moment_center",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ct_panhard_roll",
+   "canonical_id": "ct_panhard_roll",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ct_spring_split",
+   "canonical_id": "ct_spring_split",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ct_sway_bar",
+   "canonical_id": "ct_sway_bar",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ct_tire_temp_balance",
+   "canonical_id": "ct_tire_temp_balance",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ct_track_bar_adj",
+   "canonical_id": "ct_track_bar_adj",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ct_wedge_bite",
+   "canonical_id": "ct_wedge_bite",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ct_weight_dist",
+   "canonical_id": "ct_weight_dist",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "cubic_feet_to_liters",
+   "canonical_id": "cubic_feet_to_liters",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "cubic_inches_to_cc",
+   "canonical_id": "cubic_inches_to_cc",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "cubic_inches_to_liters",
+   "canonical_id": "cubic_inches_to_liters",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "curtain_area",
+   "canonical_id": "curtain_area",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "damping_ratio",
+   "canonical_id": "damping_ratio",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "decibel_ratio",
+   "canonical_id": "decibel_ratio",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "decimal_fraction_universal",
+   "canonical_id": "decimal_fraction_universal",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "decimal_inch_to_mm",
+   "canonical_id": "decimal_inch_to_mm",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "decimal_to_fraction",
+   "canonical_id": "decimal_to_fraction",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "decimal_to_mixed_number",
+   "canonical_id": "decimal_to_mixed_number",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "decimal_to_nearest_fraction",
+   "canonical_id": "decimal_to_nearest_fraction",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "deck_height",
+   "canonical_id": "deck_height",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "delay_box_setting",
+   "canonical_id": "delay_box_setting",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "depreciation_schedule",
+   "canonical_id": "depreciation_schedule",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "dew_point",
+   "canonical_id": "dew_point",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "dial_in_calc",
+   "canonical_id": "dial_in_calc",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_afr_lambda",
+   "canonical_id": "diesel_afr_lambda",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_afrlambda",
+   "canonical_id": "diesel_afrlambda",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_airflow",
+   "canonical_id": "diesel_airflow",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_bmep",
+   "canonical_id": "diesel_bmep",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_boost_pr",
+   "canonical_id": "diesel_boost_pr",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_bsfc",
+   "canonical_id": "diesel_bsfc",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_compressor_outlet",
+   "canonical_id": "diesel_compressor_outlet",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_cost_per_hour",
+   "canonical_id": "diesel_cost_per_hour",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_cost_per_mile",
+   "canonical_id": "diesel_cost_per_mile",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_def_cost",
+   "canonical_id": "diesel_def_cost",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_def_range",
+   "canonical_id": "diesel_def_range",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_def_rate",
+   "canonical_id": "diesel_def_rate",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_dpf_soot",
+   "canonical_id": "diesel_dpf_soot",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_egb",
+   "canonical_id": "diesel_egb",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_egr_flow",
+   "canonical_id": "diesel_egr_flow",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_exhaust_flow",
+   "canonical_id": "diesel_exhaust_flow",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_fuel_flow",
+   "canonical_id": "diesel_fuel_flow",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_fuel_per_acre",
+   "canonical_id": "diesel_fuel_per_acre",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_fuel_per_cycle",
+   "canonical_id": "diesel_fuel_per_cycle",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_fuel_per_ton",
+   "canonical_id": "diesel_fuel_per_ton",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_fuel_savings",
+   "canonical_id": "diesel_fuel_savings",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_idle_cost",
+   "canonical_id": "diesel_idle_cost",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_injection_duration",
+   "canonical_id": "diesel_injection_duration",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_injection_quantity",
+   "canonical_id": "diesel_injection_quantity",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_injection_timing",
+   "canonical_id": "diesel_injection_timing",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_injector_flow",
+   "canonical_id": "diesel_injector_flow",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_intercooler",
+   "canonical_id": "diesel_intercooler",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_load_factor",
+   "canonical_id": "diesel_load_factor",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_mpg",
+   "canonical_id": "diesel_mpg",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_power_economy",
+   "canonical_id": "diesel_power_economy",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_power_from_fuel",
+   "canonical_id": "diesel_power_from_fuel",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_power_to_weight",
+   "canonical_id": "diesel_power_to_weight",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_production_per_gallon",
+   "canonical_id": "diesel_production_per_gallon",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_rail_power",
+   "canonical_id": "diesel_rail_power",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_regen_cost",
+   "canonical_id": "diesel_regen_cost",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_regen_interval",
+   "canonical_id": "diesel_regen_interval",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_scr_efficiency",
+   "canonical_id": "diesel_scr_efficiency",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_smoke_limit",
+   "canonical_id": "diesel_smoke_limit",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_torque_from_power",
+   "canonical_id": "diesel_torque_from_power",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "diesel_turbine_pr",
+   "canonical_id": "diesel_turbine_pr",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_turbo_efficiency",
+   "canonical_id": "diesel_turbo_efficiency",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "diesel_turbo_pr",
+   "canonical_id": "diesel_turbo_pr",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "distance_converter",
+   "canonical_id": "distance_converter",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "distance_to_empty",
+   "canonical_id": "distance_to_empty",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "downforce",
+   "canonical_id": "downforce",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "drag_force",
+   "canonical_id": "drag_force",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "driveshaft_critical",
+   "canonical_id": "driveshaft_critical",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "driveshaft_order",
+   "canonical_id": "driveshaft_order",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "driveshaft_speed",
+   "canonical_id": "driveshaft_speed",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "drivetrain_loss",
+   "canonical_id": "drivetrain_loss",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "dual_spring_rate",
+   "canonical_id": "dual_spring_rate",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "dynamic_compression",
+   "canonical_id": "dynamic_compression",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "dynamic_pressure",
+   "canonical_id": "dynamic_pressure",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "dyno_correction",
+   "canonical_id": "dyno_correction",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "e85_blend",
+   "canonical_id": "e85_blend",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "e85_fuel_multiplier",
+   "canonical_id": "e85_fuel_multiplier",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "effective_gear_ratio",
+   "canonical_id": "effective_gear_ratio",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "effective_rocker_ratio",
+   "canonical_id": "effective_rocker_ratio",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "eighth_to_quarter",
+   "canonical_id": "eighth_to_quarter",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "electrical_power",
+   "canonical_id": "electrical_power",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "engine_air_density",
+   "canonical_id": "engine_air_density",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "engine_airflow",
+   "canonical_id": "engine_airflow",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "engine_displacement",
+   "canonical_id": "engine_displacement",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "engine_order",
+   "canonical_id": "engine_order",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "engine_rpm_speed",
+   "canonical_id": "engine_rpm_speed",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "estimate_60ft",
+   "canonical_id": "estimate_60ft",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "et_hp_change",
+   "canonical_id": "et_hp_change",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "et_mph_prediction",
+   "canonical_id": "et_mph_prediction",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "et_weight_change",
+   "canonical_id": "et_weight_change",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ev_acceleration",
+   "canonical_id": "ev_acceleration",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ev_battery_current",
+   "canonical_id": "ev_battery_current",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ev_battery_degradation",
+   "canonical_id": "ev_battery_degradation",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ev_battery_energy",
+   "canonical_id": "ev_battery_energy",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ev_battery_heat",
+   "canonical_id": "ev_battery_heat",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_c_rate",
+   "canonical_id": "ev_c_rate",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_charge_added",
+   "canonical_id": "ev_charge_added",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_charge_cost",
+   "canonical_id": "ev_charge_cost",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ev_charge_loss",
+   "canonical_id": "ev_charge_loss",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_charge_time",
+   "canonical_id": "ev_charge_time",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ev_coolant_flow",
+   "canonical_id": "ev_coolant_flow",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_cost_per_mile",
+   "canonical_id": "ev_cost_per_mile",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ev_efficiency",
+   "canonical_id": "ev_efficiency",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ev_hvac_energy",
+   "canonical_id": "ev_hvac_energy",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_internal_resistance",
+   "canonical_id": "ev_internal_resistance",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_inverter_loss",
+   "canonical_id": "ev_inverter_loss",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_motor_efficiency",
+   "canonical_id": "ev_motor_efficiency",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_motor_power",
+   "canonical_id": "ev_motor_power",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_motor_torque",
+   "canonical_id": "ev_motor_torque",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ev_pack_ah",
+   "canonical_id": "ev_pack_ah",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_pack_configuration",
+   "canonical_id": "ev_pack_configuration",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_peak_power",
+   "canonical_id": "ev_peak_power",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_power_conversion",
+   "canonical_id": "ev_power_conversion",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_quarter_mile",
+   "canonical_id": "ev_quarter_mile",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ev_range",
+   "canonical_id": "ev_range",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ev_reduction_ratio",
+   "canonical_id": "ev_reduction_ratio",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_regen_power",
+   "canonical_id": "ev_regen_power",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ev_soc_energy",
+   "canonical_id": "ev_soc_energy",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_temp_penalty",
+   "canonical_id": "ev_temp_penalty",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_tire_wear",
+   "canonical_id": "ev_tire_wear",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ev_top_speed",
+   "canonical_id": "ev_top_speed",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ev_towing_penalty",
+   "canonical_id": "ev_towing_penalty",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_usable_energy",
+   "canonical_id": "ev_usable_energy",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_voltage_sag",
+   "canonical_id": "ev_voltage_sag",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ev_wheel_torque",
+   "canonical_id": "ev_wheel_torque",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "exhaust_curtain_area",
+   "canonical_id": "exhaust_curtain_area",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "exhaust_diameter",
+   "canonical_id": "exhaust_diameter",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "exhaust_header",
+   "canonical_id": "exhaust_header",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "exhaust_intake_flow_ratio",
+   "canonical_id": "exhaust_intake_flow_ratio",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "exhaust_port_cfm",
+   "canonical_id": "exhaust_port_cfm",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "extended_warranty",
+   "canonical_id": "extended_warranty",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "factor_of_safety",
+   "canonical_id": "factor_of_safety",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fahrenheit_to_celsius",
+   "canonical_id": "fahrenheit_to_celsius",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fahrenheit_to_kelvin",
+   "canonical_id": "fahrenheit_to_kelvin",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "feed_rate",
+   "canonical_id": "feed_rate",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "feeds_speeds",
+   "canonical_id": "feeds_speeds",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "feet_to_inches",
+   "canonical_id": "feet_to_inches",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "feet_to_meters",
+   "canonical_id": "feet_to_meters",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "feet_to_mm",
+   "canonical_id": "feet_to_mm",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "final_drive_ratio",
+   "canonical_id": "final_drive_ratio",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "flow_coefficient",
+   "canonical_id": "flow_coefficient",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fluid_oz_to_ml",
+   "canonical_id": "fluid_oz_to_ml",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fmep_from_imep_bmep",
+   "canonical_id": "fmep_from_imep_bmep",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "following_distance",
+   "canonical_id": "following_distance",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fraction_add",
+   "canonical_id": "fraction_add",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fraction_decimal",
+   "canonical_id": "fraction_decimal",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "fraction_divide",
+   "canonical_id": "fraction_divide",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fraction_multiply",
+   "canonical_id": "fraction_multiply",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fraction_simplify",
+   "canonical_id": "fraction_simplify",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fraction_subtract",
+   "canonical_id": "fraction_subtract",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fraction_to_decimal",
+   "canonical_id": "fraction_decimal",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fraction_to_decimal_mm",
+   "canonical_id": "fraction_to_decimal_mm",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fraction_to_percent",
+   "canonical_id": "fraction_to_percent",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "friction_circle",
+   "canonical_id": "friction_circle",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ft_per_sec_to_mph",
+   "canonical_id": "ft_per_sec_to_mph",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ftlb_to_joules",
+   "canonical_id": "ftlb_to_joules",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fuel_cell_efficiency",
+   "canonical_id": "fuel_cell_efficiency",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fuel_cell_power",
+   "canonical_id": "fuel_cell_power",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fuel_economy",
+   "canonical_id": "fuel_economy",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "fuel_flow_from_hp",
+   "canonical_id": "fuel_flow_from_hp",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fuel_line_loss",
+   "canonical_id": "fuel_line_loss",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "fuel_pressure_flow",
+   "canonical_id": "fuel_pressure_flow",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fuel_pressure_rise",
+   "canonical_id": "fuel_pressure_rise",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "fuel_pump_capacity",
+   "canonical_id": "fuel_pump_capacity",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fuel_pump_sizing",
+   "canonical_id": "fuel_pump_sizing",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fuel_system_hp",
+   "canonical_id": "fuel_system_hp",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fuse_size",
+   "canonical_id": "fuse_size",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "fuse_sizing",
+   "canonical_id": "fuse_sizing",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "g_per_cc_to_lb_per_ft3",
+   "canonical_id": "g_per_cc_to_lb_per_ft3",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "gallons_to_liters",
+   "canonical_id": "gallons_to_liters",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "gas_oil_mix",
+   "canonical_id": "gas_oil_mix",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "gcwr_payload",
+   "canonical_id": "gcwr_payload",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "gear_ratio_speed",
+   "canonical_id": "gear_ratio_speed",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "gearbox_efficiency",
+   "canonical_id": "gearbox_efficiency",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "gforce_60ft",
+   "canonical_id": "gforce_60ft",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "grains_water",
+   "canonical_id": "grains_water",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "grams_to_oz",
+   "canonical_id": "grams_to_oz",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "hardness_convert",
+   "canonical_id": "hardness_convert",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "harmonic_frequency",
+   "canonical_id": "harmonic_frequency",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "head_gasket_vol",
+   "canonical_id": "head_gasket_vol",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "heat_exchanger_effectiveness",
+   "canonical_id": "heat_exchanger_effectiveness",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "heat_input_per_cycle",
+   "canonical_id": "heat_input_per_cycle",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "heat_transfer",
+   "canonical_id": "heat_transfer",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "helicoil_size",
+   "canonical_id": "helicoil_size",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "hp_aero_drag",
+   "canonical_id": "hp_aero_drag",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "hp_cr_change",
+   "canonical_id": "hp_cr_change",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "hp_from_0_60",
+   "canonical_id": "hp_from_0_60",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "hp_from_airflow",
+   "canonical_id": "hp_from_airflow",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "hp_from_boost",
+   "canonical_id": "hp_from_boost",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "hp_from_specs",
+   "canonical_id": "hp_from_specs",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "hp_from_torque",
+   "canonical_id": "hp_from_torque",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "hp_quarter_mile",
+   "canonical_id": "hp_quarter_mile",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "hp_to_kw",
+   "canonical_id": "hp_to_kw",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "hp_to_ps",
+   "canonical_id": "hp_to_ps",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "hp_trap_speed",
+   "canonical_id": "hp_trap_speed",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "hvac_cooling_load",
+   "canonical_id": "hvac_cooling_load",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "hybrid_power_split",
+   "canonical_id": "hybrid_power_split",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "hybrid_regen_energy",
+   "canonical_id": "hybrid_regen_energy",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "hydraulic_cylinder_force",
+   "canonical_id": "hydraulic_cylinder_force",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "hydraulic_cylinder_speed",
+   "canonical_id": "hydraulic_cylinder_speed",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "hydraulic_mechanical_advantage",
+   "canonical_id": "hydraulic_mechanical_advantage",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "hydraulic_pump_flow",
+   "canonical_id": "hydraulic_pump_flow",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "hydraulic_reservoir_sizing",
+   "canonical_id": "hydraulic_reservoir_sizing",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "hydroplaning",
+   "canonical_id": "hydroplaning",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "imep_from_power",
+   "canonical_id": "imep_from_power",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "inch_fraction_to_mm",
+   "canonical_id": "inch_fraction_to_mm",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "inch_to_feet",
+   "canonical_id": "inch_to_feet",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "inches_to_cm",
+   "canonical_id": "inches_to_cm",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "incline_angle",
+   "canonical_id": "incline_angle",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "incremental_et",
+   "canonical_id": "incremental_et",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "index_racing",
+   "canonical_id": "index_racing",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "inhg_to_psi",
+   "canonical_id": "inhg_to_psi",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "injector_duty",
+   "canonical_id": "injector_duty",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "injector_duty_cycle",
+   "canonical_id": "injector_duty_cycle",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "injector_flow",
+   "canonical_id": "injector_flow",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "injector_size",
+   "canonical_id": "injector_size",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "injector_sizing",
+   "canonical_id": "injector_sizing",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "insurance_estimator",
+   "canonical_id": "insurance_estimator",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "intake_curtain_area",
+   "canonical_id": "intake_curtain_area",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "intake_flow_per_cylinder",
+   "canonical_id": "intake_flow_per_cylinder",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "intake_port_cfm",
+   "canonical_id": "intake_port_cfm",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "intake_port_vel",
+   "canonical_id": "intake_port_vel",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "intake_runner",
+   "canonical_id": "intake_runner",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "intercooler_eff",
+   "canonical_id": "intercooler_eff",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "intercooler_pressure_drop",
+   "canonical_id": "intercooler_pressure_drop",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "intercooler_temp_drop",
+   "canonical_id": "intercooler_temp_drop",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "jetting",
+   "canonical_id": "jetting",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "joules_to_btu",
+   "canonical_id": "joules_to_btu",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "joules_to_ftlb",
+   "canonical_id": "joules_to_ftlb",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "jpipe_resonator",
+   "canonical_id": "jpipe_resonator",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "kelvin_to_celsius",
+   "canonical_id": "kelvin_to_celsius",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "kelvin_to_fahrenheit",
+   "canonical_id": "kelvin_to_fahrenheit",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "kg_per_sec_to_lb_per_min",
+   "canonical_id": "kg_per_sec_to_lb_per_min",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "kg_to_lb",
+   "canonical_id": "kg_to_lb",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "kgf_to_newton",
+   "canonical_id": "kgf_to_newton",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "km_to_miles",
+   "canonical_id": "km_to_miles",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "kmh_to_mph",
+   "canonical_id": "kmh_to_mph",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "kpa_to_psi",
+   "canonical_id": "kpa_to_psi",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "kw_to_btu_hr",
+   "canonical_id": "kw_to_btu_hr",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "kw_to_hp",
+   "canonical_id": "kw_to_hp",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "lambda_from_afr",
+   "canonical_id": "lambda_from_afr",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "lash_net_lift",
+   "canonical_id": "lash_net_lift",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "lateral_accel",
+   "canonical_id": "lateral_accel",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "lateral_acceleration",
+   "canonical_id": "lateral_acceleration",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "lb_per_ft3_to_g_per_cc",
+   "canonical_id": "lb_per_ft3_to_g_per_cc",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "lb_per_min_to_kg_per_sec",
+   "canonical_id": "lb_per_min_to_kg_per_sec",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "lb_to_kg",
+   "canonical_id": "lb_to_kg",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "lbforce_to_newton",
+   "canonical_id": "lbforce_to_newton",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "lbft_to_lbin",
+   "canonical_id": "lbft_to_lbin",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "lbft_to_nm",
+   "canonical_id": "lbft_to_nm",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "lbin_to_lbft",
+   "canonical_id": "lbin_to_lbft",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "lbin_to_nm",
+   "canonical_id": "lbin_to_nm",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "lease_vs_buy",
+   "canonical_id": "lease_vs_buy",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "lift_force",
+   "canonical_id": "lift_force",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "liters_to_cubic_feet",
+   "canonical_id": "liters_to_cubic_feet",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "liters_to_cubic_inches",
+   "canonical_id": "liters_to_cubic_inches",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "liters_to_gallons",
+   "canonical_id": "liters_to_gallons",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "liters_to_quarts",
+   "canonical_id": "liters_to_quarts",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "load_transfer_lateral",
+   "canonical_id": "load_transfer_lateral",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "load_transfer_longitudinal",
+   "canonical_id": "load_transfer_longitudinal",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "loan_payment",
+   "canonical_id": "loan_payment",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "mach_index",
+   "canonical_id": "mach_index",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "mach_port_velocity",
+   "canonical_id": "mach_port_velocity",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "machining_rpm",
+   "canonical_id": "machining_rpm",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "maf_airflow",
+   "canonical_id": "maf_airflow",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "map_pressure_ratio",
+   "canonical_id": "map_pressure_ratio",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "master_cylinder",
+   "canonical_id": "master_cylinder",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "material_removal",
+   "canonical_id": "material_removal",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "max_rpm",
+   "canonical_id": "max_rpm",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "mean_piston_speed",
+   "canonical_id": "mean_piston_speed",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "mech_trail",
+   "canonical_id": "mech_trail",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "meters_to_feet",
+   "canonical_id": "meters_to_feet",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "metric_to_nearest_sae",
+   "canonical_id": "metric_to_nearest_sae",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "miles_to_km",
+   "canonical_id": "miles_to_km",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "milling_heads",
+   "canonical_id": "milling_heads",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "mixed_number_to_decimal",
+   "canonical_id": "mixed_number_to_decimal",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ml_to_fluid_oz",
+   "canonical_id": "ml_to_fluid_oz",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "mm_to_decimal_inch",
+   "canonical_id": "mm_to_decimal_inch",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "mm_to_feet",
+   "canonical_id": "mm_to_feet",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "mm_to_inch_fraction",
+   "canonical_id": "mm_to_inch_fraction",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "motion_ratio",
+   "canonical_id": "motion_ratio",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "mpa_to_psi",
+   "canonical_id": "mpa_to_psi",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "mph_to_ft_per_sec",
+   "canonical_id": "mph_to_ft_per_sec",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "mph_to_kmh",
+   "canonical_id": "mph_to_kmh",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "natural_frequency",
+   "canonical_id": "natural_frequency",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "newton_to_kgf",
+   "canonical_id": "newton_to_kgf",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "newton_to_lbforce",
+   "canonical_id": "newton_to_lbforce",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "nitro_blend",
+   "canonical_id": "nitro_blend",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "nm_to_lbft",
+   "canonical_id": "nm_to_lbft",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "nmm_to_lbft",
+   "canonical_id": "nmm_to_lbft",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "octane_mixture",
+   "canonical_id": "octane_mixture",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ohms_law",
+   "canonical_id": "ohms_law",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "oil_pump_hp",
+   "canonical_id": "oil_pump_hp",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "optimal_shift",
+   "canonical_id": "optimal_shift",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "otto_efficiency",
+   "canonical_id": "otto_efficiency",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "overlap_calc",
+   "canonical_id": "overlap_calc",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "oz_to_grams",
+   "canonical_id": "oz_to_grams",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "pedal_force",
+   "canonical_id": "pedal_force",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "percent_to_fraction",
+   "canonical_id": "percent_to_fraction",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "perfect_light",
+   "canonical_id": "perfect_light",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "pid_proportional",
+   "canonical_id": "pid_proportional",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "pinion_angle_change",
+   "canonical_id": "pinion_angle_change",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "piston_position",
+   "canonical_id": "piston_position",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "piston_to_valve_clearance",
+   "canonical_id": "piston_to_valve_clearance",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "port_valve_area_ratio",
+   "canonical_id": "port_valve_area_ratio",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "port_velocity",
+   "canonical_id": "port_velocity",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "portal_gear_reduction",
+   "canonical_id": "portal_gear_reduction",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "power_converter",
+   "canonical_id": "power_converter",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "power_steering_assist",
+   "canonical_id": "power_steering_assist",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "power_to_weight",
+   "canonical_id": "power_to_weight",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "pressure_converter",
+   "canonical_id": "pressure_converter",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ps_to_hp",
+   "canonical_id": "ps_to_hp",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "psi_to_bar",
+   "canonical_id": "psi_to_bar",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "psi_to_inhg",
+   "canonical_id": "psi_to_inhg",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "psi_to_kpa",
+   "canonical_id": "psi_to_kpa",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "psi_to_mpa",
+   "canonical_id": "psi_to_mpa",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "pump_head",
+   "canonical_id": "pump_head",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "pumping_mep",
+   "canonical_id": "pumping_mep",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "pwm_duty",
+   "canonical_id": "pwm_duty",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "quarts_to_liters",
+   "canonical_id": "quarts_to_liters",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "quench_clearance",
+   "canonical_id": "quench_clearance",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "radiator_heat_capacity",
+   "canonical_id": "radiator_heat_capacity",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "radsec_to_rpm",
+   "canonical_id": "radsec_to_rpm",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "rc_aero_balance",
+   "canonical_id": "rc_aero_balance",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "rc_brake_bias_rc",
+   "canonical_id": "rc_brake_bias_rc",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "rc_camber_gain",
+   "canonical_id": "rc_camber_gain",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "rc_downforce",
+   "canonical_id": "rc_downforce",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "rc_fuel_save",
+   "canonical_id": "rc_fuel_save",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "rc_fuel_stint",
+   "canonical_id": "rc_fuel_stint",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "rc_lap_delta",
+   "canonical_id": "rc_lap_delta",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "rc_motion_ratio_rc",
+   "canonical_id": "rc_motion_ratio_rc",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "rc_pit_strategy",
+   "canonical_id": "rc_pit_strategy",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "rc_rake_angle",
+   "canonical_id": "rc_rake_angle",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "rc_roll_center",
+   "canonical_id": "rc_roll_center",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "rc_sector_delta",
+   "canonical_id": "rc_sector_delta",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "rc_tire_deg",
+   "canonical_id": "rc_tire_deg",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "rc_undercut",
+   "canonical_id": "rc_undercut",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "rc_watt_link",
+   "canonical_id": "rc_watt_link",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "reaction_distance",
+   "canonical_id": "reaction_distance",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "reaction_time",
+   "canonical_id": "reaction_time",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "recovery_point_rating",
+   "canonical_id": "recovery_point_rating",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "refinance_savings",
+   "canonical_id": "refinance_savings",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "required_port_csa",
+   "canonical_id": "required_port_csa",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "resistance",
+   "canonical_id": "resistance",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "reverse_displacement",
+   "canonical_id": "reverse_displacement",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ride_frequency",
+   "canonical_id": "ride_frequency",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ring_gap",
+   "canonical_id": "ring_gap",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ring_gap_bore",
+   "canonical_id": "ring_gap_bore",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "ring_pinion",
+   "canonical_id": "ring_pinion",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "rocker_valve_lift",
+   "canonical_id": "rocker_valve_lift",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "rod_stroke_ratio",
+   "canonical_id": "rod_stroke_ratio",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "roll_out",
+   "canonical_id": "roll_out",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "roll_stiffness",
+   "canonical_id": "roll_stiffness",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "rotating_weight",
+   "canonical_id": "rotating_weight",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "rotor_heat",
+   "canonical_id": "rotor_heat",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "rpm_drop_shift",
+   "canonical_id": "rpm_drop_shift",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "rpm_frequency",
+   "canonical_id": "rpm_frequency",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "rpm_to_radsec",
+   "canonical_id": "rpm_to_radsec",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "sae_fraction_to_mm",
+   "canonical_id": "inch_fraction_to_mm",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "scrub_radius",
+   "canonical_id": "scrub_radius",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "section_modulus",
+   "canonical_id": "section_modulus",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "sensor_fov",
+   "canonical_id": "sensor_fov",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "sensor_scaling",
+   "canonical_id": "sensor_scaling",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "shear_stress",
+   "canonical_id": "shear_stress",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "sheet_weight",
+   "canonical_id": "sheet_weight",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "shock_length",
+   "canonical_id": "shock_length",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "skid_pad",
+   "canonical_id": "skid_pad",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "slip_angle",
+   "canonical_id": "slip_angle",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "speed_converter",
+   "canonical_id": "speed_converter",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "speedo_driven_gear",
+   "canonical_id": "speedo_driven_gear",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "speedometer_cal",
+   "canonical_id": "speedometer_cal",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "spring_force_at_lift",
+   "canonical_id": "spring_force_at_lift",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "spring_rate",
+   "canonical_id": "spring_rate",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "square_feet_to_square_meters",
+   "canonical_id": "square_feet_to_square_meters",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "square_inches_to_square_mm",
+   "canonical_id": "square_inches_to_square_mm",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "square_meters_to_square_feet",
+   "canonical_id": "square_meters_to_square_feet",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "square_mm_to_square_inches",
+   "canonical_id": "square_mm_to_square_inches",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "squish_velocity",
+   "canonical_id": "squish_velocity",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "starter_current",
+   "canonical_id": "starter_current",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "static_compression",
+   "canonical_id": "static_compression",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "steering_ratio",
+   "canonical_id": "steering_ratio",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "stoich_afr_blend",
+   "canonical_id": "stoich_afr_blend",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "strain",
+   "canonical_id": "strain",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "stress",
+   "canonical_id": "stress",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "stripe_win_margin",
+   "canonical_id": "stripe_win_margin",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "supercharger_parasitic",
+   "canonical_id": "supercharger_parasitic",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "supercharger_speed",
+   "canonical_id": "supercharger_speed",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "surface_speed",
+   "canonical_id": "surface_speed",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tank_volume",
+   "canonical_id": "tank_volume",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "tap_drill",
+   "canonical_id": "tap_drill",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tap_drill_size",
+   "canonical_id": "tap_drill_size",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "temp_converter",
+   "canonical_id": "temp_converter",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "temperature_rise",
+   "canonical_id": "temperature_rise",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "thermal_efficiency",
+   "canonical_id": "thermal_efficiency",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "thermal_expansion",
+   "canonical_id": "thermal_expansion",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "thread_engagement",
+   "canonical_id": "thread_engagement",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "thread_pitch_convert",
+   "canonical_id": "thread_pitch_convert",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "thread_pitch_to_tpi",
+   "canonical_id": "thread_pitch_to_tpi",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "throttle_body",
+   "canonical_id": "throttle_body",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "time_speed_dist",
+   "canonical_id": "time_speed_dist",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "timing_mark",
+   "canonical_id": "timing_mark",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "tire_frequency",
+   "canonical_id": "tire_frequency",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tire_pressure_temp",
+   "canonical_id": "tire_pressure_temp",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "tire_size",
+   "canonical_id": "tire_size",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "tire_size_comparison",
+   "canonical_id": "tire_size_comparison",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "tire_stagger",
+   "canonical_id": "tire_stagger",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "toe_angle",
+   "canonical_id": "toe_angle",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tongue_weight",
+   "canonical_id": "tongue_weight",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "top_speed",
+   "canonical_id": "top_speed",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "torque_converter",
+   "canonical_id": "torque_converter",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "torque_from_hp",
+   "canonical_id": "torque_from_hp",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "torque_wrench_ext",
+   "canonical_id": "torque_wrench_ext",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "torsional_stress",
+   "canonical_id": "torsional_stress",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "total_cost_ownership",
+   "canonical_id": "total_cost_ownership",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "tow_actual_combined",
+   "canonical_id": "tow_actual_combined",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_aero_drag",
+   "canonical_id": "tow_aero_drag",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_axle_load",
+   "canonical_id": "tow_axle_load",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_brake_energy",
+   "canonical_id": "tow_brake_energy",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_ev_cost",
+   "canonical_id": "tow_ev_cost",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_gcwr_margin",
+   "canonical_id": "tow_gcwr_margin",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_grade_power",
+   "canonical_id": "tow_grade_power",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_grade_speed",
+   "canonical_id": "tow_grade_speed",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_gvwr_margin",
+   "canonical_id": "tow_gvwr_margin",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_hitch_margin",
+   "canonical_id": "tow_hitch_margin",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_mpg_penalty",
+   "canonical_id": "tow_mpg_penalty",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_payload_remaining",
+   "canonical_id": "tow_payload_remaining",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_range",
+   "canonical_id": "tow_range",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_rolling_resistance",
+   "canonical_id": "tow_rolling_resistance",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_stopping_distance",
+   "canonical_id": "tow_stopping_distance",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_tongue_percent",
+   "canonical_id": "tow_tongue_percent",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_trailer_capacity",
+   "canonical_id": "tow_trailer_capacity",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_trip_fuel_cost",
+   "canonical_id": "tow_trip_fuel_cost",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tow_wheel_torque",
+   "canonical_id": "tow_wheel_torque",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "towing_squat",
+   "canonical_id": "towing_squat",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "tpi_to_thread_pitch",
+   "canonical_id": "tpi_to_thread_pitch",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "tractive_force",
+   "canonical_id": "tractive_force",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "trade_in_payoff",
+   "canonical_id": "trade_in_payoff",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "trailer_tire_load",
+   "canonical_id": "trailer_tire_load",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "trap_speed_hp_check",
+   "canonical_id": "trap_speed_hp_check",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "trip_fuel_cost",
+   "canonical_id": "trip_fuel_cost",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "tube_weight",
+   "canonical_id": "tube_weight",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "turbo_airflow",
+   "canonical_id": "turbo_airflow",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "turbo_power_requirement",
+   "canonical_id": "turbo_power_requirement",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "turbo_sizing",
+   "canonical_id": "turbo_sizing",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "turning_radius",
+   "canonical_id": "turning_radius",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "ujoint_angles",
+   "canonical_id": "ujoint_angles",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "understeer_gradient",
+   "canonical_id": "understeer_gradient",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "unsprung_weight",
+   "canonical_id": "unsprung_weight",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "valve_curtain_area",
+   "canonical_id": "curtain_area",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "valve_lash",
+   "canonical_id": "valve_lash",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "valve_lift_rocker",
+   "canonical_id": "valve_lift_rocker",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "valve_spring_rate",
+   "canonical_id": "valve_spring_rate",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "valve_throat_area",
+   "canonical_id": "valve_throat_area",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "velocity_stack",
+   "canonical_id": "velocity_stack",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "voltage_drop",
+   "canonical_id": "voltage_drop",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "volume_converter",
+   "canonical_id": "volume_converter",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "volumetric_eff",
+   "canonical_id": "volumetric_eff",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "volumetric_efficiency",
+   "canonical_id": "volumetric_eff",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "wastegate_flow",
+   "canonical_id": "wastegate_flow",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "weight_reduction",
+   "canonical_id": "weight_reduction",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "weight_transfer",
+   "canonical_id": "weight_transfer",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "weight_transfer_accel",
+   "canonical_id": "weight_transfer_accel",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "weight_transfer_braking",
+   "canonical_id": "weight_transfer_braking",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "wet_bulb",
+   "canonical_id": "wet_bulb",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "wheel_motion",
+   "canonical_id": "wheel_motion",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "wheel_offset",
+   "canonical_id": "wheel_offset",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "wheel_rate",
+   "canonical_id": "wheel_rate",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "winch_line_pull",
+   "canonical_id": "winch_line_pull",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "wind_et",
+   "canonical_id": "wind_et",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "wing_force",
+   "canonical_id": "wing_force",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "wire_current_capacity",
+   "canonical_id": "wire_current_capacity",
+   "engine_proven": false
+  },
+  {
+   "calculator_id": "wire_gauge",
+   "canonical_id": "wire_gauge",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "wmi_flow",
+   "canonical_id": "wmi_flow",
+   "engine_proven": true
+  },
+  {
+   "calculator_id": "yaw_moment",
+   "canonical_id": "yaw_moment",
+   "engine_proven": false
+  }
+ ],
+ "formula_versions": [
+  {
+   "calculator_id": "ac_compressor",
+   "formula_version": "fv1-926d7672",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ac_vent_temp",
+   "formula_version": "fv1-b06c5e73",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ackermann",
+   "formula_version": "fv1-4e85410d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ackermann_angle",
+   "formula_version": "fv1-9cf285fb",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "advanced_et",
+   "formula_version": "fv1-0a2c6b69",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "aero_balance",
+   "formula_version": "fv1-6c77e4b8",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "aero_hp",
+   "formula_version": "fv1-0a378576",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "afr_from_lambda",
+   "formula_version": "fv1-cd1a705e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "afr_lambda",
+   "formula_version": "fv1-2149b167",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "air_density",
+   "formula_version": "fv1-73df6a6f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "air_filter",
+   "formula_version": "fv1-7f6e95f9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "air_fuel_mass",
+   "formula_version": "fv1-b1a56af6",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "air_standard_otto",
+   "formula_version": "fv1-3bde4d2c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "alternator_capacity",
+   "formula_version": "fv1-56f1e7ff",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "alternator_rpm",
+   "formula_version": "fv1-c248641c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "anti_dive",
+   "formula_version": "fv1-6d2c5347",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "anti_squat",
+   "formula_version": "fv1-8995d1b8",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "approach_departure_angle",
+   "formula_version": "fv1-58037978",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "articulation_index",
+   "formula_version": "fv1-3c2c62af",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "bar_to_psi",
+   "formula_version": "fv1-a22c720d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "baro_correction",
+   "formula_version": "fv1-9e3b5e11",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "battery_ah",
+   "formula_version": "fv1-458f0ef1",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "battery_cca",
+   "formula_version": "fv1-7ee82cf3",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "beam_deflection",
+   "formula_version": "fv1-89cc1d56",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "bearing_life",
+   "formula_version": "fv1-8f87cff9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "belt_length",
+   "formula_version": "fv1-38b5ea1c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "bend_allowance",
+   "formula_version": "fv1-ac8e7631",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "bending_stress",
+   "formula_version": "fv1-2fd80029",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "bmep",
+   "formula_version": "fv1-61847bb8",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "bmep_from_torque",
+   "formula_version": "fv1-395c3492",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "bolt_pattern",
+   "formula_version": "fv1-c7d41fe1",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "bolt_stretch",
+   "formula_version": "fv1-d48e7340",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "bolt_torque_spec",
+   "formula_version": "fv1-f63ea4c8",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "boost_cr",
+   "formula_version": "fv1-fdb61df9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "boost_for_hp",
+   "formula_version": "fv1-ee8d2684",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "bore_stroke_ratio",
+   "formula_version": "fv1-6c99883f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "brake_bias",
+   "formula_version": "fv1-d1246f28",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "brake_bias_hydraulic",
+   "formula_version": "fv1-d47c37f1",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "brake_clamp_force",
+   "formula_version": "fv1-0b0dd8fd",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "brake_energy",
+   "formula_version": "fv1-71b01416",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "brake_fade_energy",
+   "formula_version": "fv1-6dd1feda",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "brake_hydraulic_ratio",
+   "formula_version": "fv1-c7d1369f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "brake_pedal_effort",
+   "formula_version": "fv1-a4bf8e53",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "brake_rotor_temp",
+   "formula_version": "fv1-cf438dd5",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "brake_torque",
+   "formula_version": "fv1-419afbd9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "braking_distance",
+   "formula_version": "fv1-27663b45",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "breakout_calc",
+   "formula_version": "fv1-c1def16a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "breakover_angle",
+   "formula_version": "fv1-323fc70f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "bsfc",
+   "formula_version": "fv1-685c2ec2",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "btu_hr_to_kw",
+   "formula_version": "fv1-5eda3cee",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "btu_to_joules",
+   "formula_version": "fv1-b2ab00e5",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "build_budget",
+   "formula_version": "fv1-b63a81a8",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "bump_steer",
+   "formula_version": "fv1-34da60ce",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cam_duration_rpm",
+   "formula_version": "fv1-89c1edd5",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "camshaft_advance_retard",
+   "formula_version": "fv1-1b342c76",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "camshaft_events",
+   "formula_version": "fv1-a7ad7dc0",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "camshaft_intake_centerline",
+   "formula_version": "fv1-b3f2c240",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "can_bitrate",
+   "formula_version": "fv1-3e77db8a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "carb_sizing",
+   "formula_version": "fv1-57240d73",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "caster_from_camber",
+   "formula_version": "fv1-b5ccec82",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "caster_trail_effect",
+   "formula_version": "fv1-28432c78",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cc_to_cubic_inches",
+   "formula_version": "fv1-33fb35bd",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "celsius_to_fahrenheit",
+   "formula_version": "fv1-a3c5d54a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "celsius_to_kelvin",
+   "formula_version": "fv1-b641a636",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cfm_velocity_csa",
+   "formula_version": "fv1-8381699d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cg_3d",
+   "formula_version": "fv1-65f7c245",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cg_lateral",
+   "formula_version": "fv1-b8c5437d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cg_longitudinal",
+   "formula_version": "fv1-0829910e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "chip_load",
+   "formula_version": "fv1-c477a0ff",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "christmas_tree",
+   "formula_version": "fv1-3021c67d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "clamp_load",
+   "formula_version": "fv1-a175b546",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "climb_rate",
+   "formula_version": "fv1-5b15ca01",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "clutch_fork_ratio",
+   "formula_version": "fv1-52837a60",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "clutch_hydraulic_ratio",
+   "formula_version": "fv1-7dfde079",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "clutch_pedal_effort",
+   "formula_version": "fv1-df562a67",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "clutch_pedal_ratio",
+   "formula_version": "fv1-61b38fd8",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "clutch_release_force",
+   "formula_version": "fv1-becda2fa",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "clutch_torque_capacity",
+   "formula_version": "fv1-af30ea92",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cm_to_inches",
+   "formula_version": "fv1-8edb1c18",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cog_height",
+   "formula_version": "fv1-d64ad260",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "coil_spring",
+   "formula_version": "fv1-cc31f5bd",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "compressor_efficiency",
+   "formula_version": "fv1-ee14409e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "compressor_outlet_temp",
+   "formula_version": "fv1-9c32fc3c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "compressor_pr",
+   "formula_version": "fv1-c91c9444",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "consistency_calc",
+   "formula_version": "fv1-c7b012c5",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "control_error",
+   "formula_version": "fv1-fde5c012",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "converter_slip",
+   "formula_version": "fv1-dac70f1c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "coolant_flow",
+   "formula_version": "fv1-ae18b6c0",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "coolant_ratio",
+   "formula_version": "fv1-2c834777",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "corner_weight_analysis",
+   "formula_version": "fv1-328ac22b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cornering_speed",
+   "formula_version": "fv1-1c1f633c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cornering_stiffness",
+   "formula_version": "fv1-b6f5586f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cost_per_mile",
+   "formula_version": "fv1-2c5e0852",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "countersink_depth",
+   "formula_version": "fv1-2f288d9d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "crank_journal_overlap",
+   "formula_version": "fv1-26d35c89",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cranking_compression",
+   "formula_version": "fv1-95fbced0",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "crawl_ratio",
+   "formula_version": "fv1-3b9ba962",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "crawl_ratio_tire",
+   "formula_version": "fv1-72639afb",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cross_weight",
+   "formula_version": "fv1-8e341d80",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "crosswind_force",
+   "formula_version": "fv1-7c517043",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ct_fuel_stint",
+   "formula_version": "fv1-34823c49",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ct_ideal_stagger",
+   "formula_version": "fv1-c81d906c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ct_jacking_bolt",
+   "formula_version": "fv1-880a0f4f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ct_lap_time_est",
+   "formula_version": "fv1-ff99dd0e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ct_moment_center",
+   "formula_version": "fv1-df0533a9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ct_panhard_roll",
+   "formula_version": "fv1-406e6533",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ct_spring_split",
+   "formula_version": "fv1-bf6e683c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ct_sway_bar",
+   "formula_version": "fv1-0ea4983f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ct_tire_temp_balance",
+   "formula_version": "fv1-c5c21cca",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ct_track_bar_adj",
+   "formula_version": "fv1-c9cc133b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ct_wedge_bite",
+   "formula_version": "fv1-eaeb228c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ct_weight_dist",
+   "formula_version": "fv1-4649c245",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cubic_feet_to_liters",
+   "formula_version": "fv1-82340a30",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cubic_inches_to_cc",
+   "formula_version": "fv1-dfe856b7",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "cubic_inches_to_liters",
+   "formula_version": "fv1-59970f14",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "curtain_area",
+   "formula_version": "fv1-abbc6bcc",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "damping_ratio",
+   "formula_version": "fv1-8dfe60c6",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "decibel_ratio",
+   "formula_version": "fv1-dc81779a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "decimal_fraction_universal",
+   "formula_version": "fv1-a2e589fd",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "decimal_inch_to_mm",
+   "formula_version": "fv1-4e696ad1",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "decimal_to_fraction",
+   "formula_version": "fv1-9f2ccdc4",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "decimal_to_mixed_number",
+   "formula_version": "fv1-7f9fa2f1",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "decimal_to_nearest_fraction",
+   "formula_version": "fv1-49ae035b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "deck_height",
+   "formula_version": "fv1-1d9af28b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "delay_box_setting",
+   "formula_version": "fv1-4ef9603e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "depreciation_schedule",
+   "formula_version": "fv1-f5303246",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "dew_point",
+   "formula_version": "fv1-260e7f34",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "dial_in_calc",
+   "formula_version": "fv1-07b110ed",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_afr_lambda",
+   "formula_version": "fv1-54546ccf",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_afrlambda",
+   "formula_version": "fv1-e220ff64",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_airflow",
+   "formula_version": "fv1-cbf6194c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_bmep",
+   "formula_version": "fv1-3ff74e8f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_boost_pr",
+   "formula_version": "fv1-26deeb38",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_bsfc",
+   "formula_version": "fv1-14f68aa0",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_compressor_outlet",
+   "formula_version": "fv1-831d0d33",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_cost_per_hour",
+   "formula_version": "fv1-032e30a5",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_cost_per_mile",
+   "formula_version": "fv1-188b55fa",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_def_cost",
+   "formula_version": "fv1-55107373",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_def_range",
+   "formula_version": "fv1-a01f8e64",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_def_rate",
+   "formula_version": "fv1-79a87ea9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_dpf_soot",
+   "formula_version": "fv1-2b90830c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_egb",
+   "formula_version": "fv1-ba21a84c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_egr_flow",
+   "formula_version": "fv1-40847a88",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_exhaust_flow",
+   "formula_version": "fv1-88405f5f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_fuel_flow",
+   "formula_version": "fv1-27f3c9f8",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_fuel_per_acre",
+   "formula_version": "fv1-eeeb256e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_fuel_per_cycle",
+   "formula_version": "fv1-90a134d8",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_fuel_per_ton",
+   "formula_version": "fv1-3cd0199e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_fuel_savings",
+   "formula_version": "fv1-7abd0484",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_idle_cost",
+   "formula_version": "fv1-e8020482",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_injection_duration",
+   "formula_version": "fv1-0a5f34fb",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_injection_quantity",
+   "formula_version": "fv1-c1f6fe8a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_injection_timing",
+   "formula_version": "fv1-4dc2ab88",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_injector_flow",
+   "formula_version": "fv1-6fc7eb9c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_intercooler",
+   "formula_version": "fv1-d47ca70c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_load_factor",
+   "formula_version": "fv1-5dc226e3",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_mpg",
+   "formula_version": "fv1-216d2965",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_power_economy",
+   "formula_version": "fv1-d8a8e412",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_power_from_fuel",
+   "formula_version": "fv1-0ab8e5a1",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_power_to_weight",
+   "formula_version": "fv1-dd8f70a8",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_production_per_gallon",
+   "formula_version": "fv1-ceac6727",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_rail_power",
+   "formula_version": "fv1-daaac5b9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_regen_cost",
+   "formula_version": "fv1-8b7a68a1",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_regen_interval",
+   "formula_version": "fv1-8fe11da5",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_scr_efficiency",
+   "formula_version": "fv1-c92d3dd9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_smoke_limit",
+   "formula_version": "fv1-e12aa323",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_torque_from_power",
+   "formula_version": "fv1-0c603767",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_turbine_pr",
+   "formula_version": "fv1-2ffd2264",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_turbo_efficiency",
+   "formula_version": "fv1-115e068b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "diesel_turbo_pr",
+   "formula_version": "fv1-7595b663",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "distance_converter",
+   "formula_version": "fv1-36d27af2",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "distance_to_empty",
+   "formula_version": "fv1-29588bbe",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "downforce",
+   "formula_version": "fv1-f48d4317",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "drag_force",
+   "formula_version": "fv1-64ce917b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "driveshaft_critical",
+   "formula_version": "fv1-da742210",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "driveshaft_order",
+   "formula_version": "fv1-10ecb2dc",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "driveshaft_speed",
+   "formula_version": "fv1-41e0b09a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "drivetrain_loss",
+   "formula_version": "fv1-5f43ec0c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "dual_spring_rate",
+   "formula_version": "fv1-1ac5a4fe",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "dynamic_compression",
+   "formula_version": "fv1-7927a709",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "dynamic_pressure",
+   "formula_version": "fv1-4bedfdea",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "dyno_correction",
+   "formula_version": "fv1-4f91f1dc",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "e85_blend",
+   "formula_version": "fv1-746ea6d9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "e85_fuel_multiplier",
+   "formula_version": "fv1-5998e825",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "effective_gear_ratio",
+   "formula_version": "fv1-ecc06586",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "effective_rocker_ratio",
+   "formula_version": "fv1-aa0514cf",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "eighth_to_quarter",
+   "formula_version": "fv1-b0e3625b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "electrical_power",
+   "formula_version": "fv1-6419f213",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "engine_air_density",
+   "formula_version": "fv1-53820f0f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "engine_airflow",
+   "formula_version": "fv1-35d9d28a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "engine_displacement",
+   "formula_version": "fv1-32c202a4",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "engine_order",
+   "formula_version": "fv1-3076456a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "engine_rpm_speed",
+   "formula_version": "fv1-709420e8",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "estimate_60ft",
+   "formula_version": "fv1-9bf42a59",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "et_hp_change",
+   "formula_version": "fv1-ce10fc50",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "et_mph_prediction",
+   "formula_version": "fv1-f50577d7",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "et_weight_change",
+   "formula_version": "fv1-91031c66",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_acceleration",
+   "formula_version": "fv1-03a02f21",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_battery_current",
+   "formula_version": "fv1-bcd61574",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_battery_degradation",
+   "formula_version": "fv1-cbcea93f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_battery_energy",
+   "formula_version": "fv1-04bdbbfa",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_battery_heat",
+   "formula_version": "fv1-cebbc75e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_c_rate",
+   "formula_version": "fv1-00d18af3",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_charge_added",
+   "formula_version": "fv1-05f93b39",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_charge_cost",
+   "formula_version": "fv1-91c46001",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_charge_loss",
+   "formula_version": "fv1-5c44f688",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_charge_time",
+   "formula_version": "fv1-6d6be847",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_coolant_flow",
+   "formula_version": "fv1-c8d5999b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_cost_per_mile",
+   "formula_version": "fv1-4daa9712",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_efficiency",
+   "formula_version": "fv1-31bd9316",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_hvac_energy",
+   "formula_version": "fv1-3b8c2393",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_internal_resistance",
+   "formula_version": "fv1-703a6467",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_inverter_loss",
+   "formula_version": "fv1-0662dee6",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_motor_efficiency",
+   "formula_version": "fv1-17ce1c36",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_motor_power",
+   "formula_version": "fv1-97166ef5",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_motor_torque",
+   "formula_version": "fv1-80eefe7c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_pack_ah",
+   "formula_version": "fv1-fd940729",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_pack_configuration",
+   "formula_version": "fv1-cb4949aa",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_peak_power",
+   "formula_version": "fv1-b9ba87fd",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_power_conversion",
+   "formula_version": "fv1-71feb7dd",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_quarter_mile",
+   "formula_version": "fv1-1e281b71",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_range",
+   "formula_version": "fv1-49c8d1b9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_reduction_ratio",
+   "formula_version": "fv1-6ef0d70b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_regen_power",
+   "formula_version": "fv1-c3bbfb2b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_soc_energy",
+   "formula_version": "fv1-7c4bf232",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_temp_penalty",
+   "formula_version": "fv1-8a13c29b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_tire_wear",
+   "formula_version": "fv1-b1187430",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_top_speed",
+   "formula_version": "fv1-4d24e8fe",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_towing_penalty",
+   "formula_version": "fv1-7c2ba3cb",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_usable_energy",
+   "formula_version": "fv1-3f48fa51",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_voltage_sag",
+   "formula_version": "fv1-7e585b13",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ev_wheel_torque",
+   "formula_version": "fv1-4e10e31b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "exhaust_curtain_area",
+   "formula_version": "fv1-8984e70e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "exhaust_diameter",
+   "formula_version": "fv1-7386d113",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "exhaust_header",
+   "formula_version": "fv1-23dee85e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "exhaust_intake_flow_ratio",
+   "formula_version": "fv1-1f35f271",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "exhaust_port_cfm",
+   "formula_version": "fv1-a8507398",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "extended_warranty",
+   "formula_version": "fv1-a06f8d39",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "factor_of_safety",
+   "formula_version": "fv1-1f493121",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fahrenheit_to_celsius",
+   "formula_version": "fv1-cd700627",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fahrenheit_to_kelvin",
+   "formula_version": "fv1-3a802b48",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "feed_rate",
+   "formula_version": "fv1-4f50740f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "feeds_speeds",
+   "formula_version": "fv1-e5478a85",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "feet_to_inches",
+   "formula_version": "fv1-baa605d9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "feet_to_meters",
+   "formula_version": "fv1-4c6cc95f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "feet_to_mm",
+   "formula_version": "fv1-5aedb01f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "final_drive_ratio",
+   "formula_version": "fv1-7d27ef37",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "flow_coefficient",
+   "formula_version": "fv1-f37eb055",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fluid_oz_to_ml",
+   "formula_version": "fv1-e4017f42",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fmep_from_imep_bmep",
+   "formula_version": "fv1-1b23ad9a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "following_distance",
+   "formula_version": "fv1-1fb91dff",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fraction_add",
+   "formula_version": "fv1-fbf1deed",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fraction_decimal",
+   "formula_version": "fv1-a0f63179",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fraction_divide",
+   "formula_version": "fv1-de68e6f9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fraction_multiply",
+   "formula_version": "fv1-c630ab94",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fraction_simplify",
+   "formula_version": "fv1-80df3bac",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fraction_subtract",
+   "formula_version": "fv1-f21e1e1f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fraction_to_decimal_mm",
+   "formula_version": "fv1-4e696ad1",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fraction_to_percent",
+   "formula_version": "fv1-a9abb517",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "friction_circle",
+   "formula_version": "fv1-d6120e57",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ft_per_sec_to_mph",
+   "formula_version": "fv1-e9b3c622",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ftlb_to_joules",
+   "formula_version": "fv1-517ee053",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fuel_cell_efficiency",
+   "formula_version": "fv1-d6c85bdf",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fuel_cell_power",
+   "formula_version": "fv1-ff645572",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fuel_economy",
+   "formula_version": "fv1-451b83e4",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fuel_flow_from_hp",
+   "formula_version": "fv1-30be4b92",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fuel_line_loss",
+   "formula_version": "fv1-e79f2082",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fuel_pressure_flow",
+   "formula_version": "fv1-da23940e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fuel_pressure_rise",
+   "formula_version": "fv1-987059a6",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fuel_pump_capacity",
+   "formula_version": "fv1-3e9953d8",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fuel_pump_sizing",
+   "formula_version": "fv1-c9780487",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fuel_system_hp",
+   "formula_version": "fv1-1f03063a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fuse_size",
+   "formula_version": "fv1-73f953b4",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "fuse_sizing",
+   "formula_version": "fv1-13cc6b95",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "g_per_cc_to_lb_per_ft3",
+   "formula_version": "fv1-fa9b3ca9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "gallons_to_liters",
+   "formula_version": "fv1-e0c650b8",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "gas_oil_mix",
+   "formula_version": "fv1-d19be4a3",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "gcwr_payload",
+   "formula_version": "fv1-ff09fa37",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "gear_ratio_speed",
+   "formula_version": "fv1-f8e30651",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "gearbox_efficiency",
+   "formula_version": "fv1-e0053f1d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "gforce_60ft",
+   "formula_version": "fv1-bba42521",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "grains_water",
+   "formula_version": "fv1-e7d39a1b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "grams_to_oz",
+   "formula_version": "fv1-55847098",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hardness_convert",
+   "formula_version": "fv1-476f767f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "harmonic_frequency",
+   "formula_version": "fv1-05c28f68",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "head_gasket_vol",
+   "formula_version": "fv1-448faa8f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "heat_exchanger_effectiveness",
+   "formula_version": "fv1-e8af54eb",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "heat_input_per_cycle",
+   "formula_version": "fv1-7c85a3fc",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "heat_transfer",
+   "formula_version": "fv1-33d63954",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "helicoil_size",
+   "formula_version": "fv1-c60ea508",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hp_aero_drag",
+   "formula_version": "fv1-7022a07e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hp_cr_change",
+   "formula_version": "fv1-94636c60",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hp_from_0_60",
+   "formula_version": "fv1-45534896",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hp_from_airflow",
+   "formula_version": "fv1-b4301ae3",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hp_from_boost",
+   "formula_version": "fv1-e56f15cd",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hp_from_specs",
+   "formula_version": "fv1-30798b6c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hp_from_torque",
+   "formula_version": "fv1-e3f8fc25",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hp_quarter_mile",
+   "formula_version": "fv1-9571e757",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hp_to_kw",
+   "formula_version": "fv1-2b5ef28e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hp_to_ps",
+   "formula_version": "fv1-63a87902",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hp_trap_speed",
+   "formula_version": "fv1-baf27cd5",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hvac_cooling_load",
+   "formula_version": "fv1-e14fc2b0",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hybrid_power_split",
+   "formula_version": "fv1-dfc075ea",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hybrid_regen_energy",
+   "formula_version": "fv1-7d1a6f5a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hydraulic_cylinder_force",
+   "formula_version": "fv1-4801112d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hydraulic_cylinder_speed",
+   "formula_version": "fv1-cce72dfd",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hydraulic_mechanical_advantage",
+   "formula_version": "fv1-6a70cca4",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hydraulic_pump_flow",
+   "formula_version": "fv1-553f7e4e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hydraulic_reservoir_sizing",
+   "formula_version": "fv1-041bee48",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "hydroplaning",
+   "formula_version": "fv1-083ba606",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "imep_from_power",
+   "formula_version": "fv1-a869e2fe",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "inch_fraction_to_mm",
+   "formula_version": "fv1-4e696ad1",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "inch_to_feet",
+   "formula_version": "fv1-34b225b7",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "inches_to_cm",
+   "formula_version": "fv1-e7217301",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "incline_angle",
+   "formula_version": "fv1-cfd3c87a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "incremental_et",
+   "formula_version": "fv1-cfd3fea5",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "index_racing",
+   "formula_version": "fv1-708bf590",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "inhg_to_psi",
+   "formula_version": "fv1-8a5c373d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "injector_duty",
+   "formula_version": "fv1-273c02f6",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "injector_duty_cycle",
+   "formula_version": "fv1-c11cc460",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "injector_flow",
+   "formula_version": "fv1-99d34779",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "injector_size",
+   "formula_version": "fv1-ae7b5aae",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "injector_sizing",
+   "formula_version": "fv1-9384910a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "insurance_estimator",
+   "formula_version": "fv1-ef61f8ff",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "intake_curtain_area",
+   "formula_version": "fv1-69a066be",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "intake_flow_per_cylinder",
+   "formula_version": "fv1-472e2319",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "intake_port_cfm",
+   "formula_version": "fv1-80d7c590",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "intake_port_vel",
+   "formula_version": "fv1-e552fdbc",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "intake_runner",
+   "formula_version": "fv1-c3a29dc0",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "intercooler_eff",
+   "formula_version": "fv1-ee21f00c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "intercooler_pressure_drop",
+   "formula_version": "fv1-9c182fd4",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "intercooler_temp_drop",
+   "formula_version": "fv1-481d0849",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "jetting",
+   "formula_version": "fv1-2a9d5960",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "joules_to_btu",
+   "formula_version": "fv1-0513cbc2",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "joules_to_ftlb",
+   "formula_version": "fv1-8b64d6f6",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "jpipe_resonator",
+   "formula_version": "fv1-d61f0661",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "kelvin_to_celsius",
+   "formula_version": "fv1-14304987",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "kelvin_to_fahrenheit",
+   "formula_version": "fv1-f67949e6",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "kg_per_sec_to_lb_per_min",
+   "formula_version": "fv1-348c2397",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "kg_to_lb",
+   "formula_version": "fv1-06251daf",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "kgf_to_newton",
+   "formula_version": "fv1-941a3963",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "km_to_miles",
+   "formula_version": "fv1-da804a77",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "kmh_to_mph",
+   "formula_version": "fv1-f3c7b1f5",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "kpa_to_psi",
+   "formula_version": "fv1-c890d448",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "kw_to_btu_hr",
+   "formula_version": "fv1-555eca47",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "kw_to_hp",
+   "formula_version": "fv1-5686784d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "lambda_from_afr",
+   "formula_version": "fv1-7c425cd4",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "lash_net_lift",
+   "formula_version": "fv1-17f1ed9f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "lateral_accel",
+   "formula_version": "fv1-7c909667",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "lateral_acceleration",
+   "formula_version": "fv1-f96286fe",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "lb_per_ft3_to_g_per_cc",
+   "formula_version": "fv1-89288576",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "lb_per_min_to_kg_per_sec",
+   "formula_version": "fv1-af381e22",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "lb_to_kg",
+   "formula_version": "fv1-4926c7b8",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "lbforce_to_newton",
+   "formula_version": "fv1-bd62cc9b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "lbft_to_lbin",
+   "formula_version": "fv1-071cc5fa",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "lbft_to_nm",
+   "formula_version": "fv1-d80504e7",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "lbin_to_lbft",
+   "formula_version": "fv1-4ed54397",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "lbin_to_nm",
+   "formula_version": "fv1-1abde029",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "lease_vs_buy",
+   "formula_version": "fv1-8034efb4",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "lift_force",
+   "formula_version": "fv1-efd03370",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "liters_to_cubic_feet",
+   "formula_version": "fv1-d95ed435",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "liters_to_cubic_inches",
+   "formula_version": "fv1-15834b18",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "liters_to_gallons",
+   "formula_version": "fv1-bf9cdb70",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "liters_to_quarts",
+   "formula_version": "fv1-e26f4bd5",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "load_transfer_lateral",
+   "formula_version": "fv1-80b3bb56",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "load_transfer_longitudinal",
+   "formula_version": "fv1-0dfde66f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "loan_payment",
+   "formula_version": "fv1-227276e1",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "mach_index",
+   "formula_version": "fv1-ef5cd211",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "mach_port_velocity",
+   "formula_version": "fv1-bf89feda",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "machining_rpm",
+   "formula_version": "fv1-e2d9f2ce",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "maf_airflow",
+   "formula_version": "fv1-5d529e42",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "map_pressure_ratio",
+   "formula_version": "fv1-6267de27",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "master_cylinder",
+   "formula_version": "fv1-a07ce7ac",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "material_removal",
+   "formula_version": "fv1-f439cb7d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "max_rpm",
+   "formula_version": "fv1-4fd64df9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "mean_piston_speed",
+   "formula_version": "fv1-2b744d4a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "mech_trail",
+   "formula_version": "fv1-442f02bc",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "meters_to_feet",
+   "formula_version": "fv1-c9e5cbb1",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "metric_to_nearest_sae",
+   "formula_version": "fv1-9a65dbbc",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "miles_to_km",
+   "formula_version": "fv1-1d3a88b3",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "milling_heads",
+   "formula_version": "fv1-68411d8a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "mixed_number_to_decimal",
+   "formula_version": "fv1-0dfc36ad",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ml_to_fluid_oz",
+   "formula_version": "fv1-4c95766e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "mm_to_decimal_inch",
+   "formula_version": "fv1-66bceae3",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "mm_to_feet",
+   "formula_version": "fv1-0e4a95df",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "mm_to_inch_fraction",
+   "formula_version": "fv1-f088358a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "motion_ratio",
+   "formula_version": "fv1-805a66c0",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "mpa_to_psi",
+   "formula_version": "fv1-cec01c51",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "mph_to_ft_per_sec",
+   "formula_version": "fv1-c18b69e7",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "mph_to_kmh",
+   "formula_version": "fv1-b4bf5548",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "natural_frequency",
+   "formula_version": "fv1-06c7d026",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "newton_to_kgf",
+   "formula_version": "fv1-30a99194",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "newton_to_lbforce",
+   "formula_version": "fv1-97a5e1fe",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "nitro_blend",
+   "formula_version": "fv1-6dca69dc",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "nm_to_lbft",
+   "formula_version": "fv1-65d2dbfe",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "nmm_to_lbft",
+   "formula_version": "fv1-29d48a58",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "octane_mixture",
+   "formula_version": "fv1-9e633fce",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ohms_law",
+   "formula_version": "fv1-2a0e759e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "oil_pump_hp",
+   "formula_version": "fv1-6a84361a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "optimal_shift",
+   "formula_version": "fv1-29aaa14d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "otto_efficiency",
+   "formula_version": "fv1-8a80be54",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "overlap_calc",
+   "formula_version": "fv1-2ffe2ebd",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "oz_to_grams",
+   "formula_version": "fv1-25d01fa0",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "pedal_force",
+   "formula_version": "fv1-73eca801",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "percent_to_fraction",
+   "formula_version": "fv1-f5d552dd",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "perfect_light",
+   "formula_version": "fv1-fd1a2c61",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "pid_proportional",
+   "formula_version": "fv1-3d87cb60",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "pinion_angle_change",
+   "formula_version": "fv1-6b25b6f7",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "piston_position",
+   "formula_version": "fv1-908de781",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "piston_to_valve_clearance",
+   "formula_version": "fv1-2b9f3815",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "port_valve_area_ratio",
+   "formula_version": "fv1-46b1be75",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "port_velocity",
+   "formula_version": "fv1-3e0b0fcd",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "portal_gear_reduction",
+   "formula_version": "fv1-5b95b265",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "power_converter",
+   "formula_version": "fv1-aaf3782c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "power_steering_assist",
+   "formula_version": "fv1-42df4df7",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "power_to_weight",
+   "formula_version": "fv1-f47c5ffd",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "pressure_converter",
+   "formula_version": "fv1-b20ad3b7",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ps_to_hp",
+   "formula_version": "fv1-c0d3afd1",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "psi_to_bar",
+   "formula_version": "fv1-a97c61f0",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "psi_to_inhg",
+   "formula_version": "fv1-d40e246a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "psi_to_kpa",
+   "formula_version": "fv1-ba94c543",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "psi_to_mpa",
+   "formula_version": "fv1-02897c1a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "pump_head",
+   "formula_version": "fv1-827ec301",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "pumping_mep",
+   "formula_version": "fv1-764eea6c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "pwm_duty",
+   "formula_version": "fv1-fb97a642",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "quarts_to_liters",
+   "formula_version": "fv1-dbefcaf2",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "quench_clearance",
+   "formula_version": "fv1-742c3861",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "radiator_heat_capacity",
+   "formula_version": "fv1-8dba6b74",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "radsec_to_rpm",
+   "formula_version": "fv1-0366db9a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rc_aero_balance",
+   "formula_version": "fv1-229f4619",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rc_brake_bias_rc",
+   "formula_version": "fv1-5dbffdc4",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rc_camber_gain",
+   "formula_version": "fv1-3c9eface",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rc_downforce",
+   "formula_version": "fv1-92acc7a7",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rc_fuel_save",
+   "formula_version": "fv1-92945ca9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rc_fuel_stint",
+   "formula_version": "fv1-072e823c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rc_lap_delta",
+   "formula_version": "fv1-6ffce3f9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rc_motion_ratio_rc",
+   "formula_version": "fv1-ab0daba8",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rc_pit_strategy",
+   "formula_version": "fv1-14e44c57",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rc_rake_angle",
+   "formula_version": "fv1-e7fedcb3",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rc_roll_center",
+   "formula_version": "fv1-16d6ff00",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rc_sector_delta",
+   "formula_version": "fv1-056d65f0",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rc_tire_deg",
+   "formula_version": "fv1-c94423a3",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rc_undercut",
+   "formula_version": "fv1-3116c087",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rc_watt_link",
+   "formula_version": "fv1-5022be9f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "reaction_distance",
+   "formula_version": "fv1-08b7b3cb",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "reaction_time",
+   "formula_version": "fv1-8716b67d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "recovery_point_rating",
+   "formula_version": "fv1-84f4a255",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "refinance_savings",
+   "formula_version": "fv1-39eb8113",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "required_port_csa",
+   "formula_version": "fv1-5bacdbf5",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "resistance",
+   "formula_version": "fv1-4386097f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "reverse_displacement",
+   "formula_version": "fv1-614bda02",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ride_frequency",
+   "formula_version": "fv1-a6ebe77d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ring_gap",
+   "formula_version": "fv1-ea4d6a46",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ring_gap_bore",
+   "formula_version": "fv1-7687cfdb",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ring_pinion",
+   "formula_version": "fv1-4896e09a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rocker_valve_lift",
+   "formula_version": "fv1-066b3ae1",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rod_stroke_ratio",
+   "formula_version": "fv1-cc15c08e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "roll_out",
+   "formula_version": "fv1-33c0f658",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "roll_stiffness",
+   "formula_version": "fv1-87c030ce",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rotating_weight",
+   "formula_version": "fv1-9315cdc8",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rotor_heat",
+   "formula_version": "fv1-f0f10dbc",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rpm_drop_shift",
+   "formula_version": "fv1-7bca7a7b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rpm_frequency",
+   "formula_version": "fv1-76a09bef",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "rpm_to_radsec",
+   "formula_version": "fv1-c6050e81",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "scrub_radius",
+   "formula_version": "fv1-f266d2d6",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "section_modulus",
+   "formula_version": "fv1-2a4d3cec",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "sensor_fov",
+   "formula_version": "fv1-25ba7dce",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "sensor_scaling",
+   "formula_version": "fv1-9b2b7225",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "shear_stress",
+   "formula_version": "fv1-dcc6cbed",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "sheet_weight",
+   "formula_version": "fv1-9bd88ed4",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "shock_length",
+   "formula_version": "fv1-5d29cbde",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "skid_pad",
+   "formula_version": "fv1-261c0780",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "slip_angle",
+   "formula_version": "fv1-2257efd3",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "speed_converter",
+   "formula_version": "fv1-19f016a5",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "speedo_driven_gear",
+   "formula_version": "fv1-70da8422",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "speedometer_cal",
+   "formula_version": "fv1-dbc005bf",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "spring_force_at_lift",
+   "formula_version": "fv1-62ebf1c6",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "spring_rate",
+   "formula_version": "fv1-70e88ba1",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "square_feet_to_square_meters",
+   "formula_version": "fv1-bce3f5ec",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "square_inches_to_square_mm",
+   "formula_version": "fv1-63112887",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "square_meters_to_square_feet",
+   "formula_version": "fv1-a350a17b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "square_mm_to_square_inches",
+   "formula_version": "fv1-da534056",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "squish_velocity",
+   "formula_version": "fv1-8a844c8b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "starter_current",
+   "formula_version": "fv1-18e0dcd4",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "static_compression",
+   "formula_version": "fv1-0d8d2462",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "steering_ratio",
+   "formula_version": "fv1-063318e3",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "stoich_afr_blend",
+   "formula_version": "fv1-016b11da",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "strain",
+   "formula_version": "fv1-82180edb",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "stress",
+   "formula_version": "fv1-cbddb451",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "stripe_win_margin",
+   "formula_version": "fv1-57ece34b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "supercharger_parasitic",
+   "formula_version": "fv1-47ec8b54",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "supercharger_speed",
+   "formula_version": "fv1-2bc73844",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "surface_speed",
+   "formula_version": "fv1-fff71cf7",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tank_volume",
+   "formula_version": "fv1-84523b71",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tap_drill",
+   "formula_version": "fv1-20a3fa2e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tap_drill_size",
+   "formula_version": "fv1-0e50f23d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "temp_converter",
+   "formula_version": "fv1-6bd31f60",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "temperature_rise",
+   "formula_version": "fv1-85c9d256",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "thermal_efficiency",
+   "formula_version": "fv1-c19b001f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "thermal_expansion",
+   "formula_version": "fv1-2e18b66c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "thread_engagement",
+   "formula_version": "fv1-5d9cb8b9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "thread_pitch_convert",
+   "formula_version": "fv1-39791867",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "thread_pitch_to_tpi",
+   "formula_version": "fv1-409d3fb9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "throttle_body",
+   "formula_version": "fv1-0bd72c33",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "time_speed_dist",
+   "formula_version": "fv1-9249d725",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "timing_mark",
+   "formula_version": "fv1-f3b08daa",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tire_frequency",
+   "formula_version": "fv1-4bcb80c3",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tire_pressure_temp",
+   "formula_version": "fv1-7086e0dc",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tire_size",
+   "formula_version": "fv1-4c27699a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tire_size_comparison",
+   "formula_version": "fv1-e605f5b1",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tire_stagger",
+   "formula_version": "fv1-176b3f8c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "toe_angle",
+   "formula_version": "fv1-b450c766",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tongue_weight",
+   "formula_version": "fv1-17b65c7c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "top_speed",
+   "formula_version": "fv1-58cd027f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "torque_converter",
+   "formula_version": "fv1-19f72f57",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "torque_from_hp",
+   "formula_version": "fv1-2edab9c2",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "torque_wrench_ext",
+   "formula_version": "fv1-b3129fb9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "torsional_stress",
+   "formula_version": "fv1-7b29d849",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "total_cost_ownership",
+   "formula_version": "fv1-8da1f683",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_actual_combined",
+   "formula_version": "fv1-2bdb4263",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_aero_drag",
+   "formula_version": "fv1-2a5eb1ce",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_axle_load",
+   "formula_version": "fv1-4fc9895d",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_brake_energy",
+   "formula_version": "fv1-e4b8324e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_ev_cost",
+   "formula_version": "fv1-7d547673",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_gcwr_margin",
+   "formula_version": "fv1-29304ddb",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_grade_power",
+   "formula_version": "fv1-ebc52639",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_grade_speed",
+   "formula_version": "fv1-9a3e406b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_gvwr_margin",
+   "formula_version": "fv1-cdc4a996",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_hitch_margin",
+   "formula_version": "fv1-36176300",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_mpg_penalty",
+   "formula_version": "fv1-a97216e2",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_payload_remaining",
+   "formula_version": "fv1-89921985",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_range",
+   "formula_version": "fv1-97fda588",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_rolling_resistance",
+   "formula_version": "fv1-c10dc474",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_stopping_distance",
+   "formula_version": "fv1-9c14ad77",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_tongue_percent",
+   "formula_version": "fv1-45220ce4",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_trailer_capacity",
+   "formula_version": "fv1-06e5f78f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_trip_fuel_cost",
+   "formula_version": "fv1-389dc914",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tow_wheel_torque",
+   "formula_version": "fv1-477d65e7",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "towing_squat",
+   "formula_version": "fv1-619df5eb",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tpi_to_thread_pitch",
+   "formula_version": "fv1-3658751b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E101_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tractive_force",
+   "formula_version": "fv1-c17aa506",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "trade_in_payoff",
+   "formula_version": "fv1-3511f28f",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "trailer_tire_load",
+   "formula_version": "fv1-a85de7ce",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "trap_speed_hp_check",
+   "formula_version": "fv1-47a72a33",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "trip_fuel_cost",
+   "formula_version": "fv1-694645b2",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "tube_weight",
+   "formula_version": "fv1-0d05fdc9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "turbo_airflow",
+   "formula_version": "fv1-c3f7f9d3",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "turbo_power_requirement",
+   "formula_version": "fv1-0a79e466",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "turbo_sizing",
+   "formula_version": "fv1-a0c172d2",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "turning_radius",
+   "formula_version": "fv1-a59e80ee",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "ujoint_angles",
+   "formula_version": "fv1-73480326",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "understeer_gradient",
+   "formula_version": "fv1-9a86b9e9",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "unsprung_weight",
+   "formula_version": "fv1-950e77ac",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "valve_lash",
+   "formula_version": "fv1-56a39b39",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "valve_lift_rocker",
+   "formula_version": "fv1-ec05ab1b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "valve_spring_rate",
+   "formula_version": "fv1-f0085c45",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "valve_throat_area",
+   "formula_version": "fv1-a894e14e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "velocity_stack",
+   "formula_version": "fv1-8b3f14df",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "voltage_drop",
+   "formula_version": "fv1-bba7947c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "volume_converter",
+   "formula_version": "fv1-bc19a609",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "volumetric_eff",
+   "formula_version": "fv1-2b6d8b7c",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "wastegate_flow",
+   "formula_version": "fv1-60f62091",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "weight_reduction",
+   "formula_version": "fv1-2f2e4202",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "weight_transfer",
+   "formula_version": "fv1-fbb13bbb",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "weight_transfer_accel",
+   "formula_version": "fv1-78215ba5",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "weight_transfer_braking",
+   "formula_version": "fv1-011fb61a",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "wet_bulb",
+   "formula_version": "fv1-a2a279c6",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "wheel_motion",
+   "formula_version": "fv1-5be1b784",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "wheel_offset",
+   "formula_version": "fv1-ad481af0",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "wheel_rate",
+   "formula_version": "fv1-3c49ad75",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "winch_line_pull",
+   "formula_version": "fv1-63cd375b",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "wind_et",
+   "formula_version": "fv1-6160bffc",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "wing_force",
+   "formula_version": "fv1-49b93d3e",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "wire_current_capacity",
+   "formula_version": "fv1-8bc7b6b7",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "wire_gauge",
+   "formula_version": "fv1-fd58ce46",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "wmi_flow",
+   "formula_version": "fv1-1d6cfd37",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_LEGACY_FORMULAS",
+   "first_release": "F1.12.3"
+  },
+  {
+   "calculator_id": "yaw_moment",
+   "formula_version": "fv1-987d9cc3",
+   "engine_version": "1.1.0",
+   "formula_registry": "GH_E1_FORMULAS",
+   "first_release": "F1.12.3"
+  }
+ ]
+}
