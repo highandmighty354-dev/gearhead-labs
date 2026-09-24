@@ -1,0 +1,2904 @@
+{
+ "about": "Items not mapped in this milestone and why. Classifications come from the DATA-FOUNDATION catalog and engine-pending.json; no new product states.",
+ "source": {
+  "f1_tag": "F1.12.3-UI-MOBILE-HEADER",
+  "f1_commit": "257b2cc6617f68db4b7c672c30c75ee30e242689",
+  "df_tag": "DATA-FOUNDATION-1.0.0",
+  "df_commit": "fbcebc4d0dddf11295ab77a7f0c618783dad6687",
+  "page_sha256": "02b0ceeed36b17c5ac64daa480c26ea52146f0ade94ac60b6d8f1027ec102c27",
+  "engine_version": "1.1.0"
+ },
+ "not_engine_proven": [
+  {
+   "calculator_id": "ackermann_angle",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "aero_balance",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "aero_hp",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "afr_from_lambda",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "afr_lambda",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "air_fuel_mass",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "air_standard_otto",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "alternator_capacity",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "alternator_rpm",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "bar_to_psi",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "baro_correction",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "battery_ah",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "beam_deflection",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "bend_allowance",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "bending_stress",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "bmep",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "bmep_from_torque",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "bolt_pattern",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": "LIVE_DEFECT",
+   "pending_detail": "Registry hard-codes 5 lugs (ignores the lug-count input). Live mixes measurement conventions (adjacent-stud geometry for 4/5/8 lugs, PCD = measurement for 6) and its fallback branch for other lug counts returns meas/(2 sin(π/n)), a RADIUS, labelled as bolt-circle DIAMETER (2x error). Needs a sourced convention decision."
+  },
+  {
+   "calculator_id": "bolt_stretch",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "bolt_torque_spec",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "bore_stroke_ratio",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "brake_bias_hydraulic",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "brake_clamp_force",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "brake_energy",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "brake_fade_energy",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "brake_rotor_temp",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "brake_torque",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "breakout_calc",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "bsfc",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "btu_hr_to_kw",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "btu_to_joules",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "build_budget",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "bump_steer",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "cam_duration_rpm",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "can_bitrate",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "carb_sizing",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "caster_trail_effect",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "cc_to_cubic_inches",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "celsius_to_fahrenheit",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "celsius_to_kelvin",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "chip_load",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "christmas_tree",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "clamp_load",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "cm_to_inches",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "compressor_efficiency",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "compressor_outlet_temp",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "compressor_pr",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "control_error",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "coolant_flow",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "cornering_stiffness",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ct_track_bar_adj",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "cubic_feet_to_liters",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "cubic_inches_to_cc",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "cubic_inches_to_liters",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "damping_ratio",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "decibel_ratio",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "decimal_fraction_universal",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "decimal_inch_to_mm",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "decimal_to_fraction",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "decimal_to_mixed_number",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "decimal_to_nearest_fraction",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "delay_box_setting",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "depreciation_schedule",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_afr_lambda",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_compressor_outlet",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_def_rate",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_dpf_soot",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_egb",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_egr_flow",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_exhaust_flow",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_injection_duration",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_injection_quantity",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_injection_timing",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_injector_flow",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": "MODE_DEPENDENT",
+   "pending_detail": "Not all registry inputs are rendered with defaults; needs per-mode review."
+  },
+  {
+   "calculator_id": "diesel_rail_power",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_regen_interval",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_scr_efficiency",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_smoke_limit",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_turbine_pr",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "diesel_turbo_efficiency",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "distance_to_empty",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "downforce",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "drag_force",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "driveshaft_order",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "drivetrain_loss",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "dynamic_pressure",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "e85_fuel_multiplier",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "electrical_power",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "engine_air_density",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "engine_airflow",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "engine_order",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_battery_heat",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_c_rate",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_charge_added",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_charge_loss",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_coolant_flow",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_hvac_energy",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_internal_resistance",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_inverter_loss",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_motor_efficiency",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_motor_power",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": "UNIT_DIVERGENCE",
+   "pending_detail": "Registry output \"Motor Power (kW)\" = 340.8 kW; live displays the same power as 457 HP. Per the canonical-units decision (native US/Imperial), the registry output should be HP; that is a formula change and needs re-verification."
+  },
+  {
+   "calculator_id": "ev_pack_ah",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_pack_configuration",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_peak_power",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_power_conversion",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_reduction_ratio",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_soc_energy",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_temp_penalty",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_towing_penalty",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_usable_energy",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_voltage_sag",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ev_wheel_torque",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "factor_of_safety",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fahrenheit_to_celsius",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fahrenheit_to_kelvin",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "feed_rate",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "feet_to_inches",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "feet_to_meters",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "feet_to_mm",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "flow_coefficient",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fluid_oz_to_ml",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fmep_from_imep_bmep",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "following_distance",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fraction_add",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fraction_divide",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fraction_multiply",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fraction_simplify",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fraction_subtract",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fraction_to_decimal_mm",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fraction_to_percent",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "friction_circle",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ft_per_sec_to_mph",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ftlb_to_joules",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fuel_cell_efficiency",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fuel_cell_power",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fuel_flow_from_hp",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fuel_pressure_flow",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fuel_pump_capacity",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fuel_pump_sizing",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fuel_system_hp",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "fuse_size",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "g_per_cc_to_lb_per_ft3",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "gallons_to_liters",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "grams_to_oz",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "harmonic_frequency",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "heat_exchanger_effectiveness",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "heat_input_per_cycle",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "heat_transfer",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "hp_quarter_mile",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": "MODE_DEPENDENT",
+   "pending_detail": "Trap-speed vs ET mode; the ET input is not rendered in the default (trap) mode."
+  },
+  {
+   "calculator_id": "hp_to_kw",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "hp_to_ps",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "hvac_cooling_load",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "hybrid_power_split",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "hybrid_regen_energy",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "hydraulic_cylinder_force",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "hydraulic_cylinder_speed",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "hydraulic_mechanical_advantage",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "hydraulic_pump_flow",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "hydraulic_reservoir_sizing",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "imep_from_power",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "inch_fraction_to_mm",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "inch_to_feet",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "inches_to_cm",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "inhg_to_psi",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "injector_duty",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "injector_duty_cycle",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "injector_size",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "insurance_estimator",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "intercooler_eff",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "intercooler_pressure_drop",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "intercooler_temp_drop",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "joules_to_btu",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "joules_to_ftlb",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "kelvin_to_celsius",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "kelvin_to_fahrenheit",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "kg_per_sec_to_lb_per_min",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "kg_to_lb",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "kgf_to_newton",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "km_to_miles",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "kmh_to_mph",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "kpa_to_psi",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "kw_to_btu_hr",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "kw_to_hp",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "lambda_from_afr",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "lateral_acceleration",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "lb_per_ft3_to_g_per_cc",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "lb_per_min_to_kg_per_sec",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "lb_to_kg",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "lbforce_to_newton",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "lbft_to_lbin",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "lbft_to_nm",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "lbin_to_lbft",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "lbin_to_nm",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "lift_force",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "liters_to_cubic_feet",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "liters_to_cubic_inches",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "liters_to_gallons",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "liters_to_quarts",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "load_transfer_lateral",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "load_transfer_longitudinal",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "machining_rpm",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "maf_airflow",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "map_pressure_ratio",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "material_removal",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "meters_to_feet",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "metric_to_nearest_sae",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "miles_to_km",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "mixed_number_to_decimal",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ml_to_fluid_oz",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "mm_to_decimal_inch",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "mm_to_feet",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "mm_to_inch_fraction",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "motion_ratio",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "mpa_to_psi",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "mph_to_ft_per_sec",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "mph_to_kmh",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "natural_frequency",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "newton_to_kgf",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "newton_to_lbforce",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "nm_to_lbft",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "nmm_to_lbft",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ohms_law",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "optimal_shift",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": "REGISTRY_STUB",
+   "pending_detail": "Registry: shift RPM = peak-HP RPM (3 inputs). Live: searches the torque curve for the shift point that maximises wheel torque (7 inputs). Also shows a shift RPM when peak-HP RPM is 0."
+  },
+  {
+   "calculator_id": "otto_efficiency",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "oz_to_grams",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "pedal_force",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "percent_to_fraction",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "pid_proportional",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "pinion_angle_change",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": "LIVE_DEFECT",
+   "pending_detail": "Live displays 0° (with a warning line) when the axle-to-pivot distance is 0, where the angle is undefined. Unknown/invalid must not display as zero. Engine returns atan(x/0)=90°, also invalid: needs a >0 domain rule in the registry."
+  },
+  {
+   "calculator_id": "piston_to_valve_clearance",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "port_velocity",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "power_steering_assist",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ps_to_hp",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "psi_to_bar",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "psi_to_inhg",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "psi_to_kpa",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "psi_to_mpa",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "pumping_mep",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "pwm_duty",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "quarts_to_liters",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "quench_clearance",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "radiator_heat_capacity",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "radsec_to_rpm",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "rc_brake_bias_rc",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "rc_camber_gain",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "rc_lap_delta",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "rc_roll_center",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "reaction_time",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ride_frequency",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ring_gap_bore",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "rocker_valve_lift",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "roll_stiffness",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "rotor_heat",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "rpm_frequency",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "rpm_to_radsec",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "section_modulus",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "sensor_fov",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "sensor_scaling",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "shear_stress",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "sheet_weight",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "skid_pad",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "slip_angle",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "spring_force_at_lift",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "spring_rate",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "square_feet_to_square_meters",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "square_inches_to_square_mm",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "square_meters_to_square_feet",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "square_mm_to_square_inches",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "squish_velocity",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "starter_current",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "steering_ratio",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "stoich_afr_blend",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "strain",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "stress",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "stripe_win_margin",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "supercharger_parasitic",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "surface_speed",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tap_drill",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tap_drill_size",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "temp_converter",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": "EXACT_PARITY_NOT_EXPRESSIBLE",
+   "pending_detail": "D-009 can declare F/C/K, but the live renderer rounds a different chain of intermediates per source unit (e.g. from F: K is computed from C already rounded to 2 dp; from K: K is the input itself). No single registry expression over bound constants reproduces every option exactly; it would match only within tolerance. Owner scope lock: stays pending; live formula not altered."
+  },
+  {
+   "calculator_id": "temperature_rise",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "thermal_efficiency",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "thermal_expansion",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "thread_engagement",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "thread_pitch_convert",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "thread_pitch_to_tpi",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "time_speed_dist",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": "MODE_DEPENDENT",
+   "pending_detail": "Solve-for distance/time/speed modes; the distance input is hidden in the default mode."
+  },
+  {
+   "calculator_id": "tire_frequency",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "toe_angle",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "torsional_stress",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_actual_combined",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_aero_drag",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_axle_load",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_brake_energy",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_ev_cost",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_gcwr_margin",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_grade_power",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_grade_speed",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_gvwr_margin",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_hitch_margin",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_mpg_penalty",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_payload_remaining",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_range",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_rolling_resistance",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_stopping_distance",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_tongue_percent",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_trailer_capacity",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_trip_fuel_cost",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tow_wheel_torque",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tpi_to_thread_pitch",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tractive_force",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "trade_in_payoff",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "tube_weight",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "turbo_airflow",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "turbo_power_requirement",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "ujoint_angles",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "valve_lift_rocker",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "voltage_drop",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "wastegate_flow",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "weight_transfer_accel",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "weight_transfer_braking",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "wheel_rate",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "wing_force",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "wire_current_capacity",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  },
+  {
+   "calculator_id": "yaw_moment",
+   "engine_proven": false,
+   "classification": "classified_only",
+   "pending_reason": null,
+   "pending_detail": null
+  }
+ ],
+ "aliases": [
+  {
+   "alias": "airflow_from_ve",
+   "canonical_id": "engine_airflow",
+   "canonical_engine_proven": false,
+   "canonical_mapping_status": "not_mapped (canonical not engine-proven)"
+  },
+  {
+   "alias": "carb_cfm",
+   "canonical_id": "carb_sizing",
+   "canonical_engine_proven": false,
+   "canonical_mapping_status": "not_mapped (canonical not engine-proven)"
+  },
+  {
+   "alias": "fraction_to_decimal",
+   "canonical_id": "fraction_decimal",
+   "canonical_engine_proven": true,
+   "canonical_mapping_status": "partial"
+  },
+  {
+   "alias": "sae_fraction_to_mm",
+   "canonical_id": "inch_fraction_to_mm",
+   "canonical_engine_proven": false,
+   "canonical_mapping_status": "not_mapped (canonical not engine-proven)"
+  },
+  {
+   "alias": "valve_curtain_area",
+   "canonical_id": "curtain_area",
+   "canonical_engine_proven": true,
+   "canonical_mapping_status": "complete_draft"
+  },
+  {
+   "alias": "volumetric_efficiency",
+   "canonical_id": "volumetric_eff",
+   "canonical_engine_proven": true,
+   "canonical_mapping_status": "complete_draft"
+  }
+ ],
+ "no_unit_outputs": [
+  {
+   "calculator_id": "afr_lambda",
+   "output_key": "lambda_gasoline",
+   "output_index": 0,
+   "label": "Lambda (gasoline)",
+   "engine_proven": false,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "articulation_index",
+   "output_key": "articulation_index_rti",
+   "output_index": 0,
+   "label": "Articulation Index (RTI)",
+   "engine_proven": true,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "baro_correction",
+   "output_key": "pressure_ratio",
+   "output_index": 0,
+   "label": "Pressure Ratio",
+   "engine_proven": false,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "decimal_fraction_universal",
+   "output_key": "decimal_fraction_decimal_mode",
+   "output_index": 0,
+   "label": "Decimal (Fraction → Decimal mode)",
+   "engine_proven": false,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "decimal_to_fraction",
+   "output_key": "nearest_fractional_value",
+   "output_index": 0,
+   "label": "Nearest Fractional Value",
+   "engine_proven": false,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "decimal_to_mixed_number",
+   "output_key": "mixed_number_fractional_part",
+   "output_index": 0,
+   "label": "Mixed Number Fractional Part",
+   "engine_proven": false,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "diesel_afrlambda",
+   "output_key": "lambda",
+   "output_index": 0,
+   "label": "Lambda",
+   "engine_proven": true,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "diesel_boost_pr",
+   "output_key": "pressure_ratio",
+   "output_index": 1,
+   "label": "Pressure Ratio",
+   "engine_proven": true,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "diesel_power_economy",
+   "output_key": "power_fuel_ratio_change",
+   "output_index": 2,
+   "label": "Power / Fuel Ratio Change",
+   "engine_proven": true,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "diesel_turbo_pr",
+   "output_key": "pressure_ratio",
+   "output_index": 0,
+   "label": "Pressure Ratio",
+   "engine_proven": true,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "fraction_add",
+   "output_key": "decimal_result",
+   "output_index": 0,
+   "label": "Decimal Result",
+   "engine_proven": false,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "fraction_divide",
+   "output_key": "decimal_result",
+   "output_index": 0,
+   "label": "Decimal Result",
+   "engine_proven": false,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "fraction_multiply",
+   "output_key": "decimal_result",
+   "output_index": 0,
+   "label": "Decimal Result",
+   "engine_proven": false,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "fraction_simplify",
+   "output_key": "simplified_ratio",
+   "output_index": 0,
+   "label": "Simplified Ratio",
+   "engine_proven": false,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "fraction_subtract",
+   "output_key": "decimal_result",
+   "output_index": 0,
+   "label": "Decimal Result",
+   "engine_proven": false,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "fuel_line_loss",
+   "output_key": "reynolds_number",
+   "output_index": 1,
+   "label": "Reynolds Number",
+   "engine_proven": true,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "jetting",
+   "output_key": "estimated_jet",
+   "output_index": 0,
+   "label": "Estimated Jet",
+   "engine_proven": true,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "mach_index",
+   "output_key": "mach_index",
+   "output_index": 1,
+   "label": "Mach Index",
+   "engine_proven": true,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "mixed_number_to_decimal",
+   "output_key": "decimal",
+   "output_index": 0,
+   "label": "Decimal",
+   "engine_proven": false,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "percent_to_fraction",
+   "output_key": "decimal_fraction",
+   "output_index": 0,
+   "label": "Decimal Fraction",
+   "engine_proven": false,
+   "reason": "registry declares no unit for this output"
+  },
+  {
+   "calculator_id": "rc_motion_ratio_rc",
+   "output_key": "motion_ratio",
+   "output_index": 0,
+   "label": "Motion Ratio",
+   "engine_proven": true,
+   "reason": "registry declares no unit for this output"
+  }
+ ],
+ "ambiguous_identity_items": [
+  {
+   "calculator_id": "ct_tire_temp_balance",
+   "direction": "input",
+   "name": "lf_t",
+   "label": "Inside",
+   "unit": "°F"
+  },
+  {
+   "calculator_id": "ct_tire_temp_balance",
+   "direction": "input",
+   "name": "rf_t",
+   "label": "Outside",
+   "unit": "°F"
+  },
+  {
+   "calculator_id": "ct_tire_temp_balance",
+   "direction": "input",
+   "name": "lr_t",
+   "label": "Inside",
+   "unit": "°F"
+  },
+  {
+   "calculator_id": "ct_tire_temp_balance",
+   "direction": "input",
+   "name": "rr_t",
+   "label": "Outside",
+   "unit": "°F"
+  },
+  {
+   "calculator_id": "perfect_light",
+   "direction": "input",
+   "name": "my_rt",
+   "label": "Reaction Time",
+   "unit": "sec"
+  },
+  {
+   "calculator_id": "perfect_light",
+   "direction": "input",
+   "name": "my_et",
+   "label": "ET",
+   "unit": "sec"
+  },
+  {
+   "calculator_id": "perfect_light",
+   "direction": "input",
+   "name": "my_dial",
+   "label": "Dial-In",
+   "unit": "sec"
+  },
+  {
+   "calculator_id": "perfect_light",
+   "direction": "input",
+   "name": "opp_rt",
+   "label": "Reaction Time",
+   "unit": "sec"
+  },
+  {
+   "calculator_id": "perfect_light",
+   "direction": "input",
+   "name": "opp_et",
+   "label": "ET",
+   "unit": "sec"
+  },
+  {
+   "calculator_id": "perfect_light",
+   "direction": "input",
+   "name": "opp_dial",
+   "label": "Dial-In",
+   "unit": "sec"
+  },
+  {
+   "calculator_id": "rc_sector_delta",
+   "direction": "input",
+   "name": "s1_a",
+   "label": "S1",
+   "unit": "sec"
+  },
+  {
+   "calculator_id": "rc_sector_delta",
+   "direction": "input",
+   "name": "s1_b",
+   "label": "S1",
+   "unit": "sec"
+  },
+  {
+   "calculator_id": "rc_sector_delta",
+   "direction": "input",
+   "name": "s2_a",
+   "label": "S2",
+   "unit": "sec"
+  },
+  {
+   "calculator_id": "rc_sector_delta",
+   "direction": "input",
+   "name": "s2_b",
+   "label": "S2",
+   "unit": "sec"
+  },
+  {
+   "calculator_id": "rc_sector_delta",
+   "direction": "input",
+   "name": "s3_a",
+   "label": "S3",
+   "unit": "sec"
+  },
+  {
+   "calculator_id": "rc_sector_delta",
+   "direction": "input",
+   "name": "s3_b",
+   "label": "S3",
+   "unit": "sec"
+  }
+ ],
+ "no_unit_inputs_engine_proven": [
+  {
+   "calculator_id": "braking_distance",
+   "var": "mu",
+   "label": "Friction Coefficient (μ)"
+  },
+  {
+   "calculator_id": "climb_rate",
+   "var": "eff",
+   "label": "Drivetrain Efficiency"
+  },
+  {
+   "calculator_id": "clutch_torque_capacity",
+   "var": "mu",
+   "label": "Friction Coefficient"
+  },
+  {
+   "calculator_id": "clutch_torque_capacity",
+   "var": "surfaces",
+   "label": "Friction Surfaces"
+  },
+  {
+   "calculator_id": "coil_spring",
+   "var": "n",
+   "label": "Active Coils"
+  },
+  {
+   "calculator_id": "cornering_speed",
+   "var": "mu_cs",
+   "label": "Tire Friction Coefficient (μ)"
+  },
+  {
+   "calculator_id": "cranking_compression",
+   "var": "gamma",
+   "label": "Compression Exponent"
+  },
+  {
+   "calculator_id": "crosswind_force",
+   "var": "ca",
+   "label": "Side Force Coefficient"
+  },
+  {
+   "calculator_id": "diesel_airflow",
+   "var": "da_ve",
+   "label": "Volumetric Efficiency"
+  },
+  {
+   "calculator_id": "distance_converter",
+   "var": "d_in",
+   "label": "Distance"
+  },
+  {
+   "calculator_id": "dual_spring_rate",
+   "var": "mr_dr",
+   "label": "Motion Ratio"
+  },
+  {
+   "calculator_id": "engine_displacement",
+   "var": "cyl",
+   "label": "Cylinders"
+  },
+  {
+   "calculator_id": "ev_acceleration",
+   "var": "traction",
+   "label": "Traction Factor"
+  },
+  {
+   "calculator_id": "ev_top_speed",
+   "var": "cd",
+   "label": "Drag Coefficient"
+  },
+  {
+   "calculator_id": "exhaust_curtain_area",
+   "var": "eca_n",
+   "label": "Valve Count"
+  },
+  {
+   "calculator_id": "exhaust_diameter",
+   "var": "cyl_ex",
+   "label": "Number of Cylinders"
+  },
+  {
+   "calculator_id": "exhaust_header",
+   "var": "cyl4",
+   "label": "Cylinders"
+  },
+  {
+   "calculator_id": "feeds_speeds",
+   "var": "teeth_fs",
+   "label": "Number of Flutes/Teeth"
+  },
+  {
+   "calculator_id": "fraction_decimal",
+   "var": "num_fd",
+   "label": "Numerator"
+  },
+  {
+   "calculator_id": "fraction_decimal",
+   "var": "den_fd",
+   "label": "Denominator"
+  },
+  {
+   "calculator_id": "fuel_line_loss",
+   "var": "fuel_sg",
+   "label": "Fuel Specific Gravity"
+  },
+  {
+   "calculator_id": "gearbox_efficiency",
+   "var": "stages",
+   "label": "Number of Gear Mesh Stages"
+  },
+  {
+   "calculator_id": "gearbox_efficiency",
+   "var": "eff_per",
+   "label": "Efficiency per Stage"
+  },
+  {
+   "calculator_id": "hp_aero_drag",
+   "var": "cd",
+   "label": "Drag Coefficient (Cd)"
+  },
+  {
+   "calculator_id": "hp_from_airflow",
+   "var": "cyl_hf",
+   "label": "Number of Cylinders"
+  },
+  {
+   "calculator_id": "hp_from_specs",
+   "var": "ve4",
+   "label": "Volumetric Efficiency"
+  },
+  {
+   "calculator_id": "injector_flow",
+   "var": "flow1",
+   "label": "Flow Rate"
+  },
+  {
+   "calculator_id": "injector_sizing",
+   "var": "inj",
+   "label": "Number of Injectors"
+  },
+  {
+   "calculator_id": "injector_sizing",
+   "var": "duty",
+   "label": "Max Duty Cycle"
+  },
+  {
+   "calculator_id": "intake_curtain_area",
+   "var": "ica_n",
+   "label": "Valve Count"
+  },
+  {
+   "calculator_id": "intake_flow_per_cylinder",
+   "var": "ifpc_n",
+   "label": "Cylinders"
+  },
+  {
+   "calculator_id": "intake_runner",
+   "var": "harm",
+   "label": "Intake Pulse Harmonic"
+  },
+  {
+   "calculator_id": "jetting",
+   "var": "jet_cur",
+   "label": "Current Jet Size"
+  },
+  {
+   "calculator_id": "lease_vs_buy",
+   "var": "mf",
+   "label": "Money Factor (lease)"
+  },
+  {
+   "calculator_id": "octane_mixture",
+   "var": "o1",
+   "label": "Fuel 1 Octane"
+  },
+  {
+   "calculator_id": "octane_mixture",
+   "var": "o2",
+   "label": "Fuel 2 Octane"
+  },
+  {
+   "calculator_id": "port_valve_area_ratio",
+   "var": "pvr_n",
+   "label": "Valve Count"
+  },
+  {
+   "calculator_id": "power_converter",
+   "var": "pow_in",
+   "label": "Power"
+  },
+  {
+   "calculator_id": "pressure_converter",
+   "var": "pres_in",
+   "label": "Pressure"
+  },
+  {
+   "calculator_id": "pump_head",
+   "var": "sg",
+   "label": "Specific Gravity"
+  },
+  {
+   "calculator_id": "rc_downforce",
+   "var": "cl",
+   "label": "Downforce Coefficient (Cl)"
+  },
+  {
+   "calculator_id": "rc_downforce",
+   "var": "cd",
+   "label": "Drag Coefficient (Cd)"
+  },
+  {
+   "calculator_id": "reverse_displacement",
+   "var": "cyl2",
+   "label": "Cylinders"
+  },
+  {
+   "calculator_id": "ring_pinion",
+   "var": "ts2",
+   "label": "Pinion Teeth"
+  },
+  {
+   "calculator_id": "ring_pinion",
+   "var": "ps",
+   "label": "Ring Gear Teeth"
+  },
+  {
+   "calculator_id": "shock_length",
+   "var": "motion_sh",
+   "label": "Motion Ratio"
+  },
+  {
+   "calculator_id": "speed_converter",
+   "var": "s_in",
+   "label": "Speed"
+  },
+  {
+   "calculator_id": "speedo_driven_gear",
+   "var": "teeth_d",
+   "label": "Drive Gear Teeth"
+  },
+  {
+   "calculator_id": "throttle_body",
+   "var": "tb_ve",
+   "label": "Volumetric Efficiency"
+  },
+  {
+   "calculator_id": "top_speed",
+   "var": "cd_ts",
+   "label": "Drag Coefficient (Cd)"
+  },
+  {
+   "calculator_id": "trailer_tire_load",
+   "var": "num_tires",
+   "label": "Number of Tires on Axle"
+  },
+  {
+   "calculator_id": "valve_spring_rate",
+   "var": "n",
+   "label": "Active Coils"
+  },
+  {
+   "calculator_id": "volume_converter",
+   "var": "vol3",
+   "label": "Volume"
+  },
+  {
+   "calculator_id": "wheel_motion",
+   "var": "mr",
+   "label": "Motion Ratio"
+  }
+ ],
+ "duplicate_output_keys": [
+  {
+   "calculator_id": "valve_throat_area",
+   "key": "throat_area",
+   "outputs": [
+    {
+     "output_index": 0,
+     "key": "throat_area",
+     "label": "Throat Area"
+    },
+    {
+     "output_index": 3,
+     "key": "throat_area",
+     "label": "Throat Area %"
+    }
+   ],
+   "note": "engine output keys are derived from labels; outputs are identified by output_index"
+  }
+ ],
+ "dependencies": {
+  "note": "The frozen F1 registry declares no dependency metadata; aliases (above) are the only explicit relationships. Dependency resolution is deferred."
+ }
+}

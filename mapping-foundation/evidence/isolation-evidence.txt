@@ -1,0 +1,18 @@
+MAPPING-FOUNDATION ISOLATION EVIDENCE
+protected: F1.12.3-UI-MOBILE-HEADER @ 257b2cc6617f68db4b7c672c30c75ee30e242689
+protected: DATA-FOUNDATION-1.0.0 @ fbcebc4d0dddf11295ab77a7f0c618783dad6687
+
+PASS  1. F1.12.3 page SHA-256 02b0ceeed36b17c5ac64daa480c26ea52146f0ade94ac60b6d8f1027ec102c27 (unchanged)
+PASS  2. 14/14 protected F1 files byte-identical to F1.12.3-UI-MOBILE-HEADER
+PASS  3. data-foundation/ has no diff against DATA-FOUNDATION-1.0.0 (committed: 0, working tree: 0)
+PASS  4. no file outside mapping-foundation/ differs from DATA-FOUNDATION-1.0.0 (committed: 0, working tree: 0)
+PASS  5. registry / catalog / migrated / pending = 577/583/252/8
+PASS  6. F1 release gate PASS, suite-by-suite identical to verification-baseline-F1_12_3.txt (28 suites)
+      [PASS] LIVE_RENDER  612 passed, 0 failed
+      [PASS] LIVE_PARITY  252 passed, 0 failed
+      [INFO] LIVE_PARITY ran 4242 output comparisons across 252 calculators
+      [PASS] ENGINE_NODE_TESTS  100 passed, 0 failed
+PASS  7. DATA-FOUNDATION suite 219/219 PASS, output byte-identical to its committed baseline
+PASS  8. DATA-FOUNDATION regenerated evidence identical to DATA-FOUNDATION-1.0.0 (tree clean after its run)
+
+ISOLATION: PASS

@@ -1,0 +1,500 @@
+[
+ {
+  "group": "generation",
+  "name": "committed registry passes the validator with zero errors",
+  "ok": true,
+  "detail": "0 errors"
+ },
+ {
+  "group": "generation",
+  "name": "registry was generated from the frozen tags",
+  "ok": true,
+  "detail": "F1.12.3-UI-MOBILE-HEADER / DATA-FOUNDATION-1.0.0"
+ },
+ {
+  "group": "resolution",
+  "name": "exactly the 252 engine-proven calculators are mapped (D-006)",
+  "ok": true,
+  "detail": "252"
+ },
+ {
+  "group": "resolution",
+  "name": "every mapped id is a canonical id in the DATA-FOUNDATION catalog",
+  "ok": true,
+  "detail": "all"
+ },
+ {
+  "group": "resolution",
+  "name": "325 non-proven calculators classified only (engine_proven=false); 252 + 325 = 577",
+  "ok": true,
+  "detail": "325"
+ },
+ {
+  "group": "resolution",
+  "name": "the 8 pending calculators keep their recorded reasons verbatim",
+  "ok": true,
+  "detail": "bolt_pattern diesel_injector_flow ev_motor_power hp_quarter_mile optimal_shift pinion_angle_change temp_converter time_speed_dist"
+ },
+ {
+  "group": "resolution",
+  "name": "engine-proven set equals the frozen engine-migrated.json",
+  "ok": true,
+  "detail": "252"
+ },
+ {
+  "group": "resolution",
+  "name": "6 aliases resolve to their canonical id through the catalog",
+  "ok": true,
+  "detail": "airflow_from_ve->engine_airflow, carb_cfm->carb_sizing, fraction_to_decimal->fraction_decimal, sae_fraction_to_mm->inch_fraction_to_mm, valve_curtain_area->curtain_area, volumetric_efficiency->volumetric_eff"
+ },
+ {
+  "group": "resolution",
+  "name": "alias airflow_from_ve: engine resolves to engine_airflow; mapping status follows the canonical calculator",
+  "ok": true,
+  "detail": "not_mapped (canonical not engine-proven)"
+ },
+ {
+  "group": "resolution",
+  "name": "alias carb_cfm: engine resolves to carb_sizing; mapping status follows the canonical calculator",
+  "ok": true,
+  "detail": "not_mapped (canonical not engine-proven)"
+ },
+ {
+  "group": "resolution",
+  "name": "alias fraction_to_decimal: engine resolves to fraction_decimal; mapping status follows the canonical calculator",
+  "ok": true,
+  "detail": "partial"
+ },
+ {
+  "group": "resolution",
+  "name": "alias sae_fraction_to_mm: engine resolves to inch_fraction_to_mm; mapping status follows the canonical calculator",
+  "ok": true,
+  "detail": "not_mapped (canonical not engine-proven)"
+ },
+ {
+  "group": "resolution",
+  "name": "alias valve_curtain_area: engine resolves to curtain_area; mapping status follows the canonical calculator",
+  "ok": true,
+  "detail": "complete_draft"
+ },
+ {
+  "group": "resolution",
+  "name": "alias volumetric_efficiency: engine resolves to volumetric_eff; mapping status follows the canonical calculator",
+  "ok": true,
+  "detail": "complete_draft"
+ },
+ {
+  "group": "resolution",
+  "name": "no mapping is keyed by an alias",
+  "ok": true,
+  "detail": "none"
+ },
+ {
+  "group": "mapping",
+  "name": "every field is a DRAFT pending engineering review (0 authoritative)",
+  "ok": true,
+  "detail": "923 draft"
+ },
+ {
+  "group": "mapping",
+  "name": "every mapping item is authority=draft",
+  "ok": true,
+  "detail": "all"
+ },
+ {
+  "group": "mapping",
+  "name": "every engine input variable mapped exactly once, in engine order",
+  "ok": true,
+  "detail": "740 inputs"
+ },
+ {
+  "group": "mapping",
+  "name": "every engine output mapped exactly once by output_index (key + label match the engine)",
+  "ok": true,
+  "detail": "472 outputs"
+ },
+ {
+  "group": "mapping",
+  "name": "input units are verbatim the live field unit (never inferred)",
+  "ok": true,
+  "detail": "all bound live fields"
+ },
+ {
+  "group": "mapping",
+  "name": "output units are verbatim the registry unit",
+  "ok": true,
+  "detail": "all"
+ },
+ {
+  "group": "mapping",
+  "name": "transformation = identity everywhere (D-002; no conversion)",
+  "ok": true,
+  "detail": "all"
+ },
+ {
+  "group": "mapping",
+  "name": "mapped item unit and value kind equal its canonical field",
+  "ok": true,
+  "detail": "all mapped items"
+ },
+ {
+  "group": "mapping",
+  "name": "every numeric field declares a unit; categorical fields carry the open-representation flag",
+  "ok": true,
+  "detail": "all"
+ },
+ {
+  "group": "mapping",
+  "name": "no field has a dimension (not declared in source; never inferred)",
+  "ok": true,
+  "detail": "all null"
+ },
+ {
+  "group": "mapping",
+  "name": "bindings are exact only (field id / prefixed id / exact label / single output)",
+  "ok": true,
+  "detail": "no prefix / fuzzy"
+ },
+ {
+  "group": "mapping",
+  "name": "identity groups across calculators are flagged for review",
+  "ok": true,
+  "detail": "104 grouped"
+ },
+ {
+  "group": "mapping",
+  "name": "no calculator uses one canonical field for two items",
+  "ok": true,
+  "detail": "all"
+ },
+ {
+  "group": "classification",
+  "name": "inputs: direction input, required, default none, source data, value record",
+  "ok": true,
+  "detail": "740"
+ },
+ {
+  "group": "classification",
+  "name": "outputs: direction output, calculated, calculation output",
+  "ok": true,
+  "detail": "472"
+ },
+ {
+  "group": "classification",
+  "name": "engine inputs are all required (frozen engine describe)",
+  "ok": true,
+  "detail": "all"
+ },
+ {
+  "group": "classification",
+  "name": "ui_default recorded verbatim from the live field; mapping default behaviour stays none",
+  "ok": true,
+  "detail": "all"
+ },
+ {
+  "group": "classification",
+  "name": "review items: 54 no-unit inputs, 16 ambiguous identities, 9 no-unit outputs; none carries a canonical field",
+  "ok": true,
+  "detail": "54 / 16 / 9"
+ },
+ {
+  "group": "classification",
+  "name": "calculator status follows its items (195 complete, 57 partial, 0 unresolved)",
+  "ok": true,
+  "detail": "195 / 57"
+ },
+ {
+  "group": "no-unit",
+  "name": "exactly the 21 no-unit outputs of the frozen registry are listed",
+  "ok": true,
+  "detail": "21"
+ },
+ {
+  "group": "no-unit",
+  "name": "9 of them are engine-proven; none is mapped",
+  "ok": true,
+  "detail": "9 review, 0 mapped"
+ },
+ {
+  "group": "fingerprint",
+  "name": "every mapping carries the DATA-FOUNDATION catalog formula version + fingerprint + engine 1.1.0",
+  "ok": true,
+  "detail": "252/252"
+ },
+ {
+  "group": "fingerprint",
+  "name": "mappings reference no fingerprint absent from the catalog",
+  "ok": true,
+  "detail": "all fv1"
+ },
+ {
+  "group": "d009",
+  "name": "11 D-009 categorical inputs mapped",
+  "ok": true,
+  "detail": "11"
+ },
+ {
+  "group": "d009",
+  "name": "bearing_life.life_exp: exact option values + types, bound constants and field options preserved",
+  "ok": true,
+  "detail": "3,3.33"
+ },
+ {
+  "group": "d009",
+  "name": "distance_converter.d_from: exact option values + types, bound constants and field options preserved",
+  "ok": true,
+  "detail": "\"mi\",\"km\",\"ft\",\"m\",\"yd\""
+ },
+ {
+  "group": "d009",
+  "name": "fuse_sizing.type_fs: exact option values + types, bound constants and field options preserved",
+  "ok": true,
+  "detail": "\"continuous\",\"intermittent\",\"inrush\""
+ },
+ {
+  "group": "d009",
+  "name": "injector_flow.flow_from: exact option values + types, bound constants and field options preserved",
+  "ok": true,
+  "detail": "\"lbhr\",\"ccmin\""
+ },
+ {
+  "group": "d009",
+  "name": "max_rpm.type_mr: exact option values + types, bound constants and field options preserved",
+  "ok": true,
+  "detail": "\"street\",\"perf\",\"race\""
+ },
+ {
+  "group": "d009",
+  "name": "power_converter.pow_from: exact option values + types, bound constants and field options preserved",
+  "ok": true,
+  "detail": "\"hp\",\"kw\",\"ps\",\"watts\""
+ },
+ {
+  "group": "d009",
+  "name": "pressure_converter.pres_from: exact option values + types, bound constants and field options preserved",
+  "ok": true,
+  "detail": "\"psi\",\"bar\",\"kpa\",\"atm\",\"mmhg\",\"inhg\""
+ },
+ {
+  "group": "d009",
+  "name": "ring_gap.app_rg: exact option values + types, bound constants and field options preserved",
+  "ok": true,
+  "detail": "\"street\",\"na_race\",\"nitrous_street\",\"nitrous_race\",\"boost\""
+ },
+ {
+  "group": "d009",
+  "name": "speed_converter.s_from: exact option values + types, bound constants and field options preserved",
+  "ok": true,
+  "detail": "\"mph\",\"kph\",\"mps\",\"fps\""
+ },
+ {
+  "group": "d009",
+  "name": "volume_converter.vf: exact option values + types, bound constants and field options preserved",
+  "ok": true,
+  "detail": "\"gal\",\"qt\",\"pt\",\"oz\",\"L\",\"mL\""
+ },
+ {
+  "group": "d009",
+  "name": "wind_et.wind_dir: exact option values + types, bound constants and field options preserved",
+  "ok": true,
+  "detail": "\"head\",\"tail\""
+ },
+ {
+  "group": "unknown-vs-zero",
+  "name": "a missing canonical field reaches the engine as UNKNOWN -> INCOMPLETE, null outputs (every input of every complete calculator)",
+  "ok": true,
+  "detail": "551 checked"
+ },
+ {
+  "group": "unknown-vs-zero",
+  "name": "a canonical value of 0 reaches the engine as a KNOWN zero (every numeric input)",
+  "ok": true,
+  "detail": "546 checked"
+ },
+ {
+  "group": "browser-node",
+  "name": "browser engine == Node engine for every complete mapping",
+  "ok": true,
+  "detail": "195 identical"
+ },
+ {
+  "group": "parity",
+  "name": "mapping parity: every complete mapping, driven through canonical fields, reproduces the live F1 result",
+  "ok": true,
+  "detail": "195/195 calculators, 2887 output comparisons"
+ },
+ {
+  "group": "parity",
+  "name": "partial mappings are classified for review (parity not claimed where canonical identity/unit is missing)",
+  "ok": true,
+  "detail": "57 partial"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: duplicate input mapping",
+  "ok": true,
+  "detail": "ac_compressor: input erpm mapped more than once | ac_compressor: two inputs share canonical field engine_rpm__rpm"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: missing input mapping",
+  "ok": true,
+  "detail": "ac_compressor: engine input cpd has no mapping | field compressor_pulley_diameter__in: not used by any mapping"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: missing output mapping",
+  "ok": true,
+  "detail": "ac_compressor: engine output #0 (compressor_rpm) has no mapping | field compressor_rpm__rpm: not used by any mapping"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: unknown canonical field",
+  "ok": true,
+  "detail": "ac_compressor.erpm: canonical field no_such_field does not exist | field engine_rpm__rpm: sources do not match the mappings that reference it"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: unit mismatch",
+  "ok": true,
+  "detail": "ac_compressor.erpm: unit kg != field unit RPM"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: conflicting duplicate field definition",
+  "ok": true,
+  "detail": "fields absolute_map__psi and absolute_map__psi_dup: conflicting duplicate definitions | field absolute_map__psi_dup: not used by any mapping"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: duplicate field key",
+  "ok": true,
+  "detail": "field absolute_map__psi: duplicate key | fields absolute_map__psi and absolute_map__psi: conflicting duplicate definitions"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: a non-proven calculator mapped",
+  "ok": true,
+  "detail": "ackermann_angle: not engine-proven (D-006) - must not be mapped | ackermann_angle: formula version/fingerprint does not match the DATA-FOUNDATION catalog"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: mapping keyed by an alias",
+  "ok": true,
+  "detail": "carb_cfm: mappings are keyed by canonical id (alias carb_cfm -> carb_sizing) | carb_cfm: not engine-proven (D-006) - must not be mapped"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: wrong fingerprint",
+  "ok": true,
+  "detail": "ac_compressor: formula version/fingerprint does not match the DATA-FOUNDATION catalog"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: a unit conversion introduced",
+  "ok": true,
+  "detail": "ac_compressor.erpm: transformation must be identity (D-002)"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: a draft mapping promoted to authoritative",
+  "ok": true,
+  "detail": "ac_compressor.erpm: authority must be draft until the taxonomy is reviewed"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: a draft field marked approved",
+  "ok": true,
+  "detail": "field absolute_map__psi: status must be draft_pending_engineering_review (taxonomy is a review artifact)"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: D-009 option value case changed",
+  "ok": true,
+  "detail": "distance_converter.d_from: categorical option values differ from the field | distance_converter.d_from: D-009 option values differ from the frozen engine"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: D-009 option set altered on the canonical field",
+  "ok": true,
+  "detail": "ring_gap.app_rg: categorical option values differ from the field"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: D-009 numeric option retyped as text",
+  "ok": true,
+  "detail": "bearing_life.life_exp: categorical option values differ from the field | bearing_life.life_exp: D-009 option values differ from the frozen engine"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: review item given a canonical field",
+  "ok": true,
+  "detail": "braking_distance.mu: review item must not carry a canonical field"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: calculator status inconsistent with items",
+  "ok": true,
+  "detail": "articulation_index: status complete_draft but items imply partial"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: output_index missing",
+  "ok": true,
+  "detail": "ac_compressor.compressor_rpm: output_index missing | ac_compressor: engine output #0 (compressor_rpm) has no mapping"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: two inputs share one canonical field",
+  "ok": true,
+  "detail": "ac_compressor: two inputs share canonical field engine_rpm__rpm | field crank_pulley_diameter__in: not used by any mapping"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: non-proven calculator left unclassified",
+  "ok": true,
+  "detail": "yaw_moment: non-proven calculator is not classified"
+ },
+ {
+  "group": "invalid-mappings",
+  "name": "rejected: alias removed",
+  "ok": true,
+  "detail": "aliases: 5 classified, catalog has 6"
+ },
+ {
+  "group": "data-foundation",
+  "name": "frozen DATA-FOUNDATION-1.0.0 migrations applied unchanged (read from the tag)",
+  "ok": true,
+  "detail": "0001-0005"
+ },
+ {
+  "group": "data-foundation",
+  "name": "all 923 draft fields are valid DATA-FOUNDATION canonical_fields rows (categorical unit '-' = DATA-FOUNDATION test convention; OPEN #16)",
+  "ok": true,
+  "detail": "inserted in a rolled-back transaction"
+ },
+ {
+  "group": "data-foundation",
+  "name": "every mapped input is storable as a DATA-FOUNDATION value (unit + value kind accepted; zero stored as known)",
+  "ok": true,
+  "detail": "670 values"
+ },
+ {
+  "group": "data-foundation",
+  "name": "GAP recorded: numeric D-009 options are stored as text by value_records.option_value (type not preserved)",
+  "ok": true,
+  "detail": "bearing_life.life_exp"
+ },
+ {
+  "group": "data-foundation",
+  "name": "every complete mapping’s engine result is a valid DATA-FOUNDATION calculation record (fingerprint FK, result state)",
+  "ok": true,
+  "detail": "195 records"
+ },
+ {
+  "group": "data-foundation",
+  "name": "nothing persisted: the DATA-FOUNDATION canonical_fields seed stays empty",
+  "ok": true,
+  "detail": "{\"f\":0,\"v\":0,\"c\":0}"
+ }
+]
