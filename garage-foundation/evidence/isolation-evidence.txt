@@ -1,0 +1,23 @@
+GARAGE-FOUNDATION ISOLATION EVIDENCE
+protected: F1.12.3-UI-MOBILE-HEADER @ 257b2cc6617f68db4b7c672c30c75ee30e242689
+protected: DATA-FOUNDATION-1.0.0 @ fbcebc4d0dddf11295ab77a7f0c618783dad6687
+protected: MAPPING-FOUNDATION-1.0.0 @ 6421eef24cc3793bfed94c1c67f45c65a52acf00
+
+PASS  1. F1.12.3 page SHA-256 02b0ceeed36b17c5ac64daa480c26ea52146f0ade94ac60b6d8f1027ec102c27 (unchanged)
+PASS  2. 14/14 protected F1 files byte-identical to F1.12.3-UI-MOBILE-HEADER
+PASS  3. data-foundation/ has no diff against DATA-FOUNDATION-1.0.0 (committed: 0, working tree: 0)
+PASS  4. mapping-foundation/ has no diff against MAPPING-FOUNDATION-1.0.0 (committed: 0, working tree: 0)
+PASS  5. no file outside garage-foundation/ differs from MAPPING-FOUNDATION-1.0.0 (committed: 0, working tree: 0)
+PASS  6. all 10/10 tags at their recorded commits; no other tag exists
+PASS  7. registry / catalog / migrated / pending = 577/583/252/8
+PASS  8. F1 release gate PASS, suite-by-suite identical to verification-baseline-F1_12_3.txt (28 suites)
+      [PASS] LIVE_RENDER  612 passed, 0 failed
+      [PASS] LIVE_PARITY  252 passed, 0 failed
+      [INFO] LIVE_PARITY ran 4242 output comparisons across 252 calculators
+      [PASS] ENGINE_NODE_TESTS  100 passed, 0 failed
+PASS  9. DATA-FOUNDATION suite 219 checks, 219 passed, output byte-identical to its committed baseline, regenerated evidence identical (tree clean)
+PASS  10. mapping generation --check PASS (byte-exact against the frozen tags): 923 draft fields, 252 calculators (195 complete, 57 partial, 0 unresolved), validator 0 errors
+PASS  11. MAPPING-FOUNDATION suite 83 checks, 83 passed, output byte-identical to its committed baseline, regenerated evidence identical (tree clean)
+PASS  12. GARAGE-FOUNDATION suite 81 checks, 81 passed, 28/28 mutations detected, output byte-identical to its baseline, regenerated evidence identical
+
+ISOLATION: PASS

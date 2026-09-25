@@ -1,0 +1,12 @@
+{
+  "name": "gearhead-labs-garage-foundation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GARAGE-FOUNDATION 1.0.0 - structural Test Setup persistence (additive Postgres/Supabase schema, RLS, tests). Consumes DATA-FOUNDATION-1.0.0 read-only.",
+  "scripts": {
+    "test": "./tests/run-tests.sh"
+  },
+  "devDependencies": {
+    "pg": "8.13.1"
+  }
+}

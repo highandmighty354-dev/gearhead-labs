@@ -1,0 +1,44 @@
+== garage suite (PostgreSQL 16.15) ==
+========================================================================
+GEARHEAD LABS - GARAGE-FOUNDATION 1.0.0 - DATABASE SUITE
+========================================================================
+[PASS] FROZEN           3 passed, 0 failed
+[PASS] SCHEMA           15 passed, 0 failed
+[PASS] BOUNDARY         4 passed, 0 failed
+[PASS] OWNERSHIP        18 passed, 0 failed
+[PASS] IMMUTABILITY     27 passed, 0 failed
+[PASS] SOFT_DELETE      14 passed, 0 failed
+
+TOTAL 81 checks, 81 passed, 0 failed
+
+[PASS] NEGATIVE_CONTROLS 28/28 mutations detected
+    + update guard trigger dropped: 12 check(s) failed
+    + insert stamp trigger dropped: 3 check(s) failed
+    + hard-delete refusal dropped and client DELETE granted: 5 check(s) failed
+    + client granted UPDATE of baseline_pinned_at: 2 check(s) failed
+    + client granted UPDATE of deleted_at: 2 check(s) failed
+    + client granted INSERT of owner_id: 2 check(s) failed
+    + client granted UPDATE of machine_id: 2 check(s) failed
+    + anon granted SELECT: 2 check(s) failed
+    + RLS disabled: 11 check(s) failed
+    + SELECT policy without owner check: 5 check(s) failed
+    + SELECT policy without machine-visibility clause: 2 check(s) failed
+    + UPDATE policy allows deleted rows: 1 check(s) failed
+    + composite same-owner machine FK replaced by a single-column FK: 2 check(s) failed
+    + blank-name check dropped: 2 check(s) failed
+    + insert trigger does not stamp the baseline pin: 1 check(s) failed
+    + guard allows a back-dated or arbitrary baseline pin: 4 check(s) failed
+    + guard moves the baseline on every update (implicit movement): 6 check(s) failed
+    + soft delete ignores the owner: 1 check(s) failed
+    + soft delete re-stamps already-deleted rows: 2 check(s) failed
+    + re-pin ignores the owner: 1 check(s) failed
+    + re-pin moves the baseline of deleted rows: 2 check(s) failed
+    + soft-delete function made SECURITY INVOKER: 7 check(s) failed
+    + EXECUTE on re-pin granted to anon: 1 check(s) failed
+    + frozen DATA-FOUNDATION table altered: 1 check(s) failed
+    + frozen DATA-FOUNDATION policy altered: 1 check(s) failed
+    + engineering-value reference added to test_setups: 3 check(s) failed
+    + Lab table added: 3 check(s) failed
+    + canonical taxonomy seeded: 2 check(s) failed
+
+GARAGE-FOUNDATION SUITE: PASS

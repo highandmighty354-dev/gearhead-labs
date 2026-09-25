@@ -1,0 +1,776 @@
+{
+ "checks": [
+  {
+   "group": "frozen",
+   "name": "shim + DATA-FOUNDATION 0001-0005 read from the DATA-FOUNDATION-1.0.0 tag, byte-identical to the working tree",
+   "ok": true,
+   "detail": "6/6 files identical"
+  },
+  {
+   "group": "schema",
+   "name": "Garage migrations 0101-0103 apply cleanly after DATA-FOUNDATION 0001-0005",
+   "ok": true,
+   "detail": "0101-0103"
+  },
+  {
+   "group": "schema",
+   "name": "re-applying the Garage migrations is a no-op (schema dump byte-identical)",
+   "ok": true,
+   "detail": "dump 60200 bytes"
+  },
+  {
+   "group": "frozen",
+   "name": "frozen DATA-FOUNDATION catalog (tables, columns, constraints, indexes, policies, triggers, functions, grants, enums, reference rows) unchanged by Garage",
+   "ok": true,
+   "detail": "301 catalog entries identical"
+  },
+  {
+   "group": "frozen",
+   "name": "frozen reference data intact: 583 calculators, 577 formula versions, 252 engine-proven",
+   "ok": true,
+   "detail": "583/577/252"
+  },
+  {
+   "group": "schema",
+   "name": "exactly one new table (test_setups) beside the 10 frozen tables",
+   "ok": true,
+   "detail": "accounts,calculation_records,calculators,canonical_fields,component_connections,components,formula_versions,garages,machines,test_setups,value_records"
+  },
+  {
+   "group": "schema",
+   "name": "test_setups columns, types and nullability are exactly the approved set",
+   "ok": true,
+   "detail": "10 columns"
+  },
+  {
+   "group": "schema",
+   "name": "RLS enabled AND forced on test_setups",
+   "ok": true,
+   "detail": "enabled true, forced true"
+  },
+  {
+   "group": "schema",
+   "name": "constraints: PK(id), UNIQUE(id, owner_id), composite same-owner FK to machines, owner FK to accounts (RESTRICT), non-blank name",
+   "ok": true,
+   "detail": "test_setups_id_owner_uq,test_setups_machine_same_owner_fk,test_setups_name_not_blank,test_setups_owner_id_fkey,test_setups_pkey"
+  },
+  {
+   "group": "schema",
+   "name": "indexes: pkey, (id, owner_id), owner, machine",
+   "ok": true,
+   "detail": "test_setups_id_owner_uq,test_setups_machine_idx,test_setups_owner_idx,test_setups_pkey"
+  },
+  {
+   "group": "schema",
+   "name": "triggers: BEFORE INSERT stamp, BEFORE UPDATE guard, BEFORE DELETE refusal (row level)",
+   "ok": true,
+   "detail": "gf_guard,gf_no_delete,gf_stamp"
+  },
+  {
+   "group": "schema",
+   "name": "grants: anon none; authenticated table-level SELECT only",
+   "ok": true,
+   "detail": "anon null/null; authenticated [\"SELECT\"]"
+  },
+  {
+   "group": "schema",
+   "name": "client INSERT columns exactly machine_id, name, description, notes (no id, owner, pin, timestamps, deletion)",
+   "ok": true,
+   "detail": "[\"description\",\"machine_id\",\"name\",\"notes\"]"
+  },
+  {
+   "group": "schema",
+   "name": "client UPDATE columns exactly name, description, notes",
+   "ok": true,
+   "detail": "[\"description\",\"name\",\"notes\"]"
+  },
+  {
+   "group": "schema",
+   "name": "exactly two fixed-table callable functions: gf_repin_test_setup_baseline(p_id uuid), gf_soft_delete_test_setup(p_id uuid)",
+   "ok": true,
+   "detail": "gf_repin_test_setup_baseline(p_id uuid), gf_soft_delete_test_setup(p_id uuid)"
+  },
+  {
+   "group": "schema",
+   "name": "both are SECURITY DEFINER with a fixed empty search_path",
+   "ok": true,
+   "detail": "[[true,[\"search_path=\\\"\\\"\"]],[true,[\"search_path=\\\"\\\"\"]]]"
+  },
+  {
+   "group": "schema",
+   "name": "EXECUTE: authenticated only; not anon, not PUBLIC",
+   "ok": true,
+   "detail": "postgres=X/postgres,authenticated=X/postgres | postgres=X/postgres,authenticated=X/postgres"
+  },
+  {
+   "group": "schema",
+   "name": "three trigger functions, none SECURITY DEFINER, each with a fixed empty search_path",
+   "ok": true,
+   "detail": "gf_test_setup_guard_update,gf_test_setup_refuse_delete,gf_test_setup_stamp_insert"
+  },
+  {
+   "group": "boundary",
+   "name": "no Garage object references canonical_fields, value_records, calculation_records, formula_versions or calculators",
+   "ok": true,
+   "detail": "0 foreign keys, 0 functions"
+  },
+  {
+   "group": "boundary",
+   "name": "no new enum type (8 frozen enums only)",
+   "ok": true,
+   "detail": "8 enums"
+  },
+  {
+   "group": "boundary",
+   "name": "no Lab table, column or function exists (Labs deferred, #27)",
+   "ok": true,
+   "detail": "none"
+  },
+  {
+   "group": "ownership",
+   "name": "owner can create a test setup on an own machine; owner, pin and timestamps set server-side",
+   "ok": true,
+   "detail": "rows 1"
+  },
+  {
+   "group": "ownership",
+   "name": "owner reads exactly own active test setups (2; the deleted one hidden)",
+   "ok": true,
+   "detail": "got 2 row(s), expected 2"
+  },
+  {
+   "group": "ownership",
+   "name": "owner can update the descriptive fields name, description, notes",
+   "ok": true,
+   "detail": "ok (rows 1); Renamed/desc/notes"
+  },
+  {
+   "group": "ownership",
+   "name": "another user cannot read A’s test setup",
+   "ok": true,
+   "detail": "got 0 row(s), expected 0"
+  },
+  {
+   "group": "ownership",
+   "name": "another user sees only own test setups",
+   "ok": true,
+   "detail": "got 1 row(s), expected 1"
+  },
+  {
+   "group": "ownership",
+   "name": "another user cannot update A’s test setup (0 rows; row unchanged)",
+   "ok": true,
+   "detail": "ok (rows 0); name A setup"
+  },
+  {
+   "group": "ownership",
+   "name": "another user cannot soft-delete A’s test setup (same error as not found; row untouched)",
+   "ok": true,
+   "detail": "P0002 GF_NOT_FOUND: no active test setup owned by the caller; deleted_at null"
+  },
+  {
+   "group": "ownership",
+   "name": "owner cannot attach a test setup to another owner’s machine (composite FK)",
+   "ok": true,
+   "detail": "23503 insert or update on table \"test_setups\" violates foreign key constraint \"test_setups_machine_same_owner_fk\""
+  },
+  {
+   "group": "ownership",
+   "name": "client cannot spoof the owner (owner_id is not client-insertable)",
+   "ok": true,
+   "detail": "42501 permission denied for table test_setups"
+  },
+  {
+   "group": "ownership",
+   "name": "client cannot supply the owner at all, even its own (server-derived only)",
+   "ok": true,
+   "detail": "42501 permission denied for table test_setups"
+  },
+  {
+   "group": "ownership",
+   "name": "client cannot choose the id",
+   "ok": true,
+   "detail": "42501 permission denied for table test_setups"
+  },
+  {
+   "group": "ownership",
+   "name": "client cannot choose the baseline pin on insert",
+   "ok": true,
+   "detail": "42501 permission denied for table test_setups"
+  },
+  {
+   "group": "ownership",
+   "name": "client cannot create a row already deleted (no deletion time on insert)",
+   "ok": true,
+   "detail": "42501 permission denied for table test_setups"
+  },
+  {
+   "group": "ownership",
+   "name": "anon cannot read",
+   "ok": true,
+   "detail": "42501 permission denied for table test_setups"
+  },
+  {
+   "group": "ownership",
+   "name": "anon cannot insert",
+   "ok": true,
+   "detail": "42501 permission denied for table test_setups"
+  },
+  {
+   "group": "ownership",
+   "name": "signed-in session without a user id cannot insert (no owner)",
+   "ok": true,
+   "detail": "42501 new row violates row-level security policy for table \"test_setups\""
+  },
+  {
+   "group": "ownership",
+   "name": "non-existent machine rejected",
+   "ok": true,
+   "detail": "23503 insert or update on table \"test_setups\" violates foreign key constraint \"test_setups_machine_same_owner_fk\""
+  },
+  {
+   "group": "ownership",
+   "name": "blank name rejected",
+   "ok": true,
+   "detail": "23514 new row for relation \"test_setups\" violates check constraint \"test_setups_name_not_blank\""
+  },
+  {
+   "group": "immutability",
+   "name": "owner cannot change the id",
+   "ok": true,
+   "detail": "42501 permission denied for table test_setups"
+  },
+  {
+   "group": "immutability",
+   "name": "owner cannot change the owner",
+   "ok": true,
+   "detail": "42501 permission denied for table test_setups"
+  },
+  {
+   "group": "immutability",
+   "name": "owner cannot change the machine, even to another own machine",
+   "ok": true,
+   "detail": "42501 permission denied for table test_setups"
+  },
+  {
+   "group": "immutability",
+   "name": "every role: id cannot change (superuser -> GF_IMMUTABLE)",
+   "ok": true,
+   "detail": "P0001 GF_IMMUTABLE: test setup id cannot change"
+  },
+  {
+   "group": "immutability",
+   "name": "every role: owner cannot change (superuser -> GF_IMMUTABLE)",
+   "ok": true,
+   "detail": "P0001 GF_IMMUTABLE: test setup owner_id cannot change"
+  },
+  {
+   "group": "immutability",
+   "name": "every role: machine cannot change (superuser -> GF_IMMUTABLE)",
+   "ok": true,
+   "detail": "P0001 GF_IMMUTABLE: test setup machine_id cannot change"
+  },
+  {
+   "group": "immutability",
+   "name": "every role: machine cannot change (service role -> GF_IMMUTABLE)",
+   "ok": true,
+   "detail": "P0001 GF_IMMUTABLE: test setup machine_id cannot change"
+  },
+  {
+   "group": "immutability",
+   "name": "every role: created_at is restored on update (server-forced)",
+   "ok": true,
+   "detail": "restored"
+  },
+  {
+   "group": "immutability",
+   "name": "owner cannot move the baseline directly (no column grant)",
+   "ok": true,
+   "detail": "42501 permission denied for table test_setups"
+  },
+  {
+   "group": "immutability",
+   "name": "every role: baseline cannot be back-dated (superuser -> GF_BASELINE)",
+   "ok": true,
+   "detail": "P0001 GF_BASELINE: the baseline can only be re-pinned to the server time of an explicit re-pin"
+  },
+  {
+   "group": "immutability",
+   "name": "every role: baseline cannot be set to an arbitrary future time (superuser -> GF_BASELINE)",
+   "ok": true,
+   "detail": "P0001 GF_BASELINE: the baseline can only be re-pinned to the server time of an explicit re-pin"
+  },
+  {
+   "group": "immutability",
+   "name": "a descriptive edit never moves the baseline; updated_at refreshed",
+   "ok": true,
+   "detail": "ok (rows 1); pin unchanged true; updated_at now true"
+  },
+  {
+   "group": "immutability",
+   "name": "machine and component changes never move an existing test setup’s baseline",
+   "ok": true,
+   "detail": "machine ok (rows 1); component insert ok (rows 1); component update ok (rows 1); component delete ok (rows 1); pin unchanged true"
+  },
+  {
+   "group": "immutability",
+   "name": "explicit re-pin moves the baseline to the server time of the call; identity, created_at and descriptive fields unchanged",
+   "ok": true,
+   "detail": "ok (rows 1); pin now true; created_at kept true; updated_at now true"
+  },
+  {
+   "group": "immutability",
+   "name": "another user cannot re-pin A’s baseline (same error as not found; pin unchanged)",
+   "ok": true,
+   "detail": "P0002 GF_NOT_FOUND: no active test setup owned by the caller; pin unchanged true"
+  },
+  {
+   "group": "immutability",
+   "name": "a deleted test setup cannot be re-pinned (GF_NOT_FOUND; pin unchanged)",
+   "ok": true,
+   "detail": "P0002 GF_NOT_FOUND: no active test setup owned by the caller; pin unchanged true"
+  },
+  {
+   "group": "immutability",
+   "name": "every role: a deleted test setup’s pin cannot move (superuser -> GF_BASELINE)",
+   "ok": true,
+   "detail": "P0001 GF_BASELINE: the baseline of a deleted test setup cannot be re-pinned"
+  },
+  {
+   "group": "immutability",
+   "name": "re-pin: non-existent id -> GF_NOT_FOUND",
+   "ok": true,
+   "detail": "P0002 GF_NOT_FOUND: no active test setup owned by the caller"
+  },
+  {
+   "group": "immutability",
+   "name": "re-pin: anon cannot execute",
+   "ok": true,
+   "detail": "42501 permission denied for function gf_repin_test_setup_baseline"
+  },
+  {
+   "group": "immutability",
+   "name": "re-pin: signed-in session without a user id rejected (GF_AUTH)",
+   "ok": true,
+   "detail": "42501 GF_AUTH: authentication required"
+  },
+  {
+   "group": "immutability",
+   "name": "privileged server path (service role) can move the pin only to server time",
+   "ok": true,
+   "detail": "server time ok (rows 1); back-dated P0001 GF_BASELINE: the baseline can only be re-pinned to the server time of an explicit re-pin"
+  },
+  {
+   "group": "immutability",
+   "name": "every role: insert stamps the pin and timestamps server-side (supplied values ignored)",
+   "ok": true,
+   "detail": "pin true, created true, updated true"
+  },
+  {
+   "group": "immutability",
+   "name": "every role: a row cannot be created already deleted (superuser -> GF_IMMUTABLE)",
+   "ok": true,
+   "detail": "P0001 GF_IMMUTABLE: a test setup cannot be created already deleted"
+  },
+  {
+   "group": "immutability",
+   "name": "re-pin in the creating transaction leaves the pin at the creation time (transaction server time)",
+   "ok": true,
+   "detail": "ok (rows 1); pin = creation time true"
+  },
+  {
+   "group": "immutability",
+   "name": "owner cannot hard-delete (no DELETE grant)",
+   "ok": true,
+   "detail": "42501 permission denied for table test_setups"
+  },
+  {
+   "group": "immutability",
+   "name": "every role: hard DELETE refused (superuser -> GF_IMMUTABLE)",
+   "ok": true,
+   "detail": "P0001 GF_IMMUTABLE: DELETE on test_setups is not permitted (soft delete only)"
+  },
+  {
+   "group": "immutability",
+   "name": "every role: hard DELETE refused (service role -> GF_IMMUTABLE)",
+   "ok": true,
+   "detail": "P0001 GF_IMMUTABLE: DELETE on test_setups is not permitted (soft delete only)"
+  },
+  {
+   "group": "soft_delete",
+   "name": "owner soft-deletes own test setup: hidden from owner SELECT; deleted_at = server time; owner, created_at and pin unchanged",
+   "ok": true,
+   "detail": "ok (rows 1); visible 0; deleted_at server time true; pin unchanged true"
+  },
+  {
+   "group": "soft_delete",
+   "name": "already-deleted row -> GF_NOT_FOUND; deleted_at not re-stamped",
+   "ok": true,
+   "detail": "P0002 GF_NOT_FOUND: no active test setup owned by the caller; original deletion time kept true"
+  },
+  {
+   "group": "soft_delete",
+   "name": "repeat soft delete in the same session -> GF_NOT_FOUND",
+   "ok": true,
+   "detail": "first ok (rows 1); second P0002 GF_NOT_FOUND: no active test setup owned by the caller"
+  },
+  {
+   "group": "soft_delete",
+   "name": "soft delete: non-existent id -> GF_NOT_FOUND",
+   "ok": true,
+   "detail": "P0002 GF_NOT_FOUND: no active test setup owned by the caller"
+  },
+  {
+   "group": "soft_delete",
+   "name": "soft delete: anon cannot execute",
+   "ok": true,
+   "detail": "42501 permission denied for function gf_soft_delete_test_setup"
+  },
+  {
+   "group": "soft_delete",
+   "name": "soft delete: signed-in session without a user id rejected (GF_AUTH)",
+   "ok": true,
+   "detail": "42501 GF_AUTH: authentication required"
+  },
+  {
+   "group": "soft_delete",
+   "name": "no client-controlled deletion time: direct UPDATE of deleted_at with a WHERE clause refused",
+   "ok": true,
+   "detail": "42501 permission denied for table test_setups"
+  },
+  {
+   "group": "soft_delete",
+   "name": "no client-controlled deletion time: WHERE-less UPDATE of deleted_at refused",
+   "ok": true,
+   "detail": "42501 permission denied for table test_setups"
+  },
+  {
+   "group": "soft_delete",
+   "name": "a deleted test setup is hidden from its owner",
+   "ok": true,
+   "detail": "got 0 row(s), expected 0"
+  },
+  {
+   "group": "soft_delete",
+   "name": "a deleted test setup cannot be edited by its owner (0 rows)",
+   "ok": true,
+   "detail": "ok (rows 0); name A deleted setup"
+  },
+  {
+   "group": "soft_delete",
+   "name": "WHERE-less owner UPDATE of descriptive fields changes only the caller’s ACTIVE rows (deleted and other users’ rows untouched)",
+   "ok": true,
+   "detail": "ok (rows 2); A active updated 2; deleted row notes null; B row notes null"
+  },
+  {
+   "group": "soft_delete",
+   "name": "no cascade: soft-deleting a test setup leaves its machine and the other setups untouched",
+   "ok": true,
+   "detail": "machine visible 1; machine active true; sibling active true"
+  },
+  {
+   "group": "soft_delete",
+   "name": "no cascade: soft-deleting the machine hides its test setups without stamping them",
+   "ok": true,
+   "detail": "visible on deleted machine 0; other machine’s setup visible 1; TA deleted_at null"
+  },
+  {
+   "group": "soft_delete",
+   "name": "no cascade: soft-deleting the garage hides its test setups without stamping them",
+   "ok": true,
+   "detail": "visible 0; still active (unstamped) 2"
+  },
+  {
+   "group": "boundary",
+   "name": "no value persistence introduced: canonical_fields, value_records and calculation_records all empty after the whole suite",
+   "ok": true,
+   "detail": "0/0/0"
+  }
+ ],
+ "negative_controls": [
+  {
+   "mutation": "update guard trigger dropped",
+   "detected": true,
+   "failed_checks": [
+    "triggers: BEFORE INSERT stamp, BEFORE UPDATE guard, BEFORE DELETE refusal (row level)",
+    "every role: id cannot change (superuser -> GF_IMMUTABLE)",
+    "every role: owner cannot change (superuser -> GF_IMMUTABLE)",
+    "every role: machine cannot change (superuser -> GF_IMMUTABLE)",
+    "every role: machine cannot change (service role -> GF_IMMUTABLE)",
+    "every role: created_at is restored on update (server-forced)",
+    "every role: baseline cannot be back-dated (superuser -> GF_BASELINE)",
+    "every role: baseline cannot be set to an arbitrary future time (superuser -> GF_BASELINE)",
+    "a descriptive edit never moves the baseline; updated_at refreshed",
+    "explicit re-pin moves the baseline to the server time of the call; identity, created_at and descriptive fields unchanged",
+    "every role: a deleted test setup’s pin cannot move (superuser -> GF_BASELINE)",
+    "privileged server path (service role) can move the pin only to server time"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "insert stamp trigger dropped",
+   "detected": true,
+   "failed_checks": [
+    "triggers: BEFORE INSERT stamp, BEFORE UPDATE guard, BEFORE DELETE refusal (row level)",
+    "every role: insert stamps the pin and timestamps server-side (supplied values ignored)",
+    "every role: a row cannot be created already deleted (superuser -> GF_IMMUTABLE)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "hard-delete refusal dropped and client DELETE granted",
+   "detected": true,
+   "failed_checks": [
+    "triggers: BEFORE INSERT stamp, BEFORE UPDATE guard, BEFORE DELETE refusal (row level)",
+    "grants: anon none; authenticated table-level SELECT only",
+    "owner cannot hard-delete (no DELETE grant)",
+    "every role: hard DELETE refused (superuser -> GF_IMMUTABLE)",
+    "every role: hard DELETE refused (service role -> GF_IMMUTABLE)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "client granted UPDATE of baseline_pinned_at",
+   "detected": true,
+   "failed_checks": [
+    "client UPDATE columns exactly name, description, notes",
+    "owner cannot move the baseline directly (no column grant)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "client granted UPDATE of deleted_at",
+   "detected": true,
+   "failed_checks": [
+    "client UPDATE columns exactly name, description, notes",
+    "no client-controlled deletion time: WHERE-less UPDATE of deleted_at refused"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "client granted INSERT of owner_id",
+   "detected": true,
+   "failed_checks": [
+    "client INSERT columns exactly machine_id, name, description, notes (no id, owner, pin, timestamps, deletion)",
+    "client cannot supply the owner at all, even its own (server-derived only)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "client granted UPDATE of machine_id",
+   "detected": true,
+   "failed_checks": [
+    "client UPDATE columns exactly name, description, notes",
+    "owner cannot change the machine, even to another own machine"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "anon granted SELECT",
+   "detected": true,
+   "failed_checks": [
+    "grants: anon none; authenticated table-level SELECT only",
+    "anon cannot read"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "RLS disabled",
+   "detected": true,
+   "failed_checks": [
+    "RLS enabled AND forced on test_setups",
+    "owner reads exactly own active test setups (2; the deleted one hidden)",
+    "another user cannot read A’s test setup",
+    "another user sees only own test setups",
+    "another user cannot update A’s test setup (0 rows; row unchanged)",
+    "owner soft-deletes own test setup: hidden from owner SELECT; deleted_at = server time; owner, created_at and pin unchanged",
+    "a deleted test setup is hidden from its owner",
+    "a deleted test setup cannot be edited by its owner (0 rows)",
+    "WHERE-less owner UPDATE of descriptive fields changes only the caller’s ACTIVE rows (deleted and other users’ rows untouched)",
+    "no cascade: soft-deleting the machine hides its test setups without stamping them",
+    "no cascade: soft-deleting the garage hides its test setups without stamping them"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "SELECT policy without owner check",
+   "detected": true,
+   "failed_checks": [
+    "owner reads exactly own active test setups (2; the deleted one hidden)",
+    "another user cannot read A’s test setup",
+    "another user sees only own test setups",
+    "no cascade: soft-deleting the machine hides its test setups without stamping them",
+    "no cascade: soft-deleting the garage hides its test setups without stamping them"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "SELECT policy without machine-visibility clause",
+   "detected": true,
+   "failed_checks": [
+    "no cascade: soft-deleting the machine hides its test setups without stamping them",
+    "no cascade: soft-deleting the garage hides its test setups without stamping them"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "UPDATE policy allows deleted rows",
+   "detected": true,
+   "failed_checks": [
+    "WHERE-less owner UPDATE of descriptive fields changes only the caller’s ACTIVE rows (deleted and other users’ rows untouched)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "composite same-owner machine FK replaced by a single-column FK",
+   "detected": true,
+   "failed_checks": [
+    "constraints: PK(id), UNIQUE(id, owner_id), composite same-owner FK to machines, owner FK to accounts (RESTRICT), non-blank name",
+    "owner cannot attach a test setup to another owner’s machine (composite FK)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "blank-name check dropped",
+   "detected": true,
+   "failed_checks": [
+    "constraints: PK(id), UNIQUE(id, owner_id), composite same-owner FK to machines, owner FK to accounts (RESTRICT), non-blank name",
+    "blank name rejected"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "insert trigger does not stamp the baseline pin",
+   "detected": true,
+   "failed_checks": [
+    "every role: insert stamps the pin and timestamps server-side (supplied values ignored)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "guard allows a back-dated or arbitrary baseline pin",
+   "detected": true,
+   "failed_checks": [
+    "every role: baseline cannot be back-dated (superuser -> GF_BASELINE)",
+    "every role: baseline cannot be set to an arbitrary future time (superuser -> GF_BASELINE)",
+    "every role: a deleted test setup’s pin cannot move (superuser -> GF_BASELINE)",
+    "privileged server path (service role) can move the pin only to server time"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "guard moves the baseline on every update (implicit movement)",
+   "detected": true,
+   "failed_checks": [
+    "every role: baseline cannot be back-dated (superuser -> GF_BASELINE)",
+    "every role: baseline cannot be set to an arbitrary future time (superuser -> GF_BASELINE)",
+    "a descriptive edit never moves the baseline; updated_at refreshed",
+    "every role: a deleted test setup’s pin cannot move (superuser -> GF_BASELINE)",
+    "privileged server path (service role) can move the pin only to server time",
+    "owner soft-deletes own test setup: hidden from owner SELECT; deleted_at = server time; owner, created_at and pin unchanged"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "soft delete ignores the owner",
+   "detected": true,
+   "failed_checks": [
+    "another user cannot soft-delete A’s test setup (same error as not found; row untouched)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "soft delete re-stamps already-deleted rows",
+   "detected": true,
+   "failed_checks": [
+    "already-deleted row -> GF_NOT_FOUND; deleted_at not re-stamped",
+    "repeat soft delete in the same session -> GF_NOT_FOUND"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "re-pin ignores the owner",
+   "detected": true,
+   "failed_checks": [
+    "another user cannot re-pin A’s baseline (same error as not found; pin unchanged)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "re-pin moves the baseline of deleted rows",
+   "detected": true,
+   "failed_checks": [
+    "a deleted test setup cannot be re-pinned (GF_NOT_FOUND; pin unchanged)",
+    "every role: a deleted test setup’s pin cannot move (superuser -> GF_BASELINE)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "soft-delete function made SECURITY INVOKER",
+   "detected": true,
+   "failed_checks": [
+    "both are SECURITY DEFINER with a fixed empty search_path",
+    "another user cannot soft-delete A’s test setup (same error as not found; row untouched)",
+    "owner soft-deletes own test setup: hidden from owner SELECT; deleted_at = server time; owner, created_at and pin unchanged",
+    "already-deleted row -> GF_NOT_FOUND; deleted_at not re-stamped",
+    "repeat soft delete in the same session -> GF_NOT_FOUND",
+    "soft delete: non-existent id -> GF_NOT_FOUND",
+    "no cascade: soft-deleting a test setup leaves its machine and the other setups untouched"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "EXECUTE on re-pin granted to anon",
+   "detected": true,
+   "failed_checks": [
+    "EXECUTE: authenticated only; not anon, not PUBLIC"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "frozen DATA-FOUNDATION table altered",
+   "detected": true,
+   "failed_checks": [
+    "frozen DATA-FOUNDATION catalog (tables, columns, constraints, indexes, policies, triggers, functions, grants, enums, reference rows) unchanged by Garage"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "frozen DATA-FOUNDATION policy altered",
+   "detected": true,
+   "failed_checks": [
+    "frozen DATA-FOUNDATION catalog (tables, columns, constraints, indexes, policies, triggers, functions, grants, enums, reference rows) unchanged by Garage"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "engineering-value reference added to test_setups",
+   "detected": true,
+   "failed_checks": [
+    "test_setups columns, types and nullability are exactly the approved set",
+    "constraints: PK(id), UNIQUE(id, owner_id), composite same-owner FK to machines, owner FK to accounts (RESTRICT), non-blank name",
+    "no Garage object references canonical_fields, value_records, calculation_records, formula_versions or calculators"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "Lab table added",
+   "detected": true,
+   "failed_checks": [
+    "frozen DATA-FOUNDATION catalog (tables, columns, constraints, indexes, policies, triggers, functions, grants, enums, reference rows) unchanged by Garage",
+    "exactly one new table (test_setups) beside the 10 frozen tables",
+    "no Lab table, column or function exists (Labs deferred, #27)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "canonical taxonomy seeded",
+   "detected": true,
+   "failed_checks": [
+    "frozen DATA-FOUNDATION catalog (tables, columns, constraints, indexes, policies, triggers, functions, grants, enums, reference rows) unchanged by Garage",
+    "no value persistence introduced: canonical_fields, value_records and calculation_records all empty after the whole suite"
+   ],
+   "error": ""
+  }
+ ]
+}
