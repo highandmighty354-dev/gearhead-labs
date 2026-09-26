@@ -1,0 +1,53 @@
+== calculation suite (PostgreSQL 16.15) ==
+========================================================================
+GEARHEAD LABS - CALCULATION-FOUNDATION 1.0.0 - SUITE
+========================================================================
+  page SHA-256 02b0ceeed36b17c5ac64daa480c26ea52146f0ade94ac60b6d8f1027ec102c27
+  MANIFEST.sha256: page, gh-engine.js, engine-migrated.json match
+  embedded GH_ENGINE block byte-identical to gh-engine.js (embedded once)
+  registries: static extraction + verified frozen composition (page line 8708: Object.assign(GH_LEGACY_FORMULAS, GH_BACKFILL_FORMULAS);); legacy 208 + backfill 96 = 304, no overlap, no formula body changed
+  gh-engine@1.1.0; 577 registry entries
+  authority: 252 proven (= DATA-FOUNDATION catalog), 8 pending (disjoint)
+  fingerprints: 252/252 equal the frozen formula_versions rows
+  aliases: 6 in registry; permitted fraction_to_decimal, valve_curtain_area, volumetric_efficiency
+  frozen catalog: 577/577 registry names and fingerprints equal; 583 rows agree (calculator_id, canonical_id, engine_proven, aliases)
+[PASS] INTEGRITY        18 passed, 0 failed
+[PASS] AUTHORITY        7 passed, 0 failed
+[PASS] VALIDATION       24 passed, 0 failed
+[PASS] ENGINE_CONTRACT  9 passed, 0 failed
+[PASS] IDEMPOTENCY      13 passed, 0 failed
+[PASS] MACHINE          8 passed, 0 failed
+[PASS] SECURITY         13 passed, 0 failed
+[PASS] PARITY           3 passed, 0 failed
+[PASS] ROUNDTRIP        4 passed, 0 failed
+[PASS] PERSISTENCE      4 passed, 0 failed
+[PASS] BOUNDARY         3 passed, 0 failed
+[INFO] P2 2004 vectors, 3996 output comparisons, 252/252 calculators byte-identical
+[INFO] P4 2004/2004 persisted rows equal their projection
+
+TOTAL 106 checks, 106 passed, 0 failed
+
+[PASS] NEGATIVE_CONTROLS 21/21 mutants detected
+    + M-auth-extra: one unproven calculator added to the authority set: 1 check(s) failed
+    + M-auth-pending: one pending calculator added to the authority set: 1 check(s) failed
+    + M-auth-unknown: unknown ids treated as executable: 1 check(s) failed
+    + M-alias-any: every alias permitted: 1 check(s) failed
+    + M-alias-canon: alias map with one wrong canonical_id: 1 check(s) failed
+    + M-val-extra: extra input keys ignored: 1 check(s) failed
+    + M-val-nan: NaN / Infinity / -0 passed through: 4 check(s) failed
+    + M-val-string: numeric strings accepted: 2 check(s) failed
+    + M-val-opt: categorical options matched with == (type-coercing): 1 check(s) failed
+    + M-val-zero: explicit 0 treated as unknown: 5 check(s) failed
+    + M-val-missing: missing inputs filled with 0: 2 check(s) failed
+    + M-own-body: owner taken from request.owner_id when present: 1 check(s) failed
+    + M-mach-deleted: machine check ignores deleted_at: 2 check(s) failed
+    + M-mach-owner: machine check ignores the owner: 1 check(s) failed
+    + M-id-inputs: identity omits inputs: 3 check(s) failed
+    + M-id-replay: a replay re-executes under a new request id: 9 check(s) failed
+    + M-out-key: outputs de-duplicated by key: 3 check(s) failed
+    + M-out-order: outputs reordered: 3 check(s) failed
+    + M-fp: a wrong formula_version accepted (post-assertion removed): 39 check(s) failed
+    + M-state: result_state not lowercased: 39 check(s) failed
+    + M-boundary: the repository also writes canonical_fields: 1 check(s) failed
+
+CALCULATION-FOUNDATION SUITE: PASS

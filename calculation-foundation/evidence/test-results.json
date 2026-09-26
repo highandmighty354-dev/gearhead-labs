@@ -1,0 +1,910 @@
+{
+ "checks": [
+  {
+   "group": "integrity",
+   "name": "P1 frozen sources verified: page SHA-256, MANIFEST, embedded engine, gh-engine 1.1.0, 577 registry, 252 proven = catalog, 8 pending, fingerprints, aliases, composition, catalog",
+   "ok": true,
+   "detail": "9 verification steps"
+  },
+  {
+   "group": "integrity",
+   "name": "P1 shim + DATA-FOUNDATION 0001-0005 read from the DATA-FOUNDATION-1.0.0 tag are byte-identical to the working tree",
+   "ok": true,
+   "detail": "6/6"
+  },
+  {
+   "group": "integrity",
+   "name": "P1 static extraction alone is NOT runtime-equivalent: 96/577 registry-name differences from the in-page runtime (60/252 proven)",
+   "ok": true,
+   "detail": "96/577, proven 60/252"
+  },
+  {
+   "group": "integrity",
+   "name": "P1 static extraction + verified frozen composition = the runtime registries evaluated in jsdom (all five: content and key order)",
+   "ok": true,
+   "detail": "5/5 identical"
+  },
+  {
+   "group": "integrity",
+   "name": "P1 composed engine = in-page engine: 0 registry-name and 0 fingerprint differences (577/577)",
+   "ok": true,
+   "detail": "0 differences over 577"
+  },
+  {
+   "group": "integrity",
+   "name": "P1 composition changes no formula fingerprint (static vs composed, 577/577)",
+   "ok": true,
+   "detail": "577/577 identical"
+  },
+  {
+   "group": "integrity",
+   "name": "P1 GH_LEGACY_FORMULAS and GH_BACKFILL_FORMULAS share no keys",
+   "ok": true,
+   "detail": "0 overlapping (legacy 208, backfill 96)"
+  },
+  {
+   "group": "integrity",
+   "name": "P1 the exact frozen composition statement is detected (page line 8708)",
+   "ok": true,
+   "detail": "line 8708"
+  },
+  {
+   "group": "integrity",
+   "name": "tamper: engine bytes altered by one byte -> service never starts (CF_INTEGRITY)",
+   "ok": true,
+   "detail": "CF_INTEGRITY: gh-engine.js does not match the F1 tag's MANIFEST.sha256"
+  },
+  {
+   "group": "integrity",
+   "name": "tamper: registry formula character altered in the page -> CF_INTEGRITY",
+   "ok": true,
+   "detail": "CF_INTEGRITY: page SHA-256 cf4c09a8b5a78684b194304e41bb7486bba770089e4b12b288a84fe864c6930a != 02b0ceeed36b17c5ac64daa480c26ea52146f0ade94ac60b6d8f1027ec102c27"
+  },
+  {
+   "group": "integrity",
+   "name": "tamper: authority file altered (engine-migrated.json) -> CF_INTEGRITY",
+   "ok": true,
+   "detail": "CF_INTEGRITY: engine-migrated.json does not match the F1 tag's MANIFEST.sha256"
+  },
+  {
+   "group": "integrity",
+   "name": "tamper: frozen catalog fingerprint altered -> CF_INTEGRITY",
+   "ok": true,
+   "detail": "CF_INTEGRITY: fingerprint mismatch for hp_from_torque"
+  },
+  {
+   "group": "integrity",
+   "name": "tamper: a frozen source missing -> CF_INTEGRITY",
+   "ok": true,
+   "detail": "CF_INTEGRITY: frozen source \"pending\" missing"
+  },
+  {
+   "group": "integrity",
+   "name": "composition control: statement missing -> CF_INTEGRITY",
+   "ok": true,
+   "detail": "CF_INTEGRITY: registry composition statement present 0 times as its own line (expected exactly 1)"
+  },
+  {
+   "group": "integrity",
+   "name": "composition control: statement altered -> CF_INTEGRITY",
+   "ok": true,
+   "detail": "CF_INTEGRITY: registry composition statement present 0 times as its own line (expected exactly 1)"
+  },
+  {
+   "group": "integrity",
+   "name": "composition control: statement duplicated -> CF_INTEGRITY",
+   "ok": true,
+   "detail": "CF_INTEGRITY: registry composition statement present 2 times as its own line (expected exactly 1)"
+  },
+  {
+   "group": "integrity",
+   "name": "composition control: another registry write added -> CF_INTEGRITY",
+   "ok": true,
+   "detail": "CF_INTEGRITY: a registry is modified by a statement other than the frozen composition"
+  },
+  {
+   "group": "integrity",
+   "name": "composition control: overlapping registries -> CF_INTEGRITY",
+   "ok": true,
+   "detail": "CF_INTEGRITY: GH_LEGACY_FORMULAS and GH_BACKFILL_FORMULAS overlap on 1 key(s)"
+  },
+  {
+   "group": "authority",
+   "name": "all 252 proven calculators execute and persist (empty inputs -> INCOMPLETE records)",
+   "ok": true,
+   "detail": "252/252"
+  },
+  {
+   "group": "authority",
+   "name": "every non-proven registry calculator rejected CF_NOT_PROVEN before execution, no record",
+   "ok": true,
+   "detail": "317/317 (325 non-proven = 317 + 8 pending)"
+  },
+  {
+   "group": "authority",
+   "name": "all 8 pending calculators rejected CF_NOT_PROVEN (pending), no record",
+   "ok": true,
+   "detail": "8/8"
+  },
+  {
+   "group": "authority",
+   "name": "no-formula page calculators (the 29), the dashboard and an unknown id rejected CF_UNKNOWN_CALCULATOR, no record",
+   "ok": true,
+   "detail": "31/31 (no-formula 29)"
+  },
+  {
+   "group": "authority",
+   "name": "aliases to unproven canonical calculators rejected CF_ALIAS_NOT_PERMITTED (airflow_from_ve, carb_cfm, sae_fraction_to_mm)",
+   "ok": true,
+   "detail": "3/3"
+  },
+  {
+   "group": "authority",
+   "name": "the 3 permitted aliases execute: result and record keep the requested calculator_id and the frozen canonical_id",
+   "ok": true,
+   "detail": "3/3"
+  },
+  {
+   "group": "authority",
+   "name": "alias result is byte-identical to the in-page engine for the alias id",
+   "ok": true,
+   "detail": "created valid"
+  },
+  {
+   "group": "validation",
+   "name": "missing trusted owner context -> CF_NO_OWNER",
+   "ok": true,
+   "detail": "rejected CF_NO_OWNER trusted_owner_context_required; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "owner context with an extra key -> CF_NO_OWNER",
+   "ok": true,
+   "detail": "rejected CF_NO_OWNER trusted_owner_context_required"
+  },
+  {
+   "group": "validation",
+   "name": "request-supplied owner_id rejected (CF_MALFORMED_REQUEST); the owner comes only from trusted context",
+   "ok": true,
+   "detail": "rejected CF_MALFORMED_REQUEST unexpected_request_key; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "request not an object -> CF_MALFORMED_REQUEST",
+   "ok": true,
+   "detail": "rejected CF_MALFORMED_REQUEST request_not_object; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "inputs not an object -> CF_MALFORMED_REQUEST",
+   "ok": true,
+   "detail": "rejected CF_MALFORMED_REQUEST inputs_not_object; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "non-canonical (uppercase) request_id -> CF_MALFORMED_REQUEST",
+   "ok": true,
+   "detail": "rejected CF_MALFORMED_REQUEST request_id_invalid; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "malformed machine_id -> CF_MALFORMED_REQUEST",
+   "ok": true,
+   "detail": "rejected CF_MALFORMED_REQUEST machine_id_invalid; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "extra input key -> CF_UNKNOWN_INPUT_KEY (the engine alone would silently ignore it)",
+   "ok": true,
+   "detail": "rejected CF_UNKNOWN_INPUT_KEY unknown_input_key; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "NaN -> CF_NON_REPRESENTABLE_INPUT",
+   "ok": true,
+   "detail": "rejected CF_NON_REPRESENTABLE_INPUT non_representable_number; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "+Infinity -> CF_NON_REPRESENTABLE_INPUT",
+   "ok": true,
+   "detail": "rejected CF_NON_REPRESENTABLE_INPUT non_representable_number; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "-Infinity -> CF_NON_REPRESENTABLE_INPUT",
+   "ok": true,
+   "detail": "rejected CF_NON_REPRESENTABLE_INPUT non_representable_number; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "-0 -> CF_NON_REPRESENTABLE_INPUT",
+   "ok": true,
+   "detail": "rejected CF_NON_REPRESENTABLE_INPUT non_representable_number; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "empty string for a numeric input -> CF_NON_NUMERIC_INPUT",
+   "ok": true,
+   "detail": "rejected CF_NON_NUMERIC_INPUT non_numeric_input; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "numeric string \"400\" -> CF_NON_NUMERIC_INPUT",
+   "ok": true,
+   "detail": "rejected CF_NON_NUMERIC_INPUT non_numeric_input; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "boolean for a numeric input -> CF_NON_NUMERIC_INPUT",
+   "ok": true,
+   "detail": "rejected CF_NON_NUMERIC_INPUT non_numeric_input; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "invalid categorical option (\"FPS\") -> CF_INVALID_OPTION",
+   "ok": true,
+   "detail": "rejected CF_INVALID_OPTION invalid_option; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "wrong categorical type (\"3\" for numeric option 3) -> CF_INVALID_OPTION",
+   "ok": true,
+   "detail": "rejected CF_INVALID_OPTION invalid_option; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "empty string for a categorical input -> CF_INVALID_OPTION",
+   "ok": true,
+   "detail": "rejected CF_INVALID_OPTION invalid_option; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "provenance wrapper with empty provenance -> CF_INVALID_PROVENANCE",
+   "ok": true,
+   "detail": "rejected CF_INVALID_PROVENANCE invalid_provenance_wrapper; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "provenance wrapper with an extra key -> CF_INVALID_PROVENANCE",
+   "ok": true,
+   "detail": "rejected CF_INVALID_PROVENANCE invalid_provenance_wrapper; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "provenance wrapper without provenance -> CF_INVALID_PROVENANCE",
+   "ok": true,
+   "detail": "rejected CF_INVALID_PROVENANCE invalid_provenance_wrapper; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "wrapped value NaN -> CF_NON_REPRESENTABLE_INPUT",
+   "ok": true,
+   "detail": "rejected CF_NON_REPRESENTABLE_INPUT non_representable_number; rows +0"
+  },
+  {
+   "group": "validation",
+   "name": "valid provenance wrapper accepted; the claim is stored verbatim in inputs, never validated as fact",
+   "ok": true,
+   "detail": "created valid"
+  },
+  {
+   "group": "validation",
+   "name": "exact declared categorical option accepted",
+   "ok": true,
+   "detail": "created valid"
+  },
+  {
+   "group": "engine_contract",
+   "name": "explicit 0 is a KNOWN zero: VALID, output 0, persisted",
+   "ok": true,
+   "detail": "created valid"
+  },
+  {
+   "group": "engine_contract",
+   "name": "missing input is UNKNOWN (never 0): INCOMPLETE, missing [torq], output null, persisted",
+   "ok": true,
+   "detail": "created incomplete"
+  },
+  {
+   "group": "engine_contract",
+   "name": "explicit null is UNKNOWN: INCOMPLETE, stored as null",
+   "ok": true,
+   "detail": "created incomplete"
+  },
+  {
+   "group": "engine_contract",
+   "name": "OUT_OF_RANGE is a valid engine result and is persisted",
+   "ok": true,
+   "detail": "created out_of_range"
+  },
+  {
+   "group": "engine_contract",
+   "name": "every declared speed_converter option executes (exact D-009 matching)",
+   "ok": true,
+   "detail": "4/4"
+  },
+  {
+   "group": "engine_contract",
+   "name": "numeric categorical option 3 accepted and stored as a JSON number",
+   "ok": true,
+   "detail": "created valid; stored type number"
+  },
+  {
+   "group": "engine_contract",
+   "name": "valve_throat_area: duplicate key throat_area kept at output_index 0 AND 3, distinct labels, stored verbatim in order",
+   "ok": true,
+   "detail": "created valid; keys throat_area,valve_area,throat_diameter,throat_area"
+  },
+  {
+   "group": "engine_contract",
+   "name": "service result = frozen engine result, unchanged (engine part byte-identical)",
+   "ok": true,
+   "detail": "created valid"
+  },
+  {
+   "group": "engine_contract",
+   "name": "result = engine result + exactly five metadata fields (record_id, request_id, owner_id, machine_id, created_at)",
+   "ok": true,
+   "detail": "record_id,request_id,owner_id,machine_id,created_at"
+  },
+  {
+   "group": "idempotency",
+   "name": "identical replay returns the ORIGINAL stored record (same record_id), nothing executed or written",
+   "ok": true,
+   "detail": "created valid / replayed valid"
+  },
+  {
+   "group": "idempotency",
+   "name": "replay with different key order is the same canonical request -> replayed",
+   "ok": true,
+   "detail": "replayed valid"
+  },
+  {
+   "group": "idempotency",
+   "name": "same request_id, different inputs -> CF_REQUEST_CONFLICT; original untouched; no second record",
+   "ok": true,
+   "detail": "conflict CF_REQUEST_CONFLICT"
+  },
+  {
+   "group": "idempotency",
+   "name": "same request_id, different machine_id -> CF_REQUEST_CONFLICT",
+   "ok": true,
+   "detail": "conflict CF_REQUEST_CONFLICT"
+  },
+  {
+   "group": "idempotency",
+   "name": "bare 400 vs {value: 400, provenance} are different canonical requests -> conflict",
+   "ok": true,
+   "detail": "conflict CF_REQUEST_CONFLICT"
+  },
+  {
+   "group": "idempotency",
+   "name": "same request_id, different calculator -> conflict",
+   "ok": true,
+   "detail": "conflict CF_REQUEST_CONFLICT"
+  },
+  {
+   "group": "idempotency",
+   "name": "recalculation uses a new request_id -> a new immutable record",
+   "ok": true,
+   "detail": "created valid"
+  },
+  {
+   "group": "idempotency",
+   "name": "request_id idempotency is per owner: the same request_id for another owner creates its own record",
+   "ok": true,
+   "detail": "created valid"
+  },
+  {
+   "group": "idempotency",
+   "name": "a pre-engine rejection consumes nothing: the same request_id later creates the record",
+   "ok": true,
+   "detail": "rejected CF_NON_NUMERIC_INPUT non_numeric_input / created valid"
+  },
+  {
+   "group": "idempotency",
+   "name": "an INCOMPLETE result is persisted and replayed",
+   "ok": true,
+   "detail": "created incomplete / replayed incomplete"
+  },
+  {
+   "group": "idempotency",
+   "name": "a failed transaction commits nothing; a later retry creates the record normally",
+   "ok": true,
+   "detail": "rejected CF_PERSISTENCE database_error (23503) / created valid"
+  },
+  {
+   "group": "idempotency",
+   "name": "concurrent identical first requests: exactly one record; outcomes created + replayed",
+   "ok": true,
+   "detail": "created,replayed"
+  },
+  {
+   "group": "idempotency",
+   "name": "concurrent conflicting first requests: exactly one record; outcomes conflict + created",
+   "ok": true,
+   "detail": "conflict,created"
+  },
+  {
+   "group": "machine",
+   "name": "own active machine -> created, machine_id recorded",
+   "ok": true,
+   "detail": "created valid"
+  },
+  {
+   "group": "machine",
+   "name": "own hypothetical machine is permitted",
+   "ok": true,
+   "detail": "created valid"
+  },
+  {
+   "group": "machine",
+   "name": "standalone calculation (no machine) -> machine_id null",
+   "ok": true,
+   "detail": "created valid"
+  },
+  {
+   "group": "machine",
+   "name": "soft-deleted machine -> CF_MACHINE_NOT_FOUND, no record",
+   "ok": true,
+   "detail": "rejected CF_MACHINE_NOT_FOUND machine_not_found; rows +0"
+  },
+  {
+   "group": "machine",
+   "name": "machine in a soft-deleted garage -> CF_MACHINE_NOT_FOUND, no record",
+   "ok": true,
+   "detail": "rejected CF_MACHINE_NOT_FOUND machine_not_found; rows +0"
+  },
+  {
+   "group": "machine",
+   "name": "another owner's machine -> CF_MACHINE_NOT_FOUND, no record",
+   "ok": true,
+   "detail": "rejected CF_MACHINE_NOT_FOUND machine_not_found; rows +0"
+  },
+  {
+   "group": "machine",
+   "name": "non-existent machine -> CF_MACHINE_NOT_FOUND, no record",
+   "ok": true,
+   "detail": "rejected CF_MACHINE_NOT_FOUND machine_not_found; rows +0"
+  },
+  {
+   "group": "machine",
+   "name": "the machine check locks the machine row: a concurrent soft delete waits (lock_not_available)",
+   "ok": true,
+   "detail": "active true, concurrent delete blocked true"
+  },
+  {
+   "group": "security",
+   "name": "a client (authenticated) cannot INSERT calculation records",
+   "ok": true,
+   "detail": "42501"
+  },
+  {
+   "group": "security",
+   "name": "a client cannot UPDATE its own record",
+   "ok": true,
+   "detail": "42501"
+  },
+  {
+   "group": "security",
+   "name": "a client cannot DELETE its own record",
+   "ok": true,
+   "detail": "42501"
+  },
+  {
+   "group": "security",
+   "name": "mutation attempt: even the service role cannot UPDATE a persisted record (DF_IMMUTABLE)",
+   "ok": true,
+   "detail": "DF_IMMUTABLE: UPDATE on calculation_records is not permitted (calculation history is immutable)"
+  },
+  {
+   "group": "security",
+   "name": "deletion attempt: even the service role cannot DELETE a persisted record (DF_IMMUTABLE)",
+   "ok": true,
+   "detail": "DF_IMMUTABLE: DELETE on calculation_records is not permitted (calculation history is immutable)"
+  },
+  {
+   "group": "security",
+   "name": "records are immutable for every role, including the superuser",
+   "ok": true,
+   "detail": "P0001"
+  },
+  {
+   "group": "security",
+   "name": "owners read only their own records (frozen RLS): A sees all of A's, B sees none of A's",
+   "ok": true,
+   "detail": "A 279/279; B sees 0"
+  },
+  {
+   "group": "security",
+   "name": "anon cannot read calculation records",
+   "ok": true,
+   "detail": "42501"
+  },
+  {
+   "group": "security",
+   "name": "frozen contract: an invalid formula_version is rejected by the database (FK)",
+   "ok": true,
+   "detail": "23503"
+  },
+  {
+   "group": "security",
+   "name": "frozen contract: another calculator's fingerprint is rejected by the database (FK)",
+   "ok": true,
+   "detail": "23503"
+  },
+  {
+   "group": "security",
+   "name": "frozen contract: an alias with an incorrect canonical_id is rejected by the database",
+   "ok": true,
+   "detail": "23514"
+  },
+  {
+   "group": "security",
+   "name": "frozen contract: a duplicate (owner, request_id) is rejected by the database",
+   "ok": true,
+   "detail": "23505"
+  },
+  {
+   "group": "security",
+   "name": "every record belongs to a trusted-context owner",
+   "ok": true,
+   "detail": "0 foreign-owner rows"
+  },
+  {
+   "group": "parity",
+   "name": "P2 all 252 proven calculators bound to live fields and covered",
+   "ok": true,
+   "detail": "252/252; bind failures 0"
+  },
+  {
+   "group": "parity",
+   "name": "P2 every vector created a record (defaults, all x1.07, each x1.13, each = 0, every categorical choice)",
+   "ok": true,
+   "detail": "2004 vectors; not created 0"
+  },
+  {
+   "group": "parity",
+   "name": "P2 service engine result byte-identical JSON to the in-page GH_ENGINE for every vector",
+   "ok": true,
+   "detail": "2004/2004 vectors; 3996 output comparisons; 252/252 calculators exact"
+  },
+  {
+   "group": "roundtrip",
+   "name": "P4 one persisted row per P2 execution",
+   "ok": true,
+   "detail": "2004 rows / 2004 executions"
+  },
+  {
+   "group": "roundtrip",
+   "name": "P4 every persisted row equals the stored projection of its engine result exactly",
+   "ok": true,
+   "detail": "2004/2004"
+  },
+  {
+   "group": "roundtrip",
+   "name": "P4 every persisted outputs array keeps the engine order (output_index)",
+   "ok": true,
+   "detail": "2004/2004"
+  },
+  {
+   "group": "roundtrip",
+   "name": "T-ID-RT: the canonical identity recomputed from each stored jsonb row equals the identity of its original request",
+   "ok": true,
+   "detail": "2004/2004"
+  },
+  {
+   "group": "persistence",
+   "name": "input_value_ids is NULL on every record (D4)",
+   "ok": true,
+   "detail": "0/2285"
+  },
+  {
+   "group": "persistence",
+   "name": "result_state stored lowercase for every record",
+   "ok": true,
+   "detail": "0/2285"
+  },
+  {
+   "group": "persistence",
+   "name": "created_at is server-set on every record",
+   "ok": true,
+   "detail": "2285 records"
+  },
+  {
+   "group": "persistence",
+   "name": "every persisted record is for a proven canonical calculator (no unproven record exists)",
+   "ok": true,
+   "detail": "0 unproven records"
+  },
+  {
+   "group": "boundary",
+   "name": "no canonical_fields seed and no value_records written (D4)",
+   "ok": true,
+   "detail": "canonical_fields 0, value_records 0"
+  },
+  {
+   "group": "boundary",
+   "name": "no database object created or changed: catalog fingerprint identical to the frozen template",
+   "ok": true,
+   "detail": "300 catalog entries"
+  },
+  {
+   "group": "boundary",
+   "name": "calculation-foundation/ contains no supabase/ directory and no migration",
+   "ok": true,
+   "detail": "absent"
+  }
+ ],
+ "negative_controls": [
+  {
+   "mutation": "M-auth-extra: one unproven calculator added to the authority set",
+   "detected": true,
+   "failed_checks": [
+    "every non-proven registry calculator rejected CF_NOT_PROVEN before execution, no record"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-auth-pending: one pending calculator added to the authority set",
+   "detected": true,
+   "failed_checks": [
+    "all 8 pending calculators rejected CF_NOT_PROVEN (pending), no record"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-auth-unknown: unknown ids treated as executable",
+   "detected": true,
+   "failed_checks": [
+    "no-formula page calculators (the 29), the dashboard and an unknown id rejected CF_UNKNOWN_CALCULATOR, no record"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-alias-any: every alias permitted",
+   "detected": true,
+   "failed_checks": [
+    "aliases to unproven canonical calculators rejected CF_ALIAS_NOT_PERMITTED (airflow_from_ve, carb_cfm, sae_fraction_to_mm)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-alias-canon: alias map with one wrong canonical_id",
+   "detected": true,
+   "failed_checks": [
+    "the 3 permitted aliases execute: result and record keep the requested calculator_id and the frozen canonical_id"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-val-extra: extra input keys ignored",
+   "detected": true,
+   "failed_checks": [
+    "extra input key -> CF_UNKNOWN_INPUT_KEY (the engine alone would silently ignore it)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-val-nan: NaN / Infinity / -0 passed through",
+   "detected": true,
+   "failed_checks": [
+    "NaN -> CF_NON_REPRESENTABLE_INPUT",
+    "+Infinity -> CF_NON_REPRESENTABLE_INPUT",
+    "-Infinity -> CF_NON_REPRESENTABLE_INPUT",
+    "-0 -> CF_NON_REPRESENTABLE_INPUT"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-val-string: numeric strings accepted",
+   "detected": true,
+   "failed_checks": [
+    "numeric string \"400\" -> CF_NON_NUMERIC_INPUT",
+    "wrong categorical type (\"3\" for numeric option 3) -> CF_INVALID_OPTION"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-val-opt: categorical options matched with == (type-coercing)",
+   "detected": true,
+   "failed_checks": [
+    "wrong categorical type (\"3\" for numeric option 3) -> CF_INVALID_OPTION"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-val-zero: explicit 0 treated as unknown",
+   "detected": true,
+   "failed_checks": [
+    "explicit 0 is a KNOWN zero: VALID, output 0, persisted",
+    "OUT_OF_RANGE is a valid engine result and is persisted",
+    "P2 service engine result byte-identical JSON to the in-page GH_ENGINE for every vector",
+    "P4 every persisted row equals the stored projection of its engine result exactly",
+    "T-ID-RT: the canonical identity recomputed from each stored jsonb row equals the identity of its original request"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-val-missing: missing inputs filled with 0",
+   "detected": true,
+   "failed_checks": [
+    "missing input is UNKNOWN (never 0): INCOMPLETE, missing [torq], output null, persisted",
+    "an INCOMPLETE result is persisted and replayed"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-own-body: owner taken from request.owner_id when present",
+   "detected": true,
+   "failed_checks": [
+    "request-supplied owner_id rejected (CF_MALFORMED_REQUEST); the owner comes only from trusted context"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-mach-deleted: machine check ignores deleted_at",
+   "detected": true,
+   "failed_checks": [
+    "soft-deleted machine -> CF_MACHINE_NOT_FOUND, no record",
+    "machine in a soft-deleted garage -> CF_MACHINE_NOT_FOUND, no record"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-mach-owner: machine check ignores the owner",
+   "detected": true,
+   "failed_checks": [
+    "another owner's machine -> CF_MACHINE_NOT_FOUND, no record"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-id-inputs: identity omits inputs",
+   "detected": true,
+   "failed_checks": [
+    "same request_id, different inputs -> CF_REQUEST_CONFLICT; original untouched; no second record",
+    "bare 400 vs {value: 400, provenance} are different canonical requests -> conflict",
+    "concurrent conflicting first requests: exactly one record; outcomes conflict + created"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-id-replay: a replay re-executes under a new request id",
+   "detected": true,
+   "failed_checks": [
+    "identical replay returns the ORIGINAL stored record (same record_id), nothing executed or written",
+    "replay with different key order is the same canonical request -> replayed",
+    "same request_id, different inputs -> CF_REQUEST_CONFLICT; original untouched; no second record",
+    "same request_id, different machine_id -> CF_REQUEST_CONFLICT",
+    "bare 400 vs {value: 400, provenance} are different canonical requests -> conflict",
+    "same request_id, different calculator -> conflict",
+    "an INCOMPLETE result is persisted and replayed",
+    "concurrent identical first requests: exactly one record; outcomes created + replayed",
+    "concurrent conflicting first requests: exactly one record; outcomes conflict + created"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-out-key: outputs de-duplicated by key",
+   "detected": true,
+   "failed_checks": [
+    "valve_throat_area: duplicate key throat_area kept at output_index 0 AND 3, distinct labels, stored verbatim in order",
+    "P4 every persisted row equals the stored projection of its engine result exactly",
+    "P4 every persisted outputs array keeps the engine order (output_index)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-out-order: outputs reordered",
+   "detected": true,
+   "failed_checks": [
+    "valve_throat_area: duplicate key throat_area kept at output_index 0 AND 3, distinct labels, stored verbatim in order",
+    "P4 every persisted row equals the stored projection of its engine result exactly",
+    "P4 every persisted outputs array keeps the engine order (output_index)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-fp: a wrong formula_version accepted (post-assertion removed)",
+   "detected": true,
+   "failed_checks": [
+    "all 252 proven calculators execute and persist (empty inputs -> INCOMPLETE records)",
+    "the 3 permitted aliases execute: result and record keep the requested calculator_id and the frozen canonical_id",
+    "alias result is byte-identical to the in-page engine for the alias id",
+    "valid provenance wrapper accepted; the claim is stored verbatim in inputs, never validated as fact",
+    "exact declared categorical option accepted",
+    "explicit 0 is a KNOWN zero: VALID, output 0, persisted",
+    "missing input is UNKNOWN (never 0): INCOMPLETE, missing [torq], output null, persisted",
+    "explicit null is UNKNOWN: INCOMPLETE, stored as null",
+    "OUT_OF_RANGE is a valid engine result and is persisted",
+    "every declared speed_converter option executes (exact D-009 matching)",
+    "numeric categorical option 3 accepted and stored as a JSON number",
+    "valve_throat_area: duplicate key throat_area kept at output_index 0 AND 3, distinct labels, stored verbatim in order",
+    "service result = frozen engine result, unchanged (engine part byte-identical)",
+    "result = engine result + exactly five metadata fields (record_id, request_id, owner_id, machine_id, created_at)",
+    "identical replay returns the ORIGINAL stored record (same record_id), nothing executed or written",
+    "replay with different key order is the same canonical request -> replayed",
+    "same request_id, different inputs -> CF_REQUEST_CONFLICT; original untouched; no second record",
+    "same request_id, different machine_id -> CF_REQUEST_CONFLICT",
+    "bare 400 vs {value: 400, provenance} are different canonical requests -> conflict",
+    "same request_id, different calculator -> conflict",
+    "recalculation uses a new request_id -> a new immutable record",
+    "request_id idempotency is per owner: the same request_id for another owner creates its own record",
+    "a pre-engine rejection consumes nothing: the same request_id later creates the record",
+    "an INCOMPLETE result is persisted and replayed",
+    "a failed transaction commits nothing; a later retry creates the record normally",
+    "concurrent identical first requests: exactly one record; outcomes created + replayed",
+    "concurrent conflicting first requests: exactly one record; outcomes conflict + created",
+    "own active machine -> created, machine_id recorded",
+    "own hypothetical machine is permitted",
+    "standalone calculation (no machine) -> machine_id null",
+    "mutation attempt: even the service role cannot UPDATE a persisted record (DF_IMMUTABLE)",
+    "deletion attempt: even the service role cannot DELETE a persisted record (DF_IMMUTABLE)",
+    "records are immutable for every role, including the superuser",
+    "frozen contract: a duplicate (owner, request_id) is rejected by the database",
+    "P2 every vector created a record (defaults, all x1.07, each x1.13, each = 0, every categorical choice)",
+    "P2 service engine result byte-identical JSON to the in-page GH_ENGINE for every vector",
+    "P4 one persisted row per P2 execution",
+    "T-ID-RT: the canonical identity recomputed from each stored jsonb row equals the identity of its original request",
+    "created_at is server-set on every record"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-state: result_state not lowercased",
+   "detected": true,
+   "failed_checks": [
+    "all 252 proven calculators execute and persist (empty inputs -> INCOMPLETE records)",
+    "the 3 permitted aliases execute: result and record keep the requested calculator_id and the frozen canonical_id",
+    "alias result is byte-identical to the in-page engine for the alias id",
+    "valid provenance wrapper accepted; the claim is stored verbatim in inputs, never validated as fact",
+    "exact declared categorical option accepted",
+    "explicit 0 is a KNOWN zero: VALID, output 0, persisted",
+    "missing input is UNKNOWN (never 0): INCOMPLETE, missing [torq], output null, persisted",
+    "explicit null is UNKNOWN: INCOMPLETE, stored as null",
+    "OUT_OF_RANGE is a valid engine result and is persisted",
+    "every declared speed_converter option executes (exact D-009 matching)",
+    "numeric categorical option 3 accepted and stored as a JSON number",
+    "valve_throat_area: duplicate key throat_area kept at output_index 0 AND 3, distinct labels, stored verbatim in order",
+    "service result = frozen engine result, unchanged (engine part byte-identical)",
+    "result = engine result + exactly five metadata fields (record_id, request_id, owner_id, machine_id, created_at)",
+    "identical replay returns the ORIGINAL stored record (same record_id), nothing executed or written",
+    "replay with different key order is the same canonical request -> replayed",
+    "same request_id, different inputs -> CF_REQUEST_CONFLICT; original untouched; no second record",
+    "same request_id, different machine_id -> CF_REQUEST_CONFLICT",
+    "bare 400 vs {value: 400, provenance} are different canonical requests -> conflict",
+    "same request_id, different calculator -> conflict",
+    "recalculation uses a new request_id -> a new immutable record",
+    "request_id idempotency is per owner: the same request_id for another owner creates its own record",
+    "a pre-engine rejection consumes nothing: the same request_id later creates the record",
+    "an INCOMPLETE result is persisted and replayed",
+    "a failed transaction commits nothing; a later retry creates the record normally",
+    "concurrent identical first requests: exactly one record; outcomes created + replayed",
+    "concurrent conflicting first requests: exactly one record; outcomes conflict + created",
+    "own active machine -> created, machine_id recorded",
+    "own hypothetical machine is permitted",
+    "standalone calculation (no machine) -> machine_id null",
+    "mutation attempt: even the service role cannot UPDATE a persisted record (DF_IMMUTABLE)",
+    "deletion attempt: even the service role cannot DELETE a persisted record (DF_IMMUTABLE)",
+    "records are immutable for every role, including the superuser",
+    "frozen contract: a duplicate (owner, request_id) is rejected by the database",
+    "P2 every vector created a record (defaults, all x1.07, each x1.13, each = 0, every categorical choice)",
+    "P2 service engine result byte-identical JSON to the in-page GH_ENGINE for every vector",
+    "P4 one persisted row per P2 execution",
+    "T-ID-RT: the canonical identity recomputed from each stored jsonb row equals the identity of its original request",
+    "created_at is server-set on every record"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-boundary: the repository also writes canonical_fields",
+   "detected": true,
+   "failed_checks": [
+    "no canonical_fields seed and no value_records written (D4)"
+   ],
+   "error": ""
+  }
+ ]
+}

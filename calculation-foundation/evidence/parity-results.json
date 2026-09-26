@@ -1,0 +1,1529 @@
+{
+ "p2": {
+  "calculators": 252,
+  "calculators_exact": 252,
+  "vectors": 2004,
+  "output_comparisons": 3996,
+  "mismatches": 0,
+  "per_calculator": [
+   {
+    "id": "ac_compressor",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "ac_vent_temp",
+    "vectors": 4,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "ackermann",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "advanced_et",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "air_density",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "air_filter",
+    "vectors": 4,
+    "output_comparisons": 4,
+    "mismatches": 0
+   },
+   {
+    "id": "anti_dive",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "anti_squat",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "approach_departure_angle",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "articulation_index",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "battery_cca",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "bearing_life",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "belt_length",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "boost_cr",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "boost_for_hp",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "brake_bias",
+    "vectors": 12,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "brake_hydraulic_ratio",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "brake_pedal_effort",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "braking_distance",
+    "vectors": 10,
+    "output_comparisons": 30,
+    "mismatches": 0
+   },
+   {
+    "id": "breakover_angle",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "camshaft_advance_retard",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "camshaft_events",
+    "vectors": 10,
+    "output_comparisons": 60,
+    "mismatches": 0
+   },
+   {
+    "id": "camshaft_intake_centerline",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "caster_from_camber",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "cfm_velocity_csa",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "cg_3d",
+    "vectors": 12,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "cg_lateral",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "cg_longitudinal",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "climb_rate",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "clutch_fork_ratio",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "clutch_hydraulic_ratio",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "clutch_pedal_effort",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "clutch_pedal_ratio",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "clutch_release_force",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "clutch_torque_capacity",
+    "vectors": 10,
+    "output_comparisons": 10,
+    "mismatches": 0
+   },
+   {
+    "id": "cog_height",
+    "vectors": 12,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "coil_spring",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "consistency_calc",
+    "vectors": 12,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "converter_slip",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "coolant_ratio",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "corner_weight_analysis",
+    "vectors": 10,
+    "output_comparisons": 40,
+    "mismatches": 0
+   },
+   {
+    "id": "cornering_speed",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "cost_per_mile",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "countersink_depth",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "crank_journal_overlap",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "cranking_compression",
+    "vectors": 14,
+    "output_comparisons": 28,
+    "mismatches": 0
+   },
+   {
+    "id": "crawl_ratio",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "crawl_ratio_tire",
+    "vectors": 8,
+    "output_comparisons": 24,
+    "mismatches": 0
+   },
+   {
+    "id": "cross_weight",
+    "vectors": 10,
+    "output_comparisons": 40,
+    "mismatches": 0
+   },
+   {
+    "id": "crosswind_force",
+    "vectors": 10,
+    "output_comparisons": 10,
+    "mismatches": 0
+   },
+   {
+    "id": "ct_fuel_stint",
+    "vectors": 8,
+    "output_comparisons": 32,
+    "mismatches": 0
+   },
+   {
+    "id": "ct_ideal_stagger",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "ct_jacking_bolt",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "ct_lap_time_est",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "ct_moment_center",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "ct_panhard_roll",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "ct_spring_split",
+    "vectors": 10,
+    "output_comparisons": 50,
+    "mismatches": 0
+   },
+   {
+    "id": "ct_sway_bar",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "ct_tire_temp_balance",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "ct_wedge_bite",
+    "vectors": 10,
+    "output_comparisons": 40,
+    "mismatches": 0
+   },
+   {
+    "id": "ct_weight_dist",
+    "vectors": 10,
+    "output_comparisons": 60,
+    "mismatches": 0
+   },
+   {
+    "id": "curtain_area",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "deck_height",
+    "vectors": 10,
+    "output_comparisons": 10,
+    "mismatches": 0
+   },
+   {
+    "id": "dew_point",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "dial_in_calc",
+    "vectors": 10,
+    "output_comparisons": 30,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_afrlambda",
+    "vectors": 4,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_airflow",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_bmep",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_boost_pr",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_bsfc",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_cost_per_hour",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_cost_per_mile",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_def_cost",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_def_range",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_fuel_flow",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_fuel_per_acre",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_fuel_per_cycle",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_fuel_per_ton",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_fuel_savings",
+    "vectors": 10,
+    "output_comparisons": 30,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_idle_cost",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_intercooler",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_load_factor",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_mpg",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_power_economy",
+    "vectors": 10,
+    "output_comparisons": 30,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_power_from_fuel",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_power_to_weight",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_production_per_gallon",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_regen_cost",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_torque_from_power",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "diesel_turbo_pr",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "distance_converter",
+    "vectors": 9,
+    "output_comparisons": 36,
+    "mismatches": 0
+   },
+   {
+    "id": "driveshaft_critical",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "driveshaft_speed",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "dual_spring_rate",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "dynamic_compression",
+    "vectors": 12,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "dyno_correction",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "e85_blend",
+    "vectors": 10,
+    "output_comparisons": 30,
+    "mismatches": 0
+   },
+   {
+    "id": "effective_gear_ratio",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "effective_rocker_ratio",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "eighth_to_quarter",
+    "vectors": 4,
+    "output_comparisons": 4,
+    "mismatches": 0
+   },
+   {
+    "id": "engine_displacement",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "engine_rpm_speed",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "estimate_60ft",
+    "vectors": 4,
+    "output_comparisons": 4,
+    "mismatches": 0
+   },
+   {
+    "id": "et_hp_change",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "et_mph_prediction",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "et_weight_change",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "ev_acceleration",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "ev_battery_current",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "ev_battery_degradation",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "ev_battery_energy",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "ev_charge_cost",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "ev_charge_time",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "ev_cost_per_mile",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "ev_efficiency",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "ev_motor_torque",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "ev_quarter_mile",
+    "vectors": 8,
+    "output_comparisons": 32,
+    "mismatches": 0
+   },
+   {
+    "id": "ev_range",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "ev_regen_power",
+    "vectors": 10,
+    "output_comparisons": 10,
+    "mismatches": 0
+   },
+   {
+    "id": "ev_tire_wear",
+    "vectors": 12,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "ev_top_speed",
+    "vectors": 10,
+    "output_comparisons": 10,
+    "mismatches": 0
+   },
+   {
+    "id": "exhaust_curtain_area",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "exhaust_diameter",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "exhaust_header",
+    "vectors": 10,
+    "output_comparisons": 30,
+    "mismatches": 0
+   },
+   {
+    "id": "exhaust_intake_flow_ratio",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "exhaust_port_cfm",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "extended_warranty",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "feeds_speeds",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "final_drive_ratio",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "fraction_decimal",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "fuel_economy",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "fuel_line_loss",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "fuel_pressure_rise",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "fuse_sizing",
+    "vectors": 7,
+    "output_comparisons": 7,
+    "mismatches": 0
+   },
+   {
+    "id": "gas_oil_mix",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "gcwr_payload",
+    "vectors": 12,
+    "output_comparisons": 24,
+    "mismatches": 0
+   },
+   {
+    "id": "gear_ratio_speed",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "gearbox_efficiency",
+    "vectors": 8,
+    "output_comparisons": 24,
+    "mismatches": 0
+   },
+   {
+    "id": "gforce_60ft",
+    "vectors": 4,
+    "output_comparisons": 4,
+    "mismatches": 0
+   },
+   {
+    "id": "grains_water",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "hardness_convert",
+    "vectors": 4,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "head_gasket_vol",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "helicoil_size",
+    "vectors": 6,
+    "output_comparisons": 18,
+    "mismatches": 0
+   },
+   {
+    "id": "hp_aero_drag",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "hp_cr_change",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "hp_from_0_60",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "hp_from_airflow",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "hp_from_boost",
+    "vectors": 8,
+    "output_comparisons": 24,
+    "mismatches": 0
+   },
+   {
+    "id": "hp_from_specs",
+    "vectors": 14,
+    "output_comparisons": 42,
+    "mismatches": 0
+   },
+   {
+    "id": "hp_from_torque",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "hp_trap_speed",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "hydroplaning",
+    "vectors": 4,
+    "output_comparisons": 4,
+    "mismatches": 0
+   },
+   {
+    "id": "incline_angle",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "incremental_et",
+    "vectors": 10,
+    "output_comparisons": 30,
+    "mismatches": 0
+   },
+   {
+    "id": "index_racing",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "injector_flow",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "injector_sizing",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "intake_curtain_area",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "intake_flow_per_cylinder",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "intake_port_cfm",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "intake_port_vel",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "intake_runner",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "jetting",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "jpipe_resonator",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "lash_net_lift",
+    "vectors": 6,
+    "output_comparisons": 18,
+    "mismatches": 0
+   },
+   {
+    "id": "lateral_accel",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "lease_vs_buy",
+    "vectors": 14,
+    "output_comparisons": 56,
+    "mismatches": 0
+   },
+   {
+    "id": "loan_payment",
+    "vectors": 10,
+    "output_comparisons": 10,
+    "mismatches": 0
+   },
+   {
+    "id": "mach_index",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "mach_port_velocity",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "master_cylinder",
+    "vectors": 8,
+    "output_comparisons": 24,
+    "mismatches": 0
+   },
+   {
+    "id": "max_rpm",
+    "vectors": 7,
+    "output_comparisons": 7,
+    "mismatches": 0
+   },
+   {
+    "id": "mean_piston_speed",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "mech_trail",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "milling_heads",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "nitro_blend",
+    "vectors": 4,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "octane_mixture",
+    "vectors": 10,
+    "output_comparisons": 10,
+    "mismatches": 0
+   },
+   {
+    "id": "oil_pump_hp",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "overlap_calc",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "perfect_light",
+    "vectors": 14,
+    "output_comparisons": 28,
+    "mismatches": 0
+   },
+   {
+    "id": "piston_position",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "port_valve_area_ratio",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "portal_gear_reduction",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "power_converter",
+    "vectors": 8,
+    "output_comparisons": 24,
+    "mismatches": 0
+   },
+   {
+    "id": "power_to_weight",
+    "vectors": 6,
+    "output_comparisons": 18,
+    "mismatches": 0
+   },
+   {
+    "id": "pressure_converter",
+    "vectors": 10,
+    "output_comparisons": 40,
+    "mismatches": 0
+   },
+   {
+    "id": "pump_head",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "rc_aero_balance",
+    "vectors": 8,
+    "output_comparisons": 24,
+    "mismatches": 0
+   },
+   {
+    "id": "rc_downforce",
+    "vectors": 10,
+    "output_comparisons": 10,
+    "mismatches": 0
+   },
+   {
+    "id": "rc_fuel_save",
+    "vectors": 8,
+    "output_comparisons": 24,
+    "mismatches": 0
+   },
+   {
+    "id": "rc_fuel_stint",
+    "vectors": 8,
+    "output_comparisons": 32,
+    "mismatches": 0
+   },
+   {
+    "id": "rc_motion_ratio_rc",
+    "vectors": 10,
+    "output_comparisons": 30,
+    "mismatches": 0
+   },
+   {
+    "id": "rc_pit_strategy",
+    "vectors": 12,
+    "output_comparisons": 72,
+    "mismatches": 0
+   },
+   {
+    "id": "rc_rake_angle",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "rc_sector_delta",
+    "vectors": 14,
+    "output_comparisons": 84,
+    "mismatches": 0
+   },
+   {
+    "id": "rc_tire_deg",
+    "vectors": 10,
+    "output_comparisons": 40,
+    "mismatches": 0
+   },
+   {
+    "id": "rc_undercut",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "rc_watt_link",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "reaction_distance",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "recovery_point_rating",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "refinance_savings",
+    "vectors": 10,
+    "output_comparisons": 40,
+    "mismatches": 0
+   },
+   {
+    "id": "required_port_csa",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "resistance",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "reverse_displacement",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "ring_gap",
+    "vectors": 9,
+    "output_comparisons": 18,
+    "mismatches": 0
+   },
+   {
+    "id": "ring_pinion",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "rod_stroke_ratio",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "roll_out",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "rotating_weight",
+    "vectors": 10,
+    "output_comparisons": 30,
+    "mismatches": 0
+   },
+   {
+    "id": "rpm_drop_shift",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "scrub_radius",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "shock_length",
+    "vectors": 8,
+    "output_comparisons": 24,
+    "mismatches": 0
+   },
+   {
+    "id": "speed_converter",
+    "vectors": 8,
+    "output_comparisons": 32,
+    "mismatches": 0
+   },
+   {
+    "id": "speedo_driven_gear",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "speedometer_cal",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "static_compression",
+    "vectors": 12,
+    "output_comparisons": 36,
+    "mismatches": 0
+   },
+   {
+    "id": "supercharger_speed",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "tank_volume",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "throttle_body",
+    "vectors": 10,
+    "output_comparisons": 20,
+    "mismatches": 0
+   },
+   {
+    "id": "timing_mark",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "tire_pressure_temp",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "tire_size",
+    "vectors": 8,
+    "output_comparisons": 32,
+    "mismatches": 0
+   },
+   {
+    "id": "tire_size_comparison",
+    "vectors": 14,
+    "output_comparisons": 56,
+    "mismatches": 0
+   },
+   {
+    "id": "tire_stagger",
+    "vectors": 6,
+    "output_comparisons": 18,
+    "mismatches": 0
+   },
+   {
+    "id": "tongue_weight",
+    "vectors": 6,
+    "output_comparisons": 12,
+    "mismatches": 0
+   },
+   {
+    "id": "top_speed",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "torque_converter",
+    "vectors": 14,
+    "output_comparisons": 42,
+    "mismatches": 0
+   },
+   {
+    "id": "torque_from_hp",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "torque_wrench_ext",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "total_cost_ownership",
+    "vectors": 14,
+    "output_comparisons": 56,
+    "mismatches": 0
+   },
+   {
+    "id": "towing_squat",
+    "vectors": 10,
+    "output_comparisons": 30,
+    "mismatches": 0
+   },
+   {
+    "id": "trailer_tire_load",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "trap_speed_hp_check",
+    "vectors": 8,
+    "output_comparisons": 24,
+    "mismatches": 0
+   },
+   {
+    "id": "trip_fuel_cost",
+    "vectors": 8,
+    "output_comparisons": 24,
+    "mismatches": 0
+   },
+   {
+    "id": "turbo_sizing",
+    "vectors": 10,
+    "output_comparisons": 30,
+    "mismatches": 0
+   },
+   {
+    "id": "turning_radius",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "understeer_gradient",
+    "vectors": 10,
+    "output_comparisons": 10,
+    "mismatches": 0
+   },
+   {
+    "id": "unsprung_weight",
+    "vectors": 8,
+    "output_comparisons": 24,
+    "mismatches": 0
+   },
+   {
+    "id": "valve_lash",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "valve_spring_rate",
+    "vectors": 12,
+    "output_comparisons": 36,
+    "mismatches": 0
+   },
+   {
+    "id": "valve_throat_area",
+    "vectors": 6,
+    "output_comparisons": 24,
+    "mismatches": 0
+   },
+   {
+    "id": "velocity_stack",
+    "vectors": 4,
+    "output_comparisons": 4,
+    "mismatches": 0
+   },
+   {
+    "id": "volume_converter",
+    "vectors": 10,
+    "output_comparisons": 40,
+    "mismatches": 0
+   },
+   {
+    "id": "volumetric_eff",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "weight_reduction",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "weight_transfer",
+    "vectors": 10,
+    "output_comparisons": 10,
+    "mismatches": 0
+   },
+   {
+    "id": "wet_bulb",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "wheel_motion",
+    "vectors": 6,
+    "output_comparisons": 6,
+    "mismatches": 0
+   },
+   {
+    "id": "wheel_offset",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "winch_line_pull",
+    "vectors": 10,
+    "output_comparisons": 30,
+    "mismatches": 0
+   },
+   {
+    "id": "wind_et",
+    "vectors": 8,
+    "output_comparisons": 8,
+    "mismatches": 0
+   },
+   {
+    "id": "wire_gauge",
+    "vectors": 8,
+    "output_comparisons": 16,
+    "mismatches": 0
+   },
+   {
+    "id": "wmi_flow",
+    "vectors": 8,
+    "output_comparisons": 24,
+    "mismatches": 0
+   }
+  ]
+ },
+ "p4": {
+  "rows": 2004,
+  "executed": 2004,
+  "equal": 2004,
+  "outputs_in_order": 2004
+ }
+}

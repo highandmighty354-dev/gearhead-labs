@@ -1,0 +1,27 @@
+CALCULATION-FOUNDATION ISOLATION EVIDENCE
+protected: F1.12.3-UI-MOBILE-HEADER @ 257b2cc6617f68db4b7c672c30c75ee30e242689
+protected: DATA-FOUNDATION-1.0.0 @ fbcebc4d0dddf11295ab77a7f0c618783dad6687
+protected: MAPPING-FOUNDATION-1.0.0 @ 6421eef24cc3793bfed94c1c67f45c65a52acf00
+protected: GARAGE-FOUNDATION-1.0.0 @ e6fe457dbd8ed91cb40c81d7e80ec81b880b50a0
+
+PASS  1. F1.12.3 page SHA-256 02b0ceeed36b17c5ac64daa480c26ea52146f0ade94ac60b6d8f1027ec102c27 (unchanged)
+PASS  2. 14/14 protected F1 files byte-identical to F1.12.3-UI-MOBILE-HEADER
+PASS  3. data-foundation/ has no diff against DATA-FOUNDATION-1.0.0 (committed: 0, working tree: 0)
+PASS  4. mapping-foundation/ has no diff against MAPPING-FOUNDATION-1.0.0 (committed: 0, working tree: 0)
+PASS  5. garage-foundation/ has no diff against GARAGE-FOUNDATION-1.0.0 (committed: 0, working tree: 0)
+PASS  6. no file outside calculation-foundation/ differs from GARAGE-FOUNDATION-1.0.0 (committed: 0, working tree: 0)
+PASS  7. all 11/11 frozen tags at their recorded commits (GARAGE-FOUNDATION-1.0.0 at e6fe457); no unexpected tag (no historical tag-count assertion)
+PASS  8. registry / catalog / migrated / pending = 577/583/252/8
+PASS  9. F1 release gate PASS, suite-by-suite identical to verification-baseline-F1_12_3.txt (28 suites)
+      [PASS] LIVE_RENDER  612 passed, 0 failed
+      [PASS] LIVE_PARITY  252 passed, 0 failed
+      [INFO] LIVE_PARITY ran 4242 output comparisons across 252 calculators
+      [PASS] ENGINE_NODE_TESTS  100 passed, 0 failed
+PASS  10. DATA-FOUNDATION suite 219 checks, 219 passed, output byte-identical to its committed baseline, regenerated evidence identical (tree clean)
+PASS  11. mapping generation --check PASS (923 draft fields); MAPPING-FOUNDATION suite 83 checks, 83 passed, stdout byte-identical to its baseline (tree clean)
+PASS  12. GARAGE-FOUNDATION suite 81 checks, 81 passed, 28/28 mutations detected, output byte-identical to its baseline, regenerated evidence identical (tree clean)
+PASS  13. CALCULATION-FOUNDATION suite 106 checks, 106 passed, 21/21 mutants detected, output byte-identical to its baseline, regenerated evidence identical
+      [INFO] P2 2004 vectors, 3996 output comparisons, 252/252 calculators byte-identical
+      [INFO] P4 2004/2004 persisted rows equal their projection
+
+ISOLATION: PASS

@@ -1,0 +1,13 @@
+{
+  "name": "gearhead-labs-calculation-foundation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CALCULATION-FOUNDATION 1.0.0 - calculation service (frozen gh-engine 1.1.0, 252 proven calculators) persisting through the frozen DATA-FOUNDATION calculation_records contract. No database objects added.",
+  "scripts": {
+    "test": "./tests/run-tests.sh"
+  },
+  "devDependencies": {
+    "jsdom": "24.1.3",
+    "pg": "8.13.1"
+  }
+}
