@@ -1,0 +1,60 @@
+== data-foundation-1.1.0 suite (PostgreSQL 16.15) ==
+========================================================================
+GEARHEAD LABS - DATA-FOUNDATION 1.1.0 - VALUE-WRITE BOUNDARY SUITE
+========================================================================
+  base: shim + DATA-FOUNDATION 0001-0005 read from the DATA-FOUNDATION-1.0.0 tag; amendment: 0201
+  trusted path: service-role application code (no SECURITY DEFINER); active-machine rule from CALCULATION-FOUNDATION-1.0.0
+[PASS] INTEGRITY        6 passed, 0 failed
+[PASS] MIGRATION        12 passed, 0 failed
+[PASS] SECURITY         18 passed, 0 failed
+[PASS] PRESERVATION     39 passed, 0 failed
+[PASS] TRUSTED-PATH     36 passed, 0 failed
+[PASS] VALUES           20 passed, 0 failed
+[PASS] UNITS            34 passed, 0 failed
+[PASS] SEMANTICS        9 passed, 0 failed
+[PASS] OWNERSHIP        17 passed, 0 failed
+[PASS] COMBINED         5 passed, 0 failed
+[PASS] RECONCILIATION   2 passed, 0 failed
+[INFO] RECONCILIATION 29/29 lines; S checks 36, T checks 36
+
+TOTAL 198 checks, 198 passed, 0 failed
+
+[PASS] NEGATIVE_CONTROLS 36/36 mutants detected
+    + M-own-body: owner taken from request.owner_id when present: 3 check(s) failed
+    + M-own-ctx: owner context not validated (extra claims accepted): 2 check(s) failed
+    + M-mach-deleted: active-machine check ignores deleted_at (machine and garage): 3 check(s) failed
+    + M-mach-garage: active-machine check ignores the garage soft delete: 1 check(s) failed
+    + M-mach-owner: active-machine check ignores the owner: 5 check(s) failed
+    + M-mach-lock: active-machine check without FOR SHARE: 3 check(s) failed
+    + M-prov-empirical: empirical provenance admitted: 2 check(s) failed
+    + M-prov-calculated: calculated / derived provenance admitted (write-back): 3 check(s) failed
+    + M-ctx-operating: operating_state context admitted: 2 check(s) failed
+    + M-key-any: any canonical field present in the database admitted as a length: 7 check(s) failed
+    + M-component: component-level values admitted: 1 check(s) failed
+    + M-contract-skip: field contract not re-checked against canonical_fields: 1 check(s) failed
+    + M-val-missing: a missing value key is treated as unknown: 1 check(s) failed
+    + M-val-null-zero: a null known value becomes 0 (unknown -> zero): 2 check(s) failed
+    + M-val-string: numeric strings (and blank as 0) accepted: 4 check(s) failed
+    + M-val-nan: NaN / Infinity passed to the database: 4 check(s) failed
+    + M-conv-reciprocal: mm -> in multiplied by the rounded reciprocal 0.0393701: 12 check(s) failed
+    + M-conv-binary-reciprocal: every division replaced by multiplication by 1/factor: 12 check(s) failed
+    + M-conv-D1: mm stored as if multiplied by 25.4 (F1 defect D-1): 12 check(s) failed
+    + M-conv-round: stored value rounded to 6 significant digits (display rounding on write): 6 check(s) failed
+    + M-conv-negzero: -0 not normalized to +0: 1 check(s) failed
+    + M-conv-overflow: non-finite conversion result not rejected: 1 check(s) failed
+    + M-conv-underflow: nonzero input silently flushed toward zero: 1 check(s) failed
+    + M-conv-anyunit: an unsupported unit is treated as the storage unit (unit check bypassed): 10 check(s) failed
+    + M-no-supersede: new values never supersede the current head: 6 check(s) failed
+    + M-no-retry: a refused double supersede is not retried: 2 check(s) failed
+    + M-priority: provenance priority - the newest measured value is treated as current: 4 check(s) failed
+    + M-mig-no-revoke: 0201 without the REVOKE (post-conditions removed too): 7 check(s) failed
+    + M-mig-no-drop: 0201 without DROP POLICY df_values_insert (post-conditions removed too): 6 check(s) failed
+    + M-mig-restrictive: the rejected additive alternative (restrictive policy; grant and policy kept): 14 check(s) failed
+    + M-mig-select: 0201 also revokes SELECT (post-conditions removed): 10 check(s) failed
+    + M-mig-extra-object: 0201 also creates an index: 6 check(s) failed
+    + M-mig-no-txn: 0201 without BEGIN / COMMIT: 1 check(s) failed
+    + M-rb-no-policy: rollback does not re-create df_values_insert: 3 check(s) failed
+    + M-rb-no-grant: rollback does not restore the INSERT grant: 3 check(s) failed
+    + M-rb-wrong-check: rollback re-creates the policy with a different WITH CHECK: 2 check(s) failed
+
+DATA-FOUNDATION-1.1.0 SUITE: PASS

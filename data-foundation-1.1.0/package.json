@@ -1,0 +1,12 @@
+{
+  "name": "gearhead-labs-data-foundation-1-1-0",
+  "version": "1.1.0",
+  "private": true,
+  "description": "DATA-FOUNDATION 1.1.0 - value-write boundary amendment: migration 0201 (authenticated INSERT on value_records withdrawn, df_values_insert dropped) and the trusted service-role value-write path. DATA-FOUNDATION-1.0.0 unchanged.",
+  "scripts": {
+    "test": "./tests/run-tests.sh"
+  },
+  "devDependencies": {
+    "pg": "8.13.1"
+  }
+}

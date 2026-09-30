@@ -1,0 +1,1645 @@
+{
+ "checks": [
+  {
+   "group": "integrity",
+   "name": "shim + DATA-FOUNDATION 0001-0005 read from the DATA-FOUNDATION-1.0.0 tag are byte-identical to the working tree",
+   "ok": true,
+   "detail": "6/6"
+  },
+  {
+   "group": "integrity",
+   "name": "GARAGE-FOUNDATION 0101-0103 read from the GARAGE-FOUNDATION-1.0.0 tag are byte-identical to the working tree",
+   "ok": true,
+   "detail": "3/3"
+  },
+  {
+   "group": "integrity",
+   "name": "active-machine rule is byte-identical to CALCULATION-FOUNDATION-1.0.0 ACTIVE_MACHINE_SQL (read from its tag)",
+   "ok": true,
+   "detail": "identical"
+  },
+  {
+   "group": "integrity",
+   "name": "the 29 reconciled lines are EXACTLY the client direct value INSERT tests in df.test.js at the DATA-FOUNDATION-1.0.0 tag",
+   "ok": true,
+   "detail": "29 found in df.test.js, 29 in the CSV"
+  },
+  {
+   "group": "integrity",
+   "name": "trusted path is self-contained: no F1 page / engine code, no display rounding, no rounded reciprocal constant",
+   "ok": true,
+   "detail": "external requires: none; F1/rounding markers: false"
+  },
+  {
+   "group": "integrity",
+   "name": "migration 0201 contains exactly the two approved statements (plus BEGIN / post-condition block / COMMIT)",
+   "ok": true,
+   "detail": "BEGIN | REVOKE INSERT ON public.value_records FROM authenticated | DROP POLICY IF EXISTS df_values_insert ON public.value_records | COMMIT"
+  },
+  {
+   "group": "migration",
+   "name": "clean install: shim + DATA-FOUNDATION-1.0.0 (tag) + 0201 applies from an empty database",
+   "ok": true,
+   "detail": "0201 applied"
+  },
+  {
+   "group": "migration",
+   "name": "repeat application is a no-op (idempotent): succeeds, schema dump and catalog fingerprint byte-identical",
+   "ok": true,
+   "detail": "dump identical"
+  },
+  {
+   "group": "migration",
+   "name": "exactly two catalog changes vs pristine 1.0.0: authenticated INSERT (a) withdrawn from value_records ACL, policy df_values_insert removed; nothing else",
+   "ok": true,
+   "detail": "removed 2, added 1"
+  },
+  {
+   "group": "migration",
+   "name": "no object created: no new table, column, function, trigger, index, constraint, policy or enum",
+   "ok": true,
+   "detail": "1 added entry"
+  },
+  {
+   "group": "migration",
+   "name": "no reference data seeded by 0201: canonical_fields empty on a clean install",
+   "ok": true,
+   "detail": "canonical_fields 0"
+  },
+  {
+   "group": "migration",
+   "name": "rollback script restores the DATA-FOUNDATION-1.0.0 catalog exactly (fingerprint equals a fresh 1.0.0 database)",
+   "ok": true,
+   "detail": "0 differing entries"
+  },
+  {
+   "group": "migration",
+   "name": "rollback is idempotent (second run succeeds, catalog unchanged)",
+   "ok": true,
+   "detail": "ok"
+  },
+  {
+   "group": "migration",
+   "name": "re-applying 0201 after rollback yields the amended catalog again (round trip)",
+   "ok": true,
+   "detail": "ok"
+  },
+  {
+   "group": "migration",
+   "name": "post-rollback verification: the DATA-FOUNDATION-1.0.0 client INSERT behaviour (df.test.js:198) is restored",
+   "ok": true,
+   "detail": "authenticated INSERT accepted"
+  },
+  {
+   "group": "migration",
+   "name": "transactional: a failed post-condition aborts 0201 and leaves the catalog unchanged (INSERT grant and policy still present)",
+   "ok": true,
+   "detail": "aborted: post-condition; catalog unchanged"
+  },
+  {
+   "group": "migration",
+   "name": "self-check: 0201 without its REVOKE is refused by its own post-conditions",
+   "ok": true,
+   "detail": "refused"
+  },
+  {
+   "group": "migration",
+   "name": "upgrade in place: 0201 applies to a populated DATA-FOUNDATION-1.0.0 database; existing rows untouched",
+   "ok": true,
+   "detail": "applied; 2 existing values kept"
+  },
+  {
+   "group": "security",
+   "name": "[df:198] SECURITY: the owner’s direct authenticated INSERT of its own value is now REJECTED (42501)",
+   "ok": true,
+   "detail": "42501 permission denied for table value_records"
+  },
+  {
+   "group": "security",
+   "name": "authenticated INSERT (owner defaulted from auth.uid()) rejected (42501)",
+   "ok": true,
+   "detail": "42501 permission denied for table value_records"
+  },
+  {
+   "group": "security",
+   "name": "authenticated INSERT with a spoofed owner rejected (42501)",
+   "ok": true,
+   "detail": "42501 permission denied for table value_records"
+  },
+  {
+   "group": "security",
+   "name": "user B INSERT on its own machine rejected (42501)",
+   "ok": true,
+   "detail": "42501 permission denied for table value_records"
+  },
+  {
+   "group": "security",
+   "name": "anon INSERT rejected (42501)",
+   "ok": true,
+   "detail": "42501 permission denied for table value_records"
+  },
+  {
+   "group": "security",
+   "name": "authenticated UPDATE still rejected (42501)",
+   "ok": true,
+   "detail": "42501 permission denied for table value_records"
+  },
+  {
+   "group": "security",
+   "name": "authenticated DELETE still rejected (42501)",
+   "ok": true,
+   "detail": "42501 permission denied for table value_records"
+  },
+  {
+   "group": "security",
+   "name": "authenticated TRUNCATE rejected (42501)",
+   "ok": true,
+   "detail": "42501 permission denied for table value_records"
+  },
+  {
+   "group": "security",
+   "name": "authenticated SELECT of own value preserved",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "security",
+   "name": "another owner’s values stay hidden (df_values_select)",
+   "ok": true,
+   "detail": "ok rows 0"
+  },
+  {
+   "group": "security",
+   "name": "anon SELECT still denied (42501)",
+   "ok": true,
+   "detail": "42501 permission denied for table value_records"
+  },
+  {
+   "group": "security",
+   "name": "the service role can perform an authorized write (owner explicit)",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "security",
+   "name": "privilege matrix on value_records: authenticated SELECT only; anon nothing",
+   "ok": true,
+   "detail": "authenticated:SELECT"
+  },
+  {
+   "group": "security",
+   "name": "no PUBLIC grant and no column-level INSERT/UPDATE grant on value_records",
+   "ok": true,
+   "detail": "PUBLIC 0, column ACLs 0"
+  },
+  {
+   "group": "security",
+   "name": "policies on value_records: exactly df_values_select (SELECT); df_values_insert absent",
+   "ok": true,
+   "detail": "df_values_select:SELECT"
+  },
+  {
+   "group": "security",
+   "name": "value_records triggers preserved: df_append_only, df_no_truncate, df_stamp, df_validate",
+   "ok": true,
+   "detail": "df_append_only,df_no_truncate,df_stamp,df_validate"
+  },
+  {
+   "group": "security",
+   "name": "no alternate client write path: no client-callable function touches value_records, no view, no rule, no role path to service_role",
+   "ok": true,
+   "detail": "functions 0, views 0, rules 0, role path false"
+  },
+  {
+   "group": "security",
+   "name": "upgraded database and clean install have the identical catalog",
+   "ok": true,
+   "detail": "0 differing entries"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:156 S] categorical value with an empty option rejected (values_option_nonempty)",
+   "ok": true,
+   "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_option_nonempty\""
+  },
+  {
+   "group": "preservation",
+   "name": "[df:170 S] unknown canonical field rejected (DF_VALUE)",
+   "ok": true,
+   "detail": "23503 DF_VALUE: unknown canonical field no_such_field"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:198 S] the same value written by the service role is accepted with the explicit owner",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:199 S] owner/machine mismatch rejected by composite FK values_machine_same_owner_fk (A on B machine)",
+   "ok": true,
+   "detail": "23503 insert or update on table \"value_records\" violates foreign key constraint \"values_machine_same_owner_fk\""
+  },
+  {
+   "group": "preservation",
+   "name": "[df:200 S] owner/machine mismatch rejected by composite FK values_machine_same_owner_fk (B on A machine)",
+   "ok": true,
+   "detail": "23503 insert or update on table \"value_records\" violates foreign key constraint \"values_machine_same_owner_fk\""
+  },
+  {
+   "group": "preservation",
+   "name": "[df:228 S] zero is a KNOWN value (0, user_entered)",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:229 S] unknown = no value + provenance unknown",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:230 S] no value with a known provenance rejected",
+   "ok": true,
+   "detail": "23514 DF_KIND: fx_weight is numeric"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:231 S] a number with provenance unknown rejected (values_unknown_has_no_value)",
+   "ok": true,
+   "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_unknown_has_no_value\""
+  },
+  {
+   "group": "preservation",
+   "name": "[df:232 S] zero with provenance unknown rejected (zero is not unknown)",
+   "ok": true,
+   "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_unknown_has_no_value\""
+  },
+  {
+   "group": "preservation",
+   "name": "[df:233 S] both numeric and option rejected (values_known_has_exactly_one)",
+   "ok": true,
+   "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_known_has_exactly_one\""
+  },
+  {
+   "group": "preservation",
+   "name": "[df:234 S] categorical field given a number rejected (DF_KIND)",
+   "ok": true,
+   "detail": "23514 DF_KIND: fx_categorical is categorical"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:235 S] numeric field given an option rejected (DF_KIND)",
+   "ok": true,
+   "detail": "23514 DF_KIND: fx_weight is numeric"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:236 S] categorical field with a declared option accepted",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:237 S] non-finite 'NaN' rejected as a known value (values_numeric_finite)",
+   "ok": true,
+   "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_numeric_finite\""
+  },
+  {
+   "group": "preservation",
+   "name": "[df:237 S] non-finite 'Infinity' rejected as a known value (values_numeric_finite)",
+   "ok": true,
+   "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_numeric_finite\""
+  },
+  {
+   "group": "preservation",
+   "name": "[df:237 S] non-finite '-Infinity' rejected as a known value (values_numeric_finite)",
+   "ok": true,
+   "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_numeric_finite\""
+  },
+  {
+   "group": "preservation",
+   "name": "[df:240 S] value in a non-canonical unit rejected (DF_UNIT backstop: kg for an lb field)",
+   "ok": true,
+   "detail": "23514 DF_UNIT: fx_weight must be stored in its canonical engine-native unit lb (got kg)"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:241 S] value in the canonical engine-native unit accepted",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:244 S] calculated without calculation_id rejected",
+   "ok": true,
+   "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_calculated_needs_calculation\""
+  },
+  {
+   "group": "preservation",
+   "name": "[df:245 S] derived without calculation_id rejected",
+   "ok": true,
+   "detail": "23514 new row for relation \"value_records\" violates check constraint \"values_calculated_needs_calculation\""
+  },
+  {
+   "group": "preservation",
+   "name": "[df:246 S] calculated linked to its own Calculation accepted (database rule preserved)",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:246 S] derived linked to its own Calculation accepted (database rule preserved)",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:247 S] provenance measured accepted by the database",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:247 S] provenance manufacturer_specified accepted by the database",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:247 S] provenance user_entered accepted by the database",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:247 S] provenance empirical accepted by the database",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:247 S] provenance estimated accepted by the database",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:248 S] 'imported' is not a provenance category (22P02)",
+   "ok": true,
+   "detail": "22P02 invalid input value for enum provenance_enum: \"imported\""
+  },
+  {
+   "group": "preservation",
+   "name": "[df:249 S] import channel recorded in source with the original provenance kept",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:250 S] operating_state context accepted by the database (generic rule)",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:270 S] service-supplied recorded_at ignored: server time used (df_stamp)",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:273 S] correction = new row superseding the old; old row kept",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:277 S] a value can be superseded only once (values_superseded_once)",
+   "ok": true,
+   "detail": "23505 duplicate key value violates unique constraint \"values_superseded_once\""
+  },
+  {
+   "group": "preservation",
+   "name": "[df:280 S] superseding a different field rejected (DF_SUPERSEDE)",
+   "ok": true,
+   "detail": "23514 DF_SUPERSEDE: a value can only supersede the same machine/component/field/context"
+  },
+  {
+   "group": "preservation",
+   "name": "[df:282 S] superseding across contexts rejected (DF_SUPERSEDE)",
+   "ok": true,
+   "detail": "23514 DF_SUPERSEDE: a value can only supersede the same machine/component/field/context"
+  },
+  {
+   "group": "preservation",
+   "name": "append-only: service-role UPDATE refused (DF_IMMUTABLE)",
+   "ok": true,
+   "detail": "P0001 DF_IMMUTABLE: UPDATE on value_records is not permitted (values are append-only)"
+  },
+  {
+   "group": "preservation",
+   "name": "append-only: service-role DELETE refused (DF_IMMUTABLE)",
+   "ok": true,
+   "detail": "P0001 DF_IMMUTABLE: DELETE on value_records is not permitted (values are append-only)"
+  },
+  {
+   "group": "preservation",
+   "name": "append-only: service-role TRUNCATE refused (DF_IMMUTABLE)",
+   "ok": true,
+   "detail": "P0001 DF_IMMUTABLE: TRUNCATE on value_records is not permitted (values are append-only)"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:156 T] categorical field not admitted in V1 (allowlist rejects before the database)",
+   "ok": true,
+   "detail": "rejected VW_FIELD_NOT_ADMITTED field_not_admitted; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:170 T] unknown canonical field rejected by the key allowlist",
+   "ok": true,
+   "detail": "rejected VW_FIELD_NOT_ADMITTED field_not_admitted; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:198 T] trusted path writes the owner’s value; owner derived from the verified login",
+   "ok": true,
+   "detail": "created measured 4.25 in; rows +1; stored 4.25 in"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:199 T] a request-supplied owner_id is never used (request rejected)",
+   "ok": true,
+   "detail": "rejected VW_MALFORMED_REQUEST unexpected_key; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:200 T] B cannot add a value to A’s machine (active-machine owner filter)",
+   "ok": true,
+   "detail": "rejected VW_MACHINE_NOT_FOUND machine_not_found; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:228 T] explicit zero preserved as a known 0",
+   "ok": true,
+   "detail": "created user_entered 0 lbf; rows +1; stored 0 lbf"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:229 T] unknown written as no value + provenance unknown, stored in the canonical unit",
+   "ok": true,
+   "detail": "created unknown null gal; rows +1; stored NULL gal"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:230 T] no value with a known provenance rejected before the database",
+   "ok": true,
+   "detail": "rejected VW_INVALID_VALUE known_value_required; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:231 T] a number with provenance unknown rejected before the database",
+   "ok": true,
+   "detail": "rejected VW_INVALID_VALUE unknown_has_no_value; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:232 T] zero with provenance unknown rejected (zero is not unknown)",
+   "ok": true,
+   "detail": "rejected VW_INVALID_VALUE unknown_has_no_value; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:233 T] an option value is not part of the V1 request (numeric keys only)",
+   "ok": true,
+   "detail": "rejected VW_MALFORMED_REQUEST unexpected_key; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:234 T] categorical field given a number: not admitted in V1",
+   "ok": true,
+   "detail": "rejected VW_FIELD_NOT_ADMITTED field_not_admitted; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:235 T] numeric field given a text option: numeric input required",
+   "ok": true,
+   "detail": "rejected VW_INVALID_VALUE numeric_value_required; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:236 T] categorical field with an option: not admitted in V1",
+   "ok": true,
+   "detail": "rejected VW_FIELD_NOT_ADMITTED field_not_admitted; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:237 T] non-finite NaN rejected before the database",
+   "ok": true,
+   "detail": "rejected VW_INVALID_VALUE non_finite_value; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:237 T] non-finite Infinity rejected before the database",
+   "ok": true,
+   "detail": "rejected VW_INVALID_VALUE non_finite_value; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:237 T] non-finite -Infinity rejected before the database",
+   "ok": true,
+   "detail": "rejected VW_INVALID_VALUE non_finite_value; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:240 T] unsupported unit rejected (kg for a length field)",
+   "ok": true,
+   "detail": "rejected VW_UNSUPPORTED_UNIT unit_not_supported_for_field; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:241 T] a supported unit is converted and stored in the engine-native unit (101.6 mm -> 4 in)",
+   "ok": true,
+   "detail": "created manufacturer_specified 4 in; rows +1; stored 4 in"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:244 T] provenance calculated not permitted in V1 (no calculated write-back)",
+   "ok": true,
+   "detail": "rejected VW_PROVENANCE_NOT_PERMITTED provenance_not_permitted; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:245 T] provenance derived not permitted in V1",
+   "ok": true,
+   "detail": "rejected VW_PROVENANCE_NOT_PERMITTED provenance_not_permitted; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:246 T] a calculation link cannot be supplied: calculated values are never written back in V1",
+   "ok": true,
+   "detail": "rejected VW_MALFORMED_REQUEST unexpected_key; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:247 T] V1 provenance user_entered accepted",
+   "ok": true,
+   "detail": "created user_entered 30 °; rows +1; stored 30 °"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:247 T] V1 provenance manufacturer_specified accepted",
+   "ok": true,
+   "detail": "created manufacturer_specified 30 °; rows +1; stored 30 °"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:247 T] V1 provenance estimated accepted",
+   "ok": true,
+   "detail": "created estimated 30 °; rows +1; stored 30 °"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:247 T] V1 provenance measured accepted",
+   "ok": true,
+   "detail": "created measured 30 °; rows +1; stored 30 °"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:247 T] provenance empirical REJECTED in V1 (test results deferred)",
+   "ok": true,
+   "detail": "rejected VW_PROVENANCE_NOT_PERMITTED provenance_not_permitted; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:248 T] 'imported' rejected by the provenance allowlist",
+   "ok": true,
+   "detail": "rejected VW_PROVENANCE_NOT_PERMITTED provenance_not_permitted; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:249 T] channel recorded in source (frozen meaning); the entered value and unit are not stored (G-5)",
+   "ok": true,
+   "detail": "created manufacturer_specified 10 in; rows +1; stored 10 in"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:250 T] operating_state context rejected in V1 (specification only)",
+   "ok": true,
+   "detail": "rejected VW_CONTEXT_NOT_PERMITTED context_not_permitted; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:270 T] recorded_at cannot be supplied to the trusted path",
+   "ok": true,
+   "detail": "rejected VW_MALFORMED_REQUEST unexpected_key; rows +0"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:270 T] the service never supplies recorded_at: the server stamp is used",
+   "ok": true,
+   "detail": "server true"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:273 T] a correction supersedes the current head under the series lock; current follows the chain",
+   "ok": true,
+   "detail": "created estimated 60 kWh / created measured 75 kWh / current found measured 75 kWh"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:277 T] a double supersede is refused by values_superseded_once; the service retries against the fresh head",
+   "ok": true,
+   "detail": "created measured 80 kWh; head reads 2; rows +1"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:280 T] the head lookup is scoped to (machine, field, context): a different field starts its own series",
+   "ok": true,
+   "detail": "created manufacturer_specified 3.73 :1 / created manufacturer_specified 18 TPI"
+  },
+  {
+   "group": "trusted-path",
+   "name": "[df:282 T] context is fixed to specification (an explicit specification context accepted)",
+   "ok": true,
+   "detail": "created estimated 21.5 sq ft; rows +1; stored 21.5 sq ft"
+  },
+  {
+   "group": "values",
+   "name": "missing value key rejected: never silently unknown, zero or a default",
+   "ok": true,
+   "detail": "rejected VW_MALFORMED_REQUEST value_required; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "blank input rejected: blank never becomes a machine value",
+   "ok": true,
+   "detail": "rejected VW_INVALID_VALUE numeric_value_required; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "numeric string rejected: no string coercion",
+   "ok": true,
+   "detail": "rejected VW_INVALID_VALUE numeric_value_required; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "non-numeric input rejected (boolean)",
+   "ok": true,
+   "detail": "rejected VW_INVALID_VALUE numeric_value_required; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "non-numeric input rejected (object)",
+   "ok": true,
+   "detail": "rejected VW_INVALID_VALUE numeric_value_required; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "negative zero -> +0 (identity unit)",
+   "ok": true,
+   "detail": "created user_entered 0 lbf; rows +1; stored 0 lbf"
+  },
+  {
+   "group": "values",
+   "name": "negative zero -> +0 (after conversion: -0 mm)",
+   "ok": true,
+   "detail": "created user_entered 0 in; rows +1; stored 0 in"
+  },
+  {
+   "group": "values",
+   "name": "negative zero is normalized by the service BEFORE insert (+0 handed to the database, identity and converted)",
+   "ok": true,
+   "detail": "0,0"
+  },
+  {
+   "group": "values",
+   "name": "explicit zero after conversion stays a known zero (0 N -> 0 lbf)",
+   "ok": true,
+   "detail": "created measured 0 lbf; rows +1; stored 0 lbf"
+  },
+  {
+   "group": "values",
+   "name": "negative values: sign preserved (field contract, spec §H): -0.5 in",
+   "ok": true,
+   "detail": "created user_entered -0.5 in; rows +1; stored -0.5 in"
+  },
+  {
+   "group": "values",
+   "name": "large finite value accepted unchanged (1e300 in)",
+   "ok": true,
+   "detail": "created user_entered 1e+300 in; rows +1; stored 1e+300 in"
+  },
+  {
+   "group": "values",
+   "name": "non-finite result rejected (overflow: max double cu in -> cc)",
+   "ok": true,
+   "detail": "rejected VW_INVALID_CONVERSION non_finite_result; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "out-of-range result rejected (nonzero input underflows: 1e-307 mm)",
+   "ok": true,
+   "detail": "rejected VW_INVALID_CONVERSION out_of_range_result; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "known value without a unit rejected",
+   "ok": true,
+   "detail": "rejected VW_UNSUPPORTED_UNIT unit_required; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "unknown needs no unit (stored in the canonical unit)",
+   "ok": true,
+   "detail": "created unknown null sq in; rows +1; stored NULL sq in"
+  },
+  {
+   "group": "values",
+   "name": "unknown with an unsupported unit still rejected",
+   "ok": true,
+   "detail": "rejected VW_UNSUPPORTED_UNIT unit_not_supported_for_field; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "component-level value rejected (V1 is machine-level)",
+   "ok": true,
+   "detail": "rejected VW_COMPONENT_NOT_PERMITTED machine_level_values_only; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "supersedes_id cannot be supplied (the service owns supersession)",
+   "ok": true,
+   "detail": "rejected VW_MALFORMED_REQUEST unexpected_key; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "empty source rejected",
+   "ok": true,
+   "detail": "rejected VW_MALFORMED_REQUEST source_invalid; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "V1 provenance allowlist is exactly user_entered, manufacturer_specified, estimated, measured, unknown",
+   "ok": true,
+   "detail": "user_entered,manufacturer_specified,estimated,measured,unknown"
+  },
+  {
+   "group": "units",
+   "name": "vector 25.4 mm -> 1 in",
+   "ok": true,
+   "detail": "created manufacturer_specified 1 in; rows +1; stored 1 in"
+  },
+  {
+   "group": "units",
+   "name": "vector 1 in -> 1 in (storage unit, identity)",
+   "ok": true,
+   "detail": "created manufacturer_specified 1 in; rows +1; stored 1 in"
+  },
+  {
+   "group": "units",
+   "name": "vector -12.7 mm -> -0.5 in (sign preserved)",
+   "ok": true,
+   "detail": "created manufacturer_specified -0.5 in; rows +1; stored -0.5 in"
+  },
+  {
+   "group": "units",
+   "name": "vector 12.7 mm -> 0.5 in (division, not the binary reciprocal 0.49999999999999994)",
+   "ok": true,
+   "detail": "created manufacturer_specified 0.5 in; rows +1; stored 0.5 in"
+  },
+  {
+   "group": "units",
+   "name": "vector 50.8 mm -> 2 in (division, not 1.9999999999999998)",
+   "ok": true,
+   "detail": "created manufacturer_specified 2 in; rows +1; stored 2 in"
+  },
+  {
+   "group": "units",
+   "name": "vector 76.2 mm -> 3.0000000000000004 in (binary64 quotient, no write rounding)",
+   "ok": true,
+   "detail": "created manufacturer_specified 3.0000000000000004 in; rows +1; stored 3.0000000000000004 in"
+  },
+  {
+   "group": "units",
+   "name": "vector D-1 regression: 1000 mm -> 39.37007874015748 in (no x25.4 or /25.4 mis-scaling)",
+   "ok": true,
+   "detail": "created manufacturer_specified 39.37007874015748 in; rows +1; stored 39.37007874015748 in"
+  },
+  {
+   "group": "units",
+   "name": "vector 4.4482216152605 N -> 1 lbf",
+   "ok": true,
+   "detail": "created manufacturer_specified 1 lbf; rows +1; stored 1 lbf"
+  },
+  {
+   "group": "units",
+   "name": "vector 100 lbf -> 100 lbf",
+   "ok": true,
+   "detail": "created manufacturer_specified 100 lbf; rows +1; stored 100 lbf"
+  },
+  {
+   "group": "units",
+   "name": "vector 3.785411784 L -> 1 gal",
+   "ok": true,
+   "detail": "created manufacturer_specified 1 gal; rows +1; stored 1 gal"
+  },
+  {
+   "group": "units",
+   "name": "vector 3 L -> 0.7925161570744452 gal (division, not reciprocal)",
+   "ok": true,
+   "detail": "created manufacturer_specified 0.7925161570744452 gal; rows +1; stored 0.7925161570744452 gal"
+  },
+  {
+   "group": "units",
+   "name": "vector 1 cu in -> 16.387064 cc",
+   "ok": true,
+   "detail": "created manufacturer_specified 16.387064 cc; rows +1; stored 16.387064 cc"
+  },
+  {
+   "group": "units",
+   "name": "vector -5 cc stays -5 cc (piston-crown sign preserved)",
+   "ok": true,
+   "detail": "created manufacturer_specified -5 cc; rows +1; stored -5 cc"
+  },
+  {
+   "group": "units",
+   "name": "vector 645.16 mm² -> 1 sq in",
+   "ok": true,
+   "detail": "created manufacturer_specified 1 sq in; rows +1; stored 1 sq in"
+  },
+  {
+   "group": "units",
+   "name": "vector 6.4516 cm² -> 1 sq in",
+   "ok": true,
+   "detail": "created manufacturer_specified 1 sq in; rows +1; stored 1 sq in"
+  },
+  {
+   "group": "units",
+   "name": "vector 5 mm² -> 0.007750015500031001 sq in (division, not reciprocal)",
+   "ok": true,
+   "detail": "created manufacturer_specified 0.007750015500031001 sq in; rows +1; stored 0.007750015500031001 sq in"
+  },
+  {
+   "group": "units",
+   "name": "vector 0.09290304 m² -> 1 sq ft",
+   "ok": true,
+   "detail": "created manufacturer_specified 1 sq ft; rows +1; stored 1 sq ft"
+  },
+  {
+   "group": "units",
+   "name": "vector 100 m² -> 1076.391041670972 sq ft (division, not reciprocal)",
+   "ok": true,
+   "detail": "created manufacturer_specified 1076.391041670972 sq ft; rows +1; stored 1076.391041670972 sq ft"
+  },
+  {
+   "group": "units",
+   "name": "vector :1 identity (no conversion in V1)",
+   "ok": true,
+   "detail": "created manufacturer_specified 3.73 :1; rows +1; stored 3.73 :1"
+  },
+  {
+   "group": "units",
+   "name": "vector ° identity (no conversion in V1)",
+   "ok": true,
+   "detail": "created manufacturer_specified 42.5 °; rows +1; stored 42.5 °"
+  },
+  {
+   "group": "units",
+   "name": "vector kWh identity (no conversion in V1)",
+   "ok": true,
+   "detail": "created manufacturer_specified 75 kWh; rows +1; stored 75 kWh"
+  },
+  {
+   "group": "units",
+   "name": "vector TPI identity (no conversion in V1)",
+   "ok": true,
+   "detail": "created manufacturer_specified 18 TPI; rows +1; stored 18 TPI"
+  },
+  {
+   "group": "units",
+   "name": "round trip 1 in -> 25.4 mm (display) -> 1 in (write) is exact",
+   "ok": true,
+   "detail": "exact"
+  },
+  {
+   "group": "units",
+   "name": "unsupported unit rejected: mm for a ratio",
+   "ok": true,
+   "detail": "rejected VW_UNSUPPORTED_UNIT unit_not_supported_for_field; rows +0"
+  },
+  {
+   "group": "units",
+   "name": "unsupported unit rejected: thread pitch in mm for TPI (a reciprocal relation, not in V1)",
+   "ok": true,
+   "detail": "rejected VW_UNSUPPORTED_UNIT unit_not_supported_for_field; rows +0"
+  },
+  {
+   "group": "units",
+   "name": "unsupported unit rejected: lb (mass) for a force",
+   "ok": true,
+   "detail": "rejected VW_UNSUPPORTED_UNIT unit_not_supported_for_field; rows +0"
+  },
+  {
+   "group": "units",
+   "name": "unsupported unit rejected: ASCII mm2 (exact unit tokens only)",
+   "ok": true,
+   "detail": "rejected VW_UNSUPPORTED_UNIT unit_not_supported_for_field; rows +0"
+  },
+  {
+   "group": "units",
+   "name": "unsupported unit rejected: MM (case-sensitive tokens)",
+   "ok": true,
+   "detail": "rejected VW_UNSUPPORTED_UNIT unit_not_supported_for_field; rows +0"
+  },
+  {
+   "group": "units",
+   "name": "unsupported unit rejected: kW for an energy",
+   "ok": true,
+   "detail": "rejected VW_UNSUPPORTED_UNIT unit_not_supported_for_field; rows +0"
+  },
+  {
+   "group": "units",
+   "name": "unsupported unit rejected: imperial gallon",
+   "ok": true,
+   "detail": "rejected VW_UNSUPPORTED_UNIT unit_not_supported_for_field; rows +0"
+  },
+  {
+   "group": "units",
+   "name": "conversion table is exactly the spec §H pair set (10 storage units)",
+   "ok": true,
+   "detail": "10 storage units"
+  },
+  {
+   "group": "units",
+   "name": "every factor is an exact §H defining constant (no rounded reciprocal)",
+   "ok": true,
+   "detail": "factors checked"
+  },
+  {
+   "group": "units",
+   "name": "every stored value is in its field’s canonical engine-native unit (DF_UNIT holds for the whole table)",
+   "ok": true,
+   "detail": "0 off-unit rows"
+  },
+  {
+   "group": "units",
+   "name": "dimension stays NULL (G-3): the service never writes canonical_fields",
+   "ok": true,
+   "detail": "0 rows with a dimension"
+  },
+  {
+   "group": "semantics",
+   "name": "nothing recorded -> current is absent (never zero, never a default)",
+   "ok": true,
+   "detail": "absent"
+  },
+  {
+   "group": "semantics",
+   "name": "append-only linear history: each write supersedes the previous head; superseded rows retained",
+   "ok": true,
+   "detail": "chain true, rows 3"
+  },
+  {
+   "group": "semantics",
+   "name": "exactly one current value per series (one non-superseded head)",
+   "ok": true,
+   "detail": "1 heads"
+  },
+  {
+   "group": "semantics",
+   "name": "no provenance priority: the newest value is current even when a measured value exists (estimated wins by recency)",
+   "ok": true,
+   "detail": "found estimated 1210 lbf"
+  },
+  {
+   "group": "semantics",
+   "name": "UNKNOWN != ZERO: a newer unknown becomes current as no value (not 0, not the previous value)",
+   "ok": true,
+   "detail": "found unknown null lbf"
+  },
+  {
+   "group": "semantics",
+   "name": "UNKNOWN != ZERO: a later explicit zero is current as a known 0",
+   "ok": true,
+   "detail": "found measured 0 lbf"
+  },
+  {
+   "group": "semantics",
+   "name": "a trusted-path value is append-only: service-role UPDATE refused (DF_IMMUTABLE)",
+   "ok": true,
+   "detail": "P0001 DF_IMMUTABLE: UPDATE on value_records is not permitted (values are append-only)"
+  },
+  {
+   "group": "semantics",
+   "name": "concurrent writers on one series (two connections): both succeed, serialized into one linear chain, one current",
+   "ok": true,
+   "detail": "created/created, linked true, heads 1"
+  },
+  {
+   "group": "semantics",
+   "name": "current-value read is restricted to admitted fields",
+   "ok": true,
+   "detail": "rejected VW_FIELD_NOT_ADMITTED field_not_admitted"
+  },
+  {
+   "group": "ownership",
+   "name": "no owner context rejected",
+   "ok": true,
+   "detail": "rejected VW_NO_OWNER trusted_owner_context_required; rows +0"
+  },
+  {
+   "group": "ownership",
+   "name": "owner context with extra claims rejected",
+   "ok": true,
+   "detail": "rejected VW_NO_OWNER trusted_owner_context_required"
+  },
+  {
+   "group": "ownership",
+   "name": "malformed owner id rejected",
+   "ok": true,
+   "detail": "rejected VW_NO_OWNER trusted_owner_context_required"
+  },
+  {
+   "group": "ownership",
+   "name": "a request-supplied owner equal to the login is still rejected (ownership never comes from the request)",
+   "ok": true,
+   "detail": "rejected VW_MALFORMED_REQUEST unexpected_key; rows +0"
+  },
+  {
+   "group": "ownership",
+   "name": "soft-deleted machine rejected",
+   "ok": true,
+   "detail": "rejected VW_MACHINE_NOT_FOUND machine_not_found; rows +0"
+  },
+  {
+   "group": "ownership",
+   "name": "active machine in a soft-deleted garage rejected",
+   "ok": true,
+   "detail": "rejected VW_MACHINE_NOT_FOUND machine_not_found; rows +0"
+  },
+  {
+   "group": "ownership",
+   "name": "nonexistent machine rejected",
+   "ok": true,
+   "detail": "rejected VW_MACHINE_NOT_FOUND machine_not_found; rows +0"
+  },
+  {
+   "group": "ownership",
+   "name": "an owner context that is not an account rejected",
+   "ok": true,
+   "detail": "rejected VW_MACHINE_NOT_FOUND machine_not_found; rows +0"
+  },
+  {
+   "group": "ownership",
+   "name": "B cannot write to A’s machine even with a valid login",
+   "ok": true,
+   "detail": "rejected VW_MACHINE_NOT_FOUND machine_not_found; rows +0"
+  },
+  {
+   "group": "ownership",
+   "name": "B writes to its own machine; owner is B",
+   "ok": true,
+   "detail": "created user_entered 2 in; rows +1; stored 2 in"
+  },
+  {
+   "group": "ownership",
+   "name": "current-value read of a soft-deleted machine rejected",
+   "ok": true,
+   "detail": "rejected VW_MACHINE_NOT_FOUND machine_not_found"
+  },
+  {
+   "group": "ownership",
+   "name": "current-value read of another owner’s machine rejected",
+   "ok": true,
+   "detail": "rejected VW_MACHINE_NOT_FOUND machine_not_found"
+  },
+  {
+   "group": "ownership",
+   "name": "FOR SHARE: a concurrent soft delete of the machine waits while a write holds the active-machine check",
+   "ok": true,
+   "detail": "active true, blocked true"
+  },
+  {
+   "group": "ownership",
+   "name": "FOR SHARE: a concurrent soft delete of the garage waits while a write holds the active-machine check",
+   "ok": true,
+   "detail": "active true, blocked true"
+  },
+  {
+   "group": "ownership",
+   "name": "field contract checked against the database: storage unit mismatch rejected before insert",
+   "ok": true,
+   "detail": "rejected VW_CONTRACT_MISMATCH field_contract_differs_from_database; rows +0"
+  },
+  {
+   "group": "ownership",
+   "name": "a canonical field present in the database but not admitted is rejected",
+   "ok": true,
+   "detail": "rejected VW_FIELD_NOT_ADMITTED field_not_admitted; rows +0"
+  },
+  {
+   "group": "ownership",
+   "name": "invalid field-contract configuration refuses to start (VW_CONFIGURATION)",
+   "ok": true,
+   "detail": "4/4 refused"
+  },
+  {
+   "group": "combined",
+   "name": "0201 applies on top of DATA-FOUNDATION-1.0.0 + GARAGE-FOUNDATION-1.0.0 with exactly the same two catalog changes",
+   "ok": true,
+   "detail": "removed 2, added 1"
+  },
+  {
+   "group": "combined",
+   "name": "GARAGE-FOUNDATION unaffected: the owner still creates a Test Setup through its own client grant",
+   "ok": true,
+   "detail": "ok rows 1"
+  },
+  {
+   "group": "combined",
+   "name": "combined database: authenticated value INSERT rejected (42501)",
+   "ok": true,
+   "detail": "42501 permission denied for table value_records"
+  },
+  {
+   "group": "combined",
+   "name": "CALCULATION-FOUNDATION unaffected: the frozen calculation service (from its tag) persists through the service role",
+   "ok": true,
+   "detail": "created incomplete"
+  },
+  {
+   "group": "combined",
+   "name": "combined database: the trusted value path writes (25.4 mm -> 1 in)",
+   "ok": true,
+   "detail": "created measured 1 in"
+  },
+  {
+   "group": "reconciliation",
+   "name": "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing",
+   "ok": true,
+   "detail": "29/29 lines; S checks 36, T checks 36"
+  },
+  {
+   "group": "reconciliation",
+   "name": "line 198 is the new security test: the historical OK is now a 42501 rejection",
+   "ok": true,
+   "detail": "security"
+  }
+ ],
+ "negative_controls": [
+  {
+   "mutation": "M-own-body: owner taken from request.owner_id when present",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[df:199 T] a request-supplied owner_id is never used (request rejected)",
+    "a request-supplied owner equal to the login is still rejected (ownership never comes from the request)",
+    "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-own-ctx: owner context not validated (extra claims accepted)",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "owner context with extra claims rejected",
+    "malformed owner id rejected"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-mach-deleted: active-machine check ignores deleted_at (machine and garage)",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "soft-deleted machine rejected",
+    "active machine in a soft-deleted garage rejected",
+    "current-value read of a soft-deleted machine rejected"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-mach-garage: active-machine check ignores the garage soft delete",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "active machine in a soft-deleted garage rejected"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-mach-owner: active-machine check ignores the owner",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[df:200 T] B cannot add a value to A’s machine (active-machine owner filter)",
+    "an owner context that is not an account rejected",
+    "B cannot write to A’s machine even with a valid login",
+    "current-value read of another owner’s machine rejected",
+    "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-mach-lock: active-machine check without FOR SHARE",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "FOR SHARE: a concurrent soft delete of the machine waits while a write holds the active-machine check",
+    "FOR SHARE: a concurrent soft delete of the garage waits while a write holds the active-machine check",
+    "field contract checked against the database: storage unit mismatch rejected before insert"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-prov-empirical: empirical provenance admitted",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[df:247 T] provenance empirical REJECTED in V1 (test results deferred)",
+    "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-prov-calculated: calculated / derived provenance admitted (write-back)",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[df:244 T] provenance calculated not permitted in V1 (no calculated write-back)",
+    "[df:245 T] provenance derived not permitted in V1",
+    "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-ctx-operating: operating_state context admitted",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[df:250 T] operating_state context rejected in V1 (specification only)",
+    "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-key-any: any canonical field present in the database admitted as a length",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[df:156 T] categorical field not admitted in V1 (allowlist rejects before the database)",
+    "[df:170 T] unknown canonical field rejected by the key allowlist",
+    "[df:234 T] categorical field given a number: not admitted in V1",
+    "[df:236 T] categorical field with an option: not admitted in V1",
+    "current-value read is restricted to admitted fields",
+    "a canonical field present in the database but not admitted is rejected",
+    "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-component: component-level values admitted",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "component-level value rejected (V1 is machine-level)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-contract-skip: field contract not re-checked against canonical_fields",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "field contract checked against the database: storage unit mismatch rejected before insert"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-val-missing: a missing value key is treated as unknown",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "missing value key rejected: never silently unknown, zero or a default"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-val-null-zero: a null known value becomes 0 (unknown -> zero)",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[df:230 T] no value with a known provenance rejected before the database",
+    "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-val-string: numeric strings (and blank as 0) accepted",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[df:235 T] numeric field given a text option: numeric input required",
+    "blank input rejected: blank never becomes a machine value",
+    "numeric string rejected: no string coercion",
+    "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-val-nan: NaN / Infinity passed to the database",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[df:237 T] non-finite NaN rejected before the database",
+    "[df:237 T] non-finite Infinity rejected before the database",
+    "[df:237 T] non-finite -Infinity rejected before the database",
+    "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-conv-reciprocal: mm -> in multiplied by the rounded reciprocal 0.0393701",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[df:241 T] a supported unit is converted and stored in the engine-native unit (101.6 mm -> 4 in)",
+    "[df:249 T] channel recorded in source (frozen meaning); the entered value and unit are not stored (G-5)",
+    "negative zero is normalized by the service BEFORE insert (+0 handed to the database, identity and converted)",
+    "out-of-range result rejected (nonzero input underflows: 1e-307 mm)",
+    "vector 25.4 mm -> 1 in",
+    "vector -12.7 mm -> -0.5 in (sign preserved)",
+    "vector 12.7 mm -> 0.5 in (division, not the binary reciprocal 0.49999999999999994)",
+    "vector 50.8 mm -> 2 in (division, not 1.9999999999999998)",
+    "vector 76.2 mm -> 3.0000000000000004 in (binary64 quotient, no write rounding)",
+    "vector D-1 regression: 1000 mm -> 39.37007874015748 in (no x25.4 or /25.4 mis-scaling)",
+    "combined database: the trusted value path writes (25.4 mm -> 1 in)",
+    "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-conv-binary-reciprocal: every division replaced by multiplication by 1/factor",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[df:241 T] a supported unit is converted and stored in the engine-native unit (101.6 mm -> 4 in)",
+    "out-of-range result rejected (nonzero input underflows: 1e-307 mm)",
+    "vector 25.4 mm -> 1 in",
+    "vector -12.7 mm -> -0.5 in (sign preserved)",
+    "vector 12.7 mm -> 0.5 in (division, not the binary reciprocal 0.49999999999999994)",
+    "vector 50.8 mm -> 2 in (division, not 1.9999999999999998)",
+    "vector 76.2 mm -> 3.0000000000000004 in (binary64 quotient, no write rounding)",
+    "vector 3 L -> 0.7925161570744452 gal (division, not reciprocal)",
+    "vector 5 mm² -> 0.007750015500031001 sq in (division, not reciprocal)",
+    "vector 100 m² -> 1076.391041670972 sq ft (division, not reciprocal)",
+    "combined database: the trusted value path writes (25.4 mm -> 1 in)",
+    "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-conv-D1: mm stored as if multiplied by 25.4 (F1 defect D-1)",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[df:241 T] a supported unit is converted and stored in the engine-native unit (101.6 mm -> 4 in)",
+    "[df:249 T] channel recorded in source (frozen meaning); the entered value and unit are not stored (G-5)",
+    "negative zero is normalized by the service BEFORE insert (+0 handed to the database, identity and converted)",
+    "out-of-range result rejected (nonzero input underflows: 1e-307 mm)",
+    "vector 25.4 mm -> 1 in",
+    "vector -12.7 mm -> -0.5 in (sign preserved)",
+    "vector 12.7 mm -> 0.5 in (division, not the binary reciprocal 0.49999999999999994)",
+    "vector 50.8 mm -> 2 in (division, not 1.9999999999999998)",
+    "vector 76.2 mm -> 3.0000000000000004 in (binary64 quotient, no write rounding)",
+    "vector D-1 regression: 1000 mm -> 39.37007874015748 in (no x25.4 or /25.4 mis-scaling)",
+    "combined database: the trusted value path writes (25.4 mm -> 1 in)",
+    "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-conv-round: stored value rounded to 6 significant digits (display rounding on write)",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "vector 76.2 mm -> 3.0000000000000004 in (binary64 quotient, no write rounding)",
+    "vector D-1 regression: 1000 mm -> 39.37007874015748 in (no x25.4 or /25.4 mis-scaling)",
+    "vector 3 L -> 0.7925161570744452 gal (division, not reciprocal)",
+    "vector 1 cu in -> 16.387064 cc",
+    "vector 5 mm² -> 0.007750015500031001 sq in (division, not reciprocal)",
+    "vector 100 m² -> 1076.391041670972 sq ft (division, not reciprocal)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-conv-negzero: -0 not normalized to +0",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "negative zero is normalized by the service BEFORE insert (+0 handed to the database, identity and converted)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-conv-overflow: non-finite conversion result not rejected",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "non-finite result rejected (overflow: max double cu in -> cc)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-conv-underflow: nonzero input silently flushed toward zero",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "out-of-range result rejected (nonzero input underflows: 1e-307 mm)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-conv-anyunit: an unsupported unit is treated as the storage unit (unit check bypassed)",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[df:240 T] unsupported unit rejected (kg for a length field)",
+    "unknown with an unsupported unit still rejected",
+    "unsupported unit rejected: mm for a ratio",
+    "unsupported unit rejected: thread pitch in mm for TPI (a reciprocal relation, not in V1)",
+    "unsupported unit rejected: lb (mass) for a force",
+    "unsupported unit rejected: ASCII mm2 (exact unit tokens only)",
+    "unsupported unit rejected: MM (case-sensitive tokens)",
+    "unsupported unit rejected: kW for an energy",
+    "unsupported unit rejected: imperial gallon",
+    "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-no-supersede: new values never supersede the current head",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[df:273 T] a correction supersedes the current head under the series lock; current follows the chain",
+    "[df:277 T] a double supersede is refused by values_superseded_once; the service retries against the fresh head",
+    "append-only linear history: each write supersedes the previous head; superseded rows retained",
+    "exactly one current value per series (one non-superseded head)",
+    "concurrent writers on one series (two connections): both succeed, serialized into one linear chain, one current",
+    "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-no-retry: a refused double supersede is not retried",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[df:277 T] a double supersede is refused by values_superseded_once; the service retries against the fresh head",
+    "all 29 reconciled lines re-proven at both levels (S = database rule or security test, T = trusted path), every check passing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-priority: provenance priority - the newest measured value is treated as current",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "vector 100 lbf -> 100 lbf",
+    "no provenance priority: the newest value is current even when a measured value exists (estimated wins by recency)",
+    "UNKNOWN != ZERO: a newer unknown becomes current as no value (not 0, not the previous value)",
+    "UNKNOWN != ZERO: a later explicit zero is current as a known 0"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-mig-no-revoke: 0201 without the REVOKE (post-conditions removed too)",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "migration 0201 contains exactly the two approved statements (plus BEGIN / post-condition block / COMMIT)",
+    "exactly two catalog changes vs pristine 1.0.0: authenticated INSERT (a) withdrawn from value_records ACL, policy df_values_insert removed; nothing else",
+    "transactional: a failed post-condition aborts 0201 and leaves the catalog unchanged (INSERT grant and policy still present)",
+    "self-check: 0201 without its REVOKE is refused by its own post-conditions",
+    "privilege matrix on value_records: authenticated SELECT only; anon nothing",
+    "no PUBLIC grant and no column-level INSERT/UPDATE grant on value_records",
+    "0201 applies on top of DATA-FOUNDATION-1.0.0 + GARAGE-FOUNDATION-1.0.0 with exactly the same two catalog changes"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-mig-no-drop: 0201 without DROP POLICY df_values_insert (post-conditions removed too)",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "migration 0201 contains exactly the two approved statements (plus BEGIN / post-condition block / COMMIT)",
+    "exactly two catalog changes vs pristine 1.0.0: authenticated INSERT (a) withdrawn from value_records ACL, policy df_values_insert removed; nothing else",
+    "transactional: a failed post-condition aborts 0201 and leaves the catalog unchanged (INSERT grant and policy still present)",
+    "self-check: 0201 without its REVOKE is refused by its own post-conditions",
+    "policies on value_records: exactly df_values_select (SELECT); df_values_insert absent",
+    "0201 applies on top of DATA-FOUNDATION-1.0.0 + GARAGE-FOUNDATION-1.0.0 with exactly the same two catalog changes"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-mig-restrictive: the rejected additive alternative (restrictive policy; grant and policy kept)",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "migration 0201 contains exactly the two approved statements (plus BEGIN / post-condition block / COMMIT)",
+    "repeat application is a no-op (idempotent): succeeds, schema dump and catalog fingerprint byte-identical",
+    "exactly two catalog changes vs pristine 1.0.0: authenticated INSERT (a) withdrawn from value_records ACL, policy df_values_insert removed; nothing else",
+    "no object created: no new table, column, function, trigger, index, constraint, policy or enum",
+    "rollback script restores the DATA-FOUNDATION-1.0.0 catalog exactly (fingerprint equals a fresh 1.0.0 database)",
+    "rollback is idempotent (second run succeeds, catalog unchanged)",
+    "re-applying 0201 after rollback yields the amended catalog again (round trip)",
+    "post-rollback verification: the DATA-FOUNDATION-1.0.0 client INSERT behaviour (df.test.js:198) is restored",
+    "transactional: a failed post-condition aborts 0201 and leaves the catalog unchanged (INSERT grant and policy still present)",
+    "self-check: 0201 without its REVOKE is refused by its own post-conditions",
+    "privilege matrix on value_records: authenticated SELECT only; anon nothing",
+    "no PUBLIC grant and no column-level INSERT/UPDATE grant on value_records",
+    "policies on value_records: exactly df_values_select (SELECT); df_values_insert absent",
+    "0201 applies on top of DATA-FOUNDATION-1.0.0 + GARAGE-FOUNDATION-1.0.0 with exactly the same two catalog changes"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-mig-select: 0201 also revokes SELECT (post-conditions removed)",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "migration 0201 contains exactly the two approved statements (plus BEGIN / post-condition block / COMMIT)",
+    "exactly two catalog changes vs pristine 1.0.0: authenticated INSERT (a) withdrawn from value_records ACL, policy df_values_insert removed; nothing else",
+    "rollback script restores the DATA-FOUNDATION-1.0.0 catalog exactly (fingerprint equals a fresh 1.0.0 database)",
+    "rollback is idempotent (second run succeeds, catalog unchanged)",
+    "post-rollback verification: the DATA-FOUNDATION-1.0.0 client INSERT behaviour (df.test.js:198) is restored",
+    "transactional: a failed post-condition aborts 0201 and leaves the catalog unchanged (INSERT grant and policy still present)",
+    "self-check: 0201 without its REVOKE is refused by its own post-conditions",
+    "authenticated SELECT of own value preserved",
+    "another owner’s values stay hidden (df_values_select)",
+    "privilege matrix on value_records: authenticated SELECT only; anon nothing"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-mig-extra-object: 0201 also creates an index",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "migration 0201 contains exactly the two approved statements (plus BEGIN / post-condition block / COMMIT)",
+    "exactly two catalog changes vs pristine 1.0.0: authenticated INSERT (a) withdrawn from value_records ACL, policy df_values_insert removed; nothing else",
+    "no object created: no new table, column, function, trigger, index, constraint, policy or enum",
+    "rollback script restores the DATA-FOUNDATION-1.0.0 catalog exactly (fingerprint equals a fresh 1.0.0 database)",
+    "rollback is idempotent (second run succeeds, catalog unchanged)",
+    "0201 applies on top of DATA-FOUNDATION-1.0.0 + GARAGE-FOUNDATION-1.0.0 with exactly the same two catalog changes"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-mig-no-txn: 0201 without BEGIN / COMMIT",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "migration 0201 contains exactly the two approved statements (plus BEGIN / post-condition block / COMMIT)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-rb-no-policy: rollback does not re-create df_values_insert",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "rollback script restores the DATA-FOUNDATION-1.0.0 catalog exactly (fingerprint equals a fresh 1.0.0 database)",
+    "rollback is idempotent (second run succeeds, catalog unchanged)",
+    "post-rollback verification: the DATA-FOUNDATION-1.0.0 client INSERT behaviour (df.test.js:198) is restored"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-rb-no-grant: rollback does not restore the INSERT grant",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "rollback script restores the DATA-FOUNDATION-1.0.0 catalog exactly (fingerprint equals a fresh 1.0.0 database)",
+    "rollback is idempotent (second run succeeds, catalog unchanged)",
+    "post-rollback verification: the DATA-FOUNDATION-1.0.0 client INSERT behaviour (df.test.js:198) is restored"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-rb-wrong-check: rollback re-creates the policy with a different WITH CHECK",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "rollback script restores the DATA-FOUNDATION-1.0.0 catalog exactly (fingerprint equals a fresh 1.0.0 database)",
+    "rollback is idempotent (second run succeeds, catalog unchanged)"
+   ],
+   "error": ""
+  }
+ ]
+}

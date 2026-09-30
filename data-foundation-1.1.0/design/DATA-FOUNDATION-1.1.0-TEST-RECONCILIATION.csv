@@ -1,0 +1,30 @@
+df_1_0_0_line,role_1_0_0,outcome_1_0_0,invariant,1_1_0_service_role_db_level (S),1_1_0_trusted_path_level (T)
+156,owner:A,ERR,categorical field with an empty option rejected,S: service-role INSERT rejected by values_option_nonempty,T: N/A in V1 (no categorical admitted; allowlist rejects)
+170,owner:A,ERR,value with an unknown canonical field rejected,S: DF_VALUE (23503),T: key allowlist rejects before DB
+198,owner:A,OK,owner inserts own value; owner from auth.uid(),SECURITY: same authenticated INSERT now REJECTED (42501) — the new boundary,T: trusted path inserts with owner derived from verified login
+199,user:B,ERR,spoofed owner_id rejected,S: composite FK values_machine_same_owner_fk rejects owner/machine mismatch,T: request-supplied owner never used; client INSERT also 42501
+200,user:B,ERR,B cannot add a value to A machine,S: composite FK,T: active-machine check (owner filter) rejects; client INSERT 42501
+228,owner:A,OK,"zero is a KNOWN value (0, user_entered)",S: accepted,T: explicit 0 preserved; -0 normalized to +0
+229,owner:A,OK,unknown = no value + provenance unknown,S: accepted,T: unknown written as no value + unknown
+230,owner:A,ERR,no value with a known provenance rejected,S: values_unknown_has_no_value / known_has_exactly_one,T: rejected before DB
+231,owner:A,ERR,a number with provenance unknown rejected,S: same constraint,T: rejected before DB
+232,owner:A,ERR,zero with provenance unknown rejected,S: same constraint,T: rejected before DB
+233,owner:A,ERR,both numeric and option rejected,S: values_known_has_exactly_one,T: N/A (numeric keys only)
+234,owner:A,ERR,categorical field given a number rejected,S: DF_KIND,T: N/A in V1
+235,owner:A,ERR,numeric field given an option rejected,S: DF_KIND,T: numeric input required
+236,owner:A,OK,categorical field with a declared option accepted,S: accepted,T: N/A in V1
+237,owner:A,ERR,non-finite values rejected (loop),S: values_numeric_finite,T: NaN/±Infinity/non-numeric rejected before DB
+240,owner:A,ERR,non-canonical unit rejected (kg for an lb field),S: DF_UNIT backstop,T: unsupported unit rejected; supported units converted to storage unit
+241,owner:A,OK,canonical engine-native unit accepted,S: accepted,T: stored in engine-native unit
+244,owner:A,ERR,calculated without calculation_id rejected,S: values_calculated_needs_calculation,T: provenance allowlist rejects calculated
+245,owner:A,ERR,derived without calculation_id rejected,S: same,T: allowlist rejects derived
+246,owner:A,OK,calculated/derived linked to own Calculation accepted (loop),S: accepted (DB rule preserved),T: rejected in V1 (no calculated write-back)
+247,owner:A,OK,provenance accepted (loop of 5 incl. empirical),S: all 5 accepted,T: V1 allowlist accepts user_entered/manufacturer_specified/estimated/measured; REJECTS empirical
+248,owner:A,ERR,'imported' is not a provenance category,S: 22P02 enum error,T: allowlist rejects
+249,owner:A,OK,import channel recorded in source,S: accepted,T: service records its channel in source (frozen meaning); no entered-unit data (G-5)
+250,owner:A,OK,operating_state context accepted,S: accepted (DB generic),T: rejected in V1 (specification only)
+270,owner:A,OK,client-supplied recorded_at ignored,S: df_stamp forces server time,T: service never supplies recorded_at
+273,owner:A,OK,correction supersedes; current follows chain,S: accepted,T: write discipline supersedes current head under lock
+277,owner:A,ERR,a value can be superseded only once,S: values_superseded_once,"T: concurrent double-supersede rejected, service retries"
+280,owner:A,ERR,superseding a different field rejected,S: DF_SUPERSEDE,"T: head lookup scoped to (machine,key,context)"
+282,owner:A,ERR,superseding across contexts rejected,S: DF_SUPERSEDE,T: context fixed to specification
