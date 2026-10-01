@@ -1,0 +1,13 @@
+{
+  "name": "gearhead-labs-value-foundation-1-0-0",
+  "version": "1.0.0",
+  "private": true,
+  "description": "VALUE-FOUNDATION 1.0.0 - Value Foundation V1: 47 canonical keys (0301 seed), committed 48-field admission configuration, specification values over the DATA-FOUNDATION-1.1.0 trusted write path, display, and the value -> engine adapter over the frozen CALCULATION-FOUNDATION service.",
+  "scripts": {
+    "test": "./tests/run-tests.sh",
+    "generate:check": "node tools/generate.js --check"
+  },
+  "devDependencies": {
+    "pg": "8.13.1"
+  }
+}

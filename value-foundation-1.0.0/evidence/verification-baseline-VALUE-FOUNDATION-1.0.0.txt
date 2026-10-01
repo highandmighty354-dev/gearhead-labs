@@ -1,0 +1,48 @@
+== value-foundation-1.0.0 suite (PostgreSQL 16.15) ==
+========================================================================
+GEARHEAD LABS - VALUE-FOUNDATION 1.0.0 - ACCEPTANCE SUITE (approved specification §U)
+========================================================================
+  specification a28cfddb...; admission f9b91aa8... (48 fields -> 47 keys); deferred register f2fa130d... (52)
+  stack from tags: DATA-FOUNDATION 1.0.0 + GARAGE-FOUNDATION 1.0.0 + DATA-FOUNDATION 1.1.0; seed 0301; frozen CALCULATION service
+[PASS] INTEGRITY      7 passed, 0 failed
+[PASS] ADMISSION      20 passed, 0 failed
+[PASS] MIGRATION      15 passed, 0 failed
+[PASS] VALUES         38 passed, 0 failed
+[PASS] DISPLAY        22 passed, 0 failed
+[PASS] AUTHORITY      13 passed, 0 failed
+[PASS] ADAPTER        19 passed, 0 failed
+[INFO] §U criteria exercised in-suite: [U1] [U2] [U3] [U4] [U5] [U6] [U7] [U8] [U9] [U10] [U11] [U12] [U13] [U14] [U15] [U16] (U17, U18: isolation gate)
+
+TOTAL 134 checks, 134 passed, 0 failed
+
+[PASS] NEGATIVE_CONTROLS 28/28 mutants detected
+    + M-cfg-promote-deferred: a deferred multi-instance field silently replaces an admitted one: 5 check(s) failed
+    + M-cfg-old-name: the pre-rename key supercharger_drive_ratio is used: 5 check(s) failed
+    + M-cfg-engine-key: the J-pipe diameter is mapped to the drone-frequency input: 8 check(s) failed
+    + M-cfg-gal-token: the gal (US) label is mapped to the litre token: 6 check(s) failed
+    + M-cfg-jpipe-label: the J-pipe field is labelled merely "Pipe Diameter": 1 check(s) failed
+    + M-cfg-vcg-split: the second vehicle_cg_height source field gets its own key: suite error
+    + M-cfg-storage-unit: a length key is declared with storage unit mm: suite error
+    + M-cfg-label-override: a second display label is silently changed: 1 check(s) failed
+    + M-seed-no-postconditions: 0301 relies on ON CONFLICT DO NOTHING alone: 4 check(s) failed
+    + M-seed-no-on-conflict: 0301 is not idempotent: 3 check(s) failed
+    + M-seed-dimension: 0301 writes a dimension (G-3 requires NULL): 2 check(s) failed
+    + M-seed-description: 0301 rewrites the J-pipe definition (inside -> outside): 2 check(s) failed
+    + M-seed-48-rows: 0301 also seeds a raw source-field row (48 database rows): 10 check(s) failed
+    + M-seed-extra-object: 0301 also creates an index: 3 check(s) failed
+    + M-rb-no-guard: rollback does not refuse when values reference the keys: 1 check(s) failed
+    + M-rb-incomplete: rollback leaves one seeded key behind: 2 check(s) failed
+    + M-val-unit-fallback: an unknown unit label falls back to the storage unit: 4 check(s) failed
+    + M-val-admit-any: any key is passed to the trusted path (admission check skipped): 1 check(s) failed
+    + M-val-format-fixed: display uses 6 decimal places instead of 6 significant digits: 8 check(s) failed
+    + M-val-format-half-even: display rounds half to even: 3 check(s) failed
+    + M-ad-convert: the adapter converts in -> mm before feeding the engine: 5 check(s) failed
+    + M-ad-unknown-zero: an unknown / absent value is fed as 0: 2 check(s) failed
+    + M-ad-override-explicit: stored values overwrite explicit request inputs: 2 check(s) failed
+    + M-ad-explicit-null: an explicit null input is filled from storage: 1 check(s) failed
+    + M-ad-feed-condition: the J-pipe drone frequency (a condition) is also auto-fed: 1 check(s) failed
+    + M-ad-unproven: stored values are read for calculators the frozen authority would not execute: 1 check(s) failed
+    + M-ad-ignore-rejection: a rejected read (soft-deleted machine, other owner) is ignored and the calculation proceeds: 1 check(s) failed
+    + M-ad-vcg-once: the shared vehicle_cg_height feeds only one of its two engine keys: 2 check(s) failed
+
+VALUE-FOUNDATION-1.0.0 SUITE: PASS

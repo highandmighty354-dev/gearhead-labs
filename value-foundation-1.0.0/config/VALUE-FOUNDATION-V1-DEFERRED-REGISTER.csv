@@ -1,0 +1,53 @@
+draft_field_id,engine_key,category,reason,admission
+engine_torque_at_stall__lb_ft,torque_converter.tq,ENGINEERING REVIEW REQUIRED,condition-defined operating value; V1 stores no conditions,not admitted in V1
+exhaust_opens_bbdc__deg,camshaft_events.elo,ENGINEERING REVIEW REQUIRED,"Frozen page: camshaft_duration ""advertised and .050-inch duration are not interchangeable... no universal mathematical conversion""; cam card ""0.050\"" REFERENCE""; useIVC ivc=c.dur050I/2+icl-180 feeds DCR IVC at 0.050"". Lift reference is iden",not admitted in V1
+exhaust_valve_opening_deg_bbdc__deg,exhaust_header.evo,ENGINEERING REVIEW REQUIRED,"Frozen page: camshaft_duration ""advertised and .050-inch duration are not interchangeable... no universal mathematical conversion""; cam card ""0.050\"" REFERENCE""; useIVC ivc=c.dur050I/2+icl-180 feeds DCR IVC at 0.050"". Lift reference is iden",not admitted in V1
+front_ride_height__in,rc_rake_angle.rh_front,ENGINEERING REVIEW REQUIRED,rake = rear − front requires consistent points; basis unstated,not admitted in V1
+installed_advance_per_retard__deg,camshaft_intake_centerline.af_ic_adv,ENGINEERING REVIEW REQUIRED,"output uses ""° crank""; input degree basis unstated; LSA conventionally in cam degrees",not admitted in V1
+intake_closes_abdc__deg,camshaft_events.ilc,ENGINEERING REVIEW REQUIRED,"Frozen page: camshaft_duration ""advertised and .050-inch duration are not interchangeable... no universal mathematical conversion""; cam card ""0.050\"" REFERENCE""; useIVC ivc=c.dur050I/2+icl-180 feeds DCR IVC at 0.050"". Lift reference is iden",not admitted in V1
+intake_closing_angle_abdc__deg,dynamic_compression.ica,ENGINEERING REVIEW REQUIRED,"Frozen page: camshaft_duration ""advertised and .050-inch duration are not interchangeable... no universal mathematical conversion""; cam card ""0.050\"" REFERENCE""; useIVC ivc=c.dur050I/2+icl-180 feeds DCR IVC at 0.050"". Lift reference is iden",not admitted in V1
+intake_valve_closing_after_bdc__deg_abdc,cranking_compression.ivc,ENGINEERING REVIEW REQUIRED,"Frozen page: camshaft_duration ""advertised and .050-inch duration are not interchangeable... no universal mathematical conversion""; cam card ""0.050\"" REFERENCE""; useIVC ivc=c.dur050I/2+icl-180 feeds DCR IVC at 0.050"". Lift reference is iden",not admitted in V1
+left_tire_circumference__in,tire_stagger.circ_l,ENGINEERING REVIEW REQUIRED,stagger calc; axle implied rear only by domain,not admitted in V1
+pressure_plate_load__lbf,clutch_release_force.spring,ENGINEERING REVIEW REQUIRED,"clutch_release_force help: ""Simplified release force estimate from pressure-plate load... Actual diaphragm-spring curves are nonlinear"" -> load at release need not equal installed clamp load; merge not justified by frozen source; remains EN",not admitted in V1
+rear_ride_height__in,rc_rake_angle.rh_rear,ENGINEERING REVIEW REQUIRED,as above,not admitted in V1
+right_tire_circumference__in,tire_stagger.circ_r,ENGINEERING REVIEW REQUIRED,as above,not admitted in V1
+shaft_length__in,driveshaft_critical.len_dc,ENGINEERING REVIEW REQUIRED,critical-speed formula uses unsupported length; basis unstated,not admitted in V1
+center_to_center_distance__in,belt_length.center_dist,IDENTITY UNRESOLVED,"belt_length help: ""Useful for serpentine belts, accessory drives, or custom pulley setups"" -> generic utility; which drive not stated -> do not seed",not admitted in V1
+countersink_included_angle__deg,countersink_depth.angle_cs,IDENTITY UNRESOLVED,generic fastener utility,not admitted in V1
+height__in,tank_volume.ht,IDENTITY UNRESOLVED,"tank_volume help: ""tank volume in gallons from internal dimensions"" -> basis (internal) established; subject remains ""a tank"" (generic utility; which tank not stated) -> do not seed",not admitted in V1
+large_pulley_diameter__in,belt_length.p1_dia,IDENTITY UNRESOLVED,"belt_length help: ""Useful for serpentine belts, accessory drives, or custom pulley setups"" -> generic utility; which drive not stated -> do not seed",not admitted in V1
+length__in,tank_volume.len2,IDENTITY UNRESOLVED,"tank_volume help: ""tank volume in gallons from internal dimensions"" -> basis (internal) established; subject remains ""a tank"" (generic utility; which tank not stated) -> do not seed",not admitted in V1
+one_way_wire_length__ft,wire_gauge.len_wg,IDENTITY UNRESOLVED,"wire_gauge help: generic (""from amperage, run length, and allowable voltage drop""); which circuit not stated -> do not seed",not admitted in V1
+original_bolt_per_thread_size__in,helicoil_size.orig_size,IDENTITY UNRESOLVED,generic thread-repair utility,not admitted in V1
+original_threads_per_inch__tpi,helicoil_size.orig_tpi,IDENTITY UNRESOLVED,generic thread-repair utility,not admitted in V1
+r1__ohm,resistance.r1,IDENTITY UNRESOLVED,generic series/parallel utility; no machine subject,not admitted in V1
+r2__ohm,resistance.r2,IDENTITY UNRESOLVED,as above,not admitted in V1
+r3__ohm,resistance.r3,IDENTITY UNRESOLVED,as above,not admitted in V1
+screw_head_diameter__in,countersink_depth.screw_dia,IDENTITY UNRESOLVED,generic fastener utility,not admitted in V1
+small_pulley_diameter__in,belt_length.p2_dia,IDENTITY UNRESOLVED,"belt_length help: ""Useful for serpentine belts, accessory drives, or custom pulley setups"" -> generic utility; which drive not stated -> do not seed",not admitted in V1
+wheel_center_offset__in,scrub_radius.wc,IDENTITY UNRESOLVED,"scrub_radius help defines scrub radius only (""Distance between steering axis and wheel centerline at ground contact. Positive scrub aids steering feel.""); wc reference plane undefined; positive-scrub sign implies wc measured outboard, oppos",not admitted in V1
+width__in,tank_volume.wd,IDENTITY UNRESOLVED,"tank_volume help: ""tank volume in gallons from internal dimensions"" -> basis (internal) established; subject remains ""a tank"" (generic utility; which tank not stated) -> do not seed",not admitted in V1
+arm_length__in,ct_sway_bar.sb_arm,"MULTI-INSTANCE (Decision 1, previously identified)",multi-instance front/rear bar,not admitted in V1
+bar_length_between_arms__in,ct_sway_bar.sb_len,"MULTI-INSTANCE (Decision 1, previously identified)",multi-instance front/rear bar,not admitted in V1
+bar_wire_diameter__in,ct_sway_bar.sb_wire,"MULTI-INSTANCE (Decision 1, previously identified)",multi-instance front/rear bar,not admitted in V1
+caliper_piston_bore__in,brake_hydraulic_ratio.cal,"MULTI-INSTANCE (Decision 1, previously identified)",multi-instance front/rear calipers; piston count not modelled,not admitted in V1
+caster_angle__deg,mech_trail.ca2,"MULTI-INSTANCE (Decision 1, previously identified)",multi-instance L/R caster,not admitted in V1
+rocker_ratio__to_1,valve_lash.rocker_r,"MULTI-INSTANCE (Decision 1, previously identified)",multi-instance: intake vs exhaust rockers; V1 machine-level only (#29 deferred),not admitted in V1
+shock_collapsed_length__in,shock_length.col_sh,"MULTI-INSTANCE (Decision 1, previously identified)",multi-instance front/rear,not admitted in V1
+suspension_wheel_travel__in,shock_length.travel_sh,"MULTI-INSTANCE (Decision 1, previously identified)",multi-instance front/rear,not admitted in V1
+throat_diameter__in,valve_throat_area.vta_d,"MULTI-INSTANCE (Decision 1, previously identified)",multi-instance intake/exhaust; calculator does not say which,not admitted in V1
+valve_lash__in,lash_net_lift.lnl_l,"MULTI-INSTANCE (Decision 1, previously identified)",condition-defined (hot/cold) + multi-instance intake/exhaust,not admitted in V1
+amount_milled__in,milling_heads.depth,NOT A VALID CANONICAL FIELD,"a machining change quantity, not a persistent configuration value (characteristic: difference)",not admitted in V1
+average_tire_circumference__in,ct_ideal_stagger.avg_circ,NOT A VALID CANONICAL FIELD,"ct_ideal_stagger help: ""Ideal Stagger = Avg Circumference x ..."" -> an average of tire circumferences: a derived statistic, not a persistent component value",not admitted in V1
+hydraulic_ratio__to_1,brake_pedal_effort.hyd,NOT A VALID CANONICAL FIELD,"brake_hydraulic_ratio help: ""caliper piston area divided by master-cylinder piston area""; proven brake_hydraulic_ratio computes it from bores -> a calculation result (OWN-2), not a stored specification",not admitted in V1
+next_gear_ratio__to_1,rpm_drop_shift.next_gear,NOT A VALID CANONICAL FIELD,"relational label: persistent quantities are specific gear ratios, not ""next gear""",not admitted in V1
+backspace__in,wheel_offset.backspace,REMOVED FROM 58 — MULTI-INSTANCE (newly identified),multi-instance (front/rear wheels),not admitted in V1
+inside_diameter_0_if_solid__in,driveshaft_critical.id_dc,REMOVED FROM 58 — MULTI-INSTANCE (newly identified),multi-instance (front/rear driveshafts),not admitted in V1
+inside_diameter__in,fuel_line_loss.line_id,REMOVED FROM 58 — MULTI-INSTANCE (newly identified),multi-instance (several fuel lines),not admitted in V1
+loaded_tire_radius__in,mech_trail.tr_mt,REMOVED FROM 58 — MULTI-INSTANCE (newly identified),multi-instance (front/rear tires),not admitted in V1
+or_enter_offset_to_get_backspace__mm,wheel_offset.offset_in,REMOVED FROM 58 — MULTI-INSTANCE (newly identified),multi-instance (front/rear wheels),not admitted in V1
+outside_diameter__in,driveshaft_critical.od_dc,REMOVED FROM 58 — MULTI-INSTANCE (newly identified),multi-instance (front/rear driveshafts),not admitted in V1
+section_width__mm,tire_size.tw,REMOVED FROM 58 — MULTI-INSTANCE (newly identified),multi-instance (front/rear tires),not admitted in V1
+wheel_diameter__in,tire_size.wr,REMOVED FROM 58 — MULTI-INSTANCE (newly identified),multi-instance (front/rear wheels),not admitted in V1
+wing_per_splitter_area__sq_ft,rc_downforce.area,REMOVED FROM 58 — MULTI-INSTANCE (newly identified),multi-instance / subject ambiguous (wing or splitter),not admitted in V1
+king_pin_arm_kpa__in,scrub_radius.kpa,REMOVED FROM 58 — UNRESOLVED DATUM,datum not established (Scrub = wc - kpa),not admitted in V1

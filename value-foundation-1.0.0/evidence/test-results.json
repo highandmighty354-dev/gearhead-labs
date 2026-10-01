@@ -1,0 +1,1116 @@
+{
+ "checks": [
+  {
+   "group": "integrity",
+   "name": "approved specification is the approved original, byte for byte (SHA-256 a28cfddb7a5b...)",
+   "ok": true,
+   "detail": "match"
+  },
+  {
+   "group": "integrity",
+   "name": "admission artifact is the approved original, byte for byte (SHA-256 f9b91aa8a653...)",
+   "ok": true,
+   "detail": "match"
+  },
+  {
+   "group": "integrity",
+   "name": "deferred register is the approved original, byte for byte (SHA-256 f2fa130db594...)",
+   "ok": true,
+   "detail": "match"
+  },
+  {
+   "group": "integrity",
+   "name": "generation check: committed configuration, 0301 seed and rollback are byte-identical to their mechanical derivation",
+   "ok": true,
+   "detail": "3/3 identical"
+  },
+  {
+   "group": "integrity",
+   "name": "the trusted write path used is the closed DATA-FOUNDATION-1.1.0 source, byte-identical to its tag",
+   "ok": true,
+   "detail": "5/5 identical"
+  },
+  {
+   "group": "integrity",
+   "name": "database stack (DATA 0001-0005, GARAGE 0101-0103, 0201) read from tags equals the working tree",
+   "ok": true,
+   "detail": "10 files"
+  },
+  {
+   "group": "integrity",
+   "name": "[U16] Value Foundation source: no F1/engine code, no SQL, no own conversion constant, no rounding; only DATA-FOUNDATION-1.1.0 / local requires",
+   "ok": true,
+   "detail": "requires ok true; decimal literals 0; F1/SQL markers false"
+  },
+  {
+   "group": "admission",
+   "name": "[U1] exactly 48 admitted source fields -> 47 canonical quantity keys",
+   "ok": true,
+   "detail": "48 -> 47"
+  },
+  {
+   "group": "admission",
+   "name": "[U1] configuration equals the approved admission artifact row for row (source field, key, engine key, storage unit, role)",
+   "ok": true,
+   "detail": "48/48"
+  },
+  {
+   "group": "admission",
+   "name": "[U1] configuration equals the approved specification §D table, in order",
+   "ok": true,
+   "detail": "48 rows"
+  },
+  {
+   "group": "admission",
+   "name": "[U1] the 47 keys are exactly the §E key table",
+   "ok": true,
+   "detail": "47/47 in §E"
+  },
+  {
+   "group": "admission",
+   "name": "[U1][U13] no deferred-register field is in the production admission set",
+   "ok": true,
+   "detail": "0 leaked of 52 deferred"
+  },
+  {
+   "group": "admission",
+   "name": "[U2] one key per quantity: the only shared key is vehicle_cg_height",
+   "ok": true,
+   "detail": "vehicle_cg_height"
+  },
+  {
+   "group": "admission",
+   "name": "[U2] vehicle_cg_height covers exactly its 2 approved source fields",
+   "ok": true,
+   "detail": "center_of_gravity_height__in>anti_squat.cg vehicle_cg_height__in>anti_dive.cgH"
+  },
+  {
+   "group": "admission",
+   "name": "[U3] key naming: frozen regex; no unit slug; no value-role word; no key named after its own source calculator",
+   "ok": true,
+   "detail": "regex 0, slug 0, role 0, own-calculator 0"
+  },
+  {
+   "group": "admission",
+   "name": "[U3] approved renames present; old names absent",
+   "ok": true,
+   "detail": "present true, old absent true"
+  },
+  {
+   "group": "admission",
+   "name": "[U4] storage unit = engine-native unit (artifact) = the frozen F1 input unit (MAPPING-FOUNDATION, verbatim source) for all 48",
+   "ok": true,
+   "detail": "0 differ"
+  },
+  {
+   "group": "admission",
+   "name": "[U4] every field’s admitted units are exactly the trusted path’s §H unit set for its storage unit",
+   "ok": true,
+   "detail": "48/48"
+  },
+  {
+   "group": "admission",
+   "name": "[U14] every engine key is an input of a proven canonical frozen calculator",
+   "ok": true,
+   "detail": "48/48"
+  },
+  {
+   "group": "admission",
+   "name": "[U12] no categorical field admitted (OWN-6): all 47 keys numeric; bearing_type neither a key nor a source field",
+   "ok": true,
+   "detail": "categorical 0; bearing_type 0"
+  },
+  {
+   "group": "admission",
+   "name": "[U13] the 19 multi-instance exclusions (§Q) and king_pin_arm are in the deferred register, none admitted",
+   "ok": true,
+   "detail": "MI 19, §Q 19, king_pin_arm 1"
+  },
+  {
+   "group": "admission",
+   "name": "[U13][U14] no deferred field’s engine key is ever fed by the adapter configuration",
+   "ok": true,
+   "detail": "0 deferred engine keys fed"
+  },
+  {
+   "group": "admission",
+   "name": "J-pipe: user-facing label says \"Inside Diameter\"; frozen label kept verbatim; key and engine key as approved",
+   "ok": true,
+   "detail": "Pipe Inside Diameter (frozen: Pipe Diameter)"
+  },
+  {
+   "group": "admission",
+   "name": "J-pipe: seeded description is the approved artifact’s definition verbatim (inside-diameter engineering interpretation)",
+   "ok": true,
+   "detail": "verbatim"
+  },
+  {
+   "group": "admission",
+   "name": "every other display label is the frozen calculator input label, verbatim (one approved override only)",
+   "ok": true,
+   "detail": "0 other overrides"
+  },
+  {
+   "group": "admission",
+   "name": "gal (US): the artifact label is kept for display and mapped to the trusted token gal; §H unchanged",
+   "ok": true,
+   "detail": "gal (US)->gal, L->L"
+  },
+  {
+   "group": "admission",
+   "name": "unit-label table: every label maps to a real trusted-path token; unknown labels are refused, never guessed",
+   "ok": true,
+   "detail": "0 bad; 4/4 refused"
+  },
+  {
+   "group": "migration",
+   "name": "0301 creates no database object: its only DDL is a transaction-scoped TEMP table (ON COMMIT DROP)",
+   "ok": true,
+   "detail": "CREATE TEMP TABLE vf_0301_expected ( key"
+  },
+  {
+   "group": "migration",
+   "name": "clean install: 0301 applies on the frozen stack (DATA 1.0.0 + GARAGE + DATA 1.1.0)",
+   "ok": true,
+   "detail": "applied"
+  },
+  {
+   "group": "migration",
+   "name": "[U1] database holds exactly the 47 approved canonical_fields rows (family, dimension NULL, engine-native unit, numeric, approved definition)",
+   "ok": true,
+   "detail": "47 rows; 0 unexpected"
+  },
+  {
+   "group": "migration",
+   "name": "[U12] no categorical row is seeded (database)",
+   "ok": true,
+   "detail": "0 categorical rows"
+  },
+  {
+   "group": "migration",
+   "name": "0301 changes rows only: catalog fingerprint identical to the frozen stack",
+   "ok": true,
+   "detail": "0 differing entries"
+  },
+  {
+   "group": "migration",
+   "name": "idempotent: re-running 0301 succeeds and the full schema+data dump is byte-identical",
+   "ok": true,
+   "detail": "dump identical"
+  },
+  {
+   "group": "migration",
+   "name": "rollback (no values yet) removes exactly the 47 rows: rows and catalog equal the frozen stack",
+   "ok": true,
+   "detail": "0 rows left"
+  },
+  {
+   "group": "migration",
+   "name": "rollback is idempotent",
+   "ok": true,
+   "detail": "ok"
+  },
+  {
+   "group": "migration",
+   "name": "re-applying 0301 after rollback restores the identical 47 rows",
+   "ok": true,
+   "detail": "ok"
+  },
+  {
+   "group": "migration",
+   "name": "post-conditions, not ON CONFLICT alone: a pre-existing row with a different unit aborts 0301 and nothing is inserted",
+   "ok": true,
+   "detail": "aborted; rows 1 -> 1"
+  },
+  {
+   "group": "migration",
+   "name": "post-conditions, not ON CONFLICT alone: a pre-existing row with a different description aborts 0301 and nothing is inserted",
+   "ok": true,
+   "detail": "aborted; rows 1 -> 1"
+  },
+  {
+   "group": "migration",
+   "name": "post-conditions, not ON CONFLICT alone: a pre-existing old (renamed) key aborts 0301 and nothing is inserted",
+   "ok": true,
+   "detail": "aborted; rows 1 -> 1"
+  },
+  {
+   "group": "migration",
+   "name": "post-conditions, not ON CONFLICT alone: a pre-existing deferred field id as a key aborts 0301 and nothing is inserted",
+   "ok": true,
+   "detail": "aborted; rows 1 -> 1"
+  },
+  {
+   "group": "migration",
+   "name": "upgrade in place: 0301 applies to a populated database (accounts, garages, machines present)",
+   "ok": true,
+   "detail": "applied"
+  },
+  {
+   "group": "values",
+   "name": "[U6] 25.4 mm -> 1 in",
+   "ok": true,
+   "detail": "stored 1 in"
+  },
+  {
+   "group": "values",
+   "name": "[U6] 1 in -> 1 in",
+   "ok": true,
+   "detail": "stored 1 in"
+  },
+  {
+   "group": "values",
+   "name": "[U6] -12.7 mm -> -0.5 in",
+   "ok": true,
+   "detail": "stored -0.5 in"
+  },
+  {
+   "group": "values",
+   "name": "[U6] 12.7 mm -> 0.5 in (exact division, not the reciprocal)",
+   "ok": true,
+   "detail": "stored 0.5 in"
+  },
+  {
+   "group": "values",
+   "name": "[U6] 76.2 mm -> 3.0000000000000004 in (binary64, unrounded)",
+   "ok": true,
+   "detail": "stored 3.0000000000000004 in"
+  },
+  {
+   "group": "values",
+   "name": "[U6] [U16] D-1 regression: 1000 mm -> 39.37007874015748 in",
+   "ok": true,
+   "detail": "stored 39.37007874015748 in"
+  },
+  {
+   "group": "values",
+   "name": "[U6] 4.4482216152605 N -> 1 lbf",
+   "ok": true,
+   "detail": "stored 1 lbf"
+  },
+  {
+   "group": "values",
+   "name": "[U6] 3.785411784 L -> 1 gal",
+   "ok": true,
+   "detail": "stored 1 gal"
+  },
+  {
+   "group": "values",
+   "name": "[U6] label gal (US) -> token gal: 5 -> 5 gal",
+   "ok": true,
+   "detail": "stored 5 gal"
+  },
+  {
+   "group": "values",
+   "name": "[U6] token gal accepted: 7 -> 7 gal",
+   "ok": true,
+   "detail": "stored 7 gal"
+  },
+  {
+   "group": "values",
+   "name": "[U6] 1 cu in -> 16.387064 cc",
+   "ok": true,
+   "detail": "stored 16.387064 cc"
+  },
+  {
+   "group": "values",
+   "name": "[U6] -5 cc stays -5 cc (dish sign preserved)",
+   "ok": true,
+   "detail": "stored -5 cc"
+  },
+  {
+   "group": "values",
+   "name": "[U6] 645.16 mm² -> 1 sq in",
+   "ok": true,
+   "detail": "stored 1 sq in"
+  },
+  {
+   "group": "values",
+   "name": "[U6] 6.4516 cm² -> 1 sq in",
+   "ok": true,
+   "detail": "stored 1 sq in"
+  },
+  {
+   "group": "values",
+   "name": "[U6] 0.09290304 m² -> 1 sq ft",
+   "ok": true,
+   "detail": "stored 1 sq ft"
+  },
+  {
+   "group": "values",
+   "name": "[U6] :1 identity",
+   "ok": true,
+   "detail": "stored 3.73 :1"
+  },
+  {
+   "group": "values",
+   "name": "[U6] ° identity",
+   "ok": true,
+   "detail": "stored 42.5 °"
+  },
+  {
+   "group": "values",
+   "name": "[U6] kWh identity",
+   "ok": true,
+   "detail": "stored 75 kWh"
+  },
+  {
+   "group": "values",
+   "name": "[U6] TPI identity",
+   "ok": true,
+   "detail": "stored 18 TPI"
+  },
+  {
+   "group": "values",
+   "name": "[U6] direction rule round trip: 1 in -> display 25.4 mm -> write 25.4 mm -> 1 in",
+   "ok": true,
+   "detail": "25.4 mm -> 1 in"
+  },
+  {
+   "group": "values",
+   "name": "[U7] explicit zero (0 mm) stored as a known 0",
+   "ok": true,
+   "detail": "stored 0"
+  },
+  {
+   "group": "values",
+   "name": "[U7] -0 stored as +0",
+   "ok": true,
+   "detail": "stored 0"
+  },
+  {
+   "group": "values",
+   "name": "[U8] rejected, nothing stored: unsupported unit kg for a length",
+   "ok": true,
+   "detail": "rejected VF_UNSUPPORTED_UNIT unit_not_admitted_for_key; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "[U8] rejected, nothing stored: gal (UK) (not an admitted label)",
+   "ok": true,
+   "detail": "rejected VF_UNSUPPORTED_UNIT unit_not_admitted_for_key; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "[U8] rejected, nothing stored: mm for a ratio",
+   "ok": true,
+   "detail": "rejected VF_UNSUPPORTED_UNIT unit_not_admitted_for_key; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "[U8] rejected, nothing stored: thread pitch in mm for TPI (reciprocal, not in V1)",
+   "ok": true,
+   "detail": "rejected VF_UNSUPPORTED_UNIT unit_not_admitted_for_key; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "[U8] rejected, nothing stored: NaN input",
+   "ok": true,
+   "detail": "rejected VW_INVALID_VALUE non_finite_value; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "[U8] rejected, nothing stored: Infinity input",
+   "ok": true,
+   "detail": "rejected VW_INVALID_VALUE non_finite_value; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "[U8] rejected, nothing stored: non-finite result (overflow cu in -> cc)",
+   "ok": true,
+   "detail": "rejected VW_INVALID_CONVERSION non_finite_result; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "[U8] rejected, nothing stored: known value without a unit",
+   "ok": true,
+   "detail": "rejected VW_UNSUPPORTED_UNIT unit_required; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "[U10] unknown = no value + provenance unknown (never 0, never a default)",
+   "ok": true,
+   "detail": "stored NULL unknown"
+  },
+  {
+   "group": "values",
+   "name": "[U10] blank input is never stored",
+   "ok": true,
+   "detail": "rejected VW_INVALID_VALUE numeric_value_required; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "[U10] a missing value is never defaulted",
+   "ok": true,
+   "detail": "rejected VW_MALFORMED_REQUEST value_required; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "[U10] a numeric string is not coerced",
+   "ok": true,
+   "detail": "rejected VW_INVALID_VALUE numeric_value_required; rows +0"
+  },
+  {
+   "group": "values",
+   "name": "[U11] newest non-superseded value is current; linear supersession; history retained",
+   "ok": true,
+   "detail": "chain true; current 9.2"
+  },
+  {
+   "group": "values",
+   "name": "[U11] no provenance priority: a newer estimated value supersedes a measured one",
+   "ok": true,
+   "detail": "estimated"
+  },
+  {
+   "group": "values",
+   "name": "[U10] nothing recorded -> current is absent (not zero)",
+   "ok": true,
+   "detail": "absent  "
+  },
+  {
+   "group": "values",
+   "name": "[U4] every stored value is in its key’s engine-native canonical unit (DF_UNIT holds)",
+   "ok": true,
+   "detail": "0 off-unit"
+  },
+  {
+   "group": "display",
+   "name": "[U9] 2.5 -> 3 (half away from zero)",
+   "ok": true,
+   "detail": "3"
+  },
+  {
+   "group": "display",
+   "name": "[U9] -2.5 -> -3 (symmetric)",
+   "ok": true,
+   "detail": "-3"
+  },
+  {
+   "group": "display",
+   "name": "[U9] 0.125 -> 0.13",
+   "ok": true,
+   "detail": "0.13"
+  },
+  {
+   "group": "display",
+   "name": "[U9] binary case: 1.005 is below 1.005 in binary, so shows 1.00 -> \"1\"",
+   "ok": true,
+   "detail": "1"
+  },
+  {
+   "group": "display",
+   "name": "[U9] default 6 significant digits",
+   "ok": true,
+   "detail": "0.333333"
+  },
+  {
+   "group": "display",
+   "name": "[U9] trailing zeros dropped",
+   "ok": true,
+   "detail": "25.4"
+  },
+  {
+   "group": "display",
+   "name": "[U9] 6 significant digits for every quantity",
+   "ok": true,
+   "detail": "1234570"
+  },
+  {
+   "group": "display",
+   "name": "[U9] small values keep 6 significant digits",
+   "ok": true,
+   "detail": "0.000123457"
+  },
+  {
+   "group": "display",
+   "name": "[U9] -0 shows as 0",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "group": "display",
+   "name": "[U9] negative value shown with sign",
+   "ok": true,
+   "detail": "-0.5"
+  },
+  {
+   "group": "display",
+   "name": "[U9] the 1.005 binary caveat is the raw rounding (1.00), not 1.01",
+   "ok": true,
+   "detail": "1.00"
+  },
+  {
+   "group": "display",
+   "name": "[U5] stored 1 in displays as 25.4 mm",
+   "ok": true,
+   "detail": "25.4 mm"
+  },
+  {
+   "group": "display",
+   "name": "[U5] stored 1 in displays as 1 in",
+   "ok": true,
+   "detail": "1 in"
+  },
+  {
+   "group": "display",
+   "name": "[U5] stored 16.387064 cc displays as 1 cu in",
+   "ok": true,
+   "detail": "1 cu in"
+  },
+  {
+   "group": "display",
+   "name": "[U5] stored 1 gal displays as 3.78541 L",
+   "ok": true,
+   "detail": "3.78541 L"
+  },
+  {
+   "group": "display",
+   "name": "[U5] stored 1 gal displays as 1 gal (US)",
+   "ok": true,
+   "detail": "1 gal (US)"
+  },
+  {
+   "group": "display",
+   "name": "[U5] stored 1 sq in displays as 645.16 mm²",
+   "ok": true,
+   "detail": "645.16 mm²"
+  },
+  {
+   "group": "display",
+   "name": "[U5] stored 1 sq in displays as 6.4516 cm²",
+   "ok": true,
+   "detail": "6.4516 cm²"
+  },
+  {
+   "group": "display",
+   "name": "[U5] stored 1 sq ft displays as 0.092903 m²",
+   "ok": true,
+   "detail": "0.092903 m²"
+  },
+  {
+   "group": "display",
+   "name": "[U5] stored 1 lbf displays as 4.44822 N",
+   "ok": true,
+   "detail": "4.44822 N"
+  },
+  {
+   "group": "display",
+   "name": "[U5] every key renders in every admitted unit, and display never alters a stored value",
+   "ok": true,
+   "detail": "87 renderings, 0 errors, storage unchanged"
+  },
+  {
+   "group": "display",
+   "name": "[U10] unknown is displayed as no value, never as 0",
+   "ok": true,
+   "detail": "null"
+  },
+  {
+   "group": "authority",
+   "name": "[U15] a direct authenticated INSERT of a Value Foundation value is rejected (42501): the trusted path is the only writer",
+   "ok": true,
+   "detail": "42501"
+  },
+  {
+   "group": "authority",
+   "name": "[U15] a request-supplied owner_id is rejected",
+   "ok": true,
+   "detail": "rejected VF_MALFORMED_REQUEST unexpected_key; rows +0"
+  },
+  {
+   "group": "authority",
+   "name": "[U15] no verified owner context",
+   "ok": true,
+   "detail": "rejected VW_NO_OWNER trusted_owner_context_required; rows +0"
+  },
+  {
+   "group": "authority",
+   "name": "[U15] spoofed ownership: B writing to A’s machine",
+   "ok": true,
+   "detail": "rejected VW_MACHINE_NOT_FOUND machine_not_found; rows +0"
+  },
+  {
+   "group": "authority",
+   "name": "[U15] soft-deleted machine",
+   "ok": true,
+   "detail": "rejected VW_MACHINE_NOT_FOUND machine_not_found; rows +0"
+  },
+  {
+   "group": "authority",
+   "name": "[U15] active machine in a soft-deleted garage",
+   "ok": true,
+   "detail": "rejected VW_MACHINE_NOT_FOUND machine_not_found; rows +0"
+  },
+  {
+   "group": "authority",
+   "name": "[U15] operating_state context (V1 stores SPECIFICATION only)",
+   "ok": true,
+   "detail": "rejected VW_CONTEXT_NOT_PERMITTED context_not_permitted; rows +0"
+  },
+  {
+   "group": "authority",
+   "name": "[U15] calculated provenance (no calculated write-back)",
+   "ok": true,
+   "detail": "rejected VW_PROVENANCE_NOT_PERMITTED provenance_not_permitted; rows +0"
+  },
+  {
+   "group": "authority",
+   "name": "[U15] empirical provenance (test results deferred)",
+   "ok": true,
+   "detail": "rejected VW_PROVENANCE_NOT_PERMITTED provenance_not_permitted; rows +0"
+  },
+  {
+   "group": "authority",
+   "name": "[U15] component-level value (no Component Attribution)",
+   "ok": true,
+   "detail": "rejected VW_COMPONENT_NOT_PERMITTED machine_level_values_only; rows +0"
+  },
+  {
+   "group": "authority",
+   "name": "[U15] owner of a stored value is the verified login (owner isolation)",
+   "ok": true,
+   "detail": "owner = login"
+  },
+  {
+   "group": "authority",
+   "name": "[U15] another owner cannot read A’s current value",
+   "ok": true,
+   "detail": "rejected VW_MACHINE_NOT_FOUND machine_not_found"
+  },
+  {
+   "group": "authority",
+   "name": "[U13] every deferred field (incl. the 19 multi-instance and king_pin_arm), old renamed keys, bearing_type and raw source-field ids are refused",
+   "ok": true,
+   "detail": "104/104 refused; rows +0"
+  },
+  {
+   "group": "adapter",
+   "name": "[U14] the stored inside diameter feeds exactly its engine key (dia_jp); the condition freq_jp stays explicit",
+   "ok": true,
+   "detail": "dia_jp<jpipe_resonator_diameter; valid"
+  },
+  {
+   "group": "adapter",
+   "name": "[U14] no competing logic: result equals the frozen service computing the same explicit inputs",
+   "ok": true,
+   "detail": "valid; outputs identical"
+  },
+  {
+   "group": "adapter",
+   "name": "[U14] goals/conditions are never auto-fed: without freq_jp the engine reports INCOMPLETE",
+   "ok": true,
+   "detail": "incomplete missing freq_jp"
+  },
+  {
+   "group": "adapter",
+   "name": "[U14] an explicit request input wins over the stored value",
+   "ok": true,
+   "detail": "dia_jp 3; supplied []"
+  },
+  {
+   "group": "adapter",
+   "name": "[U14] an explicit null is explicit too: never filled from storage",
+   "ok": true,
+   "detail": "incomplete"
+  },
+  {
+   "group": "adapter",
+   "name": "[U10][U14] a current UNKNOWN supplies nothing (never 0): the engine reports INCOMPLETE",
+   "ok": true,
+   "detail": "incomplete; supplied []"
+  },
+  {
+   "group": "adapter",
+   "name": "[U14] absent values supply nothing (INCOMPLETE, nothing invented)",
+   "ok": true,
+   "detail": "incomplete; inputs 0"
+  },
+  {
+   "group": "adapter",
+   "name": "[U7][U14] explicit zero is supplied as 0 (flat-top piston)",
+   "ok": true,
+   "detail": "piston 0; valid"
+  },
+  {
+   "group": "adapter",
+   "name": "[U7][U14] a negative value is supplied with its sign (dish)",
+   "ok": true,
+   "detail": "piston -5; valid"
+  },
+  {
+   "group": "adapter",
+   "name": "[U2][U14] the shared vehicle_cg_height feeds both of its engine keys (anti_squat.cg and anti_dive.cgH)",
+   "ok": true,
+   "detail": "cg<vehicle_cg_height,ic<rear_suspension_side_view_ic_height_at_reference_wheelbase | cgH<vehicle_cg_height,icH<front_suspension_side_view_ic_height"
+  },
+  {
+   "group": "adapter",
+   "name": "[U14] each calculator receives only its own admitted engine keys (bias stays an explicit input)",
+   "ok": true,
+   "detail": "cgH<vehicle_cg_height,icH<front_suspension_side_view_ic_height"
+  },
+  {
+   "group": "adapter",
+   "name": "[U14] no conversion in the adapter: the engine-native stored value (3.0000000000000004 in) is supplied bit-for-bit",
+   "ok": true,
+   "detail": "3.0000000000000004"
+  },
+  {
+   "group": "adapter",
+   "name": "[U14] soft-deleted machine: rejected by the trusted read; nothing is calculated or stored",
+   "ok": true,
+   "detail": "rejected VW_MACHINE_NOT_FOUND machine_not_found; records +0"
+  },
+  {
+   "group": "adapter",
+   "name": "[U14] owner isolation: B cannot feed a calculation from A’s machine",
+   "ok": true,
+   "detail": "rejected VW_MACHINE_NOT_FOUND machine_not_found; records +0"
+  },
+  {
+   "group": "adapter",
+   "name": "[U14] only proven calculators: no stored value is read for an unproven calculator, and the frozen authority rejects it",
+   "ok": true,
+   "detail": "0 reads; rejected CF_NOT_PROVEN not_proven"
+  },
+  {
+   "group": "adapter",
+   "name": "[U14] no machine: nothing is read or supplied; the request reaches the frozen service unchanged",
+   "ok": true,
+   "detail": "0 reads; incomplete"
+  },
+  {
+   "group": "adapter",
+   "name": "[U14] the adapter’s calculator resolution (as deployed) equals the frozen authority for every registry / alias id",
+   "ok": true,
+   "detail": "583 ids; 0 differ"
+  },
+  {
+   "group": "adapter",
+   "name": "[U14] input_value_ids is never populated (deferred, OWN-9B)",
+   "ok": true,
+   "detail": "0 populated"
+  },
+  {
+   "group": "adapter",
+   "name": "[U14] calculations never modify stored values; calculated results are not written back (OWN-2)",
+   "ok": true,
+   "detail": "unchanged; 0 calculated rows"
+  },
+  {
+   "group": "migration",
+   "name": "keys are permanent once referenced: the rollback refuses when values exist, and nothing is removed",
+   "ok": true,
+   "detail": "refused; 47 rows kept"
+  }
+ ],
+ "negative_controls": [
+  {
+   "mutation": "M-cfg-promote-deferred: a deferred multi-instance field silently replaces an admitted one",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U1] configuration equals the approved admission artifact row for row (source field, key, engine key, storage unit, role)",
+    "[U1] configuration equals the approved specification §D table, in order",
+    "[U1][U13] no deferred-register field is in the production admission set",
+    "[U4] storage unit = engine-native unit (artifact) = the frozen F1 input unit (MAPPING-FOUNDATION, verbatim source) for all 48",
+    "[U13] the 19 multi-instance exclusions (§Q) and king_pin_arm are in the deferred register, none admitted"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-cfg-old-name: the pre-rename key supercharger_drive_ratio is used",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U1] configuration equals the approved admission artifact row for row (source field, key, engine key, storage unit, role)",
+    "[U1] configuration equals the approved specification §D table, in order",
+    "[U1] the 47 keys are exactly the §E key table",
+    "[U3] approved renames present; old names absent",
+    "[U13] every deferred field (incl. the 19 multi-instance and king_pin_arm), old renamed keys, bearing_type and raw source-field ids are refused"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-cfg-engine-key: the J-pipe diameter is mapped to the drone-frequency input",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U1] configuration equals the approved admission artifact row for row (source field, key, engine key, storage unit, role)",
+    "[U1] configuration equals the approved specification §D table, in order",
+    "J-pipe: user-facing label says \"Inside Diameter\"; frozen label kept verbatim; key and engine key as approved",
+    "[U14] the stored inside diameter feeds exactly its engine key (dia_jp); the condition freq_jp stays explicit",
+    "[U14] no competing logic: result equals the frozen service computing the same explicit inputs",
+    "[U14] goals/conditions are never auto-fed: without freq_jp the engine reports INCOMPLETE",
+    "[U14] no conversion in the adapter: the engine-native stored value (3.0000000000000004 in) is supplied bit-for-bit",
+    "[U14] soft-deleted machine: rejected by the trusted read; nothing is calculated or stored"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-cfg-gal-token: the gal (US) label is mapped to the litre token",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U4] every field’s admitted units are exactly the trusted path’s §H unit set for its storage unit",
+    "gal (US): the artifact label is kept for display and mapped to the trusted token gal; §H unchanged",
+    "[U6] label gal (US) -> token gal: 5 -> 5 gal",
+    "[U6] token gal accepted: 7 -> 7 gal",
+    "[U5] stored 1 gal displays as 3.78541 L",
+    "[U5] stored 1 gal displays as 1 gal (US)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-cfg-jpipe-label: the J-pipe field is labelled merely \"Pipe Diameter\"",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "J-pipe: user-facing label says \"Inside Diameter\"; frozen label kept verbatim; key and engine key as approved"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-cfg-vcg-split: the second vehicle_cg_height source field gets its own key",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [],
+   "error": "VF_CONFIGURATION: field maps to unknown key vehicle_cg_height_front"
+  },
+  {
+   "mutation": "M-cfg-storage-unit: a length key is declared with storage unit mm",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [],
+   "error": "VW_CONFIGURATION: contract_storage_unit_not_in_conversion_table"
+  },
+  {
+   "mutation": "M-cfg-label-override: a second display label is silently changed",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "every other display label is the frozen calculator input label, verbatim (one approved override only)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-seed-no-postconditions: 0301 relies on ON CONFLICT DO NOTHING alone",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "post-conditions, not ON CONFLICT alone: a pre-existing row with a different unit aborts 0301 and nothing is inserted",
+    "post-conditions, not ON CONFLICT alone: a pre-existing row with a different description aborts 0301 and nothing is inserted",
+    "post-conditions, not ON CONFLICT alone: a pre-existing old (renamed) key aborts 0301 and nothing is inserted",
+    "post-conditions, not ON CONFLICT alone: a pre-existing deferred field id as a key aborts 0301 and nothing is inserted"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-seed-no-on-conflict: 0301 is not idempotent",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "idempotent: re-running 0301 succeeds and the full schema+data dump is byte-identical",
+    "post-conditions, not ON CONFLICT alone: a pre-existing row with a different unit aborts 0301 and nothing is inserted",
+    "post-conditions, not ON CONFLICT alone: a pre-existing row with a different description aborts 0301 and nothing is inserted"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-seed-dimension: 0301 writes a dimension (G-3 requires NULL)",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U1] database holds exactly the 47 approved canonical_fields rows (family, dimension NULL, engine-native unit, numeric, approved definition)",
+    "re-applying 0301 after rollback restores the identical 47 rows"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-seed-description: 0301 rewrites the J-pipe definition (inside -> outside)",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U1] database holds exactly the 47 approved canonical_fields rows (family, dimension NULL, engine-native unit, numeric, approved definition)",
+    "re-applying 0301 after rollback restores the identical 47 rows"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-seed-48-rows: 0301 also seeds a raw source-field row (48 database rows)",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U1] database holds exactly the 47 approved canonical_fields rows (family, dimension NULL, engine-native unit, numeric, approved definition)",
+    "idempotent: re-running 0301 succeeds and the full schema+data dump is byte-identical",
+    "rollback (no values yet) removes exactly the 47 rows: rows and catalog equal the frozen stack",
+    "rollback is idempotent",
+    "re-applying 0301 after rollback restores the identical 47 rows",
+    "post-conditions, not ON CONFLICT alone: a pre-existing row with a different unit aborts 0301 and nothing is inserted",
+    "post-conditions, not ON CONFLICT alone: a pre-existing row with a different description aborts 0301 and nothing is inserted",
+    "post-conditions, not ON CONFLICT alone: a pre-existing old (renamed) key aborts 0301 and nothing is inserted",
+    "post-conditions, not ON CONFLICT alone: a pre-existing deferred field id as a key aborts 0301 and nothing is inserted",
+    "keys are permanent once referenced: the rollback refuses when values exist, and nothing is removed"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-seed-extra-object: 0301 also creates an index",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "0301 creates no database object: its only DDL is a transaction-scoped TEMP table (ON COMMIT DROP)",
+    "0301 changes rows only: catalog fingerprint identical to the frozen stack",
+    "rollback (no values yet) removes exactly the 47 rows: rows and catalog equal the frozen stack"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-rb-no-guard: rollback does not refuse when values reference the keys",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "keys are permanent once referenced: the rollback refuses when values exist, and nothing is removed"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-rb-incomplete: rollback leaves one seeded key behind",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "rollback (no values yet) removes exactly the 47 rows: rows and catalog equal the frozen stack",
+    "rollback is idempotent"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-val-unit-fallback: an unknown unit label falls back to the storage unit",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U8] rejected, nothing stored: unsupported unit kg for a length",
+    "[U8] rejected, nothing stored: gal (UK) (not an admitted label)",
+    "[U8] rejected, nothing stored: mm for a ratio",
+    "[U8] rejected, nothing stored: thread pitch in mm for TPI (reciprocal, not in V1)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-val-admit-any: any key is passed to the trusted path (admission check skipped)",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U13] every deferred field (incl. the 19 multi-instance and king_pin_arm), old renamed keys, bearing_type and raw source-field ids are refused"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-val-format-fixed: display uses 6 decimal places instead of 6 significant digits",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U9] 2.5 -> 3 (half away from zero)",
+    "[U9] -2.5 -> -3 (symmetric)",
+    "[U9] 0.125 -> 0.13",
+    "[U9] binary case: 1.005 is below 1.005 in binary, so shows 1.00 -> \"1\"",
+    "[U9] 6 significant digits for every quantity",
+    "[U9] small values keep 6 significant digits",
+    "[U5] stored 1 gal displays as 3.78541 L",
+    "[U5] stored 1 lbf displays as 4.44822 N"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-val-format-half-even: display rounds half to even",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U9] 2.5 -> 3 (half away from zero)",
+    "[U9] -2.5 -> -3 (symmetric)",
+    "[U9] 0.125 -> 0.13"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-ad-convert: the adapter converts in -> mm before feeding the engine",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U14] the stored inside diameter feeds exactly its engine key (dia_jp); the condition freq_jp stays explicit",
+    "[U14] no competing logic: result equals the frozen service computing the same explicit inputs",
+    "[U7][U14] a negative value is supplied with its sign (dish)",
+    "[U2][U14] the shared vehicle_cg_height feeds both of its engine keys (anti_squat.cg and anti_dive.cgH)",
+    "[U14] no conversion in the adapter: the engine-native stored value (3.0000000000000004 in) is supplied bit-for-bit"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-ad-unknown-zero: an unknown / absent value is fed as 0",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U10][U14] a current UNKNOWN supplies nothing (never 0): the engine reports INCOMPLETE",
+    "[U14] absent values supply nothing (INCOMPLETE, nothing invented)"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-ad-override-explicit: stored values overwrite explicit request inputs",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U14] an explicit request input wins over the stored value",
+    "[U14] an explicit null is explicit too: never filled from storage"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-ad-explicit-null: an explicit null input is filled from storage",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U14] an explicit null is explicit too: never filled from storage"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-ad-feed-condition: the J-pipe drone frequency (a condition) is also auto-fed",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U14] goals/conditions are never auto-fed: without freq_jp the engine reports INCOMPLETE"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-ad-unproven: stored values are read for calculators the frozen authority would not execute",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U14] the adapter’s calculator resolution (as deployed) equals the frozen authority for every registry / alias id"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-ad-ignore-rejection: a rejected read (soft-deleted machine, other owner) is ignored and the calculation proceeds",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U14] soft-deleted machine: rejected by the trusted read; nothing is calculated or stored"
+   ],
+   "error": ""
+  },
+  {
+   "mutation": "M-ad-vcg-once: the shared vehicle_cg_height feeds only one of its two engine keys",
+   "valid": true,
+   "detected": true,
+   "failed_checks": [
+    "[U2][U14] the shared vehicle_cg_height feeds both of its engine keys (anti_squat.cg and anti_dive.cgH)",
+    "[U14] each calculator receives only its own admitted engine keys (bias stays an explicit input)"
+   ],
+   "error": ""
+  }
+ ]
+}

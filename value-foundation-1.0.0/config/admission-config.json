@@ -1,0 +1,1794 @@
+{
+ "milestone": "VALUE-FOUNDATION-1.0.0",
+ "generated_by": "value-foundation-1.0.0/tools/generate.js",
+ "artifacts": {
+  "spec": {
+   "file": "design/VALUE-FOUNDATION-V1-FINAL-SPECIFICATION.md",
+   "sha256": "a28cfddb7a5bb43f0767a5dd04ed0ea9acf67616c4b9f264b1ebc0e737560555"
+  },
+  "admission": {
+   "file": "config/VALUE-FOUNDATION-V1-FINAL-ADMISSION-48.csv",
+   "sha256": "f9b91aa8a653c76fa3cb56b94e5d62e0538ba7e929b09f77fab89e33aa205d9f"
+  },
+  "deferred": {
+   "file": "config/VALUE-FOUNDATION-V1-DEFERRED-REGISTER.csv",
+   "sha256": "f2fa130db594e9cb15442041b6e706a11595adbc1b41fc74c022ddd48cc85f04"
+  }
+ },
+ "renamed_from": {
+  "supercharger_drive_ratio": "supercharger_to_crank_speed_ratio",
+  "clutch_required_release_force": "clutch_release_force"
+ },
+ "label_overrides": {
+  "pipe_diameter__in": "Pipe Inside Diameter"
+ },
+ "counts": {
+  "source_fields": 48,
+  "canonical_keys": 47,
+  "deferred": 52
+ },
+ "keys": [
+  {
+   "canonical_key": "ac_compressor_pulley_diameter",
+   "family": "ELECTRICAL, FLUID & UTILITIES",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "A/C compressor pulley — length (diameter); basis: —; characteristic: nominal",
+   "quantity_kind": "length (diameter)",
+   "source_fields": [
+    "compressor_pulley_diameter__in"
+   ]
+  },
+  {
+   "canonical_key": "ac_drive_crank_pulley_diameter",
+   "family": "ELECTRICAL, FLUID & UTILITIES",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "crank pulley (A/C drive) — length (diameter); basis: —; characteristic: nominal",
+   "quantity_kind": "length (diameter)",
+   "source_fields": [
+    "crank_pulley_diameter__in"
+   ]
+  },
+  {
+   "canonical_key": "block_deck_height",
+   "family": "ENGINE",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "engine block — length; basis: crank centerline to deck (deck_height formula b-(s/2)-r-p); characteristic: nominal",
+   "quantity_kind": "length",
+   "source_fields": [
+    "block_deck_height__in"
+   ]
+  },
+  {
+   "canonical_key": "clutch_clamp_load",
+   "family": "CLUTCH & HYDRAULICS",
+   "canonical_unit": "lbf",
+   "value_kind": "numeric",
+   "description": "clutch pressure plate — force; basis: —; characteristic: nominal",
+   "quantity_kind": "force",
+   "source_fields": [
+    "clamp_load__lbf"
+   ]
+  },
+  {
+   "canonical_key": "clutch_disc_mean_effective_radius",
+   "family": "CLUTCH & HYDRAULICS",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "clutch disc friction surface — length (radius); basis: mean effective; characteristic: nominal",
+   "quantity_kind": "length (radius)",
+   "source_fields": [
+    "mean_effective_radius__in"
+   ]
+  },
+  {
+   "canonical_key": "clutch_fork_pivot_to_pushrod",
+   "family": "CLUTCH & HYDRAULICS",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "clutch fork — length; basis: from pivot; characteristic: nominal",
+   "quantity_kind": "length",
+   "source_fields": [
+    "pivot_to_pushrod__in"
+   ]
+  },
+  {
+   "canonical_key": "clutch_fork_pivot_to_release_bearing",
+   "family": "CLUTCH & HYDRAULICS",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "clutch fork — length; basis: from pivot; characteristic: nominal",
+   "quantity_kind": "length",
+   "source_fields": [
+    "pivot_to_release_bearing__in"
+   ]
+  },
+  {
+   "canonical_key": "clutch_pedal_arm_length",
+   "family": "CLUTCH & HYDRAULICS",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "clutch pedal — length; basis: pivot to pad (calculator clutch_pedal_ratio); characteristic: nominal",
+   "quantity_kind": "length",
+   "source_fields": [
+    "pedal_arm_length__in"
+   ]
+  },
+  {
+   "canonical_key": "clutch_pedal_pivot_to_pushrod",
+   "family": "CLUTCH & HYDRAULICS",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "clutch pedal — length; basis: from pivot; characteristic: nominal",
+   "quantity_kind": "length",
+   "source_fields": [
+    "pushrod_distance_from_pivot__in"
+   ]
+  },
+  {
+   "canonical_key": "clutch_release_force",
+   "family": "CLUTCH & HYDRAULICS",
+   "canonical_unit": "lbf",
+   "value_kind": "numeric",
+   "description": "Force at the clutch release mechanism required to disengage the clutch (input of clutch_pedal_effort; same quantity as the Estimated Release Force output of clutch_release_force = pressure-plate load / release-lever ratio); distinct from clamp load and pressure-plate load",
+   "quantity_kind": "force",
+   "source_fields": [
+    "required_release_force__lbf"
+   ]
+  },
+  {
+   "canonical_key": "clutch_slave_cylinder_bore",
+   "family": "CLUTCH & HYDRAULICS",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "clutch slave cylinder — length (bore diameter); basis: —; characteristic: nominal",
+   "quantity_kind": "length (bore diameter)",
+   "source_fields": [
+    "slave_cylinder_bore__in"
+   ]
+  },
+  {
+   "canonical_key": "crankshaft_main_journal_diameter",
+   "family": "ENGINE",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "crankshaft main journal — length (diameter); basis: —; characteristic: nominal",
+   "quantity_kind": "length (diameter)",
+   "source_fields": [
+    "main_journal_diameter__in"
+   ]
+  },
+  {
+   "canonical_key": "crankshaft_rod_journal_diameter",
+   "family": "ENGINE",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "crankshaft rod journal — length (diameter); basis: —; characteristic: nominal",
+   "quantity_kind": "length (diameter)",
+   "source_fields": [
+    "rod_journal_diameter__in"
+   ]
+  },
+  {
+   "canonical_key": "def_tank_capacity",
+   "family": "DIESEL AFTERTREATMENT",
+   "canonical_unit": "gal",
+   "value_kind": "numeric",
+   "description": "DEF tank — volume (capacity); basis: —; characteristic: capacity quantity",
+   "quantity_kind": "volume (capacity)",
+   "source_fields": [
+    "def_tank__gal"
+   ]
+  },
+  {
+   "canonical_key": "front_overhang_lowest_point_height",
+   "family": "SUSPENSION, TIRES & GEOMETRY",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "vehicle front overhang — length (height); basis: lowest point; characteristic: static",
+   "quantity_kind": "length (height)",
+   "source_fields": [
+    "front_lowest_point_height__in"
+   ]
+  },
+  {
+   "canonical_key": "front_overhang_lowest_point_horizontal_offset",
+   "family": "SUSPENSION, TIRES & GEOMETRY",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "vehicle front overhang — length; basis: horizontal, tire contact to lowest point (formula); characteristic: static",
+   "quantity_kind": "length",
+   "source_fields": [
+    "front_horizontal_offset__in"
+   ]
+  },
+  {
+   "canonical_key": "front_suspension_side_view_ic_height",
+   "family": "SUSPENSION, TIRES & GEOMETRY",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "front suspension — length (height); basis: SIDE-VIEW instant center (anti-dive, icH/cgH); characteristic: nominal",
+   "quantity_kind": "length (height)",
+   "source_fields": [
+    "front_suspension_instant_center_height__in"
+   ]
+  },
+  {
+   "canonical_key": "ground_clearance_at_mid_wheelbase",
+   "family": "SUSPENSION, TIRES & GEOMETRY",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "vehicle — length (height); basis: at mid-wheelbase (breakover geometry); characteristic: static",
+   "quantity_kind": "length (height)",
+   "source_fields": [
+    "ground_clearance_at_center__in"
+   ]
+  },
+  {
+   "canonical_key": "harmonic_balancer_diameter",
+   "family": "ELECTRICAL, FLUID & UTILITIES",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "harmonic balancer — length (diameter); basis: outside diameter (timing tape); characteristic: nominal",
+   "quantity_kind": "length (diameter)",
+   "source_fields": [
+    "balancer_diameter__in"
+   ]
+  },
+  {
+   "canonical_key": "head_gasket_compressed_thickness",
+   "family": "ENGINE",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "head gasket — length (thickness); basis: compressed (vs free) — label; characteristic: nominal",
+   "quantity_kind": "length (thickness)",
+   "source_fields": [
+    "compressed_gasket_thickness__in"
+   ]
+  },
+  {
+   "canonical_key": "intake_port_effective_flow_area",
+   "family": "FUEL, AIR & EXHAUST",
+   "canonical_unit": "sq in",
+   "value_kind": "numeric",
+   "description": "cylinder-head intake port — area; basis: \"effective\" flow area (vs geometric) per label; which port NOT STATED; characteristic: nominal",
+   "quantity_kind": "area",
+   "source_fields": [
+    "effective_flow_area__sq_in"
+   ]
+  },
+  {
+   "canonical_key": "jpipe_resonator_diameter",
+   "family": "FUEL, AIR & EXHAUST",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "J-pipe resonator diameter, defined as the INSIDE diameter. ENGINEERING INTERPRETATION FROM FROZEN FORMULA (Chamber Volume = (pi/4)*d^2*L/61.024 uses d for the enclosed volume); not explicit frozen help text (label \"Pipe Diameter\"); requires engineering sign-off at formal approval",
+   "quantity_kind": "length (diameter)",
+   "source_fields": [
+    "pipe_diameter__in"
+   ]
+  },
+  {
+   "canonical_key": "lf_front_view_ic_height",
+   "family": "CIRCLE TRACK",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "LF suspension — length (height); basis: FRONT-VIEW instant center (moment-center construction); characteristic: nominal",
+   "quantity_kind": "length (height)",
+   "source_fields": [
+    "lf_instant_center_height__in"
+   ]
+  },
+  {
+   "canonical_key": "lf_front_view_ic_lateral_distance",
+   "family": "CIRCLE TRACK",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "LF suspension — length; basis: lateral, from centerline (front view); characteristic: nominal",
+   "quantity_kind": "length",
+   "source_fields": [
+    "lf_ic_distance_from_center__in"
+   ]
+  },
+  {
+   "canonical_key": "lr_jacking_screw_thread_pitch",
+   "family": "CIRCLE TRACK",
+   "canonical_unit": "TPI",
+   "value_kind": "numeric",
+   "description": "LR spring-perch jacking screw — count per length (threads/in); basis: —; characteristic: nominal",
+   "quantity_kind": "count per length (threads/in)",
+   "source_fields": [
+    "bolt_thread_pitch__tpi"
+   ]
+  },
+  {
+   "canonical_key": "max_steer_angle_inside_wheel",
+   "family": "SUSPENSION, TIRES & GEOMETRY",
+   "canonical_unit": "°",
+   "value_kind": "numeric",
+   "description": "steering (inside wheel) — angle; basis: —; characteristic: extremum (maximum steer)",
+   "quantity_kind": "angle",
+   "source_fields": [
+    "max_steer_angle_inside_wheel__deg"
+   ]
+  },
+  {
+   "canonical_key": "panhard_bar_height_at_axle",
+   "family": "CIRCLE TRACK",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "panhard bar — length (height); basis: at axle end; characteristic: nominal",
+   "quantity_kind": "length (height)",
+   "source_fields": [
+    "panhard_bar_height_at_axle__in"
+   ]
+  },
+  {
+   "canonical_key": "panhard_bar_length",
+   "family": "ROAD COURSE",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "panhard bar — length; basis: —; characteristic: nominal",
+   "quantity_kind": "length",
+   "source_fields": [
+    "panhard_bar_length__in"
+   ]
+  },
+  {
+   "canonical_key": "piston_compression_height",
+   "family": "ENGINE",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "piston — length; basis: pin centerline to crown; characteristic: nominal",
+   "quantity_kind": "length",
+   "source_fields": [
+    "piston_compression_height__in"
+   ]
+  },
+  {
+   "canonical_key": "piston_crown_volume",
+   "family": "ENGINE",
+   "canonical_unit": "cc",
+   "value_kind": "numeric",
+   "description": "Piston crown volume; SIGN: dome = positive, dish = negative (frozen label \"+dome / -dish\"; clearance = chamber + gasket - piston)",
+   "quantity_kind": "volume",
+   "source_fields": [
+    "piston_volume_dome_per_dish__cc"
+   ]
+  },
+  {
+   "canonical_key": "portal_hub_drop_height",
+   "family": "DRIVETRAIN & GEARING",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "portal hub — length; basis: —; characteristic: nominal",
+   "quantity_kind": "length",
+   "source_fields": [
+    "portal_drop_height__in"
+   ]
+  },
+  {
+   "canonical_key": "portal_hub_reduction_ratio",
+   "family": "DRIVETRAIN & GEARING",
+   "canonical_unit": ":1",
+   "value_kind": "numeric",
+   "description": "portal hub gearing — speed reduction ratio; basis: —; characteristic: nominal",
+   "quantity_kind": "speed reduction ratio",
+   "source_fields": [
+    "portal_reduction_ratio__to_1"
+   ]
+  },
+  {
+   "canonical_key": "pressure_plate_release_lever_ratio",
+   "family": "CLUTCH & HYDRAULICS",
+   "canonical_unit": ":1",
+   "value_kind": "numeric",
+   "description": "pressure-plate release levers — lever (force) ratio (clamp/release; formula spring/lever); basis: —; characteristic: nominal",
+   "quantity_kind": "lever (force) ratio (clamp/release; formula spring/lever)",
+   "source_fields": [
+    "release_lever_ratio__to_1"
+   ]
+  },
+  {
+   "canonical_key": "rear_overhang_lowest_point_height",
+   "family": "SUSPENSION, TIRES & GEOMETRY",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "vehicle rear overhang — length (height); basis: lowest point; characteristic: static",
+   "quantity_kind": "length (height)",
+   "source_fields": [
+    "rear_lowest_point_height__in"
+   ]
+  },
+  {
+   "canonical_key": "rear_overhang_lowest_point_horizontal_offset",
+   "family": "SUSPENSION, TIRES & GEOMETRY",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "vehicle rear overhang — length; basis: horizontal, tire contact to lowest point; characteristic: static",
+   "quantity_kind": "length",
+   "source_fields": [
+    "rear_horizontal_offset__in"
+   ]
+  },
+  {
+   "canonical_key": "rear_suspension_side_view_ic_height_at_reference_wheelbase",
+   "family": "SUSPENSION, TIRES & GEOMETRY",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "rear suspension — length (height); basis: side-view IC projected at reference wheelbase; characteristic: nominal",
+   "quantity_kind": "length (height)",
+   "source_fields": [
+    "instant_center_height_at_reference_wheelbase__in"
+   ]
+  },
+  {
+   "canonical_key": "rf_front_view_ic_height",
+   "family": "CIRCLE TRACK",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "RF suspension — length (height); basis: FRONT-VIEW instant center; characteristic: nominal",
+   "quantity_kind": "length (height)",
+   "source_fields": [
+    "rf_instant_center_height__in"
+   ]
+  },
+  {
+   "canonical_key": "rf_front_view_ic_lateral_distance",
+   "family": "CIRCLE TRACK",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "RF suspension — length; basis: lateral, from centerline (front view); characteristic: nominal",
+   "quantity_kind": "length",
+   "source_fields": [
+    "rf_ic_distance_from_center__in"
+   ]
+  },
+  {
+   "canonical_key": "supercharger_to_crank_speed_ratio",
+   "family": "FORCED INDUCTION",
+   "canonical_unit": ":1",
+   "value_kind": "numeric",
+   "description": "Supercharger speed / crank (engine) speed (frozen: Supercharger RPM = Engine RPM x ratio)",
+   "quantity_kind": "speed ratio (SC speed / crank speed; formula rpm8*cr3)",
+   "source_fields": [
+    "pulley_ratio_sc_to_crank__to_1"
+   ]
+  },
+  {
+   "canonical_key": "torque_converter_stall_torque_ratio",
+   "family": "DRIVETRAIN & GEARING",
+   "canonical_unit": ":1",
+   "value_kind": "numeric",
+   "description": "torque converter — torque ratio (output/input torque); basis: at stall; characteristic: characteristic state (stall)",
+   "quantity_kind": "torque ratio (output/input torque)",
+   "source_fields": [
+    "torque_multiplication__to_1"
+   ]
+  },
+  {
+   "canonical_key": "traction_battery_gross_energy",
+   "family": "ELECTRIC VEHICLES",
+   "canonical_unit": "kWh",
+   "value_kind": "numeric",
+   "description": "traction battery — energy; basis: gross (usable % applied separately in ev_range); characteristic: capacity quantity",
+   "quantity_kind": "energy",
+   "source_fields": [
+    "battery_energy__kwh"
+   ]
+  },
+  {
+   "canonical_key": "transfer_case_low_range_ratio",
+   "family": "DRIVETRAIN & GEARING",
+   "canonical_unit": ":1",
+   "value_kind": "numeric",
+   "description": "transfer case low range — speed reduction ratio (input/output speed); basis: —; characteristic: nominal",
+   "quantity_kind": "speed reduction ratio (input/output speed)",
+   "source_fields": [
+    "low_range_ratio__to_1"
+   ]
+  },
+  {
+   "canonical_key": "vehicle_cg_height",
+   "family": "SUSPENSION, TIRES & GEOMETRY",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "Vehicle centre-of-gravity height above ground (shared by anti_squat and anti_dive)",
+   "quantity_kind": "length (height)",
+   "source_fields": [
+    "center_of_gravity_height__in",
+    "vehicle_cg_height__in"
+   ]
+  },
+  {
+   "canonical_key": "vehicle_cg_lateral_from_left_side",
+   "family": "CHASSIS & WEIGHT",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "vehicle CG — length; basis: lateral from left side; characteristic: static",
+   "quantity_kind": "length",
+   "source_fields": [
+    "cg_y_from_left_side__in"
+   ]
+  },
+  {
+   "canonical_key": "vehicle_cg_longitudinal_from_front_axle",
+   "family": "CHASSIS & WEIGHT",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "vehicle CG — length; basis: longitudinal from front axle; characteristic: static",
+   "quantity_kind": "length",
+   "source_fields": [
+    "cg_x_from_front_axle__in"
+   ]
+  },
+  {
+   "canonical_key": "vehicle_side_projected_area",
+   "family": "PERFORMANCE",
+   "canonical_unit": "sq ft",
+   "value_kind": "numeric",
+   "description": "vehicle — area; basis: side projected area; characteristic: nominal",
+   "quantity_kind": "area",
+   "source_fields": [
+    "side_area__sq_ft"
+   ]
+  },
+  {
+   "canonical_key": "vehicle_wheelbase",
+   "family": "ROAD COURSE",
+   "canonical_unit": "in",
+   "value_kind": "numeric",
+   "description": "Vehicle wheelbase (Watts-link use \"for rear-steer angle\" is use, not identity; Phase-2 wheelbase__in will map here after its own review)",
+   "quantity_kind": "length (wheelbase)",
+   "source_fields": [
+    "wheelbase_for_rear_steer_angle__in"
+   ]
+  }
+ ],
+ "fields": [
+  {
+   "draft_field_id": "compressor_pulley_diameter__in",
+   "canonical_key": "ac_compressor_pulley_diameter",
+   "engine_key": "ac_compressor.cpd",
+   "calculator_id": "ac_compressor",
+   "var": "cpd",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Compressor Pulley Diameter",
+   "display_label": "Compressor Pulley Diameter",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "crank_pulley_diameter__in",
+   "canonical_key": "ac_drive_crank_pulley_diameter",
+   "engine_key": "ac_compressor.ppd",
+   "calculator_id": "ac_compressor",
+   "var": "ppd",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Crank Pulley Diameter",
+   "display_label": "Crank Pulley Diameter",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "block_deck_height__in",
+   "canonical_key": "block_deck_height",
+   "engine_key": "deck_height.b",
+   "calculator_id": "deck_height",
+   "var": "b",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Block Deck Height",
+   "display_label": "Block Deck Height",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "clamp_load__lbf",
+   "canonical_key": "clutch_clamp_load",
+   "engine_key": "clutch_torque_capacity.clamp",
+   "calculator_id": "clutch_torque_capacity",
+   "var": "clamp",
+   "storage_unit": "lbf",
+   "input_units": [
+    {
+     "label": "lbf",
+     "token": "lbf"
+    },
+    {
+     "label": "N",
+     "token": "N"
+    }
+   ],
+   "frozen_label": "Clamp Load",
+   "display_label": "Clamp Load",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "mean_effective_radius__in",
+   "canonical_key": "clutch_disc_mean_effective_radius",
+   "engine_key": "clutch_torque_capacity.mean",
+   "calculator_id": "clutch_torque_capacity",
+   "var": "mean",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Mean Effective Radius",
+   "display_label": "Mean Effective Radius",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "pivot_to_pushrod__in",
+   "canonical_key": "clutch_fork_pivot_to_pushrod",
+   "engine_key": "clutch_fork_ratio.push",
+   "calculator_id": "clutch_fork_ratio",
+   "var": "push",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Pivot to Pushrod",
+   "display_label": "Pivot to Pushrod",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "pivot_to_release_bearing__in",
+   "canonical_key": "clutch_fork_pivot_to_release_bearing",
+   "engine_key": "clutch_fork_ratio.pivot",
+   "calculator_id": "clutch_fork_ratio",
+   "var": "pivot",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Pivot to Release Bearing",
+   "display_label": "Pivot to Release Bearing",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "pedal_arm_length__in",
+   "canonical_key": "clutch_pedal_arm_length",
+   "engine_key": "clutch_pedal_ratio.input",
+   "calculator_id": "clutch_pedal_ratio",
+   "var": "input",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Pedal Arm Length",
+   "display_label": "Pedal Arm Length",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "pushrod_distance_from_pivot__in",
+   "canonical_key": "clutch_pedal_pivot_to_pushrod",
+   "engine_key": "clutch_pedal_ratio.output",
+   "calculator_id": "clutch_pedal_ratio",
+   "var": "output",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Pushrod Distance from Pivot",
+   "display_label": "Pushrod Distance from Pivot",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "required_release_force__lbf",
+   "canonical_key": "clutch_release_force",
+   "engine_key": "clutch_pedal_effort.release",
+   "calculator_id": "clutch_pedal_effort",
+   "var": "release",
+   "storage_unit": "lbf",
+   "input_units": [
+    {
+     "label": "lbf",
+     "token": "lbf"
+    },
+    {
+     "label": "N",
+     "token": "N"
+    }
+   ],
+   "frozen_label": "Required Release Force",
+   "display_label": "Required Release Force",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "slave_cylinder_bore__in",
+   "canonical_key": "clutch_slave_cylinder_bore",
+   "engine_key": "clutch_hydraulic_ratio.slave",
+   "calculator_id": "clutch_hydraulic_ratio",
+   "var": "slave",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Slave Cylinder Bore",
+   "display_label": "Slave Cylinder Bore",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "main_journal_diameter__in",
+   "canonical_key": "crankshaft_main_journal_diameter",
+   "engine_key": "crank_journal_overlap.mj",
+   "calculator_id": "crank_journal_overlap",
+   "var": "mj",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Main Journal Diameter",
+   "display_label": "Main Journal Diameter",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "rod_journal_diameter__in",
+   "canonical_key": "crankshaft_rod_journal_diameter",
+   "engine_key": "crank_journal_overlap.rj",
+   "calculator_id": "crank_journal_overlap",
+   "var": "rj",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Rod Journal Diameter",
+   "display_label": "Rod Journal Diameter",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "def_tank__gal",
+   "canonical_key": "def_tank_capacity",
+   "engine_key": "diesel_def_range.tank",
+   "calculator_id": "diesel_def_range",
+   "var": "tank",
+   "storage_unit": "gal",
+   "input_units": [
+    {
+     "label": "gal (US)",
+     "token": "gal"
+    },
+    {
+     "label": "L",
+     "token": "L"
+    }
+   ],
+   "frozen_label": "DEF Tank",
+   "display_label": "DEF Tank",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "front_lowest_point_height__in",
+   "canonical_key": "front_overhang_lowest_point_height",
+   "engine_key": "approach_departure_angle.fh",
+   "calculator_id": "approach_departure_angle",
+   "var": "fh",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Front Lowest-Point Height",
+   "display_label": "Front Lowest-Point Height",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "front_horizontal_offset__in",
+   "canonical_key": "front_overhang_lowest_point_horizontal_offset",
+   "engine_key": "approach_departure_angle.fo",
+   "calculator_id": "approach_departure_angle",
+   "var": "fo",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Front Horizontal Offset",
+   "display_label": "Front Horizontal Offset",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "front_suspension_instant_center_height__in",
+   "canonical_key": "front_suspension_side_view_ic_height",
+   "engine_key": "anti_dive.icH",
+   "calculator_id": "anti_dive",
+   "var": "icH",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Front Suspension Instant-Center Height",
+   "display_label": "Front Suspension Instant-Center Height",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "ground_clearance_at_center__in",
+   "canonical_key": "ground_clearance_at_mid_wheelbase",
+   "engine_key": "breakover_angle.ground",
+   "calculator_id": "breakover_angle",
+   "var": "ground",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Ground Clearance (at center)",
+   "display_label": "Ground Clearance (at center)",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "balancer_diameter__in",
+   "canonical_key": "harmonic_balancer_diameter",
+   "engine_key": "timing_mark.bore5",
+   "calculator_id": "timing_mark",
+   "var": "bore5",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Balancer Diameter",
+   "display_label": "Balancer Diameter",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "compressed_gasket_thickness__in",
+   "canonical_key": "head_gasket_compressed_thickness",
+   "engine_key": "head_gasket_vol.comp_thick",
+   "calculator_id": "head_gasket_vol",
+   "var": "comp_thick",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Compressed Gasket Thickness",
+   "display_label": "Compressed Gasket Thickness",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "effective_flow_area__sq_in",
+   "canonical_key": "intake_port_effective_flow_area",
+   "engine_key": "mach_index.mi_a",
+   "calculator_id": "mach_index",
+   "var": "mi_a",
+   "storage_unit": "sq in",
+   "input_units": [
+    {
+     "label": "sq in",
+     "token": "sq in"
+    },
+    {
+     "label": "mm²",
+     "token": "mm²"
+    },
+    {
+     "label": "cm²",
+     "token": "cm²"
+    }
+   ],
+   "frozen_label": "Effective Flow Area",
+   "display_label": "Effective Flow Area",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "pipe_diameter__in",
+   "canonical_key": "jpipe_resonator_diameter",
+   "engine_key": "jpipe_resonator.dia_jp",
+   "calculator_id": "jpipe_resonator",
+   "var": "dia_jp",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Pipe Diameter",
+   "display_label": "Pipe Inside Diameter",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "lf_instant_center_height__in",
+   "canonical_key": "lf_front_view_ic_height",
+   "engine_key": "ct_moment_center.lf_mc",
+   "calculator_id": "ct_moment_center",
+   "var": "lf_mc",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "LF Instant Center Height",
+   "display_label": "LF Instant Center Height",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "lf_ic_distance_from_center__in",
+   "canonical_key": "lf_front_view_ic_lateral_distance",
+   "engine_key": "ct_moment_center.lf_track",
+   "calculator_id": "ct_moment_center",
+   "var": "lf_track",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "LF IC Distance from center",
+   "display_label": "LF IC Distance from center",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "bolt_thread_pitch__tpi",
+   "canonical_key": "lr_jacking_screw_thread_pitch",
+   "engine_key": "ct_jacking_bolt.thread_pitch",
+   "calculator_id": "ct_jacking_bolt",
+   "var": "thread_pitch",
+   "storage_unit": "TPI",
+   "input_units": [
+    {
+     "label": "TPI",
+     "token": "TPI"
+    }
+   ],
+   "frozen_label": "Bolt Thread Pitch",
+   "display_label": "Bolt Thread Pitch",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "max_steer_angle_inside_wheel__deg",
+   "canonical_key": "max_steer_angle_inside_wheel",
+   "engine_key": "turning_radius.steer_angle",
+   "calculator_id": "turning_radius",
+   "var": "steer_angle",
+   "storage_unit": "°",
+   "input_units": [
+    {
+     "label": "°",
+     "token": "°"
+    }
+   ],
+   "frozen_label": "Max Steer Angle (inside wheel)",
+   "display_label": "Max Steer Angle (inside wheel)",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "panhard_bar_height_at_axle__in",
+   "canonical_key": "panhard_bar_height_at_axle",
+   "engine_key": "ct_panhard_roll.ph_ht",
+   "calculator_id": "ct_panhard_roll",
+   "var": "ph_ht",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Panhard Bar Height (at axle)",
+   "display_label": "Panhard Bar Height (at axle)",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "panhard_bar_length__in",
+   "canonical_key": "panhard_bar_length",
+   "engine_key": "rc_watt_link.ph_len",
+   "calculator_id": "rc_watt_link",
+   "var": "ph_len",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Panhard Bar Length",
+   "display_label": "Panhard Bar Length",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "piston_compression_height__in",
+   "canonical_key": "piston_compression_height",
+   "engine_key": "deck_height.p",
+   "calculator_id": "deck_height",
+   "var": "p",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Piston Compression Height",
+   "display_label": "Piston Compression Height",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "piston_volume_dome_per_dish__cc",
+   "canonical_key": "piston_crown_volume",
+   "engine_key": "static_compression.piston",
+   "calculator_id": "static_compression",
+   "var": "piston",
+   "storage_unit": "cc",
+   "input_units": [
+    {
+     "label": "cc",
+     "token": "cc"
+    },
+    {
+     "label": "cu in",
+     "token": "cu in"
+    }
+   ],
+   "frozen_label": "Piston Volume (+dome / −dish)",
+   "display_label": "Piston Volume (+dome / −dish)",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "portal_drop_height__in",
+   "canonical_key": "portal_hub_drop_height",
+   "engine_key": "portal_gear_reduction.pgr_drop",
+   "calculator_id": "portal_gear_reduction",
+   "var": "pgr_drop",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Portal Drop Height",
+   "display_label": "Portal Drop Height",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "portal_reduction_ratio__to_1",
+   "canonical_key": "portal_hub_reduction_ratio",
+   "engine_key": "portal_gear_reduction.pgr_portal",
+   "calculator_id": "portal_gear_reduction",
+   "var": "pgr_portal",
+   "storage_unit": ":1",
+   "input_units": [
+    {
+     "label": ":1",
+     "token": ":1"
+    }
+   ],
+   "frozen_label": "Portal Reduction Ratio",
+   "display_label": "Portal Reduction Ratio",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "release_lever_ratio__to_1",
+   "canonical_key": "pressure_plate_release_lever_ratio",
+   "engine_key": "clutch_release_force.lever",
+   "calculator_id": "clutch_release_force",
+   "var": "lever",
+   "storage_unit": ":1",
+   "input_units": [
+    {
+     "label": ":1",
+     "token": ":1"
+    }
+   ],
+   "frozen_label": "Release Lever Ratio",
+   "display_label": "Release Lever Ratio",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "rear_lowest_point_height__in",
+   "canonical_key": "rear_overhang_lowest_point_height",
+   "engine_key": "approach_departure_angle.rh",
+   "calculator_id": "approach_departure_angle",
+   "var": "rh",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Rear Lowest-Point Height",
+   "display_label": "Rear Lowest-Point Height",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "rear_horizontal_offset__in",
+   "canonical_key": "rear_overhang_lowest_point_horizontal_offset",
+   "engine_key": "approach_departure_angle.ro",
+   "calculator_id": "approach_departure_angle",
+   "var": "ro",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Rear Horizontal Offset",
+   "display_label": "Rear Horizontal Offset",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "instant_center_height_at_reference_wheelbase__in",
+   "canonical_key": "rear_suspension_side_view_ic_height_at_reference_wheelbase",
+   "engine_key": "anti_squat.ic",
+   "calculator_id": "anti_squat",
+   "var": "ic",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Instant Center Height at Reference Wheelbase",
+   "display_label": "Instant Center Height at Reference Wheelbase",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "rf_instant_center_height__in",
+   "canonical_key": "rf_front_view_ic_height",
+   "engine_key": "ct_moment_center.rf_mc",
+   "calculator_id": "ct_moment_center",
+   "var": "rf_mc",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "RF Instant Center Height",
+   "display_label": "RF Instant Center Height",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "rf_ic_distance_from_center__in",
+   "canonical_key": "rf_front_view_ic_lateral_distance",
+   "engine_key": "ct_moment_center.rf_track",
+   "calculator_id": "ct_moment_center",
+   "var": "rf_track",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "RF IC Distance from center",
+   "display_label": "RF IC Distance from center",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "pulley_ratio_sc_to_crank__to_1",
+   "canonical_key": "supercharger_to_crank_speed_ratio",
+   "engine_key": "supercharger_speed.cr3",
+   "calculator_id": "supercharger_speed",
+   "var": "cr3",
+   "storage_unit": ":1",
+   "input_units": [
+    {
+     "label": ":1",
+     "token": ":1"
+    }
+   ],
+   "frozen_label": "Pulley Ratio (SC:Crank)",
+   "display_label": "Pulley Ratio (SC:Crank)",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "torque_multiplication__to_1",
+   "canonical_key": "torque_converter_stall_torque_ratio",
+   "engine_key": "torque_converter.mult",
+   "calculator_id": "torque_converter",
+   "var": "mult",
+   "storage_unit": ":1",
+   "input_units": [
+    {
+     "label": ":1",
+     "token": ":1"
+    }
+   ],
+   "frozen_label": "Torque Multiplication",
+   "display_label": "Torque Multiplication",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "battery_energy__kwh",
+   "canonical_key": "traction_battery_gross_energy",
+   "engine_key": "ev_range.batt",
+   "calculator_id": "ev_range",
+   "var": "batt",
+   "storage_unit": "kWh",
+   "input_units": [
+    {
+     "label": "kWh",
+     "token": "kWh"
+    }
+   ],
+   "frozen_label": "Battery Energy",
+   "display_label": "Battery Energy",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "low_range_ratio__to_1",
+   "canonical_key": "transfer_case_low_range_ratio",
+   "engine_key": "crawl_ratio.la",
+   "calculator_id": "crawl_ratio",
+   "var": "la",
+   "storage_unit": ":1",
+   "input_units": [
+    {
+     "label": ":1",
+     "token": ":1"
+    }
+   ],
+   "frozen_label": "Low Range Ratio",
+   "display_label": "Low Range Ratio",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "center_of_gravity_height__in",
+   "canonical_key": "vehicle_cg_height",
+   "engine_key": "anti_squat.cg",
+   "calculator_id": "anti_squat",
+   "var": "cg",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Center of Gravity Height",
+   "display_label": "Center of Gravity Height",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "vehicle_cg_height__in",
+   "canonical_key": "vehicle_cg_height",
+   "engine_key": "anti_dive.cgH",
+   "calculator_id": "anti_dive",
+   "var": "cgH",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Vehicle CG Height",
+   "display_label": "Vehicle CG Height",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "cg_y_from_left_side__in",
+   "canonical_key": "vehicle_cg_lateral_from_left_side",
+   "engine_key": "cg_3d.y",
+   "calculator_id": "cg_3d",
+   "var": "y",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "CG Y from Left Side",
+   "display_label": "CG Y from Left Side",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "cg_x_from_front_axle__in",
+   "canonical_key": "vehicle_cg_longitudinal_from_front_axle",
+   "engine_key": "cg_3d.x",
+   "calculator_id": "cg_3d",
+   "var": "x",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "CG X from Front Axle",
+   "display_label": "CG X from Front Axle",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "side_area__sq_ft",
+   "canonical_key": "vehicle_side_projected_area",
+   "engine_key": "crosswind_force.area2",
+   "calculator_id": "crosswind_force",
+   "var": "area2",
+   "storage_unit": "sq ft",
+   "input_units": [
+    {
+     "label": "sq ft",
+     "token": "sq ft"
+    },
+    {
+     "label": "m²",
+     "token": "m²"
+    }
+   ],
+   "frozen_label": "Side Area",
+   "display_label": "Side Area",
+   "value_role": "SPECIFICATION"
+  },
+  {
+   "draft_field_id": "wheelbase_for_rear_steer_angle__in",
+   "canonical_key": "vehicle_wheelbase",
+   "engine_key": "rc_watt_link.ph_wb",
+   "calculator_id": "rc_watt_link",
+   "var": "ph_wb",
+   "storage_unit": "in",
+   "input_units": [
+    {
+     "label": "in",
+     "token": "in"
+    },
+    {
+     "label": "mm",
+     "token": "mm"
+    }
+   ],
+   "frozen_label": "Wheelbase (for rear-steer angle)",
+   "display_label": "Wheelbase (for rear-steer angle)",
+   "value_role": "SPECIFICATION"
+  }
+ ],
+ "deferred": [
+  {
+   "draft_field_id": "engine_torque_at_stall__lb_ft",
+   "engine_key": "torque_converter.tq",
+   "category": "ENGINEERING REVIEW REQUIRED"
+  },
+  {
+   "draft_field_id": "exhaust_opens_bbdc__deg",
+   "engine_key": "camshaft_events.elo",
+   "category": "ENGINEERING REVIEW REQUIRED"
+  },
+  {
+   "draft_field_id": "exhaust_valve_opening_deg_bbdc__deg",
+   "engine_key": "exhaust_header.evo",
+   "category": "ENGINEERING REVIEW REQUIRED"
+  },
+  {
+   "draft_field_id": "front_ride_height__in",
+   "engine_key": "rc_rake_angle.rh_front",
+   "category": "ENGINEERING REVIEW REQUIRED"
+  },
+  {
+   "draft_field_id": "installed_advance_per_retard__deg",
+   "engine_key": "camshaft_intake_centerline.af_ic_adv",
+   "category": "ENGINEERING REVIEW REQUIRED"
+  },
+  {
+   "draft_field_id": "intake_closes_abdc__deg",
+   "engine_key": "camshaft_events.ilc",
+   "category": "ENGINEERING REVIEW REQUIRED"
+  },
+  {
+   "draft_field_id": "intake_closing_angle_abdc__deg",
+   "engine_key": "dynamic_compression.ica",
+   "category": "ENGINEERING REVIEW REQUIRED"
+  },
+  {
+   "draft_field_id": "intake_valve_closing_after_bdc__deg_abdc",
+   "engine_key": "cranking_compression.ivc",
+   "category": "ENGINEERING REVIEW REQUIRED"
+  },
+  {
+   "draft_field_id": "left_tire_circumference__in",
+   "engine_key": "tire_stagger.circ_l",
+   "category": "ENGINEERING REVIEW REQUIRED"
+  },
+  {
+   "draft_field_id": "pressure_plate_load__lbf",
+   "engine_key": "clutch_release_force.spring",
+   "category": "ENGINEERING REVIEW REQUIRED"
+  },
+  {
+   "draft_field_id": "rear_ride_height__in",
+   "engine_key": "rc_rake_angle.rh_rear",
+   "category": "ENGINEERING REVIEW REQUIRED"
+  },
+  {
+   "draft_field_id": "right_tire_circumference__in",
+   "engine_key": "tire_stagger.circ_r",
+   "category": "ENGINEERING REVIEW REQUIRED"
+  },
+  {
+   "draft_field_id": "shaft_length__in",
+   "engine_key": "driveshaft_critical.len_dc",
+   "category": "ENGINEERING REVIEW REQUIRED"
+  },
+  {
+   "draft_field_id": "center_to_center_distance__in",
+   "engine_key": "belt_length.center_dist",
+   "category": "IDENTITY UNRESOLVED"
+  },
+  {
+   "draft_field_id": "countersink_included_angle__deg",
+   "engine_key": "countersink_depth.angle_cs",
+   "category": "IDENTITY UNRESOLVED"
+  },
+  {
+   "draft_field_id": "height__in",
+   "engine_key": "tank_volume.ht",
+   "category": "IDENTITY UNRESOLVED"
+  },
+  {
+   "draft_field_id": "large_pulley_diameter__in",
+   "engine_key": "belt_length.p1_dia",
+   "category": "IDENTITY UNRESOLVED"
+  },
+  {
+   "draft_field_id": "length__in",
+   "engine_key": "tank_volume.len2",
+   "category": "IDENTITY UNRESOLVED"
+  },
+  {
+   "draft_field_id": "one_way_wire_length__ft",
+   "engine_key": "wire_gauge.len_wg",
+   "category": "IDENTITY UNRESOLVED"
+  },
+  {
+   "draft_field_id": "original_bolt_per_thread_size__in",
+   "engine_key": "helicoil_size.orig_size",
+   "category": "IDENTITY UNRESOLVED"
+  },
+  {
+   "draft_field_id": "original_threads_per_inch__tpi",
+   "engine_key": "helicoil_size.orig_tpi",
+   "category": "IDENTITY UNRESOLVED"
+  },
+  {
+   "draft_field_id": "r1__ohm",
+   "engine_key": "resistance.r1",
+   "category": "IDENTITY UNRESOLVED"
+  },
+  {
+   "draft_field_id": "r2__ohm",
+   "engine_key": "resistance.r2",
+   "category": "IDENTITY UNRESOLVED"
+  },
+  {
+   "draft_field_id": "r3__ohm",
+   "engine_key": "resistance.r3",
+   "category": "IDENTITY UNRESOLVED"
+  },
+  {
+   "draft_field_id": "screw_head_diameter__in",
+   "engine_key": "countersink_depth.screw_dia",
+   "category": "IDENTITY UNRESOLVED"
+  },
+  {
+   "draft_field_id": "small_pulley_diameter__in",
+   "engine_key": "belt_length.p2_dia",
+   "category": "IDENTITY UNRESOLVED"
+  },
+  {
+   "draft_field_id": "wheel_center_offset__in",
+   "engine_key": "scrub_radius.wc",
+   "category": "IDENTITY UNRESOLVED"
+  },
+  {
+   "draft_field_id": "width__in",
+   "engine_key": "tank_volume.wd",
+   "category": "IDENTITY UNRESOLVED"
+  },
+  {
+   "draft_field_id": "arm_length__in",
+   "engine_key": "ct_sway_bar.sb_arm",
+   "category": "MULTI-INSTANCE (Decision 1, previously identified)"
+  },
+  {
+   "draft_field_id": "bar_length_between_arms__in",
+   "engine_key": "ct_sway_bar.sb_len",
+   "category": "MULTI-INSTANCE (Decision 1, previously identified)"
+  },
+  {
+   "draft_field_id": "bar_wire_diameter__in",
+   "engine_key": "ct_sway_bar.sb_wire",
+   "category": "MULTI-INSTANCE (Decision 1, previously identified)"
+  },
+  {
+   "draft_field_id": "caliper_piston_bore__in",
+   "engine_key": "brake_hydraulic_ratio.cal",
+   "category": "MULTI-INSTANCE (Decision 1, previously identified)"
+  },
+  {
+   "draft_field_id": "caster_angle__deg",
+   "engine_key": "mech_trail.ca2",
+   "category": "MULTI-INSTANCE (Decision 1, previously identified)"
+  },
+  {
+   "draft_field_id": "rocker_ratio__to_1",
+   "engine_key": "valve_lash.rocker_r",
+   "category": "MULTI-INSTANCE (Decision 1, previously identified)"
+  },
+  {
+   "draft_field_id": "shock_collapsed_length__in",
+   "engine_key": "shock_length.col_sh",
+   "category": "MULTI-INSTANCE (Decision 1, previously identified)"
+  },
+  {
+   "draft_field_id": "suspension_wheel_travel__in",
+   "engine_key": "shock_length.travel_sh",
+   "category": "MULTI-INSTANCE (Decision 1, previously identified)"
+  },
+  {
+   "draft_field_id": "throat_diameter__in",
+   "engine_key": "valve_throat_area.vta_d",
+   "category": "MULTI-INSTANCE (Decision 1, previously identified)"
+  },
+  {
+   "draft_field_id": "valve_lash__in",
+   "engine_key": "lash_net_lift.lnl_l",
+   "category": "MULTI-INSTANCE (Decision 1, previously identified)"
+  },
+  {
+   "draft_field_id": "amount_milled__in",
+   "engine_key": "milling_heads.depth",
+   "category": "NOT A VALID CANONICAL FIELD"
+  },
+  {
+   "draft_field_id": "average_tire_circumference__in",
+   "engine_key": "ct_ideal_stagger.avg_circ",
+   "category": "NOT A VALID CANONICAL FIELD"
+  },
+  {
+   "draft_field_id": "hydraulic_ratio__to_1",
+   "engine_key": "brake_pedal_effort.hyd",
+   "category": "NOT A VALID CANONICAL FIELD"
+  },
+  {
+   "draft_field_id": "next_gear_ratio__to_1",
+   "engine_key": "rpm_drop_shift.next_gear",
+   "category": "NOT A VALID CANONICAL FIELD"
+  },
+  {
+   "draft_field_id": "backspace__in",
+   "engine_key": "wheel_offset.backspace",
+   "category": "REMOVED FROM 58 — MULTI-INSTANCE (newly identified)"
+  },
+  {
+   "draft_field_id": "inside_diameter_0_if_solid__in",
+   "engine_key": "driveshaft_critical.id_dc",
+   "category": "REMOVED FROM 58 — MULTI-INSTANCE (newly identified)"
+  },
+  {
+   "draft_field_id": "inside_diameter__in",
+   "engine_key": "fuel_line_loss.line_id",
+   "category": "REMOVED FROM 58 — MULTI-INSTANCE (newly identified)"
+  },
+  {
+   "draft_field_id": "loaded_tire_radius__in",
+   "engine_key": "mech_trail.tr_mt",
+   "category": "REMOVED FROM 58 — MULTI-INSTANCE (newly identified)"
+  },
+  {
+   "draft_field_id": "or_enter_offset_to_get_backspace__mm",
+   "engine_key": "wheel_offset.offset_in",
+   "category": "REMOVED FROM 58 — MULTI-INSTANCE (newly identified)"
+  },
+  {
+   "draft_field_id": "outside_diameter__in",
+   "engine_key": "driveshaft_critical.od_dc",
+   "category": "REMOVED FROM 58 — MULTI-INSTANCE (newly identified)"
+  },
+  {
+   "draft_field_id": "section_width__mm",
+   "engine_key": "tire_size.tw",
+   "category": "REMOVED FROM 58 — MULTI-INSTANCE (newly identified)"
+  },
+  {
+   "draft_field_id": "wheel_diameter__in",
+   "engine_key": "tire_size.wr",
+   "category": "REMOVED FROM 58 — MULTI-INSTANCE (newly identified)"
+  },
+  {
+   "draft_field_id": "wing_per_splitter_area__sq_ft",
+   "engine_key": "rc_downforce.area",
+   "category": "REMOVED FROM 58 — MULTI-INSTANCE (newly identified)"
+  },
+  {
+   "draft_field_id": "king_pin_arm_kpa__in",
+   "engine_key": "scrub_radius.kpa",
+   "category": "REMOVED FROM 58 — UNRESOLVED DATUM"
+  }
+ ]
+}
