@@ -601,7 +601,7 @@ check('garage', 'marking a machine primary moves the flag; deleting the primary 
   eq(await q(c, `SELECT owner_id, machine_id FROM machine_details WHERE is_primary ORDER BY owner_id`),
     [{ owner_id: U.A, machine_id: ID.MA }, { owner_id: U.B, machine_id: ID.MB2 }], 'one primary per owner; A untouched by B');
 });
-check('test_setups', 'CURRENT behaviour (owner decision pending): Free may create several Test Setups on its one machine, but cannot attach saved work to them', async (c) => {
+check('test_setups', 'owner decision (approved): Test Setups are unlimited for Free on its one machine; saved work cannot be attached to them', async (c) => {
   await as(c, 'A');
   for (const n of ['street', 'track', 'dyno']) await c.query(`INSERT INTO test_setups (machine_id, name) VALUES ($1, $2)`, [ID.MA, n]);
   eq(await one(c, `SELECT count(*)::int FROM test_setups`), 4, 'A test setups');

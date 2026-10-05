@@ -229,7 +229,7 @@
     },
     {
       "group": "test_setups",
-      "name": "CURRENT behaviour (owner decision pending): Free may create several Test Setups on its one machine, but cannot attach saved work to them",
+      "name": "owner decision (approved): Test Setups are unlimited for Free on its one machine; saved work cannot be attached to them",
       "pass": true
     },
     {

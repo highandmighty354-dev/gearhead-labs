@@ -95,7 +95,7 @@ Every remaining failure is an intended restriction:
 
 ## Open items (not decided here)
 
-- Free users may currently create any number of Test Setups (Builds) on their one machine (characterised by a test). Limiting them is an owner decision. It would NOT require editing frozen GARAGE-FOUNDATION: an additional restrictive policy, the same pattern as the machine allowance, is purely additive.
+- DECIDED (owner, 2026-10-05): Test Setups (Builds) stay unlimited for Free users on their one machine (pinned by a test). There is no 0407. The Free limits are exactly: 1 active machine, no saved calculations.
 - `past_due` keeps access until the period end; no extra grace period (decision P-7 open).
 - `plans` / `plan_prices` are readable by signed-in users only, not `anon` (a public pricing page would need a decision, like OPEN #17).
 - Account deletion (OPEN #10) is unchanged: profiles, grants and billing rows are retained. Because `accounts → auth.users` is `ON DELETE RESTRICT` (frozen), deleting a user from Supabase Auth fails once that user has signed up.
