@@ -1,0 +1,42 @@
+name: Prepare Supabase client configuration
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate public Supabase configuration
+        env:
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          test -n "$SUPABASE_URL"
+          test -n "$SUPABASE_PUBLISHABLE_KEY"
+          cat > supabase-config.js <<EOF
+          window.GH_SUPABASE_CONFIG = {
+            url: "$SUPABASE_URL",
+            publishableKey: "$SUPABASE_PUBLISHABLE_KEY"
+          };
+          EOF
+
+      - name: Commit configuration if changed
+        run: |
+          if git diff --quiet -- supabase-config.js; then
+            echo "Supabase configuration unchanged."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add supabase-config.js
+          git commit -m "chore: update Supabase client configuration [skip ci]"
+          git push
