@@ -482,6 +482,25 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
     for (const m of html.matchAll(/<link[^>]+href="([^"?]+)/g)) assert(fs.existsSync(path.join(REPO, m[1])), 'missing stylesheet ' + m[1]);
   });
 
+  await test('pre-provisioning fixes: boot uses client.auth.getSession(); the dev query flag is off for the public, localhost dev stays on', async () => {
+    const boot = stripComments(read('supabase-boot.js'));
+    assert(/window\.GH_SUPABASE\.auth\.getSession\(\)/.test(boot) && !/GH_SUPABASE\.getSession\(/.test(boot), 'boot session check');
+    const cfgSrc = read('premium/config.js');
+    assert(/allowQueryFlag:\s*false/.test(cfgSrc) && /allowOnLocalhost:\s*true/.test(cfgSrc), 'premium/config.js development flags');
+    const run = async (hostname, search, session) => {
+      const w = { }, store = session ? { ghp_dev_session: session } : {};
+      const storage = { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); } };
+      const ctx = vm.createContext({ window: w, document: { readyState: 'complete', visibilityState: 'visible', addEventListener() {} }, location: { hostname, search, origin: 'https://' + hostname, pathname: '/' },
+        localStorage: { getItem: () => null, setItem() {} }, sessionStorage: storage, console, setTimeout, clearTimeout, URLSearchParams, crypto: require('crypto').webcrypto });
+      for (const f of ['premium/models.js', 'premium/config.js', 'premium/adapters/dev-local.js', 'premium/services.js']) vm.runInContext(read(f), ctx, { filename: f });
+      await w.GHP.services.ready; return w.GHP.services.mode;
+    };
+    eq(await run('gearhead.example', '?gh_dev=1'), 'no-backend', 'public ?gh_dev=1');
+    eq(await run('gearhead.example', '', '1'), 'no-backend', 'public stored dev-session flag');
+    eq(await run('localhost', ''), 'development', 'localhost');
+    eq(await run('localhost', '?gh_dev=0'), 'no-backend', 'localhost opt-out');
+  });
+
   /* ---------------------------------------------------------------- Step 4: development adapter conformance */
   const nodeCrypto = require('crypto');
   function browserEnv({ hostname = 'gearhead.example', search = '', client = null, files = ['models', 'dev-local'] } = {}) {

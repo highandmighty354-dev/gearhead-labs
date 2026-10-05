@@ -10,7 +10,7 @@
         auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}
       });
       window.GH_SUPABASE_READY=true;
-      window.GH_SUPABASE.getSession().then(function(r){
+      window.GH_SUPABASE.auth.getSession().then(function(r){
         if(r.error) console.warn('Gearhead Labs: Supabase auth check:',r.error.message);
         else console.info('Gearhead Labs: Supabase connected.');
       }).catch(function(e){console.warn('Gearhead Labs: Supabase connection check failed:',e);});

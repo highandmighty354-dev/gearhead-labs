@@ -10,7 +10,8 @@
        with what an empty / provisioned PostgREST returns. Only GET is permitted; anything else is aborted and fails
        the test, so no write can ever leave the browser.
    Modes: A anonymous / no-backend, B development, C Premium development, D real bootstrap order (actual client),
-          E foundation fallback on an unprovisioned database, F the F1.12.4 calculator frame, G SRI tamper check.
+          E foundation fallback on an unprovisioned database, F the F1.12.4 calculator frame, G SRI tamper check,
+          H development mode is local-only (a public host cannot enable it). Every boot must be clean (no init error).
    Run: node premium/tests/browser-smoke.js   (Playwright from the global npm root; npm registry reachable) */
 'use strict';
 const path = require('path'), http = require('http'), fs = require('fs'), os = require('os'), crypto = require('crypto'), { execSync, execFileSync } = require('child_process');
@@ -84,15 +85,14 @@ const EXPECTED_ORDER = lib => [lib.url, 'supabase-config.js', 'supabase-boot.js'
 /* Known, environment-only console noise: the calculator page's Google Fonts stylesheet cannot pass this sandbox's
    TLS-intercepting proxy. It affects only typefaces, never Gearhead Labs logic. */
 const ENV_NOISE = /ERR_CERT_AUTHORITY_INVALID|fonts\.googleapis\.com/;
-/* Known PRE-EXISTING defect in main's supabase-boot.js (unchanged by this step): line 13 calls
-   window.GH_SUPABASE.getSession() instead of window.GH_SUPABASE.auth.getSession(). It throws AFTER GH_SUPABASE and
-   GH_SUPABASE_READY are set, is caught, and only its "connected" log is lost. Tolerated as exactly this message. */
-const KNOWN_BOOT_DEFECT = /^Gearhead Labs: Supabase initialization failed\. TypeError: window\.GH_SUPABASE\.getSession is not a function/;
+/* supabase-boot.js must initialise cleanly: no "initialization failed" error, and its auth.getSession() check logs
+   "Supabase connected." (the getSession defect fixed in the pre-provisioning fixes must never come back). */
+const BOOT_FAILED = /Supabase initialization failed|Supabase connection check failed|getSession is not a function/;
 
 (async () => {
   const LIB = pinnedLibrary();
   const srv = await serve(), port = srv.address().port, base = `http://localhost:${port}/`;
-  const browser = await playwright.chromium.launch();
+  const browser = await playwright.chromium.launch({ args: ['--host-resolver-rules=MAP gearhead.test 127.0.0.1'] });
   const shot = async (page, n) => { if (OUT) await page.screenshot({ path: path.join(OUT, n + '.png'), fullPage: false }); };
   const toastSays = async (page, re) => { await page.waitForFunction(r => new RegExp(r).test(document.getElementById('ghp-toast').textContent), re.source, { timeout: 8000 }); };
   const ready = page => page.waitForFunction(() => document.body.classList.contains('ghp-ready'), null, { timeout: 20000 });
@@ -100,9 +100,9 @@ const KNOWN_BOOT_DEFECT = /^Gearhead Labs: Supabase initialization failed\. Type
   /* supabase: 'offline' (real network, blocked here) | 'unprovisioned' | 'provisioned'; library: 'pinned' | 'tampered' */
   async function open(url, { supabase = 'offline', library = 'pinned', viewport = { width: 1280, height: 900 } } = {}) {
     const ctx = await browser.newContext({ viewport }), page = await ctx.newPage();
-    const env = { ctx, page, pageErrors: [], consoleErrors: [], requests: [], violations: [] };
+    const env = { ctx, page, pageErrors: [], consoleErrors: [], consoleAll: [], requests: [], violations: [] };
     page.on('pageerror', e => env.pageErrors.push(e.message));
-    page.on('console', m => { if (m.type() === 'error') env.consoleErrors.push(m.text()); });
+    page.on('console', m => { env.consoleAll.push(m.type() + ': ' + m.text()); if (m.type() === 'error') env.consoleErrors.push(m.text()); });
     page.on('requestfailed', r => { if (ENV_NOISE.test(r.url() + r.failure().errorText)) env.envNoise = true; });
     await page.addInitScript(INSTRUMENT);
     await page.route(LIB.url, route => route.fulfill({ status: 200, headers: Object.assign({ 'content-type': 'text/javascript' }, CORS),
@@ -120,8 +120,16 @@ const KNOWN_BOOT_DEFECT = /^Gearhead Labs: Supabase initialization failed\. Type
     await ready(page);
     return env;
   }
-  const appErrors = env => env.pageErrors.concat(env.consoleErrors.filter(t => !ENV_NOISE.test(t) && !/Failed to load resource/.test(t) && !KNOWN_BOOT_DEFECT.test(t)));
-  const bootDefectSeen = env => env.consoleErrors.some(t => KNOWN_BOOT_DEFECT.test(t));
+  const appErrors = env => env.pageErrors.concat(env.consoleErrors.filter(t => !ENV_NOISE.test(t) && !/Failed to load resource/.test(t)));
+  /* boot health: no initialisation error anywhere in the console, and the boot's own auth.getSession() check succeeded */
+  async function assertCleanBoot(env) {
+    same(env.consoleAll.filter(t => BOOT_FAILED.test(t)), [], 'Supabase initialisation errors');
+    await env.page.waitForFunction(() => true);
+    for (let i = 0; i < 50 && !env.consoleAll.some(t => /Gearhead Labs: Supabase connected\./.test(t)); i++) await new Promise(r => setTimeout(r, 100));
+    assert(env.consoleAll.some(t => /^info: Gearhead Labs: Supabase connected\./.test(t)), 'boot auth.getSession() check did not report success: ' + JSON.stringify(env.consoleAll.filter(t => /Gearhead/.test(t))));
+    const s = await env.page.evaluate(async () => { const r = await window.GH_SUPABASE.auth.getSession(); return { error: r.error ? String(r.error.message || r.error) : null, hasData: !!r.data }; });
+    same(s, { error: null, hasData: true }, 'GH_SUPABASE.auth.getSession()');
+  }
   const bootFacts = page => page.evaluate(() => ({ order: __gh.order, createClient: __gh.createClient, wrapFailed: __gh.wrapFailed || null, events: __gh.events,
     fetches: __gh.fetches, ready: window.GH_SUPABASE_READY === true, hasClient: !!(window.GH_SUPABASE && typeof window.GH_SUPABASE.from === 'function'),
     lib: typeof (window.supabase && window.supabase.createClient), mode: GHP.services.mode, adapter: GHP.services.adapter.kind,
@@ -136,6 +144,7 @@ const KNOWN_BOOT_DEFECT = /^Gearhead Labs: Supabase initialization failed\. Type
     const env = await open(base + '?gh_dev=0&view=garage', { supabase: 'offline' });
     const f = await bootFacts(env.page);
     same([f.lib, f.hasClient, f.ready, f.createClient, f.mode], ['function', true, true, 1, 'no-backend'], 'boot');
+    await assertCleanBoot(env);
     await env.page.waitForSelector('text=Accounts are coming soon');
     await env.page.click('#ghp-nav [data-go="calculators"]');
     assert(await env.page.evaluate(() => document.body.classList.contains('ghp-mode-calculators')), 'calculators mode');
@@ -240,6 +249,7 @@ const KNOWN_BOOT_DEFECT = /^Gearhead Labs: Supabase initialization failed\. Type
     });
     await step('B6/C3. no application errors in development / Premium development; no writes left the browser', async () => {
       same(appErrors(env), [], 'errors'); same(env.violations, [], 'non-GET requests');
+      await assertCleanBoot(env);
     });
     await env.ctx.close();
   }
@@ -259,7 +269,7 @@ const KNOWN_BOOT_DEFECT = /^Gearhead Labs: Supabase initialization failed\. Type
     assert(env.requests.some(r => /\/rest\/v1\/plans\?select=plan_key&limit=1$/.test(r.url)), 'provisioning probe');
     await env.page.waitForSelector('text=Email me a sign-in link');
     same(env.violations, [], 'non-GET requests'); same(appErrors(env), [], 'errors');
-    console.log(`      note: pre-existing supabase-boot.js getSession defect observed: ${bootDefectSeen(env) ? 'yes (caught after GH_SUPABASE / READY were set; see report)' : 'no'}`);
+    await assertCleanBoot(env);
     await shot(env.page, 'd1-production');
     await env.ctx.close();
   });
@@ -277,6 +287,7 @@ const KNOWN_BOOT_DEFECT = /^Gearhead Labs: Supabase initialization failed\. Type
     const env = await open(base + '?gh_dev=0&view=garage', { supabase: 'unprovisioned' });
     const f = await bootFacts(env.page);
     same([f.createClient, f.ready, f.mode, f.adapter], [1, true, 'no-backend', 'none'], 'fallback');
+    await assertCleanBoot(env);
     same(env.requests.map(r => r.method + ' ' + new URL(r.url).pathname), ['GET /rest/v1/plans'], 'only the read-only probe');
     await env.page.waitForSelector('text=Accounts are coming soon');
     same(env.violations, [], 'non-GET requests'); same(appErrors(env), [], 'errors');
@@ -302,6 +313,28 @@ const KNOWN_BOOT_DEFECT = /^Gearhead Labs: Supabase initialization failed\. Type
     await shot(page, 'f1-calculator');
     await env.ctx.close();
     console.log(`      note: environment-only Google Fonts TLS failure observed: ${env.fontsNoise ? 'yes (classified, not an app error)' : 'no'}`);
+  });
+
+  /* ---------------------------------------------------------------- H. development mode is local-only */
+  await step('H1. a public visitor cannot enable dev mode (?gh_dev=1, or a stored dev-session flag); localhost development still works', async () => {
+    const pub = `http://gearhead.test:${port}/`;   // a non-localhost name for the same local server (browser host-resolver rule)
+    let env = await open(pub + '?gh_dev=1&view=garage', { supabase: 'unprovisioned' });
+    same([await env.page.evaluate(() => location.hostname), await env.page.evaluate(() => GHP.services.mode)], ['gearhead.test', 'no-backend'], '?gh_dev=1 on a public host');
+    assert(!(await env.page.$('.ghp-dev-pill')), 'DEV pill shown to a public visitor');
+    await env.page.evaluate(() => sessionStorage.setItem('ghp_dev_session', '1'));
+    await env.page.reload(); await ready(env.page);
+    same(await env.page.evaluate(() => GHP.services.mode), 'no-backend', 'stored dev-session flag on a public host');
+    same(appErrors(env), [], 'errors');
+    await env.ctx.close();
+    env = await open(pub + '?gh_dev=1', { supabase: 'provisioned' });
+    same(await env.page.evaluate(() => GHP.services.mode), 'production', '?gh_dev=1 on a public host with a live backend stays production');
+    await env.ctx.close();
+    env = await open(base + '?gh_dev=1&view=home', { supabase: 'offline' });
+    same(await env.page.evaluate(() => GHP.services.mode), 'development', 'localhost (legitimate development)');
+    await env.ctx.close();
+    env = await open(base + '?gh_dev=0', { supabase: 'offline' });
+    same(await env.page.evaluate(() => GHP.services.mode), 'no-backend', '?gh_dev=0 still opts out on localhost');
+    await env.ctx.close();
   });
 
   /* ---------------------------------------------------------------- G. SRI */

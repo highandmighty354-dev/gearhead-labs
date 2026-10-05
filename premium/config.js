@@ -19,7 +19,7 @@ window.GHP_CONFIG = {
   },
   development: {
     allowOnLocalhost: true,
-    allowQueryFlag: true,
+    allowQueryFlag: false,
     queryFlag: 'gh_dev'
   }
 };
