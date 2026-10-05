@@ -65,8 +65,8 @@ add('ENGINEERING / VALVETRAIN','e09_valve_spring_surge','Valve Spring Natural-Fr
 
 add('ENGINEERING / CHASSIS','e10_suspension_kinematics','Suspension Kinematics Lab',()=>{
  const uw=V('e10_uw'),lw=V('e10_lw'),ui=V('e10_ui'),li=V('e10_li'),mr=V('e10_mr');
- const ic=(uw*li-lw*ui)/(li-lw||1);
- return H('Suspension Kinematics Lab','Unified front-view screening architecture; intended to grow into a full hardpoint/3D solver.')+'<div class="calc-body">'+F('Upper Wheel-Side X','e10_uw',12,'in')+F('Lower Wheel-Side X','e10_lw',16,'in')+F('Upper Inner X','e10_ui',8,'in')+F('Lower Inner X','e10_li',10,'in')+F('Motion Ratio','e10_mr',.8,'wheel/spring')+M([{label:'Instant-Center X Screen',value:ic.toFixed(2),unit:'in'},{label:'Wheel/Spring Rate Factor',value:(mr*mr).toFixed(3),unit:'x²'}])+N('The production architecture should add vertical/3D hardpoints, camber, toe, roll center, steering axis and bump-steer curves rather than spawning duplicate mini-calculators.')+'</div>'+T('Suspension Kinematics Lab');
+ const den=(li-lw); const ic=Math.abs(den)>1e-9?(uw*li-lw*ui)/den:NaN;
+ return H('Suspension Kinematics Lab','Unified front-view screening architecture; intended to grow into a full hardpoint/3D solver.')+'<div class="calc-body">'+F('Upper Wheel-Side X','e10_uw',12,'in')+F('Lower Wheel-Side X','e10_lw',16,'in')+F('Upper Inner X','e10_ui',8,'in')+F('Lower Inner X','e10_li',10,'in')+F('Motion Ratio','e10_mr',.8,'wheel/spring')+M([{label:'Instant-Center X Screen',value:isFinite(ic)?ic.toFixed(2):'Parallel / undefined',unit:'in'},{label:'Wheel/Spring Rate Factor',value:(mr*mr).toFixed(3),unit:'x²'}])+N('The production architecture should add vertical/3D hardpoints, camber, toe, roll center, steering axis and bump-steer curves rather than spawning duplicate mini-calculators.')+'</div>'+T('Suspension Kinematics Lab');
 });
 
 add('ENGINEERING / DRIVELINE','e11_driveline_dynamics','Driveline Dynamics Lab',()=>{
