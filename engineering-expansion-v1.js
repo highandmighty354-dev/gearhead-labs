@@ -91,23 +91,13 @@ add('ENGINEERING / THERMAL','e14_heat_exchanger_matching','Heat-Exchanger Matchi
  return H('Heat-Exchanger Matching Workbench','LMTD-based workbench with explicit counterflow endpoint temperatures.')+'<div class="calc-body">'+F('Overall U','e14_u',40,'Btu/hr·ft²·°F')+F('Area','e14_A',8,'ft²')+F('Hot Inlet','e14_hi',250,'°F')+F('Hot Outlet','e14_ho',120,'°F')+F('Cold Inlet','e14_ci',180,'°F')+F('Cold Outlet','e14_co',170,'°F')+M([{label:'ΔT1',value:d1.toFixed(2),unit:'°F'},{label:'ΔT2',value:d2.toFixed(2),unit:'°F'},{label:'LMTD',value:isFinite(lm)?lm.toFixed(2):'Invalid',unit:'°F'},{label:'Heat Transfer',value:isFinite(lm)?(U*A*lm).toFixed(0):'—',unit:'Btu/hr'}])+N('LMTD is the temperature-difference basis; actual performance also depends on flow arrangement, fouling, properties and pressure drop.')+'</div>'+T('Heat-Exchanger Matching Workbench');
 });
 
-add('ENGINEERING / MARINE','e15_marine_prop_operating_point','Marine Propeller Operating-Point Analyzer',()=>{
- const D=V('e15_D'),rpm=V('e15_rpm'),mph=V('e15_v'),kt=V('e15_kt'),kq=V('e15_kq'),J=mph*.44704/(rpm/60*D*.0254),eta=J*kt/(2*Math.PI*kq);
- return H('Marine Propeller Operating-Point Analyzer','Requires supplied propeller-series coefficients; no B-series or manufacturer coefficients are fabricated.')+'<div class="calc-body">'+F('Diameter','e15_D',14,'in')+F('RPM','e15_rpm',5500,'RPM')+F('Boat Speed','e15_v',45,'mph')+F('KT','e15_kt',.11,'supplied')+F('KQ','e15_kq',.018,'supplied')+M([{label:'Advance Ratio J',value:J.toFixed(3),unit:''},{label:'Open-Water Efficiency',value:(eta*100).toFixed(1),unit:'%'},{label:'Coefficient Source',value:'USER / MAP DATA',unit:''}])+N('A real propeller operating point also depends on diameter, pitch/geometry, advance ratio, loading and cavitation constraints.')+'</div>'+T('Marine Propeller Operating-Point Analyzer');
-});
 
-add('ENGINEERING / MARINE','e16_marine_cavitation_margin','Marine Propeller Cavitation Margin Analyzer',()=>{
- const rho=V('e16_rho'),n=V('e16_n'),D=V('e16_D'),p=V('e16_p'),pv=V('e16_pv'),lim=V('e16_lim'),sig=((p-pv)*144)/(rho*n*n*D*D);
- return H('Marine Propeller Cavitation Margin Analyzer','Dimensionless cavitation-index screen; acceptance threshold is user/source supplied.')+'<div class="calc-body">'+F('Water Density','e16_rho',1.94,'slug/ft³')+F('Propeller Speed','e16_n',91.7,'rev/s')+F('Diameter','e16_D',1.17,'ft')+F('Local Absolute Pressure','e16_p',14.7,'psi')+F('Vapor Pressure','e16_pv',.45,'psi')+F('Acceptance Index','e16_lim',.8,'minimum')+M([{label:'Cavitation Index σ',value:sig.toFixed(3),unit:''},{label:'Screen',value:sig>=lim?'ABOVE USER THRESHOLD':'BELOW USER THRESHOLD',unit:''}])+N('Blade loading, section pressure distribution, advance ratio and ventilation must be evaluated for a true cavitation design.')+'</div>'+T('Marine Propeller Cavitation Margin Analyzer');
-});
 
-add('ENGINEERING / MARINE','e17_marine_prop_optimization','Marine Propeller Optimization Workbench',()=>{
- const j=V('e17_j'),w=V('e17_w'),raw=document.getElementById('e17_map')?.value||'',p=raw.split(/\n|;/).map(x=>x.trim()).filter(Boolean).map(x=>x.split(/[,\s]+/).map(Number)).filter(x=>x.length>=3&&x.every(Number.isFinite));
- let b=null;p.forEach(x=>{let e=x[0]*x[1]/(2*Math.PI*x[2]);if(Math.abs(x[0]-j)<=w&&(!b||e>b.e))b={x,e};});
- return H('Marine Propeller Optimization Workbench','Ranks supplied propeller-series data near a target advance ratio. No coefficients are invented.')+'<div class="calc-body">'+F('Target J','e17_j',.65,'J')+F('Search Half-Width','e17_w',.01,'J')+'<div class="field"><label class="field-label">Map data: J, KT, KQ</label><textarea id="e17_map" class="field-input" style="min-height:120px"></textarea></div><button class="calc-btn" onclick="renderCalc(\'e17_marine_prop_optimization\',false)">SEARCH MAP</button>'+(b?M([{label:'Best J',value:b.x[0].toFixed(3),unit:''},{label:'KT',value:b.x[1].toFixed(4),unit:''},{label:'KQ',value:b.x[2].toFixed(4),unit:''},{label:'Efficiency',value:(b.e*100).toFixed(1),unit:'%'}]):R('Result','No valid point in search window',''))+N('A production optimizer should add diameter, RPM, speed, thrust/torque constraints and cavitation criteria.')+'</div>'+T('Marine Propeller Optimization Workbench');
-});
+
+
+
 
 const seen=new Set(CALCS.map(x=>x&&x.id));E.forEach(x=>{if(!seen.has(x.id)){CALCS.push(x);seen.add(x.id);}});
 window.GH_ENGINEERING_CALCS=E;
-window.GH_ENGINEERING_EXPANSION_VERSION='E1';
+window.GH_ENGINEERING_EXPANSION_VERSION='E1-AUTO';
 })();
