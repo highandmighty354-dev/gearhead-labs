@@ -437,14 +437,192 @@ const backendConfigEmpty = () => { const c = read('premium/config.js'); return /
     eq([done, client.calls.length], [false, 0], 'nothing before DOMContentLoaded');
     env.fire('DOMContentLoaded'); await p; eq(done, true, 'resolved after the event');
   });
-  await test('Phase 3A names still read by the unchanged services/shell/bridge remain available (deprecated)', () => {
+  /* ---------------------------------------------------------------- steps 3-5: legacy removal and static rules */
+  const LIVE = ['premium/services.js', 'premium/shell.js', 'premium/engineering-bridge.js', 'premium/adapters/dev-local.js', 'premium/adapters/foundation.js', 'premium/models.js'];
+  await test('deprecated Phase 3A model names are gone, and every GHP.models name the live files read exists', () => {
     const { M } = load();
-    const used = new Set();
-    for (const f of ['premium/services.js', 'premium/shell.js', 'premium/engineering-bridge.js'])
-      for (const m of read(f).matchAll(/\bM\.([A-Za-z_]+)/g)) used.add(m[1]);
-    for (const n of used) assert(M[n] !== undefined, 'missing ' + n);
-    eq(M.validate('vehicles', { year: 2019, make: 'Ford', model: 'Mustang', vehicle_type: 'Car' }).vehicle_type, 'Car', 'legacy validate');
-    eq(M.evaluateEntitlement(null, 'anonymous').plan, 'FREE', 'legacy entitlement');
+    for (const n of ['legacy', 'PLANS', 'ENTITLEMENT_STATUSES', 'PREMIUM_FEATURES', 'VEHICLE_TYPES', 'FUEL_TYPES', 'DRIVETRAINS', 'TRANSMISSIONS',
+      'BUILD_STATUSES', 'PROJECT_STATUSES', 'EXPERIENCE_LEVELS', 'UNIT_SYSTEMS', 'SCHEMAS', 'validate', 'evaluateEntitlement']) assert(!(n in M), 'still exported: ' + n);
+    for (const f of LIVE) for (const m of read(f).matchAll(/\bM\.([A-Za-z_]+)/g)) assert(M[m[1]] !== undefined, `${f} reads missing M.${m[1]}`);
+  });
+  await test('no live frontend file references Phase 3A tables, fields or Projects (the retained obsolete adapter excepted)', () => {
+    const bad = /['"`](vehicles|builds|projects|entitlements)['"`]|\b(vehicle_id|build_id|project_id|favorite_vehicle_id|favorite_build_id)\b|\bR\.(vehicles|builds|projects|profiles)\b|\bProjects?\b|data-[a-z-]*project|0001_premium_schema/;
+    const hits = FILES.filter(f => f !== OBSOLETE_ADAPTER && !/^(F1_|E1_)/.test(f) && bad.test(contents[f]));
+    eq(hits, [], 'files');
+  });
+  await test('live premium code: no client creation, no obsolete adapter, no hard deletes, no raw table access', () => {
+    for (const f of LIVE) {
+      const src = stripComments(read(f));
+      assert(!/createClient/.test(src), f + ': createClient');
+      assert(!/adapters\.supabase\b|GH_SUPABASE/.test(src) || f === 'premium/adapters/foundation.js', f + ': touches the bootstrap client or the obsolete adapter');
+      assert(!/\.delete\(\s*\)|\.upsert\(/.test(src), f + ': hard delete / upsert');
+      assert(!/\.from\(/.test(src) || f === 'premium/adapters/foundation.js', f + ': raw table access');
+      assert(!/\.select\(\s*['"`]\s*\*/.test(src), f + ': wildcard select');
+    }
+    assert(!/\bcreate\s*\(|\binsert\b/.test(read('premium/services.js').split('const savedCalculations = {')[1].split('const billing = {')[0]), 'savedCalculations repository has a create/insert path');
+  });
+
+  /* ---------------------------------------------------------------- Step 4: development adapter conformance */
+  const nodeCrypto = require('crypto');
+  function browserEnv({ hostname = 'gearhead.example', search = '', client = null, files = ['models', 'dev-local'] } = {}) {
+    const store = {}, session = {};
+    const storage = o => ({ getItem: k => (k in o ? o[k] : null), setItem: (k, v) => { o[k] = String(v); }, removeItem: k => { delete o[k]; } });
+    const docListeners = {};
+    const document = { readyState: 'complete', visibilityState: 'visible', addEventListener(ev, cb) { (docListeners[ev] = docListeners[ev] || []).push(cb); } };
+    const window = {};
+    if (client) window.GH_SUPABASE = client;
+    const ctx = vm.createContext({ window, document, location: { hostname, search, origin: 'https://' + hostname, pathname: '/' }, localStorage: storage(store), sessionStorage: storage(session),
+      console, setTimeout, clearTimeout, URLSearchParams, crypto: nodeCrypto.webcrypto });
+    window.GHP_CONFIG = { development: { allowOnLocalhost: true, allowQueryFlag: true, queryFlag: 'gh_dev' } };
+    const SRC = { models: MODELS, foundation: FOUNDATION, 'dev-local': read('premium/adapters/dev-local.js'), services: read('premium/services.js') };
+    for (const f of files) vm.runInContext(SRC[f], ctx, { filename: f + '.js' });
+    return { window, M: window.GHP.models, store };
+  }
+  const { scenarios, helpers } = require('./conformance.js');
+  {
+    const env = browserEnv();
+    const dev = await env.window.GHP.adapters.development.create();
+    const emails = { free: 'free@example.test', premium: 'premium@example.test' };
+    const ctx = {
+      M: env.M,
+      async as(user) { await dev.auth.signIn({ email: emails[user] }); return dev; },
+      async grant(user) { await ctx.as(user); await dev.devTools.setPlan('premium'); },
+      async revoke(user) { await ctx.as(user); await dev.devTools.setPlan('free'); },
+      async seedSavedCalculation(user, machineId) { await ctx.as(user); await dev.devTools.simulateServerSavedCalculation({ machine_id: machineId }); }
+    };
+    const shared = {}, h = helpers();
+    for (const [name, fn] of scenarios) await test('dev conformance: ' + name, () => fn(ctx, shared, h));
+    await test('dev adapter exposes the same surface as the foundation adapter (plus devTools only)', async () => {
+      const fEnv = load({ client: fakeClient() }), F = await fEnv.F.create();
+      const surface = a => Object.keys(a).filter(k => k !== 'devTools').sort();
+      eq(surface(dev), surface(F), 'adapter keys');
+      for (const t of Object.keys(F.tables)) eq(Object.keys(dev.tables[t]).sort(), Object.keys(F.tables[t]).sort(), t + ' methods');
+      for (const k of ['auth', 'entitlement', 'garage', 'machines', 'testSetups', 'analyses']) eq(Object.keys(dev[k]).sort(), Object.keys(F[k]).sort(), k);
+      eq(dev.tables.saved_calculations.insert, undefined, 'no saved-calculation create');
+      assert(!('simulateServerSavedCalculation' in dev.tables.saved_calculations) && !('setPlan' in dev.entitlement), 'dev-only tools leak into the contract');
+    });
+  }
+
+  /* ---------------------------------------------------------------- Step 3: services on the development adapter */
+  await test('services: adapter selection (development on localhost; no-backend without a bootstrap client or schema)', async () => {
+    const d = browserEnv({ hostname: 'localhost', files: ['models', 'dev-local', 'services'] });
+    await d.window.GHP.services.ready; eq(d.window.GHP.services.mode, 'development', 'localhost');
+    const n = browserEnv({ files: ['models', 'foundation', 'dev-local', 'services'] });
+    await n.window.GHP.services.ready; eq(n.window.GHP.services.mode, 'no-backend', 'no bootstrap client');
+    await rejects(n.window.GHP.services.repos.machines.list(), e => eq(e.kind, 'not_provisioned', 'repos refuse in no-backend'));
+    const p = browserEnv({ files: ['models', 'foundation', 'dev-local', 'services'], client: fakeClient(pgErr('PGRST205', 'Could not find the table public.plans', 404)) });
+    await p.window.GHP.services.ready; eq(p.window.GHP.services.mode, 'no-backend', 'schema not provisioned');
+    const o = browserEnv({ files: ['models', 'foundation', 'dev-local', 'services'], client: fakeClient() });
+    await o.window.GHP.services.ready; eq(o.window.GHP.services.mode, 'production', 'provisioned');
+    const q = browserEnv({ hostname: 'localhost', search: '?gh_dev=0', files: ['models', 'foundation', 'dev-local', 'services'] });
+    await q.window.GHP.services.ready; eq(q.window.GHP.services.mode, 'no-backend', '?gh_dev=0 on localhost');
+    eq(d.window.GHP.services.repos.savedCalculations.create, undefined, 'no saved-calculation create in services');
+  });
+  await test('services: a backend that becomes unavailable at runtime falls back to no-backend and announces it', async () => {
+    let broken = false;   // the schema disappears after a successful start
+    const client = fakeClient(c => broken ? pgErr('42P01', 'relation does not exist', 404)() : (c.op === 'rpc' ? { data: [{ plan_key: 'free', is_premium: false, features: [], source: null, ends_at: null }], error: null } : undefined));
+    client.session = { user: { id: U1, email: 'a@x.test' } };
+    const env = browserEnv({ files: ['models', 'foundation', 'services'], client });
+    const S = env.window.GHP.services; await S.ready;
+    eq(S.mode, 'production', 'started normally');
+    const seen = []; S.on('mode', m => seen.push(m));
+    broken = true;
+    await rejects(S.repos.machines.list());
+    await new Promise(r => setTimeout(r, 10));
+    eq([S.mode, seen, S.auth.user], ['no-backend', ['no-backend'], null], 'fallback');
+  });
+  await test('services: Free garage flow (create with specs, allowance, drivetrain/notes merge, components, primary, Test Setups)', async () => {
+    const env = browserEnv({ hostname: 'localhost', files: ['models', 'dev-local', 'services'] });
+    const S = env.window.GHP.services, R = S.repos; await S.ready;
+    await rejects(R.machines.list(), e => assert(e.signIn, 'sign-in required'));
+    await S.auth.signIn({ email: 'driver@example.test' }); await new Promise(r => setTimeout(r, 5));
+    eq(S.entitlements.state.plan, 'free', 'free');
+    const m = await R.machines.create({ model_year: '2019', make: 'Ford', model: 'Mustang', machine_type: 'automotive', power_source: 'gasoline', engine: '5.0L V8', transmission: '6-speed manual', drivetrain: 'RWD', notes: 'Weekend car', is_primary: false });
+    eq([m.name, m.is_primary, m.engine.label, m.transmission.label, m.drivetrain, m.details.notes], ['2019 Ford Mustang', true, '5.0L V8', '6-speed manual', 'RWD', 'Weekend car'], 'created view (first vehicle becomes primary)');
+    eq(await R.machines.allowance(), { used: 1, limit: 1, canAdd: false }, 'allowance');
+    const before = (await R.machines.list()).length;
+    eq((await rejects(R.machines.create({ machine_type: 'motorcycle', make: 'Honda' }))).kind, 'free_machine_limit', 'second vehicle');
+    eq((await R.machines.list()).length, before, 'nothing half-created');
+    let u = await R.machines.update(m.id, { drivetrain: 'AWD' });
+    eq([u.drivetrain, u.details.notes], ['AWD', 'Weekend car'], 'drivetrain change keeps notes');
+    u = await R.machines.update(m.id, { notes: 'Track car' });
+    eq([u.drivetrain, u.details.notes], ['AWD', 'Track car'], 'notes change keeps drivetrain');
+    u = await R.machines.update(m.id, { engine: '5.2L Voodoo', transmission: '' });
+    eq([u.engine.label, u.transmission], ['5.2L Voodoo', null], 'component update + soft delete');
+    await rejects(R.machines.update(m.id, { machine_type: 'marine' }), e => eq(e.code, 'marine_blocked', 'marine'));
+    const t = await R.testSetups.create({ machine_id: m.id, name: 'Street', description: 'Goals: 12s', notes: null });
+    for (const n of ['Track', 'Dyno', 'Winter']) await R.testSetups.create({ machine_id: m.id, name: n });
+    eq((await R.testSetups.list(m.id)).length, 4, 'unlimited setups');
+    await R.testSetups.update(t.id, { notes: 'edited' }); await R.testSetups.repin(t.id); await R.testSetups.remove(t.id);
+    eq((await R.testSetups.list(m.id)).length, 3, 'setup deleted');
+    const p = await R.profile.getMine(); eq([p.email, p.preferred_unit_system], ['driver@example.test', 'imperial'], 'profile');
+    eq((await R.profile.saveMine({ display_name: 'Driver', experience_level: 'enthusiast', favorite_machine_id: m.id })).display_name, 'Driver', 'profile save ignores favorite_machine_id');
+    eq(await R.billing.subscriptions(), [], 'subscriptions');
+    await R.machines.remove(m.id);
+    eq(await R.machines.allowance(), { used: 0, limit: 1, canAdd: true }, 'deleting frees the allowance');
+  });
+  await test('services: Premium analyses from a bridge capture (size limit, links, version), saved calculations without create, lapse', async () => {
+    const env = browserEnv({ hostname: 'localhost', files: ['models', 'dev-local', 'services'] });
+    const S = env.window.GHP.services, R = S.repos; await S.ready;
+    await S.auth.signIn({ email: 'pro@example.test' }); await new Promise(r => setTimeout(r, 5));
+    const snap = { analyzer_id: 'e13_intercooler_thermal', input_data: { schema: 1, analyzer_id: 'e13_intercooler_thermal', unit_system: 'metric', fields: { a: { value: '1', unit: '', canonical: null } } }, result_data: { schema: 1, results: [] } };
+    await rejects(R.analyses.saveNew(snap, { title: 'IC' }), e => eq([e.kind, e.upgrade], ['forbidden', true], 'Free cannot save analyses'));
+    await S.dev.setPlan('premium');
+    eq([S.entitlements.isPremium(), S.entitlements.has('garage_unlimited')], [true, true], 'premium');
+    const m1 = await R.machines.create({ machine_type: 'automotive', make: 'BMW', model: 'M3' }), m2 = await R.machines.create({ machine_type: 'motorcycle', make: 'Ducati' });
+    await R.machines.setPrimary(m2.id);
+    eq((await R.machines.list()).map(m => [m.make || m.details.make, m.is_primary]), [['Ducati', true], ['BMW', false]], 'primary moved, listed first');
+    const ts = await R.testSetups.create({ machine_id: m1.id, name: 'Track' });
+    const a = await R.analyses.saveNew(snap, { title: 'IC', test_setup_id: ts.id });
+    eq([a.analyzer_version, a.inputs_unit_system, a.machine_id, a.result_trust], ['E1-AUTO', 'metric', m1.id, 'client_reported'], 'saved');
+    eq((await R.analyses.saveExisting(a.id, snap, { title: 'IC v2' })).title, 'IC v2', 'updated');
+    const big = { analyzer_id: 'e13_intercooler_thermal', input_data: { schema: 1, unit_system: 'metric', fields: { blob: 'x'.repeat(70000) } }, result_data: null };
+    await rejects(R.analyses.saveNew(big, { title: 'Too big' }), e => assert(/64 KB/.test(e.message), 'size'));
+    eq(R.savedCalculations.canCreate, false, 'cannot create');
+    await S.dev.simulateSavedCalculation({ machine_id: m1.id });
+    const [sc] = await R.savedCalculations.list();
+    eq((await R.savedCalculations.pin(sc.id, true)).pinned, true, 'pin');
+    eq((await R.savedCalculations.update(sc.id, { title: 'Renamed', create: true })).title, 'Renamed', 'edit (unknown keys dropped)');
+    await S.dev.setPlan('free');
+    eq(S.entitlements.isPremium(), false, 'lapsed');
+    await rejects(R.savedCalculations.pin(sc.id, false), e => eq(e.kind, 'forbidden', 'lapsed pin'));
+    eq((await R.savedCalculations.list()).length, 1, 'lapsed read');
+    eq((await R.analyses.list()).length, 1, 'lapsed analyses read');
+    await R.analyses.remove(a.id); await R.savedCalculations.remove(sc.id);
+    eq((await R.machines.list()).length, 2, 'machines retained');
+    await rejects(R.machines.create({ machine_type: 'automotive', make: 'Audi' }), e => eq(e.kind, 'free_machine_limit', 'lapsed cannot add'));
+  });
+  await test('services: setting the primary vehicle sends exactly ONE write (no client-side clearing anywhere in the live code)', async () => {
+    // client code never clears the flag; the development adapter emulates the DATABASE (column default + 0404 trigger)
+    for (const f of LIVE.filter(f => f !== 'premium/adapters/dev-local.js')) assert(!/is_primary\s*:\s*false|is_primary\s*=\s*false/.test(stripComments(read(f))), f + ' clears is_primary');
+    const devSrc = stripComments(read('premium/adapters/dev-local.js'));
+    eq((devSrc.match(/is_primary\s*=\s*false/g) || []).length, 1, 'dev adapter clears the flag in exactly one place');
+    assert(/function movePrimary[\s\S]{0,200}is_primary = false/.test(devSrc), 'that place is the trigger emulation (movePrimary)');
+    const client = fakeClient(c => c.op === 'rpc' ? { data: [{ plan_key: 'premium', is_premium: true, features: ['garage_unlimited'], source: 'manual', ends_at: null }], error: null }
+      : c.op === 'update' ? { data: [{ machine_id: U2, is_primary: true }], error: null }
+      : c.table === 'machine_details' && c.op === 'select' ? { data: [{ machine_id: U1, is_primary: true }, { machine_id: U2, is_primary: false }], error: null } : undefined);
+    client.session = { user: { id: U1, email: 'a@x.test' } };
+    const env = browserEnv({ files: ['models', 'foundation', 'services'], client });
+    const S = env.window.GHP.services; await S.ready;
+    client.calls.length = 0;
+    await S.repos.machines.setPrimary(U2);
+    eq(writes(client).map(c => [c.table, c.op, c.values, c.filters]), [['machine_details', 'update', { is_primary: true }, [['eq', 'machine_id', U2]]]], 'writes');
+  });
+  await test('services: entitlement comes only from the adapter; an expired session signs the user out locally', async () => {
+    let probed = false;
+    const client = fakeClient(c => {
+      if (!probed) { probed = true; return undefined; }
+      if (c.op === 'rpc' && c.fn === 'pf_my_entitlement') return { data: [{ plan_key: 'premium', is_premium: true, features: ['engineering_lab'], source: 'trial', ends_at: '2099-01-01T00:00:00Z' }], error: null };
+      if (c.table === 'machines') return pgErr('PGRST301', 'JWT expired', 401)();
+    });
+    client.session = { user: { id: U1, email: 'a@x.test' } };
+    const env = browserEnv({ files: ['models', 'foundation', 'services'], client });
+    const S = env.window.GHP.services; await S.ready;
+    eq([S.entitlements.state.isTrial, S.entitlements.has('engineering_lab'), S.entitlements.has('garage_unlimited')], [true, true, false], 'from pf_my_entitlement');
+    assert(!('setPlan' in S.entitlements) && S.dev === null, 'no client-side grant path in production');
+    const authEvents = []; S.on('auth', u => authEvents.push(u));
+    await rejects(S.repos.machines.list(), e => eq(e.kind, 'session_expired', 'expired'));
+    eq([S.auth.user, authEvents], [null, [null]], 'signed out locally');
   });
 
   const failed = results.filter(r => !r.pass);

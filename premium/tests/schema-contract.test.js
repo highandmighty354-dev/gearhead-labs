@@ -268,6 +268,67 @@ const A_ID = 'a0000000-0000-4000-8000-00000000000a', B_ID = 'b0000000-0000-4000-
     await pgE.end();
   });
 
+  /* ================================================================ C. conformance scenarios (shared with the dev adapter) */
+  {
+    const { scenarios, helpers } = require('./conformance.js');
+    await freshDb('fe_conf', true);
+    const own = await connect('fe_conf', 'postgres');
+    const ids = { free: 'c0000000-0000-4000-8000-00000000000f', premium: 'c0000000-0000-4000-8000-0000000000aa' };
+    const s2 = await connect('fe_conf', 'supabase_admin');
+    await s2.query(`INSERT INTO auth.users (id, email) VALUES ($1, 'free@example.test'), ($2, 'premium@example.test')`, [ids.free, ids.premium]); await s2.end();
+    const adapters = {}, conns = [];
+    for (const u of ['free', 'premium']) {
+      const c = await connect('fe_conf', 'postgres'); conns.push(c);
+      adapters[u] = await loadAdapter(pgClient(c, { user: { id: ids[u], email: u + '@example.test' } })).F.create();
+    }
+    const asService = async (sql, params) => { await own.query('SET ROLE service_role'); try { return await own.query(sql, params); } finally { await own.query('RESET ROLE'); } };
+    const ctx = {
+      M,
+      async as(u) { return adapters[u]; },
+      async grant(u) { await asService(`SELECT public.pf_grant_manual($1, 'premium', NULL, 'conformance')`, [ids[u]]); },
+      async revoke(u) { for (const r of (await asService(`SELECT id FROM entitlement_grants WHERE account_id = $1 AND revoked_at IS NULL`, [ids[u]])).rows) await asService(`SELECT public.pf_revoke_grant($1)`, [r.id]); },
+      async seedSavedCalculation(u, machineId) {
+        const k = (await own.query(`SELECT f.calculator_id, f.formula_version, f.engine_version, f.formula_registry FROM formula_versions f
+            JOIN calculators c ON c.calculator_id = f.calculator_id AND c.canonical_id = f.calculator_id ORDER BY 1, 2 LIMIT 1`)).rows[0];
+        const cr = (await asService(`INSERT INTO calculation_records (owner_id, machine_id, calculator_id, canonical_id, engine_version, formula_registry, formula_version, result_state, inputs, outputs, request_id)
+            VALUES ($1, $2, $3, $3, $4, $5, $6, 'valid', '{}', '[]', gen_random_uuid()) RETURNING id`, [ids[u], machineId, k.calculator_id, k.engine_version, k.formula_registry, k.formula_version])).rows[0].id;
+        await own.query(`INSERT INTO saved_calculations (owner_id, calculation_id, title) VALUES ($1, $2, 'Filed by server')`, [ids[u], cr]);   // stand-in for the future trusted endpoint
+      }
+    };
+    const shared = {}, h = helpers();
+    for (const [name, fn] of scenarios) await test('real-schema conformance: ' + name, () => fn(ctx, shared, h));
+    for (const c of [own, ...conns]) await c.end();
+  }
+
+  /* ================================================================ D. services (step 3) on the foundation adapter and the real schema */
+  await test('D1. services on the real schema: production mode, Free garage flow with specs, allowance, drivetrain merge, Test Setups, profile', async () => {
+    await freshDb('fe_svc', true);
+    const sa3 = await connect('fe_svc', 'supabase_admin');
+    const uid = 'd0000000-0000-4000-8000-00000000000d';
+    await sa3.query(`INSERT INTO auth.users (id, email) VALUES ($1, 'svc@example.test')`, [uid]); await sa3.end();
+    const c = await connect('fe_svc', 'postgres');
+    const window = { GHP_CONFIG: { development: { allowOnLocalhost: true, allowQueryFlag: false, queryFlag: 'gh_dev' } } }, store = {};
+    window.GH_SUPABASE = pgClient(c, { user: { id: uid, email: 'svc@example.test' } });
+    const storage = { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); } };
+    const ctx = vm.createContext({ window, document: { readyState: 'complete', visibilityState: 'visible', addEventListener() {} }, location: { hostname: 'gearhead.example', search: '', origin: 'https://gearhead.example', pathname: '/' },
+      sessionStorage: storage, localStorage: storage, console, setTimeout, clearTimeout, URLSearchParams });
+    for (const f of ['premium/models.js', 'premium/adapters/foundation.js', 'premium/services.js']) vm.runInContext(read(f), ctx, { filename: f });
+    const S = window.GHP.services, Rp = S.repos; await S.ready;
+    eq([S.mode, S.auth.user && S.auth.user.id, S.entitlements.state.plan], ['production', uid, 'free'], 'started');
+    const m = await Rp.machines.create({ model_year: '1999', make: 'Mazda', model: 'Miata', machine_type: 'automotive', power_source: 'gasoline', engine: '1.8L BP', transmission: '5-speed', drivetrain: 'RWD', notes: 'Autocross' });
+    eq([m.name, m.is_primary, m.engine.label, m.drivetrain, m.details.notes], ['1999 Mazda Miata', true, '1.8L BP', 'RWD', 'Autocross'], 'created');
+    const raw = await loadAdapter(window.GH_SUPABASE).F.create();
+    const g = (await raw.tables.garages.list())[0];
+    eq((await rejects(raw.tables.machines.insert({ garage_id: g.id, name: 'Second', machine_type: 'automotive' }))).kind, 'free_machine_limit', 'database allowance (bypassing the services pre-check)');
+    const u = await Rp.machines.update(m.id, { drivetrain: 'AWD', transmission: '' });
+    eq([u.drivetrain, u.details.notes, u.transmission], ['AWD', 'Autocross', null], 'merge + component soft delete via df_soft_delete_component');
+    for (const n of ['Street', 'Track', 'Rain']) await Rp.testSetups.create({ machine_id: m.id, name: n });
+    eq((await Rp.testSetups.list(m.id)).length, 3, 'setups');
+    eq((await Rp.profile.saveMine({ display_name: 'Svc', experience_level: 'professional' })).experience_level, 'professional', 'profile');
+    await rejects(Rp.analyses.saveNew({ analyzer_id: 'e01_turbo_compressor_map', input_data: { unit_system: 'imperial', fields: {} } }, { title: 'x' }), e => eq(e.kind, 'forbidden', 'Free analysis'));
+    await c.end();
+  });
+
   for (const c of [owner, pgA, pgB]) await c.end();
   const failed = results.filter(r => !r.pass);
   for (const r of results) console.log(`${r.pass ? 'PASS' : 'FAIL'}  ${r.name}${r.pass ? '' : '\n      -> ' + r.error}`);

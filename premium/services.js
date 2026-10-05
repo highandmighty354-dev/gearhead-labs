@@ -1,207 +1,333 @@
-/* Gearhead Labs Premium — services: adapter selection, auth, the entitlement
-   service and the repositories. The UI talks only to GHP.services; it never
-   touches an adapter, storage or the network directly.
+/* Gearhead Labs Premium — services: adapter selection, auth, the entitlement service and the repositories.
+   The UI talks only to GHP.services; it never touches an adapter, storage or the network directly.
 
    Adapter selection (exactly one per page load):
-     development — localhost, or ?gh_dev=1 while config allows it (mock data/entitlement)
-     supabase    — production, when GHP_CONFIG.backend has a URL and anon key
-     none        — production with no backend: no accounts, everyone is FREE
-   ?gh_dev=0 forces development mode off for the session (also on localhost). */
+     development — localhost, or ?gh_dev=1 while config allows it (in-browser store emulating the database rules)
+     foundation  — production: premium/adapters/foundation.js on the bootstrap client (window.GH_SUPABASE)
+     none        — no bootstrap client, or the database is not provisioned: no accounts, everyone is Free
+   ?gh_dev=0 forces development mode off for the session (also on localhost).
+   If the backend reports itself unavailable later (schema missing), the services fall back to "none".
+
+   Access is decided by the database (RLS, grants, triggers). The entitlement state here only shapes the UI and
+   comes from pf_my_entitlement(); nothing in the browser can grant access. */
 (function(){
   'use strict';
   const GHP = window.GHP = window.GHP || {};
   const M = GHP.models;
-  const cfg = window.GHP_CONFIG || { backend:{}, development:{} };
+  const cfg = window.GHP_CONFIG || { development: {} };
 
-  /* ---------- event bus ---------- */
+  /* ---------------------------------------------------------------- event bus */
   const listeners = {};
-  const on = (evt, cb) => { (listeners[evt]=listeners[evt]||new Set()).add(cb); return () => listeners[evt].delete(cb); };
-  const emit = (evt, payload) => (listeners[evt]||[]).forEach(cb=>{ try{ cb(payload); }catch(e){ console.error('GHP listener',evt,e); } });
+  const on = (evt, cb) => { (listeners[evt] = listeners[evt] || new Set()).add(cb); return () => listeners[evt].delete(cb); };
+  const emit = (evt, payload) => (listeners[evt] || []).forEach(cb => { try { cb(payload); } catch (e) { console.error('GHP listener', evt, e); } });
 
-  /* ---------- adapter selection ---------- */
-  function developmentRequested(){
-    const dev=cfg.development||{}, flag=new URLSearchParams(location.search).get(dev.queryFlag||'gh_dev');
-    let session=null; try { session=sessionStorage.getItem('ghp_dev_session'); } catch(e){}
-    const remember=v=>{ try { sessionStorage.setItem('ghp_dev_session',v); } catch(e){} };
-    if(flag==='0'){ remember('0'); return false; }
-    if(flag==='1' && dev.allowQueryFlag){ remember('1'); return true; }
-    if(session==='0') return false;
-    if(session==='1' && dev.allowQueryFlag) return true;
-    const h=location.hostname;
-    return !!dev.allowOnLocalhost && (h==='localhost'||h==='127.0.0.1'||h==='[::1]'||h==='');
+  /* ---------------------------------------------------------------- adapter selection */
+  function developmentRequested() {
+    const dev = cfg.development || {}, flag = new URLSearchParams(location.search).get(dev.queryFlag || 'gh_dev');
+    let session = null; try { session = sessionStorage.getItem('ghp_dev_session'); } catch (e) {}
+    const remember = v => { try { sessionStorage.setItem('ghp_dev_session', v); } catch (e) {} };
+    if (flag === '0') { remember('0'); return false; }
+    if (flag === '1' && dev.allowQueryFlag) { remember('1'); return true; }
+    if (session === '0') return false;
+    if (session === '1' && dev.allowQueryFlag) return true;
+    const h = location.hostname;
+    return !!dev.allowOnLocalhost && (h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || h === '');
   }
-  function noBackendAdapter(){
-    const unavailable=()=>{ throw new Error('Accounts are not available yet: no backend is configured.'); };
-    return { kind:'none', isDevelopment:false, capabilities:{ foreignKeyCascade:true, magicLink:false },
-      auth:{ getUser:async()=>null, signIn:async()=>unavailable(), signOut:async()=>true, onChange:()=>()=>{} },
-      entitlements:{ getForUser:async()=>null },
-      db:{ list:unavailable, get:unavailable, insert:unavailable, update:unavailable, remove:unavailable } };
+  const unavailable = () => new M.GHPError('not_provisioned', M.MESSAGES.not_provisioned, { noBackend: true });
+  function noBackendAdapter() {
+    return Object.freeze({
+      kind: 'none', isDevelopment: false, status: 'not_provisioned',
+      capabilities: Object.freeze({ magicLink: false, softDelete: false, savedCalculationCreate: false }),
+      onUnavailable() { return () => {}; },
+      auth: Object.freeze({ getUser: async () => null, signIn: async () => { throw unavailable(); }, signOut: async () => true, onChange: () => () => {} }),
+      entitlement: Object.freeze({ mine: async () => M.ANONYMOUS_ENTITLEMENT, subscriptions: async () => [] })
+    });
   }
-  async function selectAdapter(){
-    if(developmentRequested()) return GHP.adapters.development.create();
-    const b=cfg.backend||{};
-    if(b.provider==='supabase' && b.url && b.anonKey){
-      try { return await GHP.adapters.supabase.create(b); }
-      catch(e){ console.error('Gearhead Labs: backend unavailable',e); }
+  async function selectAdapter() {
+    const A = GHP.adapters || {};
+    if (developmentRequested() && A.development) return A.development.create();
+    if (A.foundation) {
+      try { return await A.foundation.create(); }
+      catch (e) { if (!e || !e.noBackend) console.warn('Gearhead Labs: accounts unavailable', e && e.kind || e); }
     }
     return noBackendAdapter();
   }
 
-  /* ---------- services ---------- */
-  const auth = { user:null, async signIn(opts){ return adapter.auth.signIn(opts); }, async signOut(){ return adapter.auth.signOut(); } };
+  /* ---------------------------------------------------------------- state */
+  let adapter = noBackendAdapter(), mode = 'no-backend';
+  const auth = {
+    user: null,
+    async signIn(opts) { return adapter.auth.signIn(opts); },
+    async signOut() { return adapter.auth.signOut(); }
+  };
 
-  /* The single entitlement boundary. Nothing else decides Premium access. */
+  /* The single entitlement boundary for the UI. Display only: the database enforces. */
+  let refreshTimer = null, lastRefresh = 0;
   const entitlements = {
-    state: M.evaluateEntitlement(null,'anonymous'),
-    has(feature){ return this.state.features.has(feature); },
-    isPremium(){ return this.state.isPremium; },
-    async refresh(){
+    state: M.ANONYMOUS_ENTITLEMENT,
+    has(feature) { return M.hasFeature(this.state, feature); },
+    isPremium() { return this.state.isPremium; },
+    async refresh() {
       let next;
-      if(adapter.kind==='none') next=M.evaluateEntitlement(null,'no-backend');
-      else if(!auth.user) next=M.evaluateEntitlement(null,'anonymous');
+      if (!auth.user) next = M.ANONYMOUS_ENTITLEMENT;
       else {
-        let row=null; try { row=await adapter.entitlements.getForUser(auth.user.id); } catch(e){ console.error('Gearhead Labs entitlement lookup failed',e); }
-        next=M.evaluateEntitlement(row, adapter.isDevelopment?'development':'backend');
+        try { next = await adapter.entitlement.mine(); }
+        catch (e) { console.error('Gearhead Labs entitlement lookup failed', e); next = M.entitlementFromRpc(null); }   // fails closed: Free
       }
-      const changed=next.plan!==this.state.plan||next.isPremium!==this.state.isPremium||next.status!==this.state.status||next.source!==this.state.source;
-      this.state=next; if(changed) emit('entitlement', next); return next;
+      lastRefresh = Date.now();
+      clearTimeout(refreshTimer);
+      if (next.endsAt) { const ms = Date.parse(next.endsAt) - Date.now(); if (ms > 0) refreshTimer = setTimeout(() => entitlements.refresh(), Math.min(ms + 1000, 2147483000)); }
+      const changed = JSON.stringify(next) !== JSON.stringify(this.state);
+      this.state = next; if (changed) emit('entitlement', next);
+      return next;
     }
   };
+  if (typeof document !== 'undefined' && document.addEventListener)
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && Date.now() - lastRefresh > 60000) entitlements.refresh(); });
 
-  /* ---------- repositories ---------- */
-  const requireUser = () => { if(!auth.user) throw new Error('Sign in to continue.'); return auth.user; };
-  const requireFeature = f => { requireUser(); if(!entitlements.has(f)) throw new Error('This feature requires Gearhead Labs Premium.'); };
-  async function owned(table, id){
-    const u=requireUser(), row=await adapter.db.get(table,id);
-    if(!row || row.user_id!==u.id) throw new Error('Record not found.');
-    return row;
+  /* ---------------------------------------------------------------- guards */
+  const requireBackend = () => { if (mode === 'no-backend') throw unavailable(); return adapter; };
+  const requireUser = () => {
+    requireBackend();
+    if (!auth.user) throw new M.GHPError('forbidden', 'Sign in to continue.', { signIn: true });
+    return auth.user;
+  };
+  const requireFeature = (feature, message) => {
+    requireUser();
+    if (!entitlements.has(feature)) throw new M.GHPError('forbidden', message || 'This requires Gearhead Labs Premium.', { upgrade: true });
+  };
+  /* Run a repository call; an expired session signs the user out locally. */
+  async function call(fn) {
+    try { return await fn(); }
+    catch (e) {
+      if (e && e.sessionExpired && auth.user) { auth.user = null; emit('auth', null); entitlements.refresh(); }
+      throw e;
+    }
   }
-  /* Keep vehicle/build references consistent: a build implies its vehicle. */
-  async function resolveRefs(clean){
-    if(clean.build_id){ const b=await owned('builds',clean.build_id); if(clean.vehicle_id && clean.vehicle_id!==b.vehicle_id) throw new M.ValidationError({build_id:'That build belongs to a different vehicle.'}); clean.vehicle_id=b.vehicle_id; }
-    if(clean.vehicle_id) await owned('vehicles',clean.vehicle_id);
-    if(clean.project_id) await owned('projects',clean.project_id);
-    return clean;
+  const changed = table => emit('data', { table });
+  const T = () => requireBackend().tables;
+  const PLACEHOLDER = '00000000-0000-4000-8000-000000000000';   // validation only; never sent
+  const pick = (o, keys) => Object.fromEntries(keys.filter(k => o && k in o).map(k => [k, o[k]]));
+
+  /* ---------------------------------------------------------------- profile */
+  const profile = {
+    async getMine() {
+      const u = requireUser();
+      return call(async () => { const p = await T().profiles.get(u.id); return p ? Object.assign({}, p, { email: u.email }) : null; });
+    },
+    async saveMine(data) {
+      const u = requireUser();
+      return call(async () => { const p = await T().profiles.update(u.id, pick(data, M.TABLES.profiles.update)); changed('profiles'); return p; });
+    }
+  };
+
+  /* ---------------------------------------------------------------- garage (one active garage per owner) */
+  const garage = {
+    async get() { requireUser(); return call(async () => (await T().garages.list())[0] || null); },
+    async rename(name) {
+      requireUser();
+      return call(async () => { const g = await adapter.garage.ensure(); const r = await T().garages.update(g.id, { name }); changed('garages'); return r; });
+    }
+  };
+
+  /* ---------------------------------------------------------------- machines (+ details, engine/transmission components) */
+  const MACHINE_FIELDS = ['name', 'machine_type', 'power_source', 'is_hypothetical'];
+  const DETAIL_FIELDS = ['model_year', 'make', 'model', 'trim_level', 'nickname', 'notes', 'is_primary'];
+  const SPEC_KINDS = ['engine', 'transmission'];
+  const displayName = i => [i.model_year, i.make, i.model, i.trim_level].filter(x => x != null && String(x).trim()).join(' ') || (i.nickname && String(i.nickname).trim()) || '';
+  function detailRow(input) {
+    const d = pick(input, DETAIL_FIELDS);
+    if ('notes' in input || 'drivetrain' in input) d.notes = M.withDrivetrain(input.notes == null ? null : String(input.notes), input.drivetrain);
+    return d;
   }
-  const changed = (table) => emit('data', { table });
-  /* Development store has no foreign keys; emulate ON DELETE CASCADE / SET NULL. */
-  async function detach(column, value){
-    if(adapter.capabilities.foreignKeyCascade) return;
-    const u=requireUser();
-    for(const table of ['projects','engineering_analyses']){
-      for(const r of await adapter.db.list(table,{ user_id:u.id, [column]:value })) await adapter.db.update(table, r.id, { [column]:null });
-    }
-    const p=await adapter.db.get('profiles',u.id);
-    const fav=column==='vehicle_id'?'favorite_vehicle_id':column==='build_id'?'favorite_build_id':null;
-    if(p && fav && p[fav]===value) await adapter.db.update('profiles',u.id,{ [fav]:null });
+  function view(m, d, comps) {
+    const split = M.splitDrivetrain(d && d.notes);
+    const spec = kind => { const c = comps.find(x => x.machine_id === m.id && x.kind === kind); return c ? { id: c.id, label: c.label } : null; };
+    return Object.assign({}, m, {
+      details: d ? Object.assign({}, d, { notes: split.notes }) : null, drivetrain: split.drivetrain,
+      is_primary: !!(d && d.is_primary), engine: spec('engine'), transmission: spec('transmission')
+    });
   }
-
-  const profiles = {
-    async getMine(){ const u=requireUser(); return adapter.db.get('profiles',u.id); },
-    async saveMine(data){
-      const u=requireUser(), clean=M.validate('profiles',data,{partial:true});
-      if(clean.favorite_vehicle_id) await owned('vehicles',clean.favorite_vehicle_id);
-      if(clean.favorite_build_id) await owned('builds',clean.favorite_build_id);
-      const row=await adapter.db.update('profiles',u.id,clean); changed('profiles'); return row;
-    }
+  const machines = {
+    async list() {
+      requireUser();
+      return call(async () => {
+        const [ms, ds, cs] = await Promise.all([T().machines.list(), T().machine_details.list(), T().components.list()]);
+        return ms.map(m => view(m, ds.find(d => d.machine_id === m.id), cs))
+          .sort((a, b) => (b.is_primary - a.is_primary) || String(a.created_at).localeCompare(String(b.created_at)));
+      });
+    },
+    async get(id) { const v = (await this.list()).find(m => m.id === id); if (!v) throw M.notFound(); return v; },
+    async allowance() {
+      const used = (await this.list()).length, unlimited = entitlements.has('garage_unlimited');
+      return { used, limit: unlimited ? null : M.FREE_MACHINE_LIMIT, canAdd: M.canAddMachine(entitlements.state, used) };
+    },
+    /* input: machine fields + detail fields + drivetrain + engine/transmission labels. Everything is validated before
+       the first write; the database enforces the Free allowance (the check here only gives the answer early). */
+    async create(input) {
+      requireUser();
+      input = input || {};
+      const machineRow = pick(input, MACHINE_FIELDS);
+      if (!machineRow.name || !String(machineRow.name).trim()) machineRow.name = displayName(input) || 'My vehicle';
+      const details = detailRow(input);
+      const specs = SPEC_KINDS.filter(k => input[k] && String(input[k]).trim()).map(k => ({ kind: k, label: String(input[k]).trim() }));
+      M.prepareInsert('machines', Object.assign({ garage_id: PLACEHOLDER }, machineRow));
+      M.prepareInsert('machine_details', Object.assign({ machine_id: PLACEHOLDER }, details));
+      specs.forEach(c => M.prepareInsert('components', Object.assign({ machine_id: PLACEHOLDER }, c)));
+      return call(async () => {
+        const existing = await this.list();
+        if (!M.canAddMachine(entitlements.state, existing.length)) throw new M.GHPError('free_machine_limit', M.MESSAGES.free_machine_limit, { upgrade: true });
+        if (!existing.some(m => m.is_primary)) details.is_primary = true;   // with no primary yet, the new vehicle becomes primary
+        const g = await adapter.garage.ensure();
+        const m = await T().machines.insert(Object.assign({ garage_id: g.id }, machineRow));
+        try {
+          await T().machine_details.insert(Object.assign({ machine_id: m.id }, details));
+          for (const c of specs) await T().components.insert(Object.assign({ machine_id: m.id }, c));
+        } catch (e) {
+          try { await T().machines.softDelete(m.id); } catch (x) { /* best effort: a half-created machine is removed */ }
+          throw e;
+        }
+        changed('machines');
+        return this.get(m.id);
+      });
+    },
+    async update(id, input) {
+      requireUser();
+      input = input || {};
+      const machinePatch = pick(input, MACHINE_FIELDS);
+      const details = detailRow(input);
+      if (Object.keys(machinePatch).length) M.prepareUpdate('machines', machinePatch);
+      if (Object.keys(details).length) M.prepareUpdate('machine_details', details);
+      return call(async () => {
+        const current = await this.get(id);
+        if ('notes' in input || 'drivetrain' in input)   // merge with what is stored: changing one never erases the other
+          details.notes = M.withDrivetrain('notes' in input ? input.notes : (current.details && current.details.notes),
+            'drivetrain' in input ? input.drivetrain : current.drivetrain);
+        if (Object.keys(machinePatch).length) await T().machines.update(id, machinePatch);
+        if (Object.keys(details).length) {
+          if (current.details) await T().machine_details.update(id, details);
+          else await T().machine_details.insert(Object.assign({ machine_id: id }, details));
+        }
+        for (const kind of SPEC_KINDS) {
+          if (!(kind in input)) continue;
+          const label = input[kind] == null ? '' : String(input[kind]).trim(), have = current[kind];
+          if (!have && label) await T().components.insert({ machine_id: id, kind, label });
+          else if (have && !label) await T().components.softDelete(have.id);
+          else if (have && label !== have.label) await T().components.update(have.id, { label });
+        }
+        changed('machines');
+        return this.get(id);
+      });
+    },
+    /* One write; the database moves the flag (no client-side clearing). */
+    async setPrimary(id) { requireUser(); return call(async () => { const r = await adapter.machines.setPrimary(id); changed('machines'); return r; }); },
+    /* Soft delete (permanent). Its details, setups and links are hidden with it. */
+    async remove(id) { requireUser(); return call(async () => { await T().machines.softDelete(id); changed('machines'); return true; }); }
   };
 
-  const vehicles = {
-    async list(){ requireFeature('garage'); return adapter.db.list('vehicles',{ user_id:auth.user.id }); },
-    async get(id){ requireFeature('garage'); return owned('vehicles',id); },
-    async create(data){
-      requireFeature('garage');
-      const clean=M.validate('vehicles',data), existing=await this.list();
-      if(!existing.length) clean.is_primary=true;
-      const row=await adapter.db.insert('vehicles',{ ...clean, is_primary:false, user_id:auth.user.id });
-      if(clean.is_primary) await this.setPrimary(row.id); else changed('vehicles');
-      return this.get(row.id);
+  /* ---------------------------------------------------------------- Test Setups (Builds): unlimited for every plan */
+  const SETUP_FIELDS = ['name', 'description', 'notes'];
+  const testSetups = {
+    async list(machineId) { requireUser(); return call(() => T().test_setups.list(machineId ? { machine_id: machineId } : undefined)); },
+    async get(id) { requireUser(); return call(async () => { const r = await T().test_setups.get(id); if (!r) throw M.notFound(); return r; }); },
+    async create(data) {
+      requireUser();
+      return call(async () => { const r = await T().test_setups.insert(Object.assign({ machine_id: data && data.machine_id }, pick(data, SETUP_FIELDS))); changed('test_setups'); return r; });
     },
-    async update(id,data){
-      requireFeature('garage'); await owned('vehicles',id);
-      const clean=M.validate('vehicles',data,{partial:true}), makePrimary=clean.is_primary; delete clean.is_primary;
-      const row=await adapter.db.update('vehicles',id,clean);
-      if(makePrimary) await this.setPrimary(id); else changed('vehicles');
-      return makePrimary?this.get(id):row;
-    },
-    async setPrimary(id){
-      requireFeature('garage'); await owned('vehicles',id);
-      for(const v of await this.list()) if(v.is_primary && v.id!==id) await adapter.db.update('vehicles',v.id,{ is_primary:false });
-      await adapter.db.update('vehicles',id,{ is_primary:true }); changed('vehicles'); return true;
-    },
-    async remove(id){
-      requireFeature('garage'); const v=await owned('vehicles',id);
-      if(!adapter.capabilities.foreignKeyCascade){
-        for(const b of await adapter.db.list('builds',{ user_id:auth.user.id, vehicle_id:id })){ await detach('build_id',b.id); await adapter.db.remove('builds',b.id); }
-        await detach('vehicle_id',id);
-      }
-      await adapter.db.remove('vehicles',id);
-      if(v.is_primary){ const rest=await this.list(); if(rest.length) await adapter.db.update('vehicles',rest[0].id,{ is_primary:true }); }
-      changed('vehicles'); return true;
-    }
+    async update(id, data) { requireUser(); return call(async () => { const r = await T().test_setups.update(id, pick(data, SETUP_FIELDS)); changed('test_setups'); return r; }); },
+    async remove(id) { requireUser(); return call(async () => { await T().test_setups.softDelete(id); changed('test_setups'); return true; }); },
+    async repin(id) { requireUser(); return call(async () => { await adapter.testSetups.repinBaseline(id); changed('test_setups'); return true; }); }
   };
 
-  const builds = {
-    async list(vehicleId){ requireFeature('garage'); const f={ user_id:auth.user.id }; if(vehicleId) f.vehicle_id=vehicleId; return adapter.db.list('builds',f); },
-    async get(id){ requireFeature('garage'); return owned('builds',id); },
-    async create(data){
-      requireFeature('garage'); const clean=M.validate('builds',data); await owned('vehicles',clean.vehicle_id);
-      const row=await adapter.db.insert('builds',{ ...clean, user_id:auth.user.id }); changed('builds'); return row;
-    },
-    async update(id,data){
-      requireFeature('garage'); await owned('builds',id); const clean=M.validate('builds',data,{partial:true});
-      if(clean.vehicle_id) await owned('vehicles',clean.vehicle_id);
-      const row=await adapter.db.update('builds',id,clean); changed('builds'); return row;
-    },
-    async remove(id){ requireFeature('garage'); await owned('builds',id); await detach('build_id',id); await adapter.db.remove('builds',id); changed('builds'); return true; }
-  };
-
-  const projects = {
-    async list(){ requireFeature('projects'); return adapter.db.list('projects',{ user_id:auth.user.id }); },
-    async get(id){ requireFeature('projects'); return owned('projects',id); },
-    async create(data){
-      requireFeature('projects'); const clean=await resolveRefs(M.validate('projects',data));
-      const row=await adapter.db.insert('projects',{ ...clean, user_id:auth.user.id }); changed('projects'); return row;
-    },
-    async update(id,data){
-      requireFeature('projects'); await owned('projects',id); const clean=await resolveRefs(M.validate('projects',data,{partial:true}));
-      const row=await adapter.db.update('projects',id,clean); changed('projects'); return row;
-    },
-    async remove(id){ requireFeature('projects'); await owned('projects',id); await detach('project_id',id); await adapter.db.remove('projects',id); changed('projects'); return true; }
-  };
-
+  /* ---------------------------------------------------------------- engineering analyses (Premium; lapsed: read + delete) */
+  const LINKS = ['title', 'notes', 'machine_id', 'test_setup_id'];
   const analyses = {
-    async list(filter={}){ requireFeature('saved_analyses'); return adapter.db.list('engineering_analyses',{ ...filter, user_id:auth.user.id }); },
-    async get(id){ requireFeature('saved_analyses'); return owned('engineering_analyses',id); },
-    async create(data){
-      requireFeature('saved_analyses'); const clean=await resolveRefs(M.validate('engineering_analyses',data));
-      const row=await adapter.db.insert('engineering_analyses',{ ...clean, user_id:auth.user.id }); changed('engineering_analyses'); return row;
+    async list(filter) { requireUser(); return call(() => T().engineering_analyses.list(filter)); },
+    async get(id) { requireUser(); return call(async () => { const r = await T().engineering_analyses.get(id); if (!r) throw M.notFound(); return r; }); },
+    /* snap: GHP.engineering.capture(); meta: title / notes / machine_id / test_setup_id. */
+    async saveNew(snap, meta) {
+      requireFeature('engineering_lab', 'Saving analyses requires Gearhead Labs Premium.');
+      const row = Object.assign(M.analysisFromCapture(snap), pick(meta, LINKS));
+      M.prepareInsert('engineering_analyses', Object.assign({ analyzer_version: 'pending' }, row));   // size and field checks before any request
+      return call(async () => { const r = await adapter.analyses.create(row); changed('engineering_analyses'); return r; });
     },
-    async update(id,data){
-      requireFeature('saved_analyses'); await owned('engineering_analyses',id);
-      const clean=await resolveRefs(M.validate('engineering_analyses',data,{partial:true}));
-      const row=await adapter.db.update('engineering_analyses',id,clean); changed('engineering_analyses'); return row;
+    async saveExisting(id, snap, meta) {
+      requireFeature('engineering_lab', 'Editing analyses requires Gearhead Labs Premium.');
+      const a = M.analysisFromCapture(snap);
+      const patch = Object.assign(pick(a, ['inputs', 'inputs_unit_system', 'result_snapshot']), pick(meta, LINKS));
+      return call(async () => { const r = await T().engineering_analyses.update(id, patch); changed('engineering_analyses'); return r; });
     },
-    async remove(id){ requireFeature('saved_analyses'); await owned('engineering_analyses',id); await adapter.db.remove('engineering_analyses',id); changed('engineering_analyses'); return true; }
+    async remove(id) { requireUser(); return call(async () => { await T().engineering_analyses.softDelete(id); changed('engineering_analyses'); return true; }); }
   };
 
-  /* ---------- boot ---------- */
-  let adapter = noBackendAdapter();
+  /* ---------------------------------------------------------------- saved calculations: read / edit / pin / delete. NO create. */
+  const savedCalculations = {
+    canCreate: false,
+    createUnavailableReason: 'Saving a calculation needs the Gearhead Labs calculation service, which is not available yet.',
+    async list(filter) { requireUser(); return call(() => T().saved_calculations.list(filter)); },
+    async get(id) { requireUser(); return call(async () => { const r = await T().saved_calculations.get(id); if (!r) throw M.notFound(); return r; }); },
+    async calculation(calculationId) { requireUser(); return call(() => T().calculation_records.get(calculationId)); },
+    async update(id, data) {
+      requireFeature('saved_calculations', 'Editing saved calculations requires Gearhead Labs Premium.');
+      return call(async () => { const r = await T().saved_calculations.update(id, pick(data, LINKS)); changed('saved_calculations'); return r; });
+    },
+    async pin(id, pinned) {
+      requireFeature('saved_calculations', 'Pinning requires Gearhead Labs Premium.');
+      return call(async () => { const r = await T().saved_calculations.update(id, { pinned: !!pinned }); changed('saved_calculations'); return r; });
+    },
+    async remove(id) { requireUser(); return call(async () => { await T().saved_calculations.softDelete(id); changed('saved_calculations'); return true; }); }
+  };
+
+  /* ---------------------------------------------------------------- billing / plan status (read-only) */
+  const billing = {
+    async subscriptions() { requireUser(); return call(() => adapter.entitlement.subscriptions()); },
+    async grants() { requireUser(); return call(() => T().entitlement_grants.list()); }
+  };
+
+  /* ---------------------------------------------------------------- analyzer catalog */
+  let catalogCache = null;
+  const analyzers = {
+    async catalog() {
+      requireUser();
+      if (!catalogCache) catalogCache = await call(() => T().engineering_analyzers.list());
+      return catalogCache;
+    }
+  };
+
+  /* ---------------------------------------------------------------- boot */
+  async function fallBackToNoBackend() {
+    if (mode === 'no-backend') return;
+    adapter = noBackendAdapter(); mode = 'no-backend'; catalogCache = null;
+    auth.user = null; emit('auth', null);
+    await entitlements.refresh();
+    emit('mode', mode);
+  }
   const ready = (async () => {
     adapter = await selectAdapter();
-    services.adapter = adapter;
-    services.mode = adapter.kind==='development' ? 'development' : adapter.kind==='supabase' ? 'production' : 'no-backend';
-    try { auth.user = await adapter.auth.getUser(); } catch(e){ auth.user=null; }
+    mode = adapter.kind === 'development' ? 'development' : adapter.kind === 'foundation' ? 'production' : 'no-backend';
+    adapter.onUnavailable(() => { fallBackToNoBackend(); });
+    try { auth.user = await adapter.auth.getUser(); } catch (e) { auth.user = null; }
     await entitlements.refresh();
-    adapter.auth.onChange(async user => { auth.user=user; emit('auth',user); await entitlements.refresh(); });
+    adapter.auth.onChange(async user => { auth.user = user; catalogCache = null; emit('auth', user); await entitlements.refresh(); });
     emit('ready', services);
     return services;
   })();
 
-  const services = { ready, adapter, mode:'no-backend', on, auth, entitlements,
-    repos:{ profiles, vehicles, builds, projects, analyses },
+  const services = {
+    ready, on, auth, entitlements,
+    get adapter() { return adapter; },
+    get mode() { return mode; },
+    limits: Object.freeze({ freeMachines: M.FREE_MACHINE_LIMIT }),
+    repos: Object.freeze({ profile, garage, machines, testSetups, analyses, savedCalculations, billing, analyzers }),
     /* Development-only: present only when the development adapter is active. */
-    get dev(){ return adapter.isDevelopment ? { setPlan:async plan=>{ await adapter.devTools.setPlan(requireUser().id,plan); return entitlements.refresh(); },
-      reset:async()=>{ await adapter.devTools.reset(); auth.user=null; await entitlements.refresh(); emit('data',{table:'*'}); } } : null; } };
+    get dev() {
+      if (!adapter.isDevelopment) return null;
+      return Object.freeze({
+        setPlan: async plan => { await adapter.devTools.setPlan(plan); return entitlements.refresh(); },
+        simulateSavedCalculation: async opts => { await adapter.devTools.simulateServerSavedCalculation(opts); changed('saved_calculations'); },
+        reset: async () => { await adapter.devTools.reset(); auth.user = null; await entitlements.refresh(); emit('data', { table: '*' }); }
+      });
+    }
+  };
   GHP.services = services;
 })();

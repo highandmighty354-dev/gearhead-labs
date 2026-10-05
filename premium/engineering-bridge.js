@@ -74,9 +74,9 @@
 
   /* Keep the frame in step with the entitlement: load for Premium, unload on downgrade. */
   window.addEventListener('gh:frameready', () => { if(S.entitlements.has('engineering_lab')) ensureLoaded(); });
-  S.on('entitlement', state => {
+  S.on('entitlement', () => {
     const w=frameWin();
-    if(state.features.has('engineering_lab')) ensureLoaded();
+    if(S.entitlements.has('engineering_lab')) ensureLoaded();
     else if(w && w.GH_ENGINEERING_CALCS) window.GHShell.reloadFrame();
   });
 

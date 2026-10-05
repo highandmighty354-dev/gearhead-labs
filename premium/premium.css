@@ -154,3 +154,7 @@ body.ghp-mode-premium #app{visibility:hidden}
   #ghp-toast{bottom:calc(var(--ghp-tab-h) + 12px)}
   .ghp-sheet-panel{max-height:92vh}
 }
+
+/* ---------- garage allowance meter (Free: 1 vehicle) ---------- */
+.ghp-meter{height:8px;border-radius:4px;background:var(--ghp-card2);border:1px solid var(--ghp-line);overflow:hidden;margin:2px 0 8px}
+.ghp-meter-bar{height:100%;background:var(--ghp-gold)}

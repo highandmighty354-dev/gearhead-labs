@@ -4,11 +4,7 @@
    Authority: supabase/migrations 0001-0406 (frozen DATA/GARAGE/VALUE-FOUNDATION + PREMIUM-FOUNDATION).
    Every list below mirrors a database enum, CHECK constraint or column grant; the database remains
    the enforcing authority (RLS, grants, triggers). These rules only stop bad requests early and give
-   readable messages. premium/tests verifies them against the real catalog.
-
-   The section at the end ("Phase 3A compatibility") keeps the names that the not-yet-rewritten
-   services.js / shell.js / engineering-bridge.js still read. It is deprecated and is removed when
-   those files move to this API (implementation steps 3-5). */
+   readable messages. premium/tests verifies them against the real catalog. */
 (function(){
   'use strict';
   const GHP = window.GHP = window.GHP || {};
@@ -457,89 +453,40 @@
     };
   }
 
+  /* Drivetrain has no approved column (owner decision 2): it is kept as ONE managed line in machine_details.notes.
+     splitDrivetrain() lifts it out for editing as a field; withDrivetrain() puts it back (or removes it). */
+  const DRIVETRAIN_OPTIONS = ['RWD', 'FWD', 'AWD', '4WD'];
+  const DRIVETRAIN_LINE = /^Drivetrain: (.+)$/m;
+  function splitDrivetrain(notes) {
+    if (typeof notes !== 'string' || !notes) return { drivetrain: null, notes: notes || null };
+    const m = notes.match(DRIVETRAIN_LINE);
+    if (!m) return { drivetrain: null, notes };
+    const rest = notes.replace(DRIVETRAIN_LINE, '').replace(/\n{2,}/g, '\n').replace(/^\n+|\n+$/g, '');
+    return { drivetrain: m[1].trim(), notes: rest || null };
+  }
+  function withDrivetrain(notes, drivetrain) {
+    const base = splitDrivetrain(notes).notes;
+    const d = typeof drivetrain === 'string' ? drivetrain.trim() : '';
+    return joinText([base, d ? 'Drivetrain: ' + d : null]);
+  }
+  /* Engineering-bridge snapshot -> engineering_analyses columns (0406 names). */
+  function analysisFromCapture(snap) {
+    snap = snap || {};
+    const inputs = snap.input_data || {};
+    return { analyzer_id: snap.analyzer_id, inputs, inputs_unit_system: inputs.unit_system === 'metric' ? 'metric' : 'imperial',
+      result_snapshot: snap.result_data || null };
+  }
+
   const api = deepFreeze({
     ENUMS, BLOCKED_VALUES, MARINE_COLUMNS, SERVER_CONTROLLED, FEATURES, GRANT_SOURCES, FREE_MACHINE_LIMIT, RPC, TABLES, PROTECTED_TABLES,
     RULES, JSON_MAX_BYTES, ENGINEERING_CATEGORIES, ENGINEERING_CATALOG, ANONYMOUS_ENTITLEMENT, MESSAGES,
-    VEHICLE_TYPE_MAP, FUEL_MAP
+    VEHICLE_TYPE_MAP, FUEL_MAP, DRIVETRAIN_OPTIONS
   });
-
-  /* ---------------------------------------------------------------- Phase 3A compatibility (DEPRECATED)
-     Only for the unchanged services.js / shell.js / engineering-bridge.js until implementation steps 3-5.
-     Nothing here is used by the foundation adapter. */
-  const legacy = (function () {
-    const PLANS = { FREE: 'FREE', PREMIUM: 'PREMIUM', PREMIUM_TRIAL: 'PREMIUM_TRIAL' };
-    const ENTITLEMENT_STATUSES = ['active', 'trialing', 'past_due', 'canceled', 'expired'];
-    const PREMIUM_FEATURES = ['engineering_lab', 'garage', 'projects', 'saved_analyses'];
-    const VEHICLE_TYPES = ['Car', 'Truck', 'SUV', 'Van', 'Motorcycle', 'Off-Road', 'Race Car'];
-    const FUEL_TYPES = ['Gasoline', 'Diesel', 'E85 / Flex Fuel', 'Methanol', 'Electric', 'Hybrid', 'Plug-in Hybrid', 'Other'];
-    const DRIVETRAINS = ['RWD', 'FWD', 'AWD', '4WD'];
-    const TRANSMISSIONS = ['Manual', 'Automatic', 'DCT', 'CVT', 'Sequential', 'Single-speed (EV)'];
-    const BUILD_STATUSES = ['Stock', 'Street', 'Street/Strip', 'Race', 'Project'];
-    const PROJECT_STATUSES = ['Planning', 'Active', 'On Hold', 'Complete'];
-    const EXPERIENCE_LEVELS = ['Beginner', 'Enthusiast', 'Experienced', 'Professional'];
-    const UNIT_SYSTEMS = ['imperial', 'metric'];
-    const SCHEMAS = {
-      profiles: { display_name: { type: 'text', max: 80 }, avatar_url: { type: 'url', max: 500 }, location: { type: 'text', max: 80 },
-        experience_level: { type: 'enum', values: EXPERIENCE_LEVELS }, preferred_unit_system: { type: 'enum', values: UNIT_SYSTEMS },
-        favorite_vehicle_id: { type: 'ref' }, favorite_build_id: { type: 'ref' } },
-      vehicles: { year: { type: 'year', required: true }, make: { type: 'text', required: true, max: 60 }, model: { type: 'text', required: true, max: 60 },
-        trim: { type: 'text', max: 60 }, engine: { type: 'text', max: 80 }, fuel_type: { type: 'enum', values: FUEL_TYPES },
-        transmission: { type: 'enum', values: TRANSMISSIONS }, drivetrain: { type: 'enum', values: DRIVETRAINS },
-        vehicle_type: { type: 'enum', values: VEHICLE_TYPES, required: true }, notes: { type: 'text', max: 2000 }, is_primary: { type: 'bool' } },
-      builds: { vehicle_id: { type: 'ref', required: true }, name: { type: 'text', required: true, max: 80 }, description: { type: 'text', max: 500 },
-        status: { type: 'enum', values: BUILD_STATUSES, required: true }, goals: { type: 'text', max: 1000 }, notes: { type: 'text', max: 2000 } },
-      projects: { name: { type: 'text', required: true, max: 80 }, description: { type: 'text', max: 1000 }, vehicle_id: { type: 'ref' }, build_id: { type: 'ref' },
-        status: { type: 'enum', values: PROJECT_STATUSES, required: true } },
-      engineering_analyses: { analyzer_id: { type: 'analyzer', required: true }, name: { type: 'text', required: true, max: 120 },
-        input_data: { type: 'json', required: true }, result_data: { type: 'json' }, notes: { type: 'text', max: 2000 },
-        vehicle_id: { type: 'ref' }, build_id: { type: 'ref' }, project_id: { type: 'ref' } }
-    };
-    const label = key => key.replace(/_id$/, '').replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());
-    function validate(table, data, { partial = false } = {}) {
-      const schema = SCHEMAS[table]; if (!schema) throw new Error('Unknown table ' + table);
-      const out = {}, errors = {};
-      for (const [key, def] of Object.entries(schema)) {
-        if (!(key in data)) { if (def.required && !partial) errors[key] = label(key) + ' is required.'; continue; }
-        let v = data[key];
-        if (typeof v === 'string') v = v.trim();
-        const empty = v === '' || v === null || v === undefined;
-        if (empty) { if (def.required) errors[key] = label(key) + ' is required.'; else out[key] = def.type === 'bool' ? false : null; continue; }
-        switch (def.type) {
-          case 'text': if (String(v).length > def.max) errors[key] = label(key) + ' is too long.'; else out[key] = String(v); break;
-          case 'url': if (!/^https:\/\/[^\s<>"']+$/i.test(v) || String(v).length > def.max) errors[key] = 'Avatar must be an https:// image URL.'; else out[key] = String(v); break;
-          case 'enum': if (!def.values.includes(v)) errors[key] = label(key) + ' must be one of: ' + def.values.join(', ') + '.'; else out[key] = v; break;
-          case 'year': { const y = Number(v), max = new Date().getFullYear() + 2; if (!Number.isInteger(y) || y < 1886 || y > max) errors[key] = 'Year must be between 1886 and ' + max + '.'; else out[key] = y; break; }
-          case 'bool': out[key] = !!v; break;
-          case 'ref': out[key] = String(v); break;
-          case 'analyzer': if (!ANALYZER_IDS.has(v)) errors[key] = 'Unknown engineering analyzer.'; else out[key] = v; break;
-          case 'json': if (typeof v !== 'object') errors[key] = label(key) + ' must be structured data.'; else out[key] = JSON.parse(JSON.stringify(v)); break;
-        }
-      }
-      if (Object.keys(errors).length) throw new ValidationError(errors);
-      return out;
-    }
-    function evaluateEntitlement(row, source, now = new Date()) {
-      const base = { plan: PLANS.FREE, status: 'active', isPremium: false, source, features: new Set(['calculators']), expires_at: null, provider: null };
-      if (!row) return base;
-      const plan = PLANS[row.plan] ? row.plan : PLANS.FREE;
-      const status = ENTITLEMENT_STATUSES.includes(row.status) ? row.status : 'expired';
-      const expired = row.expires_at && new Date(row.expires_at) <= now;
-      const premium = (plan === PLANS.PREMIUM || plan === PLANS.PREMIUM_TRIAL) && (status === 'active' || status === 'trialing') && !expired;
-      return { plan, status: expired ? 'expired' : status, isPremium: premium, source,
-        features: new Set(premium ? ['calculators', ...PREMIUM_FEATURES] : ['calculators']), expires_at: row.expires_at || null, provider: row.provider || null };
-    }
-    return { PLANS, ENTITLEMENT_STATUSES, PREMIUM_FEATURES, VEHICLE_TYPES, FUEL_TYPES, DRIVETRAINS, TRANSMISSIONS, BUILD_STATUSES,
-      PROJECT_STATUSES, EXPERIENCE_LEVELS, UNIT_SYSTEMS, SCHEMAS, validate, evaluateEntitlement };
-  })();
 
   GHP.models = Object.freeze(Object.assign({}, api, {
     enumValues, labelFor, ValidationError, GHPError, mapError, notFound, prepareInsert, prepareUpdate, prepareFilters, isUuid,
     entitlementFromRpc, hasFeature, canAddMachine, subscriptionView, planLabel, fromPhase3aVehicle, fromPhase3aBuild,
-    ANALYZER_IDS,
-    /* DEPRECATED Phase 3A names (see above) */
-    legacy, PLANS: legacy.PLANS, ENTITLEMENT_STATUSES: legacy.ENTITLEMENT_STATUSES, PREMIUM_FEATURES: legacy.PREMIUM_FEATURES,
-    VEHICLE_TYPES: legacy.VEHICLE_TYPES, FUEL_TYPES: legacy.FUEL_TYPES, DRIVETRAINS: legacy.DRIVETRAINS, TRANSMISSIONS: legacy.TRANSMISSIONS,
-    BUILD_STATUSES: legacy.BUILD_STATUSES, PROJECT_STATUSES: legacy.PROJECT_STATUSES, EXPERIENCE_LEVELS: legacy.EXPERIENCE_LEVELS,
-    UNIT_SYSTEMS: legacy.UNIT_SYSTEMS, SCHEMAS: legacy.SCHEMAS, validate: legacy.validate, evaluateEntitlement: legacy.evaluateEntitlement
+    splitDrivetrain, withDrivetrain, analysisFromCapture,
+    ANALYZER_IDS
   }));
 })();
