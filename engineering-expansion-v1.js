@@ -12,11 +12,22 @@ const E=[], add=(cat,id,name,fn)=>{E.push({cat,id,name,layer:'engineering'});REN
  let h=fn();const box=document.getElementById('calc-container');
  if(box&&inputIds(h).some(x=>!document.getElementById(x))){box.innerHTML=h;h=fn();}
  return h;};};
-const V=id=>+(document.getElementById(id)?.value||0);
-const F=(l,id,v,u)=>field(l,id,v,u);
+/* Units follow the F1.12.3 contract: canonical Imperial internally, with field()/vd()/fmtUnitValue()
+   converting only for display. Inputs are read through vd() so a metric display value is converted back.
+   SI-native quantities (kg, N/mm, mm², cc, °C, kg/m³, N, kW) are used as SI by these analyzers, but the
+   app aliases those labels to Imperial units; they are therefore rendered and read without conversion
+   so they are never re-interpreted. Temperature DIFFERENCES (DT) scale by 5/9 only, never offset. */
+const isSI=u=>{const c=canonicalUnit(u);return c!==u&&!!UNIT_DEFS[c]&&UNIT_DEFS[c].metric===u;};
+const DT='Δ°F';
+const V=id=>vd(id,0);
+const F=(l,id,v,u)=>isSI(u)?field(l,id,v,'').replace(/(<input\b[^>]*>)/,'$1<span class="field-unit">'+u+'</span>'):field(l,id,v,u);
 const H=(t,h)=>headerHTML(t,h);
 const R=(a,b,u)=>resultHTML(a,b,u);
-const M=a=>multiResult(a);
+const NC=(n,p)=>!isFinite(n)?'—':Number.isInteger(n)?n.toLocaleString():n.toLocaleString(undefined,{maximumFractionDigits:p});
+const M=a=>'<div class="multi-results">'+a.map(i=>{const p=i.precision!==undefined?i.precision:4,u=i.unit||'',met=UNIT.system==='metric';
+ const val=u===DT?NC(met?(+i.value)*5/9:i.value,p):isSI(u)?NC(i.value,p):fmtUnitValue(i.value,u,p);
+ const lab=u===DT?(met?'°C':'°F'):isSI(u)?u:metricUnit(u);
+ return '<div class="mini-result"><div class="label">'+i.label+'</div><div class="value">'+val+'<span class="unit"> '+lab+'</span></div></div>';}).join('')+'</div>';
 const N=s=>'<div class="calc-note" style="margin-top:14px;line-height:1.5">'+s+'</div>';
 const T=t=>calcFooter(t);
 const TA=id=>String(document.getElementById(id)?.value||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
@@ -93,7 +104,7 @@ add('ENGINEERING / THERMAL','e12_radiator_heat_rejection','Radiator Heat-Rejecti
 
 add('ENGINEERING / THERMAL','e13_intercooler_thermal','Intercooler Thermal / Pressure-Drop Analyzer',()=>{
  const i=V('e13_i'),o=V('e13_o'),a=V('e13_a'),drop=V('e13_drop'),p=V('e13_p');
- return H('Intercooler Thermal / Pressure-Drop Analyzer','Reports thermal effectiveness and pressure loss together.')+'<div class="calc-body">'+F('Compressor Outlet Temp','e13_i',300,'°F')+F('Charge-Air Outlet Temp','e13_o',150,'°F')+F('Cooling-Air Temp','e13_a',80,'°F')+F('Pressure Drop','e13_drop',1.5,'psi')+F('Pressure Before Drop','e13_p',30,'psi')+M([{label:'Effectiveness',value:((i-o)/(i-a)*100).toFixed(1),unit:'%'},{label:'Pressure After Core',value:(p-drop).toFixed(1),unit:'psi'},{label:'Temperature Drop',value:(i-o).toFixed(1),unit:'°F'}])+N('Pressure drop should come from measured or manufacturer data; effectiveness uses the stated temperatures.')+'</div>'+T('Intercooler Thermal / Pressure-Drop Analyzer');
+ return H('Intercooler Thermal / Pressure-Drop Analyzer','Reports thermal effectiveness and pressure loss together.')+'<div class="calc-body">'+F('Compressor Outlet Temp','e13_i',300,'°F')+F('Charge-Air Outlet Temp','e13_o',150,'°F')+F('Cooling-Air Temp','e13_a',80,'°F')+F('Pressure Drop','e13_drop',1.5,'psi')+F('Pressure Before Drop','e13_p',30,'psi')+M([{label:'Effectiveness',value:((i-o)/(i-a)*100).toFixed(1),unit:'%'},{label:'Pressure After Core',value:(p-drop).toFixed(1),unit:'psi'},{label:'Temperature Drop',value:(i-o).toFixed(1),unit:DT}])+N('Pressure drop should come from measured or manufacturer data; effectiveness uses the stated temperatures.')+'</div>'+T('Intercooler Thermal / Pressure-Drop Analyzer');
 });
 
 add('ENGINEERING / THERMAL','e14_heat_exchanger_matching','Heat-Exchanger Matching Workbench',()=>{
@@ -101,8 +112,8 @@ add('ENGINEERING / THERMAL','e14_heat_exchanger_matching','Heat-Exchanger Matchi
  /* Counterflow validity: the hot side must cool, the cold side must heat, and both terminal differences must stay positive (no temperature cross). */
  const bad=!(hi>ho)?'Hot outlet must be below hot inlet (the hot fluid gives up heat).':!(co>ci)?'Cold outlet must be above cold inlet (the cold fluid absorbs heat).':!(d1>0&&d2>0)?'Temperature cross: hot inlet must exceed cold outlet (ΔT1 > 0) and hot outlet must exceed cold inlet (ΔT2 > 0) for counterflow.':'';
  const lm=bad?NaN:(Math.abs(d1-d2)<1e-9?d1:(d1-d2)/Math.log(d1/d2));
- const out=bad?'<div class="result-box"><div class="result-label">Invalid temperature set — LMTD not computed</div><div class="result-value" style="font-size:15px;line-height:1.4">'+bad+'</div></div>':M([{label:'LMTD',value:lm.toFixed(2),unit:'°F'},{label:'Heat Transfer',value:(U*A*lm).toFixed(0),unit:'Btu/hr'}]);
- return H('Heat-Exchanger Matching Workbench','LMTD-based workbench with explicit counterflow endpoint temperatures.')+'<div class="calc-body">'+F('Overall U','e14_u',40,'Btu/hr·ft²·°F')+F('Area','e14_A',8,'ft²')+F('Hot-Side Inlet Temp','e14_hi',250,'°F')+F('Hot-Side Outlet Temp','e14_ho',180,'°F')+F('Cold-Side Inlet Temp','e14_ci',120,'°F')+F('Cold-Side Outlet Temp','e14_co',170,'°F')+M([{label:'ΔT1 (hot in − cold out)',value:d1.toFixed(2),unit:'°F'},{label:'ΔT2 (hot out − cold in)',value:d2.toFixed(2),unit:'°F'}])+out+N('Default example: counterflow exchanger, hot side 250 → 180 °F, cold side 120 → 170 °F. LMTD is the temperature-difference basis; actual performance also depends on flow arrangement, fouling, properties and pressure drop.')+'</div>'+T('Heat-Exchanger Matching Workbench');
+ const out=bad?'<div class="result-box"><div class="result-label">Invalid temperature set — LMTD not computed</div><div class="result-value" style="font-size:15px;line-height:1.4">'+bad+'</div></div>':M([{label:'LMTD',value:lm.toFixed(2),unit:DT},{label:'Heat Transfer',value:(U*A*lm).toFixed(0),unit:'Btu/hr'}]);
+ return H('Heat-Exchanger Matching Workbench','LMTD-based workbench with explicit counterflow endpoint temperatures.')+'<div class="calc-body">'+F('Overall U','e14_u',40,'Btu/hr·ft²·°F')+F('Area','e14_A',8,'ft²')+F('Hot-Side Inlet Temp','e14_hi',250,'°F')+F('Hot-Side Outlet Temp','e14_ho',180,'°F')+F('Cold-Side Inlet Temp','e14_ci',120,'°F')+F('Cold-Side Outlet Temp','e14_co',170,'°F')+M([{label:'ΔT1 (hot in − cold out)',value:d1.toFixed(2),unit:DT},{label:'ΔT2 (hot out − cold in)',value:d2.toFixed(2),unit:DT}])+out+N('Default example: counterflow exchanger, hot side 250 → 180 °F, cold side 120 → 170 °F. LMTD is the temperature-difference basis; actual performance also depends on flow arrangement, fouling, properties and pressure drop.')+'</div>'+T('Heat-Exchanger Matching Workbench');
 });
 
 

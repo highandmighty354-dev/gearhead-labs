@@ -91,16 +91,31 @@
         RENDERS[id]=()=>{const fields=s.labels.map((label,i)=>field(label,`${safe}_${s.vars[i]}`,label.includes('Denominator')||label.includes('Maximum')?8:1,'')).join('');let val;try{val=Function(...s.vars,`return ${s.expr};`)(...s.vars.map(v=>vd(`${safe}_${v}`,1)));}catch(e){val=NaN;}const shown=Number.isFinite(val)?Number(val).toLocaleString(undefined,{maximumFractionDigits:8}):'—';return `${headerHTML(s.out,'E1.0.1 — researched unit conversion / shop math tool.')}<div class="calc-body"><div class="gh-e1-fields">${fields}</div><button class="calc-btn" onclick="renderCalc('${id}',false)">CONVERT</button><div class="result-box"><div class="result-label">${s.out}</div><div class="result-value">${shown}<span class="result-unit">${s.unit}</span></div></div><div class="calc-note"><strong>Formula:</strong> <code>${escapeHtml(s.expr)}</code><br>Conversion factors follow NIST guidance; carry full precision internally and round the final displayed result.</div></div>${calcFooter('E1.0.1')}`;};
       });
     }
-    if (APPLY_LEGACY_OVERRIDES && typeof RENDERS === 'object' && !window.__GH_SAFE_RENDER_WRAPPED__) {
+    /* Render-safety guard. Only rendered RESULT values are inspected: help text or notes that
+       mention "Infinity" (e.g. ohms_law) must not trip it. A non-finite result is blanked and
+       flagged while the calculator's inputs stay on screen so the user can correct them. */
+    const APPLY_RENDER_SAFETY=true;
+    const NONFINITE=/(^|[^A-Za-z])(?:NaN|-?Infinity|undefined)(?![A-Za-z])/;
+    window.__GH_GUARD_RESULTS__=function(html){
+      const tpl=document.createElement('template'); tpl.innerHTML=html;
+      /* Test the value's own text only: unit spans sit flush against it (e.g. "Infinity<span>A</span>"). */
+      const own=n=>[...n.childNodes].filter(t=>t.nodeType===3);
+      const bad=[...tpl.content.querySelectorAll('.result-value,.mini-result .value')].filter(n=>NONFINITE.test(own(n).map(t=>t.textContent).join('')));
+      if(!bad.length) return html;
+      bad.forEach(n=>{own(n).forEach((t,i)=>{t.textContent=i?'':'—';});});
+      const note=document.createElement('div'); note.className='result-box gh-invalid-result';
+      note.innerHTML='<div class="result-label">Invalid input</div><div class="result-value">Check the entered values</div><div class="help-note">A result was not a finite number. Use non-zero denominators and physically meaningful ranges.</div>';
+      const body=tpl.content.querySelector('.calc-body')||tpl.content; body.appendChild(note);
+      return tpl.innerHTML;
+    };
+    if (APPLY_RENDER_SAFETY && typeof RENDERS === 'object' && !window.__GH_SAFE_RENDER_WRAPPED__) {
       window.__GH_SAFE_RENDER_WRAPPED__=true;
       Object.keys(RENDERS).forEach(function(id){
         const original=RENDERS[id];
         if(typeof original!=='function') return;
         RENDERS[id]=function(){
           try{
-            const html=String(original.apply(this,arguments));
-            if(/\b(?:NaN|Infinity|-Infinity|undefined)\b/.test(html)) throw new Error('nonfinite-render');
-            return html;
+            return window.__GH_GUARD_RESULTS__(String(original.apply(this,arguments)));
           }catch(e){
             return `${headerHTML('Invalid Input','The supplied values are outside the valid mathematical or physical domain for this calculator.')}<div class="calc-body"><div class="result-box"><div class="result-label">Invalid input</div><div class="result-value">Check the entered values</div><div class="help-note">Use non-zero denominators and physically meaningful ranges.</div></div></div>${calcFooter('Invalid Input')}`;
           }

@@ -1,6 +1,6 @@
 (function(){'use strict';
 const frame=document.getElementById('app'),boot=document.getElementById('boot');
-const VER='20261006-0100';
+const VER='20261006-0200';
 function route(){const p=new URLSearchParams(location.search);if(p.get('calc'))return '?calc='+encodeURIComponent(p.get('calc'));if(p.get('lab'))return '?lab='+encodeURIComponent(p.get('lab'));return ''}
 function sync(){try{const w=frame.contentWindow,r=route();if(!w)return;if(r){w.history.replaceState(null,'',r);if(typeof w.ghRoute==='function')w.ghRoute()}else if(typeof w.ghRoute==='function')w.ghRoute()}catch(e){console.error(e)}}
 function inject(w,name){return new Promise(ok=>{try{const old=w.document.querySelector('script[data-gh-inject="'+name+'"]');if(old)old.remove();const s=w.document.createElement('script');s.src=name+'?v='+VER;s.dataset.ghInject=name;s.onload=()=>ok();s.onerror=()=>ok();w.document.head.appendChild(s)}catch(e){ok()}})}
