@@ -5,7 +5,13 @@
    reachable by name from this classic script but are NOT window properties. */
 if(typeof CALCS==='undefined'||!Array.isArray(CALCS)||typeof RENDERS!=='object'||!RENDERS)return;
 /* layer:'engineering' keeps these analyzers out of the public calculator count. */
-const E=[], add=(cat,id,name,fn)=>{E.push({cat,id,name,layer:'engineering'});RENDERS[id]=fn;};
+/* Renderers read their inputs from the DOM, so on first open (inputs not yet
+   present) the form is placed once with its defaults and then computed from it. */
+const inputIds=h=>[...String(h).matchAll(/<(?:input|select|textarea)\b[^>]*\bid="([^"]+)"/g)].map(m=>m[1]);
+const E=[], add=(cat,id,name,fn)=>{E.push({cat,id,name,layer:'engineering'});RENDERS[id]=function(){
+ let h=fn();const box=document.getElementById('calc-container');
+ if(box&&inputIds(h).some(x=>!document.getElementById(x))){box.innerHTML=h;h=fn();}
+ return h;};};
 const V=id=>+(document.getElementById(id)?.value||0);
 const F=(l,id,v,u)=>field(l,id,v,u);
 const H=(t,h)=>headerHTML(t,h);
@@ -13,12 +19,13 @@ const R=(a,b,u)=>resultHTML(a,b,u);
 const M=a=>multiResult(a);
 const N=s=>'<div class="calc-note" style="margin-top:14px;line-height:1.5">'+s+'</div>';
 const T=t=>calcFooter(t);
+const TA=id=>String(document.getElementById(id)?.value||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
 
 add('ENGINEERING / TURBO SYSTEMS','e01_turbo_compressor_map','Turbo Compressor Map Builder',()=>{
  const q=V('e01_q'),pr=V('e01_pr'),raw=document.getElementById('e01_map')?.value||'';
  const p=raw.split(/\n|;/).map(x=>x.trim()).filter(Boolean).map(x=>x.split(/[,\s]+/).map(Number)).filter(x=>x.length>=2&&x.every(Number.isFinite));
  let n=null,d=1e9;p.forEach(x=>{let z=Math.hypot((x[0]-q)/Math.max(q,1),x[1]-pr);if(z<d){d=z;n=x;}});
- return H('Turbo Compressor Map Builder','Uses supplied compressor-map points only; it never invents surge, choke or speed limits.')+'<div class="calc-body">'+F('Corrected Flow','e01_q',36,'lb/min')+F('Pressure Ratio','e01_pr',2.2,':1')+'<div class="field"><label class="field-label">Map points: flow, PR, efficiency %</label><textarea id="e01_map" class="field-input" style="min-height:130px"></textarea></div><button class="calc-btn" onclick="renderCalc(\'e01_turbo_compressor_map\',false)">ANALYZE</button>'+'<div class="result-box"><div class="result-label">Nearest supplied point</div><div class="result-value">'+(n?n[0].toFixed(2)+' lb/min @ PR '+n[1].toFixed(3)+(n[2]?' · '+n[2].toFixed(1)+'%':''):'No valid point')+'</div></div>'+N('<strong>Engineering rule:</strong> real map boundaries remain authoritative. Corrected-flow and pressure-ratio conventions must match the source map.')+'</div>'+T('Turbo Compressor Map Builder');
+ return H('Turbo Compressor Map Builder','Uses supplied compressor-map points only; it never invents surge, choke or speed limits.')+'<div class="calc-body">'+F('Corrected Flow','e01_q',36,'lb/min')+F('Pressure Ratio','e01_pr',2.2,':1')+'<div class="field"><label class="field-label">Map points: flow, PR, efficiency %</label><textarea id="e01_map" class="field-input" style="min-height:130px">'+TA('e01_map')+'</textarea></div><button class="calc-btn" onclick="renderCalc(\'e01_turbo_compressor_map\',false)">ANALYZE</button>'+'<div class="result-box"><div class="result-label">Nearest supplied point</div><div class="result-value">'+(n?n[0].toFixed(2)+' lb/min @ PR '+n[1].toFixed(3)+(n[2]?' · '+n[2].toFixed(1)+'%':''):'No valid point')+'</div></div>'+N('<strong>Engineering rule:</strong> real map boundaries remain authoritative. Corrected-flow and pressure-ratio conventions must match the source map.')+'</div>'+T('Turbo Compressor Map Builder');
 });
 
 add('ENGINEERING / TURBO SYSTEMS','e02_turbo_surge_choke_margin','Turbo Surge / Choke Margin Analyzer',()=>{
@@ -27,7 +34,7 @@ add('ENGINEERING / TURBO SYSTEMS','e02_turbo_surge_choke_margin','Turbo Surge / 
  const ip=(a,x)=>{if(!a.length)return NaN;if(x<=a[0][1])return a[0][0];if(x>=a[a.length-1][1])return a[a.length-1][0];for(let i=1;i<a.length;i++)if(x<=a[i][1]){let z=(x-a[i-1][1])/(a[i][1]-a[i-1][1]);return a[i-1][0]+z*(a[i][0]-a[i-1][0]);}return NaN;};
  const s=ip(parse('e02_s'),pr),c=ip(parse('e02_c'),pr),m=c-s,pos=(q-s)/m;
  const st=!isFinite(s)||!isFinite(c)?'SUPPLY BOTH BOUNDARIES':q<s?'LEFT OF SUPPLIED SURGE LINE':q>c?'RIGHT OF SUPPLIED CHOKE LINE':'WITHIN SUPPLIED MAP WINDOW';
- return H('Turbo Surge / Choke Margin Analyzer','Boundary-based analysis. There is no universal safe percentage; use the actual compressor map.')+'<div class="calc-body">'+F('Corrected Flow','e02_q',36,'lb/min')+F('Pressure Ratio','e02_pr',2.2,':1')+'<div class="field"><label class="field-label">Surge line: flow, PR</label><textarea id="e02_s" class="field-input"></textarea></div><div class="field"><label class="field-label">Choke line: flow, PR</label><textarea id="e02_c" class="field-input"></textarea></div><button class="calc-btn" onclick="renderCalc(\'e02_turbo_surge_choke_margin\',false)">CHECK</button>'+M([{label:'Surge Flow',value:isFinite(s)?s.toFixed(2):'—',unit:'lb/min'},{label:'Choke Flow',value:isFinite(c)?c.toFixed(2):'—',unit:'lb/min'}])+'<div class="result-box"><div class="result-label">Position</div><div class="result-value">'+st+'</div></div>'+N('The output describes position relative to supplied map boundaries; it is not a manufacturer safety guarantee.')+'</div>'+T('Turbo Surge / Choke Margin Analyzer');
+ return H('Turbo Surge / Choke Margin Analyzer','Boundary-based analysis. There is no universal safe percentage; use the actual compressor map.')+'<div class="calc-body">'+F('Corrected Flow','e02_q',36,'lb/min')+F('Pressure Ratio','e02_pr',2.2,':1')+'<div class="field"><label class="field-label">Surge line: flow, PR</label><textarea id="e02_s" class="field-input">'+TA('e02_s')+'</textarea></div><div class="field"><label class="field-label">Choke line: flow, PR</label><textarea id="e02_c" class="field-input">'+TA('e02_c')+'</textarea></div><button class="calc-btn" onclick="renderCalc(\'e02_turbo_surge_choke_margin\',false)">CHECK</button>'+M([{label:'Surge Flow',value:isFinite(s)?s.toFixed(2):'—',unit:'lb/min'},{label:'Choke Flow',value:isFinite(c)?c.toFixed(2):'—',unit:'lb/min'}])+'<div class="result-box"><div class="result-label">Position</div><div class="result-value">'+st+'</div></div>'+N('The output describes position relative to supplied map boundaries; it is not a manufacturer safety guarantee.')+'</div>'+T('Turbo Surge / Choke Margin Analyzer');
 });
 
 add('ENGINEERING / TURBO SYSTEMS','e03_turbo_turbine_matching','Turbo Turbine Matching Analyzer',()=>{
@@ -90,8 +97,12 @@ add('ENGINEERING / THERMAL','e13_intercooler_thermal','Intercooler Thermal / Pre
 });
 
 add('ENGINEERING / THERMAL','e14_heat_exchanger_matching','Heat-Exchanger Matching Workbench',()=>{
- const U=V('e14_u'),A=V('e14_A'),hi=V('e14_hi'),ho=V('e14_ho'),ci=V('e14_ci'),co=V('e14_co'),d1=hi-co,d2=ho-ci,lm=Math.abs(d1-d2)<1e-9?d1:(d1*d2>0?(d1-d2)/Math.log(Math.abs(d1/d2)):NaN);
- return H('Heat-Exchanger Matching Workbench','LMTD-based workbench with explicit counterflow endpoint temperatures.')+'<div class="calc-body">'+F('Overall U','e14_u',40,'Btu/hr·ft²·°F')+F('Area','e14_A',8,'ft²')+F('Hot Inlet','e14_hi',250,'°F')+F('Hot Outlet','e14_ho',120,'°F')+F('Cold Inlet','e14_ci',180,'°F')+F('Cold Outlet','e14_co',170,'°F')+M([{label:'ΔT1',value:d1.toFixed(2),unit:'°F'},{label:'ΔT2',value:d2.toFixed(2),unit:'°F'},{label:'LMTD',value:isFinite(lm)?lm.toFixed(2):'Invalid',unit:'°F'},{label:'Heat Transfer',value:isFinite(lm)?(U*A*lm).toFixed(0):'—',unit:'Btu/hr'}])+N('LMTD is the temperature-difference basis; actual performance also depends on flow arrangement, fouling, properties and pressure drop.')+'</div>'+T('Heat-Exchanger Matching Workbench');
+ const U=V('e14_u'),A=V('e14_A'),hi=V('e14_hi'),ho=V('e14_ho'),ci=V('e14_ci'),co=V('e14_co'),d1=hi-co,d2=ho-ci;
+ /* Counterflow validity: the hot side must cool, the cold side must heat, and both terminal differences must stay positive (no temperature cross). */
+ const bad=!(hi>ho)?'Hot outlet must be below hot inlet (the hot fluid gives up heat).':!(co>ci)?'Cold outlet must be above cold inlet (the cold fluid absorbs heat).':!(d1>0&&d2>0)?'Temperature cross: hot inlet must exceed cold outlet (ΔT1 > 0) and hot outlet must exceed cold inlet (ΔT2 > 0) for counterflow.':'';
+ const lm=bad?NaN:(Math.abs(d1-d2)<1e-9?d1:(d1-d2)/Math.log(d1/d2));
+ const out=bad?'<div class="result-box"><div class="result-label">Invalid temperature set — LMTD not computed</div><div class="result-value" style="font-size:15px;line-height:1.4">'+bad+'</div></div>':M([{label:'LMTD',value:lm.toFixed(2),unit:'°F'},{label:'Heat Transfer',value:(U*A*lm).toFixed(0),unit:'Btu/hr'}]);
+ return H('Heat-Exchanger Matching Workbench','LMTD-based workbench with explicit counterflow endpoint temperatures.')+'<div class="calc-body">'+F('Overall U','e14_u',40,'Btu/hr·ft²·°F')+F('Area','e14_A',8,'ft²')+F('Hot-Side Inlet Temp','e14_hi',250,'°F')+F('Hot-Side Outlet Temp','e14_ho',180,'°F')+F('Cold-Side Inlet Temp','e14_ci',120,'°F')+F('Cold-Side Outlet Temp','e14_co',170,'°F')+M([{label:'ΔT1 (hot in − cold out)',value:d1.toFixed(2),unit:'°F'},{label:'ΔT2 (hot out − cold in)',value:d2.toFixed(2),unit:'°F'}])+out+N('Default example: counterflow exchanger, hot side 250 → 180 °F, cold side 120 → 170 °F. LMTD is the temperature-difference basis; actual performance also depends on flow arrangement, fouling, properties and pressure drop.')+'</div>'+T('Heat-Exchanger Matching Workbench');
 });
 
 

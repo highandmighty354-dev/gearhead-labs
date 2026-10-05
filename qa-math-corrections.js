@@ -36,7 +36,12 @@
         GH_E101_FORMULAS.nmm_to_lbft.out='lb-in'; GH_E101_FORMULAS.nmm_to_lbft.unit='lb-in'; GH_E101_FORMULAS.nmm_to_lbft.expr='x*8.85074579';
       }
     }
-    if (typeof ghLabForCalc==='function') {
+    /* Legacy V1.1.0 overrides (lab remap, generic E1/E1.0.1 renderers, otto/cog/master-cylinder
+       renderers, render-safety wrapper). F1.12.3 ships its own lab mapping and newer dedicated
+       renderers for all of these; applying them on F1.12.3 regressed 26 live calculators, so they
+       stay disabled. The formula corrections above still apply. */
+    const APPLY_LEGACY_OVERRIDES=false;
+    if (APPLY_LEGACY_OVERRIDES && typeof ghLabForCalc==='function') {
       const originalTowing=new Set(['tongue_weight','gcwr_payload','trailer_sway','brake_controller_gain','towing_squat','trailer_tire_load']);
       const e1LabSets={gasoline:new Set(),diesel:new Set(),ev:new Set(),towing:new Set()};
       if(Array.isArray(GH_E1_CALCS)) GH_E1_CALCS.forEach(c=>{
@@ -46,7 +51,7 @@
         else if(cat.startsWith('EV /')) e1LabSets.ev.add(c.id);
         else if(cat.startsWith('TOWING /')) e1LabSets.towing.add(c.id);
       });
-      const dieselSet=new Set(Array.isArray(DIESEL_CALCS)?DIESEL_CALCS.map(c=>c.id):[]);
+      const dieselSet=new Set(typeof DIESEL_CALCS!=='undefined'&&Array.isArray(DIESEL_CALCS)?DIESEL_CALCS.map(c=>c.id):[]);
       const e101Set=new Set(Array.isArray(GH_E101_CALCS)?GH_E101_CALCS.map(c=>c.id):[]);
       ghLabForCalc=function(c){
         if(!c) return 'universal'; const id=String(c.id||'');
@@ -58,7 +63,7 @@
         return 'universal';
       };
     }
-    if (typeof RENDERS === 'object') {
+    if (APPLY_LEGACY_OVERRIDES && typeof RENDERS === 'object') {
       if (typeof GH_E1_FORMULAS === 'object' && typeof ghE1Render==='function') Object.keys(GH_E1_FORMULAS).forEach(id=>RENDERS[id]=()=>ghE1Render(id));
       if (typeof GH_E1_FORMULAS === 'object' && GH_E1_FORMULAS.otto_efficiency) {
         RENDERS.otto_efficiency=()=>{
@@ -86,7 +91,7 @@
         RENDERS[id]=()=>{const fields=s.labels.map((label,i)=>field(label,`${safe}_${s.vars[i]}`,label.includes('Denominator')||label.includes('Maximum')?8:1,'')).join('');let val;try{val=Function(...s.vars,`return ${s.expr};`)(...s.vars.map(v=>vd(`${safe}_${v}`,1)));}catch(e){val=NaN;}const shown=Number.isFinite(val)?Number(val).toLocaleString(undefined,{maximumFractionDigits:8}):'—';return `${headerHTML(s.out,'E1.0.1 — researched unit conversion / shop math tool.')}<div class="calc-body"><div class="gh-e1-fields">${fields}</div><button class="calc-btn" onclick="renderCalc('${id}',false)">CONVERT</button><div class="result-box"><div class="result-label">${s.out}</div><div class="result-value">${shown}<span class="result-unit">${s.unit}</span></div></div><div class="calc-note"><strong>Formula:</strong> <code>${escapeHtml(s.expr)}</code><br>Conversion factors follow NIST guidance; carry full precision internally and round the final displayed result.</div></div>${calcFooter('E1.0.1')}`;};
       });
     }
-    if (typeof RENDERS === 'object' && !window.__GH_SAFE_RENDER_WRAPPED__) {
+    if (APPLY_LEGACY_OVERRIDES && typeof RENDERS === 'object' && !window.__GH_SAFE_RENDER_WRAPPED__) {
       window.__GH_SAFE_RENDER_WRAPPED__=true;
       Object.keys(RENDERS).forEach(function(id){
         const original=RENDERS[id];
@@ -109,6 +114,7 @@
       otto_efficiency:'generalized Otto-cycle efficiency with explicit specific-heat ratio γ; Air-Standard Otto remains fixed at γ=1.4',
       lab_registry:'provenance-driven 44/42/24/25/439 distribution', render_safety:'invalid numeric output blocked at render boundary'
     };
+    window.__GH_QA_LEGACY_OVERRIDES_APPLIED__=APPLY_LEGACY_OVERRIDES;
   } catch(e) { console.error('Gearhead Labs QA correction load failed',e); }
 })();
 
