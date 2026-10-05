@@ -7693,7 +7693,7 @@ function ghBuildNav(filter=''){
 function ghLabCards(){
   return GH_LAB_ORDER.map(k=>{
     const lab=GH_LABS[k];
-    const count=CALCS.filter(c=>c.id!=='dashboard' && ghLabForCalc(c)===k).length;
+    const count=CALCS.filter(c=>c.id!=='dashboard' && c.layer!=='engineering' && ghLabForCalc(c)===k).length;
     return `<a class="gh-lab-card ${k}" href="?lab=${k}" onclick="event.preventDefault();ghShowLab('${k}')">
       <div class="gh-lab-card-top"><span>${lab.kicker}</span><b>${count}</b></div>
       <h3>${lab.label}</h3>
@@ -7727,7 +7727,7 @@ function ghShowLab(labKey){
 }
 
 function ghHome(){
-  const total=CALCS.filter(c=>c.id!=='dashboard').length;
+  const total=CALCS.filter(c=>c.id!=='dashboard' && c.layer!=='engineering').length;
   return `<article class="gh-landing gh-home">
     <div class="gh-hero">
       <div class="gh-landing-kicker">GEARHEAD LABS / THE SCIENCE OF SPEED</div>
