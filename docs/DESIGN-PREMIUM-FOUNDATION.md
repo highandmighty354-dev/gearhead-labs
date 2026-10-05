@@ -1,6 +1,7 @@
 # PREMIUM-FOUNDATION — architecture design (FOR REVIEW · NOT IMPLEMENTED)
 
 Status: **design only.** No SQL in this document has been applied anywhere. Nothing here changes a frozen baseline.
+Implementation status (2026-10-05): implemented as `supabase/migrations/0401`–`0406` and tested on throwaway local PostgreSQL only (`premium-foundation/PREMIUM-FOUNDATION.md`). **Not applied** to Supabase; see `supabase/PROVISIONING.md`.
 Position in the approved sequence: CORE-ENGINE-BASELINE → DATA-FOUNDATION → MAPPING-FOUNDATION → GARAGE-FOUNDATION → **PREMIUM-FOUNDATION** → …
 
 ---

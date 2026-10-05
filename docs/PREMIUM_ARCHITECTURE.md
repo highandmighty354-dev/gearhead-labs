@@ -1,5 +1,7 @@
 # Gearhead Labs — Premium architecture (Phase 3A)
 
+> **Superseded (database layer), 2026-10-05.** The Phase 3A schema `supabase/migrations/0001_premium_schema.sql` is retired (`docs/retired/phase-3a/RETIRED.md`). The database is defined by PREMIUM-FOUNDATION (`premium-foundation/PREMIUM-FOUNDATION.md`, migrations `0401`–`0406` on top of the frozen foundations). The `premium/` frontend described here still targets the retired tables and must be adapted before use.
+
 ## Layers
 
 ```
