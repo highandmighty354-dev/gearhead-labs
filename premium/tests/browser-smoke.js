@@ -1,18 +1,24 @@
 #!/usr/bin/env node
-/* Gearhead Labs Premium — Chromium smoke test of the shell (no network beyond a local static server, no database).
-   Serves the repository on 127.0.0.1 and drives the real index.html in headless Chromium:
-     A. development mode (localhost): sign in, Free garage with the 1-vehicle meter, Test Setups, no Projects,
-        saved calculations without a create button, Premium via the development tools, Engineering Lab save
-     B. no-backend mode (?gh_dev=0): the shell works without accounts
-     C. foundation adapter with a fake bootstrap client (injected into the served page only; index.html on disk is not
-        changed): an unprovisioned schema falls back to no-backend; a provisioned one offers the magic-link sign-in
-   Needs Playwright (resolved from the global npm root) and its Chromium.   Run: node premium/tests/browser-smoke.js */
+/* Gearhead Labs Premium — Chromium tests of the INTEGRATED index.html on disk (nothing injected into the page).
+   The real supabase-js library, supabase-config.js and supabase-boot.js run in the real order.
+
+   This sandbox's egress policy blocks cdn.jsdelivr.net and *.supabase.co, so two things are provided at the network
+   layer (never by editing the page):
+     - the pinned library URL is answered with the exact bytes of @supabase/supabase-js@<pinned> from the npm registry
+       (tarball verified against the registry's sha512); Chromium still enforces the page's SRI hash on them;
+     - requests to the Supabase project are either left to the real network (blocked: the "offline" case) or answered
+       with what an empty / provisioned PostgREST returns. Only GET is permitted; anything else is aborted and fails
+       the test, so no write can ever leave the browser.
+   Modes: A anonymous / no-backend, B development, C Premium development, D real bootstrap order (actual client),
+          E foundation fallback on an unprovisioned database, F the F1.12.4 calculator frame, G SRI tamper check.
+   Run: node premium/tests/browser-smoke.js   (Playwright from the global npm root; npm registry reachable) */
 'use strict';
-const path = require('path'), http = require('http'), fs = require('fs'), { execSync } = require('child_process');
+const path = require('path'), http = require('http'), fs = require('fs'), os = require('os'), crypto = require('crypto'), { execSync, execFileSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 let playwright;
 try { playwright = require('playwright'); } catch (e) { playwright = require(path.join(execSync('npm root -g', { encoding: 'utf8' }).trim(), 'playwright')); }
 const OUT = process.env.SMOKE_OUT || null;   // optional screenshot directory
+const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png' };
 function serve() {
@@ -26,30 +32,129 @@ function serve() {
   });
 }
 
+/* The pinned library as index.html declares it, fetched from the npm registry and verified. */
+function pinnedLibrary() {
+  const html = fs.readFileSync(path.join(REPO, 'index.html'), 'utf8');
+  const tag = html.match(/<script src="(https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@(\d+\.\d+\.\d+)\/(dist\/umd\/supabase\.js))" integrity="(sha384-[^"]+)" crossorigin="anonymous"><\/script>/);
+  if (!tag) throw new Error('index.html: pinned supabase-js tag not found');
+  const [, url, version, file, sri] = tag;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ghp-sbjs-'));
+  execFileSync('npm', ['pack', `@supabase/supabase-js@${version}`, '--pack-destination', dir, '--silent'], { stdio: 'pipe' });
+  const tgz = fs.readdirSync(dir).find(f => f.endsWith('.tgz'));
+  const published = execFileSync('npm', ['view', `@supabase/supabase-js@${version}`, 'dist.integrity'], { encoding: 'utf8' }).trim();
+  const actual = 'sha512-' + crypto.createHash('sha512').update(fs.readFileSync(path.join(dir, tgz))).digest('base64');
+  if (actual !== published) throw new Error(`tarball integrity mismatch: ${actual} vs ${published}`);
+  execFileSync('tar', ['xzf', path.join(dir, tgz), '-C', dir]);
+  const bytes = fs.readFileSync(path.join(dir, 'package', file));
+  const computed = 'sha384-' + crypto.createHash('sha384').update(bytes).digest('base64');
+  fs.rmSync(dir, { recursive: true, force: true });
+  return { url, version, sri, computed, bytes };
+}
+
+/* Runs before any page script: records script execution order, every createClient call, when GH_SUPABASE appears,
+   and every fetch to the Supabase project. Observation only; nothing is replaced. */
+const INSTRUMENT = `(() => {
+  const log = window.__gh = { order: [], createClient: 0, events: [], fetches: [] };
+  const rel = s => s.indexOf(location.origin + '/') === 0 ? s.slice(location.origin.length + 1).replace(/\\?.*$/, '') : s;
+  new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => {
+    if (n.tagName === 'SCRIPT' && n.src) n.addEventListener('load', () => log.order.push(rel(n.src)));
+  }))).observe(document, { childList: true, subtree: true });
+  let gh; Object.defineProperty(window, 'GH_SUPABASE', { configurable: true, get() { return gh; }, set(v) { gh = v; log.events.push(['GH_SUPABASE', performance.now()]); } });
+  const f = window.fetch;
+  window.fetch = function (input) { const u = String(input && input.url || input); if (/\\.supabase\\.co\\//.test(u)) log.fetches.push([u, performance.now()]); return f.apply(this, arguments); };
+  document.addEventListener('DOMContentLoaded', () => {
+    log.events.push(['DOMContentLoaded', performance.now()]);
+    const lib = window.supabase;   // the boot script's own DOMContentLoaded listener runs after this one
+    if (lib && typeof lib.createClient === 'function') {
+      const orig = lib.createClient;
+      try { Object.defineProperty(lib, 'createClient', { configurable: true, writable: true, value: function () { log.createClient++; return orig.apply(this, arguments); } }); }
+      catch (e) { log.wrapFailed = String(e); }
+    }
+  });
+})();`;
+
 const results = [];
 async function step(name, fn) { try { await fn(); results.push({ name, pass: true }); } catch (e) { results.push({ name, pass: false, error: String(e && e.message || e).split('\n')[0].slice(0, 300) }); } }
 const assert = (c, m) => { if (!c) throw new Error(m); };
+const same = (a, b, m) => assert(JSON.stringify(a) === JSON.stringify(b), `${m}: got ${JSON.stringify(a)}, expected ${JSON.stringify(b)}`);
+const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,HEAD,OPTIONS' };
+const PGRST = (status, code, message) => ({ status, headers: Object.assign({ 'content-type': 'application/json' }, CORS), body: JSON.stringify({ code, details: null, hint: null, message }) });
+const EXPECTED_ORDER = lib => [lib.url, 'supabase-config.js', 'supabase-boot.js', 'premium/models.js', 'premium/adapters/foundation.js', 'premium/config.js',
+  'premium/adapters/dev-local.js', 'premium/services.js', 'premium/engineering-bridge.js', 'premium/shell.js', 'app-shell.js', 'final-ui-fix.js'];
+/* Known, environment-only console noise: the calculator page's Google Fonts stylesheet cannot pass this sandbox's
+   TLS-intercepting proxy. It affects only typefaces, never Gearhead Labs logic. */
+const ENV_NOISE = /ERR_CERT_AUTHORITY_INVALID|fonts\.googleapis\.com/;
+/* Known PRE-EXISTING defect in main's supabase-boot.js (unchanged by this step): line 13 calls
+   window.GH_SUPABASE.getSession() instead of window.GH_SUPABASE.auth.getSession(). It throws AFTER GH_SUPABASE and
+   GH_SUPABASE_READY are set, is caught, and only its "connected" log is lost. Tolerated as exactly this message. */
+const KNOWN_BOOT_DEFECT = /^Gearhead Labs: Supabase initialization failed\. TypeError: window\.GH_SUPABASE\.getSession is not a function/;
 
 (async () => {
-  const srv = await serve(), port = srv.address().port;
+  const LIB = pinnedLibrary();
+  const srv = await serve(), port = srv.address().port, base = `http://localhost:${port}/`;
   const browser = await playwright.chromium.launch();
-  const errorsOf = page => { const errs = []; page.on('pageerror', e => errs.push(e.message)); return errs; };
   const shot = async (page, n) => { if (OUT) await page.screenshot({ path: path.join(OUT, n + '.png'), fullPage: false }); };
   const toastSays = async (page, re) => { await page.waitForFunction(r => new RegExp(r).test(document.getElementById('ghp-toast').textContent), re.source, { timeout: 8000 }); };
-  const ready = page => page.waitForFunction(() => document.body.classList.contains('ghp-ready'), null, { timeout: 15000 });
+  const ready = page => page.waitForFunction(() => document.body.classList.contains('ghp-ready'), null, { timeout: 20000 });
 
-  /* ---------------------------------------------------------------- A. development mode */
+  /* supabase: 'offline' (real network, blocked here) | 'unprovisioned' | 'provisioned'; library: 'pinned' | 'tampered' */
+  async function open(url, { supabase = 'offline', library = 'pinned', viewport = { width: 1280, height: 900 } } = {}) {
+    const ctx = await browser.newContext({ viewport }), page = await ctx.newPage();
+    const env = { ctx, page, pageErrors: [], consoleErrors: [], requests: [], violations: [] };
+    page.on('pageerror', e => env.pageErrors.push(e.message));
+    page.on('console', m => { if (m.type() === 'error') env.consoleErrors.push(m.text()); });
+    page.on('requestfailed', r => { if (ENV_NOISE.test(r.url() + r.failure().errorText)) env.envNoise = true; });
+    await page.addInitScript(INSTRUMENT);
+    await page.route(LIB.url, route => route.fulfill({ status: 200, headers: Object.assign({ 'content-type': 'text/javascript' }, CORS),
+      body: library === 'tampered' ? Buffer.concat([LIB.bytes, Buffer.from('\n/* tampered */')]) : LIB.bytes }));
+    await page.route(u => /\.supabase\.co$/.test(new URL(u).hostname), route => {
+      const r = route.request(), h = r.headers();
+      env.requests.push({ method: r.method(), url: r.url(), apikey: h.apikey || null });
+      if (r.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: CORS });
+      if (r.method() !== 'GET' && r.method() !== 'HEAD') { env.violations.push(r.method() + ' ' + r.url()); return route.abort(); }
+      if (supabase === 'offline') return route.continue();
+      if (supabase === 'unprovisioned') return route.fulfill(PGRST(404, 'PGRST205', "Could not find the table 'public.plans' in the schema cache"));
+      return route.fulfill(PGRST(401, '42501', 'permission denied for table plans'));
+    });
+    await page.goto(url);
+    await ready(page);
+    return env;
+  }
+  const appErrors = env => env.pageErrors.concat(env.consoleErrors.filter(t => !ENV_NOISE.test(t) && !/Failed to load resource/.test(t) && !KNOWN_BOOT_DEFECT.test(t)));
+  const bootDefectSeen = env => env.consoleErrors.some(t => KNOWN_BOOT_DEFECT.test(t));
+  const bootFacts = page => page.evaluate(() => ({ order: __gh.order, createClient: __gh.createClient, wrapFailed: __gh.wrapFailed || null, events: __gh.events,
+    fetches: __gh.fetches, ready: window.GH_SUPABASE_READY === true, hasClient: !!(window.GH_SUPABASE && typeof window.GH_SUPABASE.from === 'function'),
+    lib: typeof (window.supabase && window.supabase.createClient), mode: GHP.services.mode, adapter: GHP.services.adapter.kind,
+    configUrl: window.GH_SUPABASE_CONFIG && window.GH_SUPABASE_CONFIG.url, configKey: window.GH_SUPABASE_CONFIG && window.GH_SUPABASE_CONFIG.publishableKey }));
+
+  await step('pinned library: index.html SRI equals the sha384 of the npm-registry bytes (tarball sha512 verified)', async () => {
+    same(LIB.computed, LIB.sri, 'SRI');
+  });
+
+  /* ---------------------------------------------------------------- A. anonymous / no-backend (real network) */
+  await step('A1. anonymous visitor, Supabase unreachable: real client created once, app reaches no-backend, calculators work', async () => {
+    const env = await open(base + '?gh_dev=0&view=garage', { supabase: 'offline' });
+    const f = await bootFacts(env.page);
+    same([f.lib, f.hasClient, f.ready, f.createClient, f.mode], ['function', true, true, 1, 'no-backend'], 'boot');
+    await env.page.waitForSelector('text=Accounts are coming soon');
+    await env.page.click('#ghp-nav [data-go="calculators"]');
+    assert(await env.page.evaluate(() => document.body.classList.contains('ghp-mode-calculators')), 'calculators mode');
+    same(env.violations, [], 'non-GET requests');
+    same(appErrors(env), [], 'errors');
+    await env.ctx.close();
+  });
+
+  /* ---------------------------------------------------------------- B / C. development and Premium development */
   {
-    const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } }), page = await ctx.newPage(), errs = errorsOf(page);
-    const base = `http://localhost:${port}/`;
-    await step('A1. dev mode boots; navigation has Garage and Saved, no Projects', async () => {
-      await page.goto(base + '?view=home'); await ready(page);
-      assert(await page.evaluate(() => GHP.services.mode) === 'development', 'mode');
+    const env = await open(base + '?view=home', { supabase: 'offline' }), page = env.page;
+    await step('B1. dev mode boots on the integrated page; navigation has Garage and Saved, no Projects', async () => {
+      const f = await bootFacts(page);
+      same([f.mode, f.createClient], ['development', 1], 'mode / single client');
       const labels = await page.$$eval('#ghp-nav .ghp-nav-long', n => n.map(x => x.textContent));
-      assert(JSON.stringify(labels) === JSON.stringify(['Home', 'Calculators', 'Engineering Lab', 'My Garage', 'Saved', 'Profile']), 'nav: ' + labels);
+      same(labels, ['Home', 'Calculators', 'Engineering Lab', 'My Garage', 'Saved', 'Profile'], 'nav');
       assert(!(await page.content()).match(/\bProjects?\b/), 'Projects text present');
     });
-    await step('A2. Free garage: sign in, meter 0 of 1, add a vehicle with engine / transmission / drivetrain', async () => {
+    await step('B2. Free garage: sign in, meter 0 of 1, add a vehicle with engine / transmission / drivetrain', async () => {
       await page.click('#ghp-nav [data-go="garage"]');
       await page.fill('form[data-form="signin"] input[name="email"]', 'smoke@example.test');
       await page.click('form[data-form="signin"] button[type="submit"]');
@@ -62,12 +167,12 @@ const assert = (c, m) => { if (!c) throw new Error(m); };
       assert(!(await page.$('select[name="machine_type"] option[value="marine"]')), 'marine offered');
       await page.click('form[data-form="machine"] button[type="submit"]');
       await toastSays(page, /Vehicle added/);
-      await page.waitForSelector('[data-new-setup]');   // the detail view has rendered
+      await page.waitForSelector('[data-new-setup]');
       const t = await page.textContent('#ghp-view');
       assert(/2019 Ford Mustang/.test(t) && /PRIMARY/.test(t) && /5\.0L Coyote V8/.test(t) && /RWD/.test(t), 'machine detail');
-      await shot(page, 'a2-machine');
+      await shot(page, 'b2-machine');
     });
-    await step('A3. Test Setups: add two, edit, re-pin, delete (two-step confirm)', async () => {
+    await step('B3. Test Setups: add two, edit, re-pin, delete (two-step confirm)', async () => {
       for (const n of ['Street', 'Track']) {
         await page.click('[data-new-setup]'); await page.fill('form[data-form="setup"] input[name="name"]', n);
         await page.fill('form[data-form="setup"] textarea[name="description"]', 'Goals: ' + n);
@@ -75,7 +180,6 @@ const assert = (c, m) => { if (!c) throw new Error(m); };
         await page.click('form[data-form="setup"] button[type="submit"]'); await toastSays(page, /Test Setup added/);
         await page.waitForFunction(n => document.querySelectorAll('.ghp-build').length === n + 1 && document.querySelector('[data-new-setup]'), before);
       }
-      assert((await page.$$('.ghp-build')).length === 2, 'two setups');
       await page.click('[data-edit-setup]'); await page.fill('form[data-form="setup"] textarea[name="notes"]', 'edited');
       await page.click('form[data-form="setup"] button[type="submit"]'); await toastSays(page, /Test Setup updated/);
       await page.waitForFunction(() => /edited/.test(document.getElementById('ghp-view').textContent) && document.querySelector('[data-action="repin-setup"]'));
@@ -84,19 +188,19 @@ const assert = (c, m) => { if (!c) throw new Error(m); };
       const del = await page.$('[data-action="delete-setup"]'); await del.click(); await del.click(); await toastSays(page, /Test Setup deleted/);
       await page.waitForFunction(() => document.querySelectorAll('.ghp-build').length === 1);
     });
-    await step('A4. Free garage is full: 1 of 1, no add button, upgrade message', async () => {
+    await step('B4. Free garage is full: 1 of 1, no add button, upgrade message', async () => {
       await page.click('[data-go="garage"]'); await page.waitForSelector('.ghp-meter');
       const t = await page.textContent('#ghp-view');
       assert(/1 of 1 vehicle/.test(t) && /Free includes 1 vehicle/.test(t), 'full message');
       assert(!(await page.$('[data-edit-machine="new"]')), 'add button still shown');
-      await shot(page, 'a4-full');
+      await shot(page, 'b4-full');
     });
-    await step('A5. Saved and Lab show Premium teasers for Free; no create/save button anywhere', async () => {
+    await step('B5. Saved and Lab show Premium teasers for Free; no create/save button anywhere', async () => {
       await page.click('#ghp-nav [data-go="saved"]'); await page.waitForSelector('.ghp-teaser');
       await page.click('#ghp-nav [data-go="lab"]'); await page.waitForSelector('.ghp-teaser');
       assert(!(await page.$('[data-action="save-sheet"]:visible')), 'save visible');
     });
-    await step('A6. Premium (development grant): second vehicle allowed, plan card from the entitlement, saved calculations read / edit / pin', async () => {
+    await step('C1. Premium (development grant): second vehicle, plan card from the entitlement, saved calculations read / edit / pin', async () => {
       await page.click('#ghp-nav [data-go="profile"]'); await page.waitForSelector('[data-action="dev-plan"][data-plan="premium"]');
       await page.click('[data-action="dev-plan"][data-plan="premium"]'); await toastSays(page, /Development plan/);
       await page.waitForFunction(() => /Granted by Gearhead Labs/.test(document.getElementById('ghp-view').textContent));
@@ -114,70 +218,107 @@ const assert = (c, m) => { if (!c) throw new Error(m); };
       await page.click('[data-edit-saved]'); await page.fill('form[data-form="saved"] input[name="title"]', 'Dyno pull');
       await page.click('form[data-form="saved"] button[type="submit"]'); await toastSays(page, /Saved calculation updated/);
       assert(/Dyno pull/.test(await page.textContent('#ghp-view')) && /PINNED/.test(await page.textContent('#ghp-view')), 'edited + pinned');
-      await shot(page, 'a6-saved');
+      await shot(page, 'c1-saved');
     });
-    await step('A7. Engineering Lab: open an analyzer and save an analysis linked to a vehicle', async () => {
+    await step('C2. Engineering Lab on F1.12.4: analyzers load in the frame, an analysis saves with its links; public calculator count unchanged', async () => {
       await page.click('#ghp-nav [data-go="lab"]'); await page.waitForSelector('[data-analyzer="e12_radiator_heat_rejection"]');
       await page.click('[data-analyzer="e12_radiator_heat_rejection"]');
       await page.waitForSelector('#ghp-runbar [data-action="save-sheet"]', { state: 'visible' });
       await page.waitForFunction(() => GHP.engineering.currentAnalyzer() === 'e12_radiator_heat_rejection', null, { timeout: 20000 });
+      const cat = await page.evaluate(() => GHP.engineering.catalogCheck());
+      same([cat.count, cat.missing, cat.extra], [14, [], []], 'engineering catalog in the frame');
+      const counts = await page.evaluate(() => { const C = GHShell.frame.contentWindow.eval('CALCS'); return [C.filter(c => c.id !== 'dashboard' && c.layer !== 'engineering').length, C.filter(c => c.layer === 'engineering').length]; });
+      same(counts, [606, 14], 'public calculators stay 606 with the 14 Premium analyzers loaded');
       await page.click('#ghp-runbar [data-action="save-sheet"]'); await page.waitForSelector('form[data-form="analysis"]');
       await page.fill('form[data-form="analysis"] input[name="title"]', 'Radiator baseline');
       const opts = await page.$$eval('form[data-form="analysis"] select[name="machine_id"] option', o => o.map(x => x.value).filter(Boolean));
       await page.selectOption('form[data-form="analysis"] select[name="machine_id"]', opts[0]);
       await page.click('form[data-form="analysis"] button[type="submit"]'); await toastSays(page, /Analysis saved/);
-      const saved = await page.evaluate(async () => (await GHP.services.repos.analyses.list()).map(a => [a.title, a.analyzer_version, a.result_trust]));
-      assert(JSON.stringify(saved) === JSON.stringify([['Radiator baseline', 'E1-AUTO', 'client_reported']]), 'stored: ' + JSON.stringify(saved));
-      await shot(page, 'a7-lab');
+      const saved = await page.evaluate(async () => (await GHP.services.repos.analyses.list()).map(a => [a.title, a.analyzer_version, a.result_trust, !!a.inputs.fields]));
+      same(saved, [['Radiator baseline', 'E1-AUTO', 'client_reported', true]], 'stored');
+      await shot(page, 'c2-lab');
     });
-    await step('A8. no uncaught page errors in development mode', async () => { assert(errs.length === 0, errs.join(' | ')); });
-    await ctx.close();
+    await step('B6/C3. no application errors in development / Premium development; no writes left the browser', async () => {
+      same(appErrors(env), [], 'errors'); same(env.violations, [], 'non-GET requests');
+    });
+    await env.ctx.close();
   }
 
-  /* ---------------------------------------------------------------- B. no-backend */
-  {
-    const ctx = await browser.newContext(), page = await ctx.newPage(), errs = errorsOf(page);
-    await step('B1. ?gh_dev=0 (no bootstrap client): no-backend mode; garage explains accounts are coming; calculators remain', async () => {
-      await page.goto(`http://localhost:${port}/?gh_dev=0&view=garage`); await ready(page);
-      assert(await page.evaluate(() => GHP.services.mode) === 'no-backend', 'mode');
-      await page.waitForSelector('text=Accounts are coming soon');
-      await page.click('#ghp-nav [data-go="calculators"]');
-      assert(await page.evaluate(() => document.body.classList.contains('ghp-mode-calculators')), 'calculators mode');
-      assert(errs.length === 0, errs.join(' | '));
-    });
-    await ctx.close();
-  }
+  /* ---------------------------------------------------------------- D. real bootstrap order with the actual client */
+  await step('D1. real boot order: supabase-js -> config -> boot -> models -> foundation -> app; ONE createClient; GH_SUPABASE ready before the adapter uses it', async () => {
+    const env = await open(base + '?gh_dev=0&view=garage', { supabase: 'provisioned' });
+    const f = await bootFacts(env.page);
+    same(f.wrapFailed, null, 'createClient instrumentation');
+    same(f.order, EXPECTED_ORDER(LIB), 'script execution order');
+    same([f.lib, f.hasClient, f.ready, f.createClient], ['function', true, true, 1], 'client');
+    same([f.mode, f.adapter], ['production', 'foundation'], 'the foundation adapter is running on the bootstrap client');
+    const tClient = (f.events.find(e => e[0] === 'GH_SUPABASE') || [])[1], tDom = (f.events.find(e => e[0] === 'DOMContentLoaded') || [])[1];
+    assert(tClient != null && f.fetches.length > 0 && f.fetches.every(x => x[1] >= tClient) && tClient >= tDom, 'a Supabase request happened before the bootstrap client existed');
+    const host = new URL(f.configUrl).host;
+    assert(env.requests.length > 0 && env.requests.every(r => new URL(r.url).host === host && r.apikey === f.configKey), 'requests did not come from the bootstrap client (host / apikey)');
+    assert(env.requests.some(r => /\/rest\/v1\/plans\?select=plan_key&limit=1$/.test(r.url)), 'provisioning probe');
+    await env.page.waitForSelector('text=Email me a sign-in link');
+    same(env.violations, [], 'non-GET requests'); same(appErrors(env), [], 'errors');
+    console.log(`      note: pre-existing supabase-boot.js getSession defect observed: ${bootDefectSeen(env) ? 'yes (caught after GH_SUPABASE / READY were set; see report)' : 'no'}`);
+    await shot(env.page, 'd1-production');
+    await env.ctx.close();
+  });
+  await step('D2. no race: five fresh loads all reach the same state with one client', async () => {
+    for (let i = 0; i < 5; i++) {
+      const env = await open(base + '?gh_dev=0', { supabase: 'provisioned' });
+      const f = await bootFacts(env.page);
+      same([f.mode, f.createClient, f.ready, f.order.length], ['production', 1, true, 12], 'load ' + i);
+      await env.ctx.close();
+    }
+  });
 
-  /* ---------------------------------------------------------------- C. foundation adapter behind a fake bootstrap client */
-  async function withInjected(clientJs, check) {
-    const ctx = await browser.newContext(), page = await ctx.newPage(), errs = errorsOf(page);
-    await page.route(u => new URL(u).pathname === '/' || new URL(u).pathname === '/index.html', async route => {
-      const r = await route.fetch(); let html = await r.text();
-      html = html.replace('<script src="premium/services.js', `<script>${clientJs}</script><script src="premium/adapters/foundation.js"></script><script src="premium/services.js`);
-      await route.fulfill({ response: r, body: html });
-    });
-    await page.goto(`http://localhost:${port}/?gh_dev=0&view=garage`); await ready(page);
-    await check(page);
-    assert(errs.length === 0, errs.join(' | '));
-    await ctx.close();
-  }
-  const fakeJs = errorCode => `(function(){const res=${errorCode ? `{data:null,error:{code:'${errorCode}',message:'relation does not exist'},status:404}` : `{data:[],error:{code:'42501',message:'permission denied for table plans'},status:401}`};
-    const b={select(){return b},eq(){return b},order(){return b},limit(){return b},maybeSingle(){return b},single(){return b},then(f,r){return Promise.resolve(res).then(f,r)}};
-    window.GH_SUPABASE={from(){return b},rpc(){return Promise.resolve(res)},auth:{getSession:async()=>({data:{session:null},error:null}),signInWithOtp:async()=>({error:null}),signOut:async()=>({error:null}),onAuthStateChange(){return{data:{subscription:{unsubscribe(){}}}}}}};})();`;
-  await step('C1. foundation adapter + unprovisioned schema (PGRST205) -> no-backend, no errors', () => withInjected(fakeJs('PGRST205'), async page => {
-    assert(await page.evaluate(() => GHP.services.mode) === 'no-backend', 'mode');
-    await page.waitForSelector('text=Accounts are coming soon');
-  }));
-  await step('C2. foundation adapter + provisioned schema, signed out -> production mode with the magic-link sign-in', () => withInjected(fakeJs(null), async page => {
-    assert(await page.evaluate(() => GHP.services.mode) === 'production', 'mode');
-    await page.waitForSelector('text=Email me a sign-in link');
-    await page.fill('form[data-form="signin"] input[name="email"]', 'driver@example.test');
-    await page.click('form[data-form="signin"] button[type="submit"]'); await toastSays(page, /Check your email/);
-  }));
+  /* ---------------------------------------------------------------- E. foundation fallback, unprovisioned database */
+  await step('E1. empty (unprovisioned) project: the real client gets PGRST205 and the app falls back to no-backend cleanly', async () => {
+    const env = await open(base + '?gh_dev=0&view=garage', { supabase: 'unprovisioned' });
+    const f = await bootFacts(env.page);
+    same([f.createClient, f.ready, f.mode, f.adapter], [1, true, 'no-backend', 'none'], 'fallback');
+    same(env.requests.map(r => r.method + ' ' + new URL(r.url).pathname), ['GET /rest/v1/plans'], 'only the read-only probe');
+    await env.page.waitForSelector('text=Accounts are coming soon');
+    same(env.violations, [], 'non-GET requests'); same(appErrors(env), [], 'errors');
+    await shot(env.page, 'e1-fallback');
+    await env.ctx.close();
+  });
+
+  /* ---------------------------------------------------------------- F. the F1.12.4 calculator frame */
+  await step('F1. calculator frame: F1.12.4 loads (606 public calculators) and renders a calculator from a deep link, with no JavaScript errors', async () => {
+    const env = await open(base + '?gh_dev=0', { supabase: 'offline' }), page = env.page;
+    await page.waitForFunction(() => window.GHShell && GHShell.isReady(), null, { timeout: 20000 });
+    const frameUrl = await page.evaluate(() => GHShell.frame.contentWindow.location.pathname);
+    assert(frameUrl.endsWith('/' + F124), 'frame is ' + frameUrl);
+    const info = await page.evaluate(() => { const C = GHShell.frame.contentWindow.eval('CALCS'); const c = C.find(c => c.id !== 'dashboard' && c.layer !== 'engineering');
+      return { pub: C.filter(c => c.id !== 'dashboard' && c.layer !== 'engineering').length, eng: C.filter(c => c.layer === 'engineering').length, first: c.id }; });
+    same([info.pub, info.eng], [606, 0], 'public calculators; no Premium analyzers for an anonymous visitor');
+    await page.goto(base + '?gh_dev=0&calc=' + encodeURIComponent(info.first)); await ready(page);
+    await page.waitForFunction(id => { const w = GHShell.frame.contentWindow; return w.eval('typeof currentCalc!=="undefined"?currentCalc:null') === id && w.document.querySelector('#calc-container .calc-header, #calc-container .calc-body'); }, info.first, { timeout: 20000 });
+    const txt = await page.evaluate(() => GHShell.frame.contentWindow.document.getElementById('calc-container').textContent);
+    assert(txt.length > 40 && !/\bNaN\b|\bundefined\b/.test(txt), 'calculator rendered cleanly');
+    same(appErrors(env), [], 'errors');
+    env.fontsNoise = env.envNoise;
+    await shot(page, 'f1-calculator');
+    await env.ctx.close();
+    console.log(`      note: environment-only Google Fonts TLS failure observed: ${env.fontsNoise ? 'yes (classified, not an app error)' : 'no'}`);
+  });
+
+  /* ---------------------------------------------------------------- G. SRI */
+  await step('G1. a tampered library is blocked by SRI; no client is created and the app still works (no-backend)', async () => {
+    const env = await open(base + '?gh_dev=0&view=garage', { supabase: 'unprovisioned', library: 'tampered' });
+    const f = await bootFacts(env.page);
+    same([f.lib, f.hasClient, f.createClient, f.mode], ['undefined', false, 0, 'no-backend'], 'blocked');
+    assert(env.consoleErrors.some(t => /integrity/i.test(t)), 'no SRI error reported');
+    same(env.requests, [], 'no Supabase request without the verified library');
+    await env.page.waitForSelector('text=Accounts are coming soon');
+    same(env.pageErrors, [], 'uncaught errors');
+    await env.ctx.close();
+  });
 
   await browser.close(); srv.close();
   const failed = results.filter(r => !r.pass);
   for (const r of results) console.log(`${r.pass ? 'PASS' : 'FAIL'}  ${r.name}${r.pass ? '' : '\n      -> ' + r.error}`);
-  console.log(`\nbrowser smoke (Chromium ${browser.version ? '' : ''}headless): ${results.length - failed.length}/${results.length} passed`);
+  console.log(`\nbrowser tests (Chromium ${browser.version()}, integrated index.html, supabase-js ${LIB.version}): ${results.length - failed.length}/${results.length} passed`);
   process.exit(failed.length ? 1 : 0);
-})().catch(e => { console.error('SMOKE ERROR', e); process.exit(2); });
+})().catch(e => { console.error('BROWSER TEST ERROR', e); process.exit(2); });

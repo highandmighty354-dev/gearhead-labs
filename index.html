@@ -9,20 +9,25 @@
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050607}#app{position:fixed;inset:0;width:100%;height:100%;border:0;display:block;background:#050607}#boot{position:fixed;inset:0;display:grid;place-items:center;background:#050607;color:#d7a11f;font:800 12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.16em;text-transform:uppercase;z-index:2;transition:opacity .2s}#boot.hide{opacity:0;pointer-events:none}.mark{font-size:20px;color:#f5f6f8;margin-bottom:8px;letter-spacing:.08em;text-align:center}#boot span{display:block;text-align:center}
 </style>
-<link rel="stylesheet" href="premium/premium.css?v=20261006-0300">
+<link rel="stylesheet" href="premium/premium.css?v=20261007-0100">
 </head>
 <body>
 <div id="boot"><div><div class="mark">GEARHEAD LABS</div><span>THE AUTOMOTIVE MATH ENCYCLOPEDIA</span></div></div>
-<iframe id="app" title="Gearhead Labs Automotive Math Encyclopedia" src="F1_12_3_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html?v=20261006-0200"></iframe>
-<!-- Premium product layer (wraps the calculator engine; see docs/PREMIUM_ARCHITECTURE.md) -->
-<script src="premium/config.js?v=20261006-0300"></script>
-<script src="premium/models.js?v=20261006-0300"></script>
-<script src="premium/adapters/dev-local.js?v=20261006-0300"></script>
-<script src="premium/adapters/supabase.js?v=20261006-0300"></script>
-<script src="premium/services.js?v=20261006-0300"></script>
-<script src="premium/engineering-bridge.js?v=20261006-0300"></script>
-<script src="premium/shell.js?v=20261006-0300"></script>
-<script src="app-shell.js?v=20261006-0300"></script>
+<iframe id="app" title="Gearhead Labs Automotive Math Encyclopedia" src="F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html?v=20261007-0100"></iframe>
+<!-- Supabase: ONE client, created by supabase-boot.js from the generated public configuration.
+     The library is pinned to an exact version and checked with Subresource Integrity. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
+<script src="supabase-config.js?v=20261005-1"></script>
+<script src="supabase-boot.js?v=20261005-1"></script>
+<!-- Premium product layer (wraps the calculator engine; see premium-foundation/PREMIUM-FOUNDATION.md) -->
+<script src="premium/models.js?v=20261007-0100"></script>
+<script src="premium/adapters/foundation.js?v=20261007-0100"></script>
+<script src="premium/config.js?v=20261007-0100"></script>
+<script src="premium/adapters/dev-local.js?v=20261007-0100"></script>
+<script src="premium/services.js?v=20261007-0100"></script>
+<script src="premium/engineering-bridge.js?v=20261007-0100"></script>
+<script src="premium/shell.js?v=20261007-0100"></script>
+<script src="app-shell.js?v=20261007-0100"></script>
 <script src="final-ui-fix.js?v=20261004-2100"></script>
 </body>
 </html>

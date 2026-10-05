@@ -8,7 +8,6 @@ const fs = require('fs'), path = require('path'), vm = require('vm'), { execFile
 const REPO = path.resolve(__dirname, '..', '..');
 const read = p => fs.readFileSync(path.join(REPO, p), 'utf8');
 const MODELS = read('premium/models.js'), FOUNDATION = read('premium/adapters/foundation.js');
-const OBSOLETE_ADAPTER = 'premium/adapters/supabase.js';   // Phase 3A; retained until the approved integration step
 
 /* ---------------------------------------------------------------- tiny harness */
 const results = [];
@@ -96,7 +95,6 @@ function frontendFiles() {
 const FILES = frontendFiles();
 const contents = Object.fromEntries(FILES.map(f => [f, read(f)]));
 const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`\\])\/\/[^\n]*/g, '$1');
-const backendConfigEmpty = () => { const c = read('premium/config.js'); return /url:\s*''/.test(c) && /anonKey:\s*''/.test(c); };
 
 (async () => {
   await test('scan covers the frontend (root pages and scripts, premium/)', () => {
@@ -105,12 +103,10 @@ const backendConfigEmpty = () => { const c = read('premium/config.js'); return /
   });
 
   // 1
-  await test('1. exactly one active createClient call in the frontend (supabase-boot.js); the obsolete Phase 3A adapter is unreachable', () => {
-    const hits = FILES.filter(f => /\bcreateClient\s*\(/.test(stripComments(contents[f])));
-    const active = hits.filter(f => f !== OBSOLETE_ADAPTER);
-    eq(active, ['supabase-boot.js'], 'createClient call sites');
+  await test('1. createClient() exists exactly once in the whole frontend: supabase-boot.js', () => {
+    eq(FILES.filter(f => /\bcreateClient\s*\(/.test(stripComments(contents[f]))), ['supabase-boot.js'], 'createClient call sites');
     eq((stripComments(contents['supabase-boot.js']).match(/\bcreateClient\s*\(/g) || []).length, 1, 'calls in supabase-boot.js');
-    if (hits.includes(OBSOLETE_ADAPTER)) assert(backendConfigEmpty(), 'obsolete adapter reachable: premium/config.js backend url/anonKey must stay empty');
+    assert(!fs.existsSync(path.join(REPO, 'premium/adapters/supabase.js')), 'obsolete Phase 3A adapter still present');
   });
   // 2
   await test('2. foundation.js never calls createClient or loads the SDK (static + runtime spy)', async () => {
@@ -138,7 +134,7 @@ const backendConfigEmpty = () => { const c = read('premium/config.js'); return /
   await test('6. no wildcard select anywhere in the new code, and none sent at runtime', async () => {
     const star = /\.select\(\s*(['"`])\s*\*\s*\1\s*\)/;
     assert(!star.test(FOUNDATION) && !star.test(MODELS), 'wildcard select in new code');
-    eq(FILES.filter(f => f !== OBSOLETE_ADAPTER && star.test(contents[f])), [], 'wildcard select outside the obsolete adapter');
+    eq(FILES.filter(f => star.test(contents[f])), [], 'wildcard select in the frontend');
     const { A, M, client } = await ready();
     for (const t of Object.keys(M.TABLES)) await A.tables[t].list();
     assert(client.calls.every(c => c.op !== 'select' || (typeof c.select === 'string' && !c.select.includes('*'))), 'a wildcard select was sent');
@@ -445,10 +441,17 @@ const backendConfigEmpty = () => { const c = read('premium/config.js'); return /
       'BUILD_STATUSES', 'PROJECT_STATUSES', 'EXPERIENCE_LEVELS', 'UNIT_SYSTEMS', 'SCHEMAS', 'validate', 'evaluateEntitlement']) assert(!(n in M), 'still exported: ' + n);
     for (const f of LIVE) for (const m of read(f).matchAll(/\bM\.([A-Za-z_]+)/g)) assert(M[m[1]] !== undefined, `${f} reads missing M.${m[1]}`);
   });
-  await test('no live frontend file references Phase 3A tables, fields or Projects (the retained obsolete adapter excepted)', () => {
+  await test('no frontend file references Phase 3A tables, fields, entitlement logic or Projects', () => {
     const bad = /['"`](vehicles|builds|projects|entitlements)['"`]|\b(vehicle_id|build_id|project_id|favorite_vehicle_id|favorite_build_id)\b|\bR\.(vehicles|builds|projects|profiles)\b|\bProjects?\b|data-[a-z-]*project|0001_premium_schema/;
-    const hits = FILES.filter(f => f !== OBSOLETE_ADAPTER && !/^(F1_|E1_)/.test(f) && bad.test(contents[f]));
+    const bad3a = /evaluateEntitlement|PREMIUM_TRIAL|\.from\(\s*['"`]entitlements['"`]|getForUser|saved_analyses|provider_customer_id/;
+    eq(FILES.filter(f => bad3a.test(contents[f])), [], 'Phase 3A entitlement logic');
+    const hits = FILES.filter(f => !/^(F1_|E1_)/.test(f) && bad.test(contents[f]));
     eq(hits, [], 'files');
+  });
+  await test('the Supabase client is touched only by supabase-boot.js (creates it) and foundation.js (uses it), in every frontend file', () => {
+    const touch = FILES.filter(f => /\bGH_SUPABASE\b|window\.supabase\b/.test(stripComments(contents[f])));
+    eq(touch.sort(), ['premium/adapters/foundation.js', 'supabase-boot.js'], 'files touching the client');
+    assert(!/window\.supabase\b/.test(stripComments(FOUNDATION)), 'foundation.js reaches for the library instead of the bootstrap client');
   });
   await test('live premium code: no client creation, no obsolete adapter, no hard deletes, no raw table access', () => {
     for (const f of LIVE) {
@@ -460,6 +463,23 @@ const backendConfigEmpty = () => { const c = read('premium/config.js'); return /
       assert(!/\.select\(\s*['"`]\s*\*/.test(src), f + ': wildcard select');
     }
     assert(!/\bcreate\s*\(|\binsert\b/.test(read('premium/services.js').split('const savedCalculations = {')[1].split('const billing = {')[0]), 'savedCalculations repository has a create/insert path');
+  });
+
+  await test('index.html: one pinned + SRI-checked supabase-js, then config, boot, models, foundation, app files; F1.12.4 frame', () => {
+    const html = read('index.html');
+    const scripts = [...html.matchAll(/<script\b([^>]*)>\s*<\/script>/g)].map(m => m[1]);
+    const srcs = scripts.map(a => (a.match(/\bsrc="([^"]+)"/) || [])[1]);
+    eq(srcs.map(s => s.replace(/\?v=[^"]*$/, '')), ['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js', 'supabase-config.js', 'supabase-boot.js',
+      'premium/models.js', 'premium/adapters/foundation.js', 'premium/config.js', 'premium/adapters/dev-local.js', 'premium/services.js', 'premium/engineering-bridge.js',
+      'premium/shell.js', 'app-shell.js', 'final-ui-fix.js'], 'script order');
+    const cdn = scripts[0];
+    assert(/\bintegrity="sha384-Rj26LVGvoeRVR6\+mwQmFfcR3QOBEwT\+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok"/.test(cdn) && /\bcrossorigin="anonymous"/.test(cdn), 'SRI + crossorigin on the library');
+    eq(srcs.filter(s => /^https?:/.test(s)).length, 1, 'exactly one external script');
+    assert(!/supabase-js@2["\/](?!\.)|supabase-js@2"|supabase-js@latest|supabase-js"/.test(html), 'an unpinned supabase-js reference remains');
+    assert(!/premium\/adapters\/supabase\.js/.test(html), 'obsolete adapter still referenced');
+    eq((html.match(/<iframe[^>]*\bsrc="([^"?]+)/) || [])[1], 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html', 'calculator frame');
+    for (const s of srcs.filter(s => !/^https?:/.test(s))) assert(fs.existsSync(path.join(REPO, s.replace(/\?.*$/, ''))), 'missing script ' + s);
+    for (const m of html.matchAll(/<link[^>]+href="([^"?]+)/g)) assert(fs.existsSync(path.join(REPO, m[1])), 'missing stylesheet ' + m[1]);
   });
 
   /* ---------------------------------------------------------------- Step 4: development adapter conformance */
