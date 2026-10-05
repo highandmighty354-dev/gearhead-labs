@@ -1,7 +1,7 @@
 -- Rollback of PREMIUM-FOUNDATION 0402. Requires 0403-0406 rolled back first. Destroys billing/entitlement history:
 -- run only on an empty or disposable project.
 BEGIN;
-DROP FUNCTION IF EXISTS public.pf_sync_stripe_subscription(text, uuid, text, text, text, timestamptz, timestamptz, boolean, timestamptz, timestamptz);
+DROP FUNCTION IF EXISTS public.pf_sync_stripe_subscription(text, uuid, text, text, text, timestamptz, timestamptz, boolean, timestamptz, timestamptz, timestamptz);
 DROP FUNCTION IF EXISTS public.pf_upsert_billing_customer(uuid, text);
 DROP FUNCTION IF EXISTS public.pf_mark_stripe_event_processed(text);
 DROP FUNCTION IF EXISTS public.pf_record_stripe_event(text, text, timestamptz, jsonb);

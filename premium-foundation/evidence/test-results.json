@@ -219,6 +219,31 @@
     },
     {
       "group": "allowance",
+      "name": "outside READ COMMITTED the allowance fails closed (a REPEATABLE READ race could otherwise pass it)",
+      "pass": true
+    },
+    {
+      "group": "garage",
+      "name": "marking a machine primary moves the flag; deleting the primary never locks the choice; nobody else can clear it",
+      "pass": true
+    },
+    {
+      "group": "test_setups",
+      "name": "CURRENT behaviour (owner decision pending): Free may create several Test Setups on its one machine, but cannot attach saved work to them",
+      "pass": true
+    },
+    {
+      "group": "entitlements",
+      "name": "clients read their own grants but never the operator note",
+      "pass": true
+    },
+    {
+      "group": "stripe",
+      "name": "late or out-of-order webhooks never overwrite a newer state or re-open access",
+      "pass": true
+    },
+    {
+      "group": "allowance",
       "name": "concurrent first-machine inserts by one Free user: exactly one succeeds (advisory lock)",
       "pass": true
     }
@@ -228,6 +253,15 @@
   },
   "order_equivalence": {
     "pass": true
+  },
+  "rollback": {
+    "pass": true,
+    "missing": 0,
+    "extra": [
+      "fn pf_handle_new_auth_user() 17e3477529c22c02cc541608bbc0381",
+      "trg CREATE TRIGGER pf_on_auth_user_created AFTER INSERT ON a"
+    ],
+    "reprovision": true
   },
   "mutants": [
     {
@@ -309,12 +343,37 @@
       "mutant": "definer search_path removed",
       "target": "SECURITY DEFINER inventory is exact; each pins search_path, is owned by non-superuser postgres (BYPASSRLS), not executable by anon",
       "killed": true
+    },
+    {
+      "mutant": "Stripe ordering guard removed",
+      "target": "late or out-of-order webhooks never overwrite a newer state or re-open access",
+      "killed": true
+    },
+    {
+      "mutant": "allowance isolation guard removed",
+      "target": "outside READ COMMITTED the allowance fails closed (a REPEATABLE READ race could otherwise pass it)",
+      "killed": true
+    },
+    {
+      "mutant": "primary-move trigger dropped",
+      "target": "marking a machine primary moves the flag; deleting the primary never locks the choice; nobody else can clear it",
+      "killed": true
+    },
+    {
+      "mutant": "primary-move not owner-scoped",
+      "target": "marking a machine primary moves the flag; deleting the primary never locks the choice; nobody else can clear it",
+      "killed": true
+    },
+    {
+      "mutant": "operator note readable by clients",
+      "target": "clients read their own grants but never the operator note",
+      "killed": true
     }
   ],
   "summary": {
-    "checks": 44,
+    "checks": 49,
     "failed": 0,
-    "mutants": 16,
+    "mutants": 21,
     "survived": 0
   }
 }

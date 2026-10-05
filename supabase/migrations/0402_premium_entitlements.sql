@@ -100,6 +100,9 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
   cancel_at_period_end    boolean     NOT NULL DEFAULT false,
   trial_end               timestamptz NULL,
   canceled_at             timestamptz NULL,
+  -- Stripe time of the state mirrored here (event.created, or when the subscription object was retrieved).
+  -- Webhooks can arrive late or out of order: an older state never overwrites a newer one.
+  stripe_state_at         timestamptz NOT NULL,
   created_at              timestamptz NOT NULL DEFAULT now(),
   updated_at              timestamptz NOT NULL DEFAULT now(),
   -- the subscription's customer must be THIS account's customer
@@ -285,22 +288,32 @@ END $$;
 --   active | trialing | past_due with a future period end -> one open grant for the price's plan, ending at period end
 --   anything else (canceled, unpaid, incomplete, incomplete_expired, paused, or a stale period) -> open grant revoked
 -- Re-applying the same state changes nothing. A plan change revokes the old grant and opens a new one.
+-- Ordering: p_state_at is the Stripe time of this state. A state OLDER than the one already mirrored is ignored and
+-- the function returns false (a late or replayed webhook can never re-open access after a cancellation); otherwise
+-- it returns true. The check and the write are one atomic upsert, so concurrent deliveries cannot interleave.
 CREATE OR REPLACE FUNCTION public.pf_sync_stripe_subscription(
   p_subscription_id text, p_account uuid, p_stripe_customer_id text, p_status text, p_price_id text,
   p_current_period_start timestamptz, p_current_period_end timestamptz, p_cancel_at_period_end boolean,
-  p_trial_end timestamptz, p_canceled_at timestamptz) RETURNS void
+  p_trial_end timestamptz, p_canceled_at timestamptz, p_state_at timestamptz) RETURNS boolean
 LANGUAGE plpgsql SET search_path = '' AS $$
-DECLARE v_plan text; v_open public.entitlement_grants;
+DECLARE v_plan text; v_open public.entitlement_grants; n int;
 BEGIN
+  IF p_state_at IS NULL THEN
+    RAISE EXCEPTION 'PF_BILLING: the Stripe state time is required' USING ERRCODE = '22004';
+  END IF;
   INSERT INTO public.subscriptions AS s (stripe_subscription_id, account_id, stripe_customer_id, status, stripe_price_id,
-         current_period_start, current_period_end, cancel_at_period_end, trial_end, canceled_at)
+         current_period_start, current_period_end, cancel_at_period_end, trial_end, canceled_at, stripe_state_at)
   VALUES (p_subscription_id, p_account, p_stripe_customer_id, p_status, p_price_id,
-          p_current_period_start, p_current_period_end, coalesce(p_cancel_at_period_end, false), p_trial_end, p_canceled_at)
+          p_current_period_start, p_current_period_end, coalesce(p_cancel_at_period_end, false), p_trial_end, p_canceled_at, p_state_at)
   ON CONFLICT (stripe_subscription_id) DO UPDATE SET
     account_id = EXCLUDED.account_id, stripe_customer_id = EXCLUDED.stripe_customer_id,   -- guard trigger refuses a change
     status = EXCLUDED.status, stripe_price_id = EXCLUDED.stripe_price_id,
     current_period_start = EXCLUDED.current_period_start, current_period_end = EXCLUDED.current_period_end,
-    cancel_at_period_end = EXCLUDED.cancel_at_period_end, trial_end = EXCLUDED.trial_end, canceled_at = EXCLUDED.canceled_at;
+    cancel_at_period_end = EXCLUDED.cancel_at_period_end, trial_end = EXCLUDED.trial_end, canceled_at = EXCLUDED.canceled_at,
+    stripe_state_at = EXCLUDED.stripe_state_at
+  WHERE s.stripe_state_at <= EXCLUDED.stripe_state_at;
+  GET DIAGNOSTICS n = ROW_COUNT;
+  IF n = 0 THEN RETURN false; END IF;   -- stale state: nothing changes
 
   SELECT plan_key INTO v_plan FROM public.plan_prices WHERE stripe_price_id = p_price_id;
   SELECT * INTO v_open FROM public.entitlement_grants
@@ -321,6 +334,7 @@ BEGIN
   ELSIF v_open.id IS NOT NULL THEN
     UPDATE public.entitlement_grants SET revoked_at = now() WHERE id = v_open.id;
   END IF;
+  RETURN true;
 END $$;
 
 -- ---------------------------------------------------------------- RLS and privileges
@@ -333,7 +347,9 @@ DO $$ DECLARE t text; BEGIN
 END $$;
 
 GRANT SELECT ON public.plans, public.plan_prices TO authenticated, service_role;
-GRANT SELECT ON public.subscriptions, public.entitlement_grants TO authenticated;
+GRANT SELECT ON public.subscriptions TO authenticated;
+-- grants: every column except the operator's internal note
+GRANT SELECT (id, account_id, plan_key, source, source_ref, starts_at, ends_at, revoked_at, created_at) ON public.entitlement_grants TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON public.billing_customers, public.subscriptions, public.entitlement_grants, public.stripe_events TO service_role;
 
 DROP POLICY IF EXISTS pf_plans_read ON public.plans;
@@ -353,12 +369,12 @@ GRANT EXECUTE ON FUNCTION public.pf_has_feature(text), public.pf_my_entitlement(
 REVOKE ALL ON FUNCTION public.pf_grant_manual(uuid, text, timestamptz, text), public.pf_revoke_grant(uuid),
   public.pf_record_stripe_event(text, text, timestamptz, jsonb), public.pf_mark_stripe_event_processed(text),
   public.pf_upsert_billing_customer(uuid, text),
-  public.pf_sync_stripe_subscription(text, uuid, text, text, text, timestamptz, timestamptz, boolean, timestamptz, timestamptz)
+  public.pf_sync_stripe_subscription(text, uuid, text, text, text, timestamptz, timestamptz, boolean, timestamptz, timestamptz, timestamptz)
   FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.pf_grant_manual(uuid, text, timestamptz, text), public.pf_revoke_grant(uuid),
   public.pf_record_stripe_event(text, text, timestamptz, jsonb), public.pf_mark_stripe_event_processed(text),
   public.pf_upsert_billing_customer(uuid, text),
-  public.pf_sync_stripe_subscription(text, uuid, text, text, text, timestamptz, timestamptz, boolean, timestamptz, timestamptz)
+  public.pf_sync_stripe_subscription(text, uuid, text, text, text, timestamptz, timestamptz, boolean, timestamptz, timestamptz, timestamptz)
   TO service_role;
 
 -- ---------------------------------------------------------------- post-conditions
@@ -379,8 +395,10 @@ BEGIN
              AND tablename IN ('plans','plan_prices','billing_customers','subscriptions','entitlement_grants','stripe_events')
              AND cmd <> 'SELECT') THEN
     RAISE EXCEPTION 'PF_0402_POSTCONDITION: a write policy exists on a billing/entitlement table'; END IF;
+  IF has_column_privilege('authenticated', 'public.entitlement_grants', 'note', 'SELECT') THEN
+    RAISE EXCEPTION 'PF_0402_POSTCONDITION: clients can read operator notes on grants'; END IF;
   IF has_function_privilege('authenticated', 'public.pf_grant_manual(uuid, text, timestamptz, text)', 'EXECUTE')
-     OR has_function_privilege('authenticated', 'public.pf_sync_stripe_subscription(text, uuid, text, text, text, timestamptz, timestamptz, boolean, timestamptz, timestamptz)', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.pf_sync_stripe_subscription(text, uuid, text, text, text, timestamptz, timestamptz, boolean, timestamptz, timestamptz, timestamptz)', 'EXECUTE')
      OR has_function_privilege('anon', 'public.pf_has_feature(text)', 'EXECUTE') THEN
     RAISE EXCEPTION 'PF_0402_POSTCONDITION: function privileges too broad'; END IF;
   IF (SELECT count(*) FROM public.plans) <> 2

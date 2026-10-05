@@ -29,9 +29,14 @@ The obsolete Phase 3A `0001_premium_schema.sql` is **not** applied. It was retir
 
 ## Before applying (all read-only)
 
-1. On the commit to be applied, run `cd premium-foundation && npm install && npm test`, and confirm 44/44 checks pass, idempotency and order are OK, and 16/16 mutants are killed. If possible, run it once with PostgreSQL 17 binaries as well (`PG_BIN=/usr/lib/postgresql/17/bin npm test`), since the live project runs 17.x and local testing used 16.14.
+1. On the commit to be applied, run `cd premium-foundation && npm install && npm test`, and confirm 49/49 checks pass, idempotency, order and rollback are OK, and 21/21 mutants are killed. If possible, run it once with PostgreSQL 17 binaries as well (`PG_BIN=/usr/lib/postgresql/17/bin npm test`). The live project runs 17.11, and local testing so far used 16.14 only.
 2. Run `awk '!/^#/ && NF{print $1"  "$2}' supabase/FROZEN-SOURCES.sha256 | sha256sum -c -` and confirm all 12 frozen files report OK.
-3. Re-run the read-only inspection of the live project and confirm it is still empty: no `public` tables, no `supabase_migrations.schema_migrations` rows, and no `auth.users` triggers other than Supabase's own.
+3. Re-run the read-only inspection of the live project and confirm it is still empty: no `public` tables, no `supabase_migrations` schema, no `auth.users` rows and no `auth.users` triggers.
+
+Last read-only check (2026-10-05, pre-approval review): still empty in all four respects. It also showed:
+- PostgreSQL 17.11, `default_toast_compression` = pglz, `default_transaction_isolation` = read committed;
+- `auth.users` is owned by `supabase_auth_admin`;
+- `postgres` holds TRIGGER and REFERENCES on `auth.users` (enough for frozen 0003 and for 0403 to create their sign-up triggers), but is neither its owner nor a member of the owner role.
 
 ## Apply (owner approval required)
 
@@ -53,14 +58,14 @@ supabase db push                                 # applies them
 1. Repeat the inspection and check the expected state:
    - 22 tables in `public`, all with RLS enabled and forced;
    - calculators 583, formula_versions 577, engine_proven 252, canonical_fields 47, plans 2, engineering_analyzers 14;
-   - 15 SECURITY DEFINER functions owned by `postgres`, none executable by `anon`;
+   - 16 SECURITY DEFINER functions owned by `postgres`, all with `search_path=''`. The only one `anon` can execute is the frozen trigger function `df_handle_new_auth_user`, which PostgreSQL refuses to run outside a trigger;
    - trigger `pf_on_auth_user_created` on `auth.users`.
 2. Run the Security and Performance advisors (`get_advisors`) and review every finding.
 3. Sign up one test account and confirm a `profiles` row appears. Confirm it can create one machine but not a second, and cannot save a calculation.
 
 ## Rollback
 
-`supabase/rollback/04xx_*.rollback.sql` reverses the new migrations in reverse order (0406 → 0401). `0201` and `0301` have frozen rollbacks. DATA- and GARAGE-FOUNDATION 1.0.0 have no rollback; on a project that was empty before, the full undo is to restore the pre-apply state (Supabase backup / PITR) or reset the project. Rolling back also needs owner approval.
+`supabase/rollback/04xx_*.rollback.sql` reverses the new migrations in reverse order (0406 → 0401). The suite tests this round-trip: afterwards the catalog equals the frozen foundation's exactly, and re-applying 0401–0406 restores the full catalog. One residue is expected on hosted Supabase. Dropping a trigger needs ownership of `auth.users`, which `postgres` lacks, so the 0403 rollback leaves `pf_on_auth_user_created` in place with its function replaced by a no-op, and says so in a warning. Removing that inert trigger needs the auth table owner. The 0402–0406 rollbacks delete billing, entitlement and saved-work data, so run them only on an empty or disposable project. `0201` and `0301` have frozen rollbacks. DATA- and GARAGE-FOUNDATION 1.0.0 have no rollback; on a project that was empty before, the full undo is to restore the pre-apply state (Supabase backup / PITR) or reset the project. Rolling back also needs owner approval.
 
 ## Not part of provisioning
 

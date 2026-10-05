@@ -31,8 +31,25 @@ CREATE TABLE IF NOT EXISTS public.machine_details (
 CREATE INDEX IF NOT EXISTS machine_details_owner_idx ON public.machine_details (owner_id);
 CREATE UNIQUE INDEX IF NOT EXISTS machine_details_one_primary_per_owner ON public.machine_details (owner_id) WHERE is_primary;
 
+-- Marking a machine primary MOVES the flag: the owner's other details rows (including those of soft-deleted machines
+-- or machines in deleted garages, which the owner can no longer see or edit) are cleared first. Without this, deleting
+-- the primary machine would leave an invisible primary row that blocks every later choice. SECURITY DEFINER only to
+-- reach those hidden rows; it touches only rows of NEW.owner_id (= auth.uid() for clients: no owner_id column grant,
+-- and owner_id is immutable on update) and only their is_primary flag.
+CREATE OR REPLACE FUNCTION public.pf_machine_details_primary() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+BEGIN
+  IF NEW.is_primary THEN
+    UPDATE public.machine_details SET is_primary = false
+     WHERE owner_id = NEW.owner_id AND machine_id <> NEW.machine_id AND is_primary;
+  END IF;
+  RETURN NEW;
+END $$;
+
 CREATE OR REPLACE TRIGGER pf_stamp       BEFORE INSERT ON public.machine_details FOR EACH ROW EXECUTE FUNCTION public.pf_stamp_insert();
 CREATE OR REPLACE TRIGGER pf_guard       BEFORE UPDATE ON public.machine_details FOR EACH ROW EXECUTE FUNCTION public.pf_guard_update('machine_id','owner_id');
+-- fires after pf_guard (name order), so owner_id is already proven unchanged on update
+CREATE OR REPLACE TRIGGER pf_primary     BEFORE INSERT OR UPDATE OF is_primary ON public.machine_details FOR EACH ROW EXECUTE FUNCTION public.pf_machine_details_primary();
 CREATE OR REPLACE TRIGGER pf_no_delete   BEFORE DELETE ON public.machine_details FOR EACH ROW EXECUTE FUNCTION public.pf_refuse('details live as long as the machine (soft delete the machine)');
 CREATE OR REPLACE TRIGGER pf_no_truncate BEFORE TRUNCATE ON public.machine_details FOR EACH STATEMENT EXECUTE FUNCTION public.pf_refuse('details live as long as the machine');
 
@@ -57,13 +74,16 @@ CREATE POLICY pf_machine_details_update ON public.machine_details FOR UPDATE TO 
 
 -- ---------------------------------------------------------------- Free machine allowance
 -- VOLATILE on purpose: after taking the lock, the count runs on a fresh snapshot and therefore sees machines
--- committed by a concurrent request (and rows inserted earlier in the same statement).
+-- committed by a concurrent request (and rows inserted earlier in the same statement). That holds only under
+-- READ COMMITTED (Supabase's default, under which PostgREST requests run); under REPEATABLE READ / SERIALIZABLE the
+-- snapshot is fixed for the transaction, so the check FAILS CLOSED there instead of being bypassable.
 CREATE OR REPLACE FUNCTION public.pf_machine_allowance_ok() RETURNS boolean
 LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = '' AS $$
 DECLARE uid uuid := auth.uid(); n int;
 BEGIN
   IF uid IS NULL THEN RETURN false; END IF;
   IF public.pf_has_feature('garage_unlimited') THEN RETURN true; END IF;
+  IF current_setting('transaction_isolation') <> 'read committed' THEN RETURN false; END IF;
   PERFORM pg_advisory_xact_lock(hashtextextended('pf_machine_allowance:' || uid::text, 0));
   SELECT count(*) INTO n
     FROM public.machines m JOIN public.garages g ON g.id = m.garage_id
@@ -71,6 +91,7 @@ BEGIN
   RETURN n < 1;   -- owner decision 1: Free = 1 machine
 END $$;
 REVOKE ALL ON FUNCTION public.pf_machine_allowance_ok() FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.pf_machine_details_primary() FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.pf_machine_allowance_ok() TO authenticated;
 
 DROP POLICY IF EXISTS pf_machines_free_allowance ON public.machines;

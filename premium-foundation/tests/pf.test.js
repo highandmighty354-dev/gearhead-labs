@@ -27,15 +27,16 @@ const PUBLIC_TABLES = ['accounts', 'billing_customers', 'calculation_records', '
   'machines', 'plan_prices', 'plans', 'profiles', 'saved_calculations', 'stripe_events', 'subscriptions', 'test_setups', 'value_records'];
 const SECURITY_DEFINERS = ['df_handle_new_auth_user', 'df_soft_delete_component', 'df_soft_delete_connection', 'df_soft_delete_garage',
   'df_soft_delete_machine', 'gf_repin_test_setup_baseline', 'gf_soft_delete_test_setup', 'pf_engineering_analysis_check',
-  'pf_handle_new_auth_user', 'pf_has_feature', 'pf_machine_allowance_ok', 'pf_my_entitlement', 'pf_saved_calculation_links',
+  'pf_handle_new_auth_user', 'pf_has_feature', 'pf_machine_allowance_ok', 'pf_machine_details_primary', 'pf_my_entitlement', 'pf_saved_calculation_links',
   'pf_soft_delete_engineering_analysis', 'pf_soft_delete_saved_calculation'];
 const SERVICE_ONLY = ['pf_grant_manual(uuid, text, timestamptz, text)', 'pf_revoke_grant(uuid)',
   'pf_record_stripe_event(text, text, timestamptz, jsonb)', 'pf_mark_stripe_event_processed(text)', 'pf_upsert_billing_customer(uuid, text)',
-  'pf_sync_stripe_subscription(text, uuid, text, text, text, timestamptz, timestamptz, boolean, timestamptz, timestamptz)'];
+  'pf_sync_stripe_subscription(text, uuid, text, text, text, timestamptz, timestamptz, boolean, timestamptz, timestamptz, timestamptz)'];
 const BILLING = ['billing_customers', 'subscriptions', 'entitlement_grants', 'stripe_events', 'plans', 'plan_prices'];
 
 const U = { A: 'aaaaaaaa-0000-4000-8000-00000000000a', B: 'bbbbbbbb-0000-4000-8000-00000000000b', C: 'cccccccc-0000-4000-8000-00000000000c',
-  L: 'dddddddd-0000-4000-8000-00000000000d', N: 'eeeeeeee-0000-4000-8000-00000000000e', E: 'ffffffff-0000-4000-8000-00000000000f' };
+  L: 'dddddddd-0000-4000-8000-00000000000d', N: 'eeeeeeee-0000-4000-8000-00000000000e', E: 'ffffffff-0000-4000-8000-00000000000f',
+  R: '99999999-0000-4000-8000-000000000009' };
 /* Client-created rows whose id the client may not choose (column-level INSERT grants) get server ids, captured
  * into ID by the fixtures; everything else uses fixed ids. */
 const ID = { GA: '10000000-0000-4000-8000-0000000000a0', GB: '10000000-0000-4000-8000-0000000000b0', GL: '10000000-0000-4000-8000-0000000000d0',
@@ -45,6 +46,7 @@ const ID = { GA: '10000000-0000-4000-8000-0000000000a0', GB: '10000000-0000-4000
   CA: '40000000-0000-4000-8000-0000000000a1', CB: '40000000-0000-4000-8000-0000000000b1', CL: '40000000-0000-4000-8000-0000000000d1',
   SB: '50000000-0000-4000-8000-0000000000b1', EB: '60000000-0000-4000-8000-0000000000b1', VA: '70000000-0000-4000-8000-0000000000a1',
   GLGRANT: '80000000-0000-4000-8000-0000000000d1' };
+const NULL_NOT_ALLOWED = '22004';
 const DENIED = '42501', CHECK = '23514', FK = '23503', UNIQUE = '23505', IMMUTABLE = 'P0001', NOT_FOUND = 'P0002';
 const FUTURE = '2099-01-01T00:00:00Z';
 
@@ -407,7 +409,7 @@ check('entitlements', 'a client cannot write or read server-only billing tables,
   await expectErr(c, `SELECT 1 FROM billing_customers`, [], DENIED);
   await expectErr(c, `SELECT 1 FROM stripe_events`, [], DENIED);
   await expectErr(c, `SELECT pf_grant_manual($1, 'premium', NULL, 'self')`, [U.A], DENIED);
-  await expectErr(c, `SELECT pf_sync_stripe_subscription('sub_X', $1, 'cus_X', 'active', NULL, now(), $2, false, NULL, NULL)`, [U.A, FUTURE], DENIED);
+  await expectErr(c, `SELECT pf_sync_stripe_subscription('sub_X', $1, 'cus_X', 'active', NULL, now(), $2, false, NULL, NULL, now())`, [U.A, FUTURE], DENIED);
   await expectErr(c, `SELECT pf_record_stripe_event('evt_X', 'x', NULL, '{}')`, [], DENIED);
   await expectErr(c, `SELECT pf_upsert_billing_customer($1, 'cus_X')`, [U.A], DENIED);
   await expectErr(c, `SELECT pf_revoke_grant($1)`, [ID.GLGRANT], DENIED);
@@ -467,7 +469,7 @@ check('stripe', 'subscription lifecycle drives exactly one grant: activate, repl
   await c.query(`INSERT INTO plan_prices VALUES ('price_test', 'premium', 'month', 'usd', 999, true)`);
   await as(c, 'service');
   await c.query(`SELECT pf_upsert_billing_customer($1, 'cus_C')`, [U.C]);
-  const sync = (status, end) => c.query(`SELECT pf_sync_stripe_subscription('sub_C', $1, 'cus_C', $2, 'price_test', now(), $3, false, NULL, NULL)`, [U.C, status, end]);
+  const sync = (status, end) => c.query(`SELECT pf_sync_stripe_subscription('sub_C', $1, 'cus_C', $2, 'price_test', now(), $3, false, NULL, NULL, clock_timestamp())`, [U.C, status, end]);
   const grants = async () => q(c, `SELECT plan_key, source, revoked_at IS NULL open, ends_at::text e FROM entitlement_grants WHERE account_id = $1 ORDER BY created_at, revoked_at NULLS LAST`, [U.C]);
   const premium = async () => { await as(c, 'C'); const v = await one(c, `SELECT pf_has_feature('engineering_lab')`); await as(c, 'service'); return v; };
   await sync('active', '2098-01-01T00:00:00Z');
@@ -491,8 +493,8 @@ check('stripe', 'billing integrity: one customer per account, subscription custo
   await c.query(`SELECT pf_upsert_billing_customer($1, 'cus_A')`, [U.A]);
   await c.query(`SELECT pf_upsert_billing_customer($1, 'cus_A')`, [U.A]);
   await expectErr(c, `SELECT pf_upsert_billing_customer($1, 'cus_OTHER')`, [U.A], UNIQUE);
-  await expectErr(c, `SELECT pf_sync_stripe_subscription('sub_X', $1, 'cus_A', 'active', NULL, now(), $2, false, NULL, NULL)`, [U.B, FUTURE], FK);
-  await expectErr(c, `SELECT pf_sync_stripe_subscription('sub_Y', $1, 'cus_A', 'active', 'price_unknown', now(), $2, false, NULL, NULL)`, [U.A, FUTURE], FK);
+  await expectErr(c, `SELECT pf_sync_stripe_subscription('sub_X', $1, 'cus_A', 'active', NULL, now(), $2, false, NULL, NULL, now())`, [U.B, FUTURE], FK);
+  await expectErr(c, `SELECT pf_sync_stripe_subscription('sub_Y', $1, 'cus_A', 'active', 'price_unknown', now(), $2, false, NULL, NULL, now())`, [U.A, FUTURE], FK);
   await expectErr(c, `DELETE FROM billing_customers`, [], [IMMUTABLE, DENIED]);
 });
 
@@ -565,8 +567,69 @@ check('security_definer', 'soft-delete functions require authentication and act 
   ok(await one(c, `SELECT deleted_at IS NOT NULL FROM engineering_analyses WHERE id = $1`, [ID.EB]), 'deleted_at set under FORCE RLS by a non-superuser owner');
 });
 check('security_definer', 'internal definers (allowance, link checks, sign-up) are not callable by clients', async (c) => {
-  for (const [f, who] of [['pf_saved_calculation_links()', 'B'], ['pf_engineering_analysis_check()', 'B'], ['pf_handle_new_auth_user()', 'B'], ['pf_machine_allowance_ok()', 'anon']])
+  for (const [f, who] of [['pf_saved_calculation_links()', 'B'], ['pf_engineering_analysis_check()', 'B'], ['pf_handle_new_auth_user()', 'B'], ['pf_machine_details_primary()', 'B'], ['pf_machine_allowance_ok()', 'anon']])
     eq(await one(c, `SELECT has_function_privilege($1, $2, 'EXECUTE')`, [who === 'anon' ? 'anon' : 'authenticated', `public.${f}`]), false, f);
+});
+
+// ---- added in the pre-approval review
+check('allowance', 'outside READ COMMITTED the allowance fails closed (a REPEATABLE READ race could otherwise pass it)', async (c) => {
+  const sa = await connect(c.database, 'supabase_admin');
+  await sa.query(`INSERT INTO auth.users (id, email) VALUES ($1, 'r@example.test') ON CONFLICT (id) DO NOTHING`, [U.R]); await sa.end();
+  const s = await connect(c.database, 'postgres');
+  await s.query('BEGIN'); await as(s, 'R'); const g = await one(s, `INSERT INTO garages (name) VALUES ('R') RETURNING id`); await s.query('COMMIT'); await s.end();
+  const ins = `INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'first', 'automotive')`;
+  for (const iso of ['REPEATABLE READ', 'SERIALIZABLE']) {
+    const x = await connect(c.database, 'postgres');
+    try { await x.query(`BEGIN ISOLATION LEVEL ${iso}`); await as(x, 'R'); await expectErr(x, ins, [g], DENIED); }
+    finally { await x.query('ROLLBACK').catch(() => {}); await x.end(); }
+  }
+  const y = await connect(c.database, 'postgres');
+  try { await y.query('BEGIN ISOLATION LEVEL READ COMMITTED'); await as(y, 'R'); eq((await y.query(ins, [g])).rowCount, 1, 'READ COMMITTED first machine'); }
+  finally { await y.query('ROLLBACK').catch(() => {}); await y.end(); }
+});
+check('garage', 'marking a machine primary moves the flag; deleting the primary never locks the choice; nobody else can clear it', async (c) => {
+  await as(c, 'B');
+  await c.query(`INSERT INTO machine_details (machine_id, make, is_primary) VALUES ($1, 'one', true)`, [ID.MB1]);
+  await c.query(`INSERT INTO machine_details (machine_id, make, is_primary) VALUES ($1, 'two', true)`, [ID.MB2]);
+  eq(await q(c, `SELECT machine_id FROM machine_details WHERE is_primary`), [{ machine_id: ID.MB2 }], 'moved on insert');
+  await c.query(`UPDATE machine_details SET is_primary = true WHERE machine_id = $1`, [ID.MB1]);
+  eq(await q(c, `SELECT machine_id FROM machine_details WHERE is_primary`), [{ machine_id: ID.MB1 }], 'moved on update');
+  await c.query(`SELECT df_soft_delete_machine($1)`, [ID.MB1]);
+  eq((await c.query(`UPDATE machine_details SET is_primary = true WHERE machine_id = $1`, [ID.MB2])).rowCount, 1, 'new primary after deleting the old one');
+  await expectErr(c, `INSERT INTO machine_details (machine_id, is_primary) VALUES ($1, true)`, [ID.MA], [DENIED, FK]);
+  await as(c, 'postgres');
+  eq(await q(c, `SELECT owner_id, machine_id FROM machine_details WHERE is_primary ORDER BY owner_id`),
+    [{ owner_id: U.A, machine_id: ID.MA }, { owner_id: U.B, machine_id: ID.MB2 }], 'one primary per owner; A untouched by B');
+});
+check('test_setups', 'CURRENT behaviour (owner decision pending): Free may create several Test Setups on its one machine, but cannot attach saved work to them', async (c) => {
+  await as(c, 'A');
+  for (const n of ['street', 'track', 'dyno']) await c.query(`INSERT INTO test_setups (machine_id, name) VALUES ($1, $2)`, [ID.MA, n]);
+  eq(await one(c, `SELECT count(*)::int FROM test_setups`), 4, 'A test setups');
+  await expectErr(c, `INSERT INTO saved_calculations (calculation_id, test_setup_id, title) VALUES ($1, $2, 'x')`, [ID.CA, ID.TA], DENIED);
+  await expectErr(c, `INSERT INTO engineering_analyses (analyzer_id, analyzer_version, test_setup_id, title, inputs, inputs_unit_system)
+                      VALUES ('e01_turbo_compressor_map', 'E1-AUTO', $1, 'x', '{}', 'imperial')`, [ID.TA], DENIED);
+});
+check('entitlements', 'clients read their own grants but never the operator note', async (c) => {
+  await as(c, 'B');
+  eq(await one(c, `SELECT count(*)::int FROM (SELECT id, plan_key, source, ends_at, revoked_at FROM entitlement_grants) g`), 1, 'own grant readable');
+  await expectErr(c, `SELECT note FROM entitlement_grants`, [], DENIED);
+  await expectErr(c, `SELECT * FROM entitlement_grants`, [], DENIED);
+});
+check('stripe', 'late or out-of-order webhooks never overwrite a newer state or re-open access', async (c) => {
+  await as(c, 'postgres');
+  await c.query(`INSERT INTO plan_prices VALUES ('price_order', 'premium', 'month', 'usd', 999, true)`);
+  await as(c, 'service');
+  await c.query(`SELECT pf_upsert_billing_customer($1, 'cus_O')`, [U.C]);
+  const sync = (status, at) => one(c, `SELECT pf_sync_stripe_subscription('sub_O', $1, 'cus_O', $2, 'price_order', now(), '2098-01-01', false, NULL, NULL, $3)`, [U.C, status, at]);
+  const premium = async () => { await as(c, 'C'); const v = await one(c, `SELECT pf_has_feature('engineering_lab')`); await as(c, 'service'); return v; };
+  eq(await sync('active', '2030-01-01T10:00:00Z'), true, 'activation applied');
+  eq(await sync('canceled', '2030-01-01T10:05:00Z'), true, 'cancellation applied');
+  eq(await sync('active', '2030-01-01T10:00:00Z'), false, 'stale activation ignored');
+  eq(await premium(), false, 'no access after cancellation');
+  eq(await one(c, `SELECT status FROM subscriptions WHERE stripe_subscription_id = 'sub_O'`), 'canceled', 'mirror keeps newest state');
+  eq(await sync('canceled', '2030-01-01T10:05:00Z'), true, 'same-time replay is idempotent');
+  eq(await one(c, `SELECT count(*)::int FROM entitlement_grants WHERE source_ref = 'sub_O'`), 1, 'no extra grants');
+  await expectErr(c, `SELECT pf_sync_stripe_subscription('sub_O', $1, 'cus_O', 'active', 'price_order', now(), '2098-01-01', false, NULL, NULL, NULL)`, [U.C], NULL_NOT_ALLOWED);
 });
 
 /* ---------------------------------------------------------------- catalog fingerprint (idempotency / order) */
@@ -581,9 +644,18 @@ const FP_SQL = `SELECT x FROM (
   UNION ALL SELECT 'enum '||t.typname||' '||string_agg(e.enumlabel,',' ORDER BY e.enumsortorder) FROM pg_type t JOIN pg_enum e ON e.enumtypid=t.oid GROUP BY t.typname
   UNION ALL SELECT 'rel '||c.relname||' '||c.relrowsecurity||' '||c.relforcerowsecurity||' '||coalesce(array_to_string(c.relacl,','),'') FROM pg_class c WHERE c.relnamespace='public'::regnamespace
   UNION ALL SELECT 'colacl '||c.relname||'.'||a.attname||' '||array_to_string(a.attacl,',') FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid WHERE a.attacl IS NOT NULL AND c.relnamespace='public'::regnamespace
-  UNION ALL SELECT 'rows '||(SELECT count(*) FROM public.calculators)||' '||(SELECT count(*) FROM public.formula_versions)||' '||(SELECT count(*) FROM public.canonical_fields)||' '||(SELECT count(*) FROM public.plans)||' '||(SELECT count(*) FROM public.engineering_analyzers)
+  /*ROWS*/UNION ALL SELECT 'rows '||(SELECT count(*) FROM public.calculators)||' '||(SELECT count(*) FROM public.formula_versions)||' '||(SELECT count(*) FROM public.canonical_fields)||' '||(SELECT count(*) FROM public.plans)||' '||(SELECT count(*) FROM public.engineering_analyzers)
 ) s ORDER BY x`;
-async function fingerprint(db) { const c = await connect(db, 'postgres'); const r = (await q(c, FP_SQL)).map(x => x.x).join('\n'); await c.end(); return crypto.createHash('sha256').update(r).digest('hex'); }
+const FP_CORE_SQL = FP_SQL.replace(/\/\*ROWS\*\/[^\n]*\n/, '');
+async function fpLines(db, sql = FP_SQL) { const c = await connect(db, 'postgres'); const r = (await q(c, sql)).map(x => x.x); await c.end(); return r; }
+async function fingerprint(db) { return crypto.createHash('sha256').update((await fpLines(db)).join('\n')).digest('hex'); }
+const ROLLBACKS = ['0406_premium_engineering_analyses', '0405_premium_saved_calculations', '0404_premium_garage', '0403_premium_profiles',
+  '0402_premium_entitlements', '0401_automotive_only'].map(n => path.join(REPO, 'supabase', 'rollback', `${n}.rollback.sql`));
+/* Function body taken from a migration, for mutants that must differ from the real definition by one clause. */
+function fnDef(file, name, from, to) {
+  const s = fs.readFileSync(path.join(MIG_DIR, file), 'utf8'), i = s.indexOf(`CREATE OR REPLACE FUNCTION public.${name}(`), j = s.indexOf('END $$;', i) + 7;
+  const def = s.slice(i, j); if (!def.includes(from)) throw new Error(`mutant source for ${name} not found`); return def.replace(from, to);
+}
 
 /* ---------------------------------------------------------------- runner */
 async function runChecks(db, { only } = {}) {
@@ -665,11 +737,21 @@ const MUTANTS = [
     'even the server cannot rewrite grant history (guard, no delete, no truncate, no un-revoke)'],
   ['definer search_path removed', `ALTER FUNCTION public.pf_has_feature(text) RESET search_path`,
     'SECURITY DEFINER inventory is exact; each pins search_path, is owned by non-superuser postgres (BYPASSRLS), not executable by anon'],
+  ['Stripe ordering guard removed', fnDef('0402_premium_entitlements.sql', 'pf_sync_stripe_subscription', '\n  WHERE s.stripe_state_at <= EXCLUDED.stripe_state_at;', ';'),
+    'late or out-of-order webhooks never overwrite a newer state or re-open access'],
+  ['allowance isolation guard removed', fnDef('0404_premium_garage.sql', 'pf_machine_allowance_ok', "  IF current_setting('transaction_isolation') <> 'read committed' THEN RETURN false; END IF;\n", ''),
+    'outside READ COMMITTED the allowance fails closed (a REPEATABLE READ race could otherwise pass it)'],
+  ['primary-move trigger dropped', `DROP TRIGGER pf_primary ON public.machine_details`,
+    'marking a machine primary moves the flag; deleting the primary never locks the choice; nobody else can clear it'],
+  ['primary-move not owner-scoped', fnDef('0404_premium_garage.sql', 'pf_machine_details_primary', 'WHERE owner_id = NEW.owner_id AND machine_id', 'WHERE machine_id'),
+    'marking a machine primary moves the flag; deleting the primary never locks the choice; nobody else can clear it'],
+  ['operator note readable by clients', `GRANT SELECT (note) ON public.entitlement_grants TO authenticated`,
+    'clients read their own grants but never the operator note'],
 ];
 
 (async () => {
   const started = Date.now();
-  const out = { suite: 'PREMIUM-FOUNDATION 1.0.0', postgres: null, checks: [], idempotency: null, order_equivalence: null, mutants: [] };
+  const out = { suite: 'PREMIUM-FOUNDATION 1.0.0', postgres: null, checks: [], idempotency: null, order_equivalence: null, rollback: null, mutants: [] };
   const main = await freshDb('main');
   { const c = await connect(main, 'postgres'); out.postgres = await one(c, `SHOW server_version`); await c.end(); }
   await fixtures(main);
@@ -686,7 +768,19 @@ const MUTANTS = [
   const alt = EXPECTED_MIGRATIONS.slice(0, 5).concat(['0201_value_write_boundary.sql', '0101_test_setups.sql', '0102_test_setups_triggers.sql', '0103_test_setups_rls.sql'], EXPECTED_MIGRATIONS.slice(9));
   const altDb = await freshDb('altorder', { order: alt });
   out.order_equivalence = { pass: (await fingerprint(altDb)) === fpOnce };
-  await dropDb(once); await dropDb(twice); await dropDb(altDb);
+  // rollback: 0406 -> 0401 on a fully provisioned database must leave exactly the frozen foundation (plus, because the
+  // migration role does not own auth.users, the documented inert sign-up trigger), and re-applying 0401-0406 afterwards
+  // must reproduce the full catalog.
+  const frozenDb = await freshDb('frozen', { order: EXPECTED_MIGRATIONS.slice(0, 10) });
+  const rb = await freshDb('rollback');
+  { const c = await connect(rb, 'postgres'); for (const f of ROLLBACKS) await c.query(fs.readFileSync(f, 'utf8')); await c.end(); }
+  const frozenLines = await fpLines(frozenDb, FP_CORE_SQL), rbLines = await fpLines(rb, FP_CORE_SQL);
+  const extra = rbLines.filter(l => !frozenLines.includes(l)), missing = frozenLines.filter(l => !rbLines.includes(l));
+  const residueOk = extra.length === 2 && extra.some(l => l.startsWith('fn pf_handle_new_auth_user() ')) && extra.some(l => l.startsWith('trg CREATE TRIGGER pf_on_auth_user_created '));
+  { const c = await connect(rb, 'postgres'); for (const f of EXPECTED_MIGRATIONS.slice(10)) await c.query(fs.readFileSync(path.join(MIG_DIR, f), 'utf8')); await c.end(); }
+  const reprovisionOk = (await fingerprint(rb)) === fpOnce;
+  out.rollback = { pass: missing.length === 0 && residueOk && reprovisionOk, missing: missing.length, extra: extra.map(l => l.slice(0, 60)), reprovision: reprovisionOk };
+  await dropDb(once); await dropDb(twice); await dropDb(altDb); await dropDb(frozenDb); await dropDb(rb);
 
   for (const [name, sql, target] of MUTANTS) {
     const db = await freshDb('mutant');
@@ -700,10 +794,11 @@ const MUTANTS = [
   for (const r of out.checks) console.log(`${r.pass ? 'PASS' : 'FAIL'}  [${r.group}] ${r.name}${r.pass ? '' : '\n      -> ' + r.error}`);
   console.log(`${out.idempotency.pass ? 'PASS' : 'FAIL'}  [idempotency] every migration applied twice leaves the catalog fingerprint unchanged`);
   console.log(`${out.order_equivalence.pass ? 'PASS' : 'FAIL'}  [order] 0201 before 0101-0103 yields the same catalog as version order`);
+  console.log(`${out.rollback.pass ? 'PASS' : 'FAIL'}  [rollback] 0406->0401 restores the frozen catalog (only the inert sign-up trigger remains); re-applying 0401-0406 restores the full catalog${out.rollback.pass ? '' : '\n      -> ' + JSON.stringify(out.rollback)}`);
   for (const m of out.mutants) console.log(`${m.killed ? 'KILLED  ' : 'SURVIVED'}  mutant: ${m.mutant}`);
-  const failed = out.checks.filter(r => !r.pass).length + (out.idempotency.pass ? 0 : 1) + (out.order_equivalence.pass ? 0 : 1);
+  const failed = out.checks.filter(r => !r.pass).length + (out.idempotency.pass ? 0 : 1) + (out.order_equivalence.pass ? 0 : 1) + (out.rollback.pass ? 0 : 1);
   const survived = out.mutants.filter(m => !m.killed).length;
-  console.log(`\n${out.checks.length} checks: ${out.checks.length - out.checks.filter(r => !r.pass).length} passed, ${out.checks.filter(r => !r.pass).length} failed; idempotency ${out.idempotency.pass ? 'ok' : 'FAILED'}; order ${out.order_equivalence.pass ? 'ok' : 'FAILED'}; mutants: ${out.mutants.length - survived}/${out.mutants.length} killed. PostgreSQL ${out.postgres}.`);
+  console.log(`\n${out.checks.length} checks: ${out.checks.length - out.checks.filter(r => !r.pass).length} passed, ${out.checks.filter(r => !r.pass).length} failed; idempotency ${out.idempotency.pass ? 'ok' : 'FAILED'}; order ${out.order_equivalence.pass ? 'ok' : 'FAILED'}; rollback ${out.rollback.pass ? 'ok' : 'FAILED'}; mutants: ${out.mutants.length - survived}/${out.mutants.length} killed. PostgreSQL ${out.postgres}.`);
   out.summary = { checks: out.checks.length, failed, mutants: out.mutants.length, survived };
   fs.mkdirSync(path.join(HERE, 'evidence'), { recursive: true });
   fs.writeFileSync(path.join(HERE, 'evidence', 'test-results.json'), JSON.stringify(out, null, 2) + '\n');

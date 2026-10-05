@@ -38,23 +38,29 @@ Frozen files are copied byte-for-byte from tag `VALUE-FOUNDATION-1.0.0`; `supaba
 | Object | Client SELECT | Client INSERT | Client UPDATE | DELETE |
 |---|---|---|---|---|
 | profiles | own | — (sign-up trigger) | own display columns | refused (trigger) |
-| machine_details | own, machine visible | own machine | descriptive columns | refused |
+| machine_details | own, machine visible | own machine | descriptive columns (marking one primary moves the flag) | refused |
 | machines (frozen) | unchanged | **+ restrictive: Free ≤ 1 active** | unchanged (marine columns withdrawn) | soft delete |
 | saved_calculations | own, active | own + `saved_calculations` feature | title/notes/pinned/links + feature | soft-delete function |
 | engineering_analyses | own, active | own + `engineering_lab` feature | inputs/title/notes/links + feature | soft-delete function |
 | engineering_analyzers, plans, plan_prices | authenticated | — | — | refused |
-| subscriptions, entitlement_grants | own | — | — | refused |
+| subscriptions | own | — | — | refused |
+| entitlement_grants | own, every column except the operator `note` | — | — | refused |
 | billing_customers, stripe_events | — | — | — | refused |
 
 - **Entitlements cannot be self-granted:** no client privilege or policy on any billing/entitlement table, revoked even from Supabase's default grants; `pf_grant_manual`, `pf_revoke_grant`, `pf_record_stripe_event`, `pf_mark_stripe_event_processed`, `pf_upsert_billing_customer`, `pf_sync_stripe_subscription` are executable by `service_role` only.
 - **Grants are an audit trail:** only `ends_at` (before revocation) and `revoked_at` (once) can change, for every role including the owner; no DELETE/TRUNCATE.
 - **One access check:** `pf_has_feature(feature)` reads only `auth.uid()`'s active, unrevoked, in-window grants on active plans.
-- **Free allowance** is serialised by a per-account advisory lock (concurrency-tested) and counts only active machines in active garages; foundation soft deletion is permanent, so it cannot be evaded by reviving rows.
-- **SECURITY DEFINER** functions all pin `search_path = ''`, are owned by `postgres` (on hosted Supabase: non-superuser **with BYPASSRLS**, verified read-only on the live project), and are not executable by `anon`.
+- **Free allowance** is serialised by a per-account advisory lock (concurrency-tested) and counts only active machines in active garages; foundation soft deletion is permanent, so it cannot be evaded by reviving rows. The lock is only sound under READ COMMITTED (Supabase's default, under which PostgREST requests run; verified on the live project), so under REPEATABLE READ / SERIALIZABLE the check fails closed.
+- **Primary machine:** marking a machine primary clears the flag on the owner's other details rows, including rows of deleted machines the owner can no longer see, so deleting the primary machine never blocks choosing a new one.
+- **SECURITY DEFINER** functions (16 in total, 9 of them new) all pin `search_path = ''`, are owned by `postgres` (on hosted Supabase: non-superuser **with BYPASSRLS**, verified read-only on the live project), and are not executable by `anon`. The only ones taking a caller-supplied id are the owner soft deletes, which are scoped to `auth.uid()`; the trigger-only definers act on `NEW.owner_id`, which clients cannot choose.
 
 ## Stripe readiness (no Stripe code or keys)
 
 A future Edge Function (service role; Stripe secrets in Supabase function secrets) calls: `pf_record_stripe_event` (idempotent: `false` on replay) → `pf_upsert_billing_customer` → `pf_sync_stripe_subscription` (mirrors the subscription; `active|trialing|past_due` with a future period end → one open grant to period end; anything else → revoked; plan change → revoke + replace) → `pf_mark_stripe_event_processed`. Prices are added to `plan_prices` by migration when products exist.
+
+Contract for that function:
+- **Ordering:** pass `p_state_at` = the Stripe event's `created` time, or the moment the subscription was retrieved from the Stripe API. A state older than the one already mirrored is ignored (`false`), so a late or retried webhook can never re-open access after a cancellation. Stripe timestamps have one-second resolution, so re-fetching the subscription from the API before syncing remains the recommended pattern.
+- **Account:** `p_account` must come from the authenticated user who started Checkout (stored as Stripe customer metadata), never from the webhook body alone. The composite FK still forces a subscription's account to match its customer.
 
 ## Run the tests
 
@@ -64,11 +70,33 @@ npm install          # pg 8.13.1
 npm test             # = ./tests/run-tests.sh  (throwaway local PostgreSQL >= 14; never a real project)
 ```
 
-The runner starts a cluster owned by `supabase_admin`, applies the test-only shim `tests/sql/000_hosted_supabase_shim.sql` (hosted role model + Supabase default privileges), applies every migration as the non-superuser `postgres`, runs all checks in rolled-back transactions, a real two-connection concurrency test, an idempotency test, a migration-order test, and 16 negative controls. Results: `evidence/test-results.json`.
+The runner starts a cluster owned by `supabase_admin` and applies the test-only shim `tests/sql/000_hosted_supabase_shim.sql` (hosted role model + Supabase default privileges). It then applies every migration as the non-superuser `postgres` and runs:
+- 49 checks in rolled-back transactions, plus a real two-connection concurrency test;
+- an idempotency test and a migration-order test;
+- a rollback round-trip: 0406→0401, compare with the frozen-only catalog, then re-apply;
+- 21 negative controls.
+
+Results: `evidence/test-results.json`.
+
+Tested on PostgreSQL 16 only. The live project runs 17.11; run `PG_BIN=<pg17>/bin npm test` where PostgreSQL 17 is available.
+
+### Composition with the frozen suites (pre-approval review, scratch copy only)
+
+The frozen DATA- and GARAGE-FOUNDATION suites were run unchanged, with 0101–0406 appended after their own migrations, in a scratch copy of the tagged repository. Two fixture edits were made in that copy:
+- the one marine fixture machine became automotive, since 0401 refuses it;
+- the fixture accounts were given Premium, so the Free allowance would not mask other checks.
+
+Every remaining failure is an intended restriction:
+
+| Suite | Result | Failures |
+|---|---|---|
+| DATA-FOUNDATION | 182/219 | 34 client `value_records` inserts (withdrawn by frozen 0201, DATA-FOUNDATION 1.1.0); 1 marine machine (0401); 2 inventory checks (extra tables, 0301 seed) |
+| GARAGE-FOUNDATION | 75/81, negative controls 28/28 | 1 owner update of `propulsion` (0401); 5 inventory/provenance checks (extra tables, extra enums, catalog fingerprint, 0301 seed, the appended file) |
 
 ## Open items (not decided here)
 
-- Free users may still create Test Setups (Builds) on their one machine; gating Test Setups would amend frozen GARAGE-FOUNDATION policies and needs a decision.
+- Free users may currently create any number of Test Setups (Builds) on their one machine (characterised by a test). Limiting them is an owner decision. It would NOT require editing frozen GARAGE-FOUNDATION: an additional restrictive policy, the same pattern as the machine allowance, is purely additive.
 - `past_due` keeps access until the period end; no extra grace period (decision P-7 open).
 - `plans` / `plan_prices` are readable by signed-in users only, not `anon` (a public pricing page would need a decision, like OPEN #17).
-- Account deletion (OPEN #10) is unchanged: profiles, grants and billing rows are retained.
+- Account deletion (OPEN #10) is unchanged: profiles, grants and billing rows are retained. Because `accounts → auth.users` is `ON DELETE RESTRICT` (frozen), deleting a user from Supabase Auth fails once that user has signed up.
+- Links from saved calculations and analyses to a machine or test setup are owner-checked but not activity-checked: a client can link to its own soft-deleted (hidden) machine or setup. This is only a data-hygiene issue.
