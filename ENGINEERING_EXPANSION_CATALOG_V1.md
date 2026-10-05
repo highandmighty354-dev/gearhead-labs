@@ -92,24 +92,6 @@ Inputs: hot/cold-side flow, inlet temperatures, properties, UA/LMTD or effective
 Outputs: heat transfer, outlet temperatures, approach temperature, capacity ratio, limiting-side indicators.
 Rule: one reusable engine with application-specific interfaces.
 
-### E-15 Marine Propeller Operating-Point Analyzer
-Purpose: calculate propeller operating point using advance ratio and open-water coefficients when data is supplied.
-Inputs: vessel speed, wake fraction, propeller diameter/RPM, blade series/map data, thrust/torque coefficients.
-Outputs: advance speed, J, thrust, torque, power, efficiency, operating-point plot.
-Rule: do not claim B-series coefficients without a valid source dataset.
-
-### E-16 Marine Propeller Cavitation Margin Analyzer
-Purpose: screen propeller geometry/operating point for cavitation risk.
-Inputs: RPM, diameter, immersion, atmospheric pressure, vapor pressure, thrust, blade area ratio, blade count and applicable criterion.
-Outputs: cavitation screening values, minimum area requirement where applicable, margin/warning.
-Rule: criterion and assumptions must be named in the result.
-
-### E-17 Marine Propeller Optimization Workbench
-Purpose: search allowable propeller choices against thrust, efficiency and cavitation constraints.
-Inputs: vessel target, gearbox/RPM, diameter limit, wake fraction, propeller series/map, blade count, cavitation constraints.
-Outputs: ranked candidates, efficiency, thrust/torque, cavitation margin, constraint failures.
-Rule: optimization requires an explicit source dataset; never fabricate propeller coefficients.
-
 ## Research basis
 Turbocharger maps conventionally use pressure ratio versus corrected mass flow and are bounded by surge/choke behavior. Compressor-map interpolation and operating-line construction are established engineering workflows.
 2-stroke time-area is the time integral of port area normalized by swept volume; crank-angle time conversion is 1/(6*RPM) seconds per degree when RPM is rev/min.
@@ -124,4 +106,4 @@ Suspension anti-effects derive from instant-center geometry, wheelbase and CG he
 6. Preserve the distinction between measured/map-based, modeled, and empirical results.
 
 ## Current decision
-These 17 systems are qualified for engineering design/QA. They are NOT yet counted as public calculators.
+These 14 systems are qualified for engineering design/QA. They are NOT yet counted as public calculators.
