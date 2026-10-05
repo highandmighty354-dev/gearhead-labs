@@ -70,8 +70,10 @@ add('ENGINEERING / CHASSIS','e10_suspension_kinematics','Suspension Kinematics L
 });
 
 add('ENGINEERING / DRIVELINE','e11_driveline_dynamics','Driveline Dynamics Lab',()=>{
- const rpm=V('e11_rpm'),ratio=V('e11_ratio'),d=V('e11_d'),a=V('e11_a'),b=V('e11_b');
- return H('Driveline Dynamics Lab','Unified operating-angle, compound-angle and critical-speed screening.')+'<div class="calc-body">'+F('Input Shaft RPM','e11_rpm',6000,'RPM')+F('Axle Ratio','e11_ratio',3.73,':1')+F('Shaft Diameter','e11_d',3.5,'in')+F('Front Angle','e11_a',3,'°')+F('Rear Angle','e11_b',3,'°')+M([{label:'Driveshaft RPM',value:(rpm/ratio).toFixed(0),unit:'RPM'},{label:'Angle Difference',value:Math.abs(a-b).toFixed(2),unit:'°'},{label:'Critical-Speed Screen',value:(300000/d).toFixed(0),unit:'RPM'}])+N('Critical speed is only a screening estimate; length, wall thickness, material, balancing and manufacturer data are required.')+'</div>'+T('Driveline Dynamics Lab');
+ const rpm=V('e11_rpm'),ratio=V('e11_ratio'),od=V('e11_od')*.0254,wall=V('e11_wall')*.0254,L=V('e11_L')*.0254,a=V('e11_a'),b=V('e11_b'),E=V('e11_E')*1e9,rho=V('e11_rho');
+ const id=Math.max(0,od-2*wall),A=Math.PI/4*(od*od-id*id),I=Math.PI/64*(Math.pow(od,4)-Math.pow(id,4));
+ const fn=L>0&&A>0&&I>0&&E>0&&rho>0?Math.PI/(2*L*L)*Math.sqrt(E*I/(rho*A)):NaN,crit=fn*60;
+ return H('Driveline Dynamics Lab','Operating-angle and first-bending critical-speed screening using a simply supported uniform tube model.')+'<div class="calc-body">'+F('Input Shaft RPM','e11_rpm',6000,'RPM')+F('Axle Ratio','e11_ratio',3.73,':1')+F('Tube OD','e11_od',3.5,'in')+F('Wall Thickness','e11_wall',.083,'in')+F('Unsupported Length','e11_L',50,'in')+F('Elastic Modulus','e11_E',200,'GPa')+F('Material Density','e11_rho',7850,'kg/m³')+F('Front Angle','e11_a',3,'°')+F('Rear Angle','e11_b',3,'°')+M([{label:'Driveshaft RPM',value:(rpm/ratio).toFixed(0),unit:'RPM'},{label:'Angle Difference',value:Math.abs(a-b).toFixed(2),unit:'°'},{label:'First Critical Speed',value:isFinite(crit)?crit.toFixed(0):'Invalid',unit:'RPM'},{label:'75% Operating Limit',value:isFinite(crit)?(crit*.75).toFixed(0):'—',unit:'RPM'}])+N('Critical speed is an ideal beam-model screen. Joint support, balance, geometry, material, runout and manufacturer data must be checked before a safety-critical decision.')+'</div>'+T('Driveline Dynamics Lab');
 });
 
 add('ENGINEERING / THERMAL','e12_radiator_heat_rejection','Radiator Heat-Rejection Analyzer',()=>{
