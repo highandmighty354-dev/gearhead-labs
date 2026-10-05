@@ -95,7 +95,7 @@ add('ENGINEERING / MARINE','e15_marine_prop_operating_point','Marine Propeller O
 });
 
 add('ENGINEERING / MARINE','e16_marine_cavitation_margin','Marine Propeller Cavitation Margin Analyzer',()=>{
- const rho=V('e16_rho'),n=V('e16_n'),D=V('e16_D'),p=V('e16_p'),pv=V('e16_pv'),lim=V('e16_lim'),sig=(p-pv)/(rho*n*n*D*D);
+ const rho=V('e16_rho'),n=V('e16_n'),D=V('e16_D'),p=V('e16_p'),pv=V('e16_pv'),lim=V('e16_lim'),sig=((p-pv)*144)/(rho*n*n*D*D);
  return H('Marine Propeller Cavitation Margin Analyzer','Dimensionless cavitation-index screen; acceptance threshold is user/source supplied.')+'<div class="calc-body">'+F('Water Density','e16_rho',1.94,'slug/ft³')+F('Propeller Speed','e16_n',91.7,'rev/s')+F('Diameter','e16_D',1.17,'ft')+F('Local Absolute Pressure','e16_p',14.7,'psi')+F('Vapor Pressure','e16_pv',.45,'psi')+F('Acceptance Index','e16_lim',.8,'minimum')+M([{label:'Cavitation Index σ',value:sig.toFixed(3),unit:''},{label:'Screen',value:sig>=lim?'ABOVE USER THRESHOLD':'BELOW USER THRESHOLD',unit:''}])+N('Blade loading, section pressure distribution, advance ratio and ventilation must be evaluated for a true cavitation design.')+'</div>'+T('Marine Propeller Cavitation Margin Analyzer');
 });
 
