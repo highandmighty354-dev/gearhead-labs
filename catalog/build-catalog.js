@@ -71,7 +71,7 @@ async function build() {
     const f = seed.formulas[c.id], k = seed.calculators[c.id];
     tools.push({
       id: c.id, name: c.name, category: c.category, lab: c.lab, tier: 'free', kind: 'calculator',
-      save: f ? 'eligible' : 'needs_decision',
+      save: f ? 'eligible' : 'excluded',
       formula: f ? { version: f.version, registry: f.registry, engine_proven: !!(k && k.engine_proven) } : null,
       vehicle_link: 'optional', status: 'current', aliases: (aliasOf[c.id] || []).sort()
     });
@@ -101,12 +101,24 @@ async function build() {
       aliases_not_counted: Object.keys(pg.aliases).length,
       free_by_lab: by(free, 'lab'),
       premium_by_kind: by(prem, 'kind'),
-      save: { eligible: count(t => t.save === 'eligible'), needs_decision: count(t => t.save === 'needs_decision'), saveable: count(t => t.save === 'saveable') },
+      save: { eligible: count(t => t.save === 'eligible'), excluded: count(t => t.save === 'excluded'), saveable: count(t => t.save === 'saveable') },
+      premium_expansion_validated: prem.length,
       approved_future_tools: 0
     },
+    decisions: [
+      `Owner decision 2026-10-06: the ${count(t => t.save === 'excluded')} public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = "excluded"). They stay Free and unchanged; the database already refuses them (no calculators row).`
+    ],
+    premium_expansion: {
+      rule: 'A Premium tool enters this catalog only from approved engineering/product work in this repository, after QA. No count target (the historical ~140 / 752 figures are not used).',
+      validated: prem.length,
+      sources: [
+        { source: 'ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)', outcome: `${prem.length} research-qualified systems E01-E14: all built (engineering-expansion-v1.js, 4ac4ba3) and live in the Premium Engineering Lab` },
+        { source: 'engineering-expansion-v1.js history (406d6a1, 2026-10-04)', outcome: '3 out-of-scope (non-automotive) analyzers removed by the owner; not in the catalog' },
+        { source: 'earlier planning outside this repository (a 39-item "Coming Soon" queue, a 791-item master list)', outcome: 'not in the repository and not designated Premium; not counted until provided, reviewed and approved' }
+      ]
+    },
     pending_human_approval: [
-      'The approved Premium expansion list (the historical ~140 Premium tools) is not in the repository; no future tool is listed until it is approved.',
-      `Save capability for the ${count(t => t.save === 'needs_decision')} public calculators without a formula fingerprint (save = "needs_decision"): make each saveable (new engine formula + new catalog migration) or exclude it from saving.`,
+      'Any further Premium expansion tools: none is approved in the repository beyond E01-E14, so approved_future_tools is 0.',
       'E01-E14 are live in the Premium Engineering Lab but are not counted as public calculators until their QA sign-off (ENGINEERING_EXPANSION_CATALOG_V1.md).'
     ],
     aliases: Object.entries(pg.aliases).map(([id, canonical]) => ({ id, canonical })).sort((a, b) => a.id.localeCompare(b.id)),

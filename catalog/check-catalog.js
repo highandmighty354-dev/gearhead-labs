@@ -20,7 +20,7 @@ const sha = f => crypto.createHash('sha256').update(fs.readFileSync(path.join(RE
 for (const [k, src] of Object.entries(cat.generated_from)) check(sha(src.file) === src.sha256, `${k} source ${src.file} changed since generation: run node catalog/build-catalog.js`);
 
 // vocabulary
-const VOCAB = { tier: ['free', 'premium'], kind: ['calculator', 'analyzer', 'workbench'], save: ['eligible', 'needs_decision', 'saveable'],
+const VOCAB = { tier: ['free', 'premium'], kind: ['calculator', 'analyzer', 'workbench'], save: ['eligible', 'excluded', 'saveable'],
   vehicle_link: ['optional'], status: ['current', 'approved', 'future'], lab: ['gasoline', 'diesel', 'ev', 'towing', 'universal', 'engineering'] };
 const ids = new Set();
 for (const t of cat.tools) {
@@ -42,7 +42,8 @@ const c = cat.counts;
 check(c.free_public_calculators === free.length && c.premium_only_tools === prem.length && c.premium_total_access === cat.tools.length, 'counts block');
 check(c.aliases_not_counted === cat.aliases.length, 'alias count');
 check(Object.values(c.free_by_lab).reduce((a, b) => a + b, 0) === free.length, 'lab totals');
-check(c.save.eligible + c.save.needs_decision + c.save.saveable === cat.tools.length, 'save totals');
+check(c.save.eligible + c.save.excluded + c.save.saveable === cat.tools.length, 'save totals');
+check(c.premium_expansion_validated === cat.tools.filter(t => t.tier === 'premium' && t.status === 'current').length && cat.premium_expansion.validated === c.premium_expansion_validated, 'premium expansion count');
 check(c.approved_future_tools === cat.tools.filter(t => t.status !== 'current').length, 'future tool count');
 
 // aliases
@@ -67,7 +68,8 @@ for (const t of eligible) {
   check(r && t.formula.engine_proven === r.proven, `${t.id}: engine_proven differs from the seed`);
 }
 check(JSON.stringify(aliasRows.map(r => [r.id, r.canonical]).sort()) === JSON.stringify(cat.aliases.map(a => [a.id, a.canonical]).sort()), 'aliases differ from the seed');
-check(free.filter(t => t.save === 'needs_decision').length === FREE_BASELINE - selfRows.length, 'needs_decision = public calculators without a catalog row');
+check(free.filter(t => t.save === 'excluded').length === FREE_BASELINE - selfRows.length, 'excluded = public calculators without a catalog row');
+for (const t of free.filter(t => t.save === 'excluded')) check(!rows.some(r => r.id === t.id || r.canonical === t.id), `${t.id}: excluded from saving but present in the production calculator catalog`);
 
 // Premium-only tools = the approved Engineering Lab
 const window = {}; vm.runInNewContext(fs.readFileSync(path.join(REPO, 'premium/models.js'), 'utf8'), { window });
@@ -77,4 +79,4 @@ const moduleTools = [...fs.readFileSync(path.join(REPO, 'engineering-expansion-v
 check(JSON.stringify(moduleTools.sort()) === JSON.stringify(prem.map(t => [t.id, t.name]).sort()), 'Premium tools differ from engineering-expansion-v1.js');
 
 if (errors.length) { console.error('catalog check FAILED:\n  - ' + errors.join('\n  - ')); process.exit(1); }
-console.log(`catalog check: OK — ${free.length} Free public calculators, ${prem.length} Premium-only tools, ${cat.tools.length} in Premium, ${cat.aliases.length} aliases (not counted); save: ${c.save.eligible} eligible, ${c.save.needs_decision} need a decision, ${c.save.saveable} saveable`);
+console.log(`catalog check: OK — ${free.length} Free public calculators, ${prem.length} Premium-only tools, ${cat.tools.length} in Premium, ${cat.aliases.length} aliases (not counted); save: ${c.save.eligible} eligible, ${c.save.excluded} excluded, ${c.save.saveable} saveable; Premium expansion validated: ${c.premium_expansion_validated}`);

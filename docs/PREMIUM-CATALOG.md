@@ -21,7 +21,8 @@ The early $1.99 Garage / $3.99 additional-profile concept is retired and impleme
 | Free public calculators (F1.12.4; F1.12.3 is the frozen baseline) | **606** |
 | Premium-only tools: the Engineering Lab, E01–E14 (10 analyzers, 4 workbenches) | **14** |
 | Tools available in Premium (Free + Premium-only) | **620** |
-| Approved future Premium tools | **0** |
+| Premium expansion tools validated from approved work (= E01–E14) | **14** |
+| Approved future Premium tools (not yet built) | **0** |
 | Aliases (alternate ids, never counted) | 6 |
 
 Free calculators by lab: universal 325, gasoline 173, diesel 42, EV 39, towing 27.
@@ -32,6 +33,14 @@ Free calculators by lab: universal 325, gasoline 173, diesel 42, EV 39, towing 2
 
 No tool is added just to reach a number. A future tool enters the catalog with `status: "approved"` once its spec is approved, and becomes `"current"` when it ships.
 
+### Premium expansion: where the count comes from
+
+- **ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)**: 14 research-qualified systems E01-E14: all built (engineering-expansion-v1.js, 4ac4ba3) and live in the Premium Engineering Lab.
+- **engineering-expansion-v1.js history (406d6a1, 2026-10-04)**: 3 out-of-scope (non-automotive) analyzers removed by the owner; not in the catalog.
+- **earlier planning outside this repository (a 39-item "Coming Soon" queue, a 791-item master list)**: not in the repository and not designated Premium; not counted until provided, reviewed and approved.
+
+The validated Premium expansion is therefore **14 tools**, all live today.
+
 ## Fields
 
 | Field | Meaning |
@@ -41,7 +50,7 @@ No tool is added just to reach a number. A future tool enters the catalog with `
 | `lab` | `gasoline`, `diesel`, `ev`, `towing` or `universal` for Free calculators (from `ghLabForCalc`); `engineering` for Premium. |
 | `tier` | `free` (public, no account) or `premium` (Premium-only). Every Free tool is also in Premium. |
 | `kind` | `calculator`, `analyzer` or `workbench` (a multi-step Builder, Lab or Workbench). |
-| `save` | One of three values: `eligible`, `needs_decision` or `saveable`. See "Save values" below. |
+| `save` | One of three values: `eligible`, `excluded` or `saveable`. See "Save values" below. |
 | `formula` | For `eligible` calculators: the formula version, engine registry and engine-proven flag, exactly as in the production seed. |
 | `vehicle_link` | `optional` for every current tool. Each tool runs without a vehicle, and a Premium user can link a result to a vehicle or Test Setup in My Garage. No current tool requires a vehicle. |
 | `status` | `current` (live), `approved` (approved, not built) or `future` (planned, not approved). Only `current` exists today. |
@@ -49,7 +58,7 @@ No tool is added just to reach a number. A future tool enters the catalog with `
 
 **Save values:**
 - `eligible`: the calculator has a production catalog row and a formula fingerprint, so a Premium user can save its result.
-- `needs_decision`: no formula fingerprint yet (see "Needs human approval").
+- `excluded`: excluded from saved calculations by owner decision (2026-10-06). The calculator itself is unchanged and stays Free.
 - `saveable`: a Premium analysis, saved through `engineering_analyses`.
 
 ## Why 606 public calculators but 583 production catalog rows
@@ -61,17 +70,13 @@ Nothing is missing and nothing has been deleted. Full analysis: [CALCULATOR-CATA
 
 Saving is not being extended to new tools while the catalog is incomplete. The existing saved-calculation tables (0405) accept only the 577 fingerprinted calculators, and that does not change.
 
-## Needs human approval
+## Decisions and open items
 
-1. **The Premium expansion list.** The approved list of Premium-only tools beyond E01–E14 (historically about 140) is not in the repository. Until it is approved, the catalog lists 0 future tools and the Premium count stays at 620.
-2. **Save capability for 29 public calculators.** Each one needs a decision:
-   - make it saveable: a new engine formula plus a new, reviewed catalog migration; or
-   - exclude it from saving.
+- **Decided (2026-10-06):** the 29 public calculators without a formula fingerprint are **excluded** from saved calculations for now. Their behavior and the Free count are unchanged. The production database already refuses to save them, because they have no `calculators` row. Making one saveable later needs a new engine formula plus a new, reviewed catalog migration.
+- **Open: further Premium tools.** None is approved in the repository beyond E01–E14. The planning lists from earlier work (a 39-item "Coming Soon" queue and a 791-item master list) are not in the repository and are not designated Premium. They are counted only once they are provided, reviewed and approved.
+- **Open: E01–E14 QA counting.** They are live in the Premium Engineering Lab, but ENGINEERING_EXPANSION_CATALOG_V1.md says they are not counted as public calculators until QA sign-off.
 
-   Either way, they stay Free.
-3. **E01–E14 QA counting.** They are live in the Premium Engineering Lab, but ENGINEERING_EXPANSION_CATALOG_V1.md says they are not counted as public calculators until QA sign-off.
-
-### Calculators awaiting a save decision (29)
+### Calculators excluded from saving (29)
 
 | id | name | category | lab |
 |---|---|---|---|
@@ -142,7 +147,7 @@ Saving is not being extended to new tools while the catalog is incomplete. The e
 - `node catalog/check-catalog.js` runs in `premium/tests/run-tests.sh`. It checks:
   - exactly 606 Free and 14 Premium-only tools;
   - unique ids and the alias rules;
-  - every `eligible` calculator against the production seed;
+  - every `eligible` calculator against the production seed, and no `excluded` one in it;
   - E01–E14 against `premium/models.js` and `engineering-expansion-v1.js`;
   - the field vocabulary;
   - no marine content.
