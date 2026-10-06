@@ -1,0 +1,379 @@
+{
+  "suite": "PREMIUM-FOUNDATION 1.0.0",
+  "postgres": "16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)",
+  "checks": [
+    {
+      "group": "integrity",
+      "name": "migration directory is exactly the approved 16 files in version order",
+      "pass": true
+    },
+    {
+      "group": "integrity",
+      "name": "frozen foundation files are byte-identical to tag VALUE-FOUNDATION-1.0.0 and the manifest",
+      "pass": true
+    },
+    {
+      "group": "integrity",
+      "name": "reference data: 583 calculators, 577 formula versions, 252 engine-proven, 47 canonical fields, 2 plans, 14 analyzers",
+      "pass": true
+    },
+    {
+      "group": "integrity",
+      "name": "exactly the 22 expected public tables; RLS enabled AND forced on every one",
+      "pass": true
+    },
+    {
+      "group": "integrity",
+      "name": "anon holds no privilege on any public table or column",
+      "pass": true
+    },
+    {
+      "group": "integrity",
+      "name": "authenticated holds no DELETE / TRUNCATE / REFERENCES / TRIGGER on any public table",
+      "pass": true
+    },
+    {
+      "group": "integrity",
+      "name": "no client write path to value_records, calculation_records or billing/entitlement tables",
+      "pass": true
+    },
+    {
+      "group": "integrity",
+      "name": "SECURITY DEFINER inventory is exact; each pins search_path, is owned by non-superuser postgres (BYPASSRLS), not executable by anon",
+      "pass": true
+    },
+    {
+      "group": "integrity",
+      "name": "trusted-server functions are executable by service_role only",
+      "pass": true
+    },
+    {
+      "group": "integrity",
+      "name": "sign-up (server trigger) creates account + profile, no grant; effective plan is free",
+      "pass": true
+    },
+    {
+      "group": "isolation",
+      "name": "A cannot read any of B's rows, and B cannot read any of A's",
+      "pass": true
+    },
+    {
+      "group": "isolation",
+      "name": "A cannot update B's rows (0 rows affected, data unchanged)",
+      "pass": true
+    },
+    {
+      "group": "isolation",
+      "name": "A cannot attach records to B's objects (composite owner FKs / policies)",
+      "pass": true
+    },
+    {
+      "group": "isolation",
+      "name": "A cannot soft-delete B's rows through the SECURITY DEFINER functions (not-found, nothing changes)",
+      "pass": true
+    },
+    {
+      "group": "isolation",
+      "name": "anon can read nothing and call nothing",
+      "pass": true
+    },
+    {
+      "group": "allowance",
+      "name": "a Free user can create one machine; a second is refused",
+      "pass": true
+    },
+    {
+      "group": "allowance",
+      "name": "a Free user cannot create two machines in one statement",
+      "pass": true
+    },
+    {
+      "group": "allowance",
+      "name": "A (Free, already has one machine) cannot add another",
+      "pass": true
+    },
+    {
+      "group": "allowance",
+      "name": "soft-deleting the machine (or its garage) frees the allowance; deletion cannot be undone to exceed it",
+      "pass": true
+    },
+    {
+      "group": "allowance",
+      "name": "a Premium user can create additional machines",
+      "pass": true
+    },
+    {
+      "group": "allowance",
+      "name": "a lapsed Premium user keeps existing machines (read/update) but cannot add more",
+      "pass": true
+    },
+    {
+      "group": "saved_calculations",
+      "name": "a Free user cannot create a saved calculation (even on their own record)",
+      "pass": true
+    },
+    {
+      "group": "saved_calculations",
+      "name": "a lapsed user cannot create or edit, but can still read and soft-delete",
+      "pass": true
+    },
+    {
+      "group": "saved_calculations",
+      "name": "Premium create: machine is filled from the calculation; inconsistent links are refused",
+      "pass": true
+    },
+    {
+      "group": "saved_calculations",
+      "name": "clients cannot change calculation_id/owner/deleted_at or hard-delete; soft delete is permanent",
+      "pass": true
+    },
+    {
+      "group": "engineering",
+      "name": "a Free user cannot save an engineering analysis",
+      "pass": true
+    },
+    {
+      "group": "engineering",
+      "name": "Premium save: version pinned, trust label fixed, inputs validated, links consistent",
+      "pass": true
+    },
+    {
+      "group": "engineering",
+      "name": "a lapsed user cannot save or edit analyses; the analyzer catalog is read-only to clients",
+      "pass": true
+    },
+    {
+      "group": "entitlements",
+      "name": "a client cannot self-grant, extend, alter, delete or truncate entitlements",
+      "pass": true
+    },
+    {
+      "group": "entitlements",
+      "name": "a client cannot write or read server-only billing tables, nor call the server functions",
+      "pass": true
+    },
+    {
+      "group": "entitlements",
+      "name": "pf_has_feature / pf_my_entitlement reflect only the caller",
+      "pass": true
+    },
+    {
+      "group": "entitlements",
+      "name": "expired, future-dated, revoked and deactivated-plan grants confer nothing",
+      "pass": true
+    },
+    {
+      "group": "entitlements",
+      "name": "even the server cannot rewrite grant history (guard, no delete, no truncate, no un-revoke)",
+      "pass": true
+    },
+    {
+      "group": "stripe",
+      "name": "webhook events are idempotent and immutable",
+      "pass": true
+    },
+    {
+      "group": "stripe",
+      "name": "subscription lifecycle drives exactly one grant: activate, replay, renew, cancel, resubscribe",
+      "pass": true
+    },
+    {
+      "group": "stripe",
+      "name": "billing integrity: one customer per account, subscription customer must match its account, unknown price refused",
+      "pass": true
+    },
+    {
+      "group": "append_only",
+      "name": "value_records: no client insert/update; no update/delete/truncate even for the server",
+      "pass": true
+    },
+    {
+      "group": "append_only",
+      "name": "calculation_records: no client insert/update; no update/delete/truncate even for the server",
+      "pass": true
+    },
+    {
+      "group": "marine",
+      "name": "marine machine types and fields are refused for clients and the server",
+      "pass": true
+    },
+    {
+      "group": "marine",
+      "name": "automotive machines (car, motorcycle, UTV...) remain fully supported",
+      "pass": true
+    },
+    {
+      "group": "profiles",
+      "name": "a user edits own display fields; identity/timestamps are server-controlled; avatar must be https",
+      "pass": true
+    },
+    {
+      "group": "security_definer",
+      "name": "soft-delete functions require authentication and act only on the caller's active row",
+      "pass": true
+    },
+    {
+      "group": "security_definer",
+      "name": "internal definers (allowance, link checks, sign-up) are not callable by clients",
+      "pass": true
+    },
+    {
+      "group": "allowance",
+      "name": "outside READ COMMITTED the allowance fails closed (a REPEATABLE READ race could otherwise pass it)",
+      "pass": true
+    },
+    {
+      "group": "garage",
+      "name": "marking a machine primary moves the flag; deleting the primary never locks the choice; nobody else can clear it",
+      "pass": true
+    },
+    {
+      "group": "test_setups",
+      "name": "owner decision (approved): Test Setups are unlimited for Free on its one machine; saved work cannot be attached to them",
+      "pass": true
+    },
+    {
+      "group": "entitlements",
+      "name": "clients read their own grants but never the operator note",
+      "pass": true
+    },
+    {
+      "group": "stripe",
+      "name": "late or out-of-order webhooks never overwrite a newer state or re-open access",
+      "pass": true
+    },
+    {
+      "group": "allowance",
+      "name": "concurrent first-machine inserts by one Free user: exactly one succeeds (advisory lock)",
+      "pass": true
+    }
+  ],
+  "idempotency": {
+    "pass": true
+  },
+  "order_equivalence": {
+    "pass": true
+  },
+  "rollback": {
+    "pass": true,
+    "missing": 0,
+    "extra": [
+      "fn pf_handle_new_auth_user() 17e3477529c22c02cc541608bbc0381",
+      "trg CREATE TRIGGER pf_on_auth_user_created AFTER INSERT ON a"
+    ],
+    "reprovision": true
+  },
+  "mutants": [
+    {
+      "mutant": "restrictive allowance policy dropped",
+      "target": "a Free user can create one machine; a second is refused",
+      "killed": true
+    },
+    {
+      "mutant": "allowance function always true",
+      "target": "A (Free, already has one machine) cannot add another",
+      "killed": true
+    },
+    {
+      "mutant": "client granted INSERT on entitlement_grants + permissive policy",
+      "target": "a client cannot self-grant, extend, alter, delete or truncate entitlements",
+      "killed": true
+    },
+    {
+      "mutant": "saved_calculations insert policy not feature-gated",
+      "target": "a Free user cannot create a saved calculation (even on their own record)",
+      "killed": true
+    },
+    {
+      "mutant": "engineering_analyses RLS disabled",
+      "target": "A cannot read any of B's rows, and B cannot read any of A's",
+      "killed": true
+    },
+    {
+      "mutant": "automotive-only constraint dropped",
+      "target": "marine machine types and fields are refused for clients and the server",
+      "killed": true
+    },
+    {
+      "mutant": "pf_grant_manual executable by clients",
+      "target": "trusted-server functions are executable by service_role only",
+      "killed": true
+    },
+    {
+      "mutant": "pf_has_feature ignores ends_at",
+      "target": "expired, future-dated, revoked and deactivated-plan grants confer nothing",
+      "killed": true
+    },
+    {
+      "mutant": "grant guard trigger dropped",
+      "target": "even the server cannot rewrite grant history (guard, no delete, no truncate, no un-revoke)",
+      "killed": true
+    },
+    {
+      "mutant": "webhook recorder not idempotent",
+      "target": "webhook events are idempotent and immutable",
+      "killed": true
+    },
+    {
+      "mutant": "anon granted SELECT on billing_customers",
+      "target": "anon holds no privilege on any public table or column",
+      "killed": true
+    },
+    {
+      "mutant": "soft delete without owner check",
+      "target": "A cannot soft-delete B's rows through the SECURITY DEFINER functions (not-found, nothing changes)",
+      "killed": true
+    },
+    {
+      "mutant": "0201 undone: client INSERT on value_records",
+      "target": "no client write path to value_records, calculation_records or billing/entitlement tables",
+      "killed": true
+    },
+    {
+      "mutant": "profiles readable by everyone",
+      "target": "A cannot read any of B's rows, and B cannot read any of A's",
+      "killed": true
+    },
+    {
+      "mutant": "grant delete refusal dropped",
+      "target": "even the server cannot rewrite grant history (guard, no delete, no truncate, no un-revoke)",
+      "killed": true
+    },
+    {
+      "mutant": "definer search_path removed",
+      "target": "SECURITY DEFINER inventory is exact; each pins search_path, is owned by non-superuser postgres (BYPASSRLS), not executable by anon",
+      "killed": true
+    },
+    {
+      "mutant": "Stripe ordering guard removed",
+      "target": "late or out-of-order webhooks never overwrite a newer state or re-open access",
+      "killed": true
+    },
+    {
+      "mutant": "allowance isolation guard removed",
+      "target": "outside READ COMMITTED the allowance fails closed (a REPEATABLE READ race could otherwise pass it)",
+      "killed": true
+    },
+    {
+      "mutant": "primary-move trigger dropped",
+      "target": "marking a machine primary moves the flag; deleting the primary never locks the choice; nobody else can clear it",
+      "killed": true
+    },
+    {
+      "mutant": "primary-move not owner-scoped",
+      "target": "marking a machine primary moves the flag; deleting the primary never locks the choice; nobody else can clear it",
+      "killed": true
+    },
+    {
+      "mutant": "operator note readable by clients",
+      "target": "clients read their own grants but never the operator note",
+      "killed": true
+    }
+  ],
+  "summary": {
+    "checks": 49,
+    "failed": 0,
+    "mutants": 21,
+    "survived": 0
+  }
+}

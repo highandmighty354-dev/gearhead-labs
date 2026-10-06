@@ -1,0 +1,14 @@
+# Frozen foundation sources, copied byte-for-byte from tag VALUE-FOUNDATION-1.0.0 (commit 8ff64a2ee35ad6433b8c9d0bdd6b88fd79763b0a).
+# Format: sha256  repository-path  tag-path. Verified by premium-foundation/tests/pf.test.js. Never edit these files.
+e6ff6301b302bd794ee6bdb1ddc65cc2ebd9de9c8e27c141ae5403b2092432e6  supabase/migrations/0001_enums.sql  data-foundation/supabase/migrations/0001_enums.sql
+5332f1396283b1d106cfe9c719cedae24069bef317e738b760a76c2131b3c947  supabase/migrations/0002_tables.sql  data-foundation/supabase/migrations/0002_tables.sql
+e1e241f7422c9040b2b8bd6ddaecafb2b55bc4b3a4a4d375546b7ef7f3c59e3a  supabase/migrations/0003_constraints_triggers.sql  data-foundation/supabase/migrations/0003_constraints_triggers.sql
+8663ab2b5e6e4a5f16d6d781d1e26c915197541a7ce8e083d8a27eb07c27fcdb  supabase/migrations/0004_rls.sql  data-foundation/supabase/migrations/0004_rls.sql
+7bebd26f100c9f8010539a9052988d28b289349d89ed3abd4ff4431dabfdd14f  supabase/migrations/0005_reference_seed.sql  data-foundation/supabase/migrations/0005_reference_seed.sql
+a3256a08de2f25e7c52f0f26cb6be32f1b16b999b29e6b3c0abf65e7d773b5b4  supabase/migrations/0101_test_setups.sql  garage-foundation/supabase/migrations/0101_test_setups.sql
+7ba5b02fd016c45b45043e3358dd4683076216eae028a3f3ca597e886759dea4  supabase/migrations/0102_test_setups_triggers.sql  garage-foundation/supabase/migrations/0102_test_setups_triggers.sql
+b1f778b9d13117a270f8240702bb2678543552a54f6f91f55acef478104bfae8  supabase/migrations/0103_test_setups_rls.sql  garage-foundation/supabase/migrations/0103_test_setups_rls.sql
+ccc6bb56f070f67b972026972a3ec1c963c180c045996ff1551ffa6be485ae09  supabase/migrations/0201_value_write_boundary.sql  data-foundation-1.1.0/supabase/migrations/0201_value_write_boundary.sql
+b5f7fbe495403d5367fb5dde2850bcbf20d46295997e928dc25bae1987c1bea1  supabase/migrations/0301_value_foundation_v1_seed.sql  value-foundation-1.0.0/supabase/migrations/0301_value_foundation_v1_seed.sql
+27752468b5b8a5bfed305a24ddd1ca3291640b4376b5eba5c7988fe5445c7818  supabase/rollback/0201_value_write_boundary.rollback.sql  data-foundation-1.1.0/supabase/rollback/0201_value_write_boundary.rollback.sql
+005dc2523ce53796bf55df65db5aad92c7ff563bf1304c79a4344ded91dba692  supabase/rollback/0301_value_foundation_v1_seed.rollback.sql  value-foundation-1.0.0/supabase/rollback/0301_value_foundation_v1_seed.rollback.sql

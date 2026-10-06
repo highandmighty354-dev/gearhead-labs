@@ -1,0 +1,8 @@
+{
+  "name": "gearhead-premium-foundation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PREMIUM-FOUNDATION 1.0.0 database test suite (local throwaway PostgreSQL only).",
+  "scripts": { "test": "./tests/run-tests.sh" },
+  "dependencies": { "pg": "8.13.1" }
+}
