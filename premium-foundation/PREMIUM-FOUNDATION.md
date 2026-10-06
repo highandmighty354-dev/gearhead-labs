@@ -1,8 +1,11 @@
-# PREMIUM-FOUNDATION 1.1.0 (0401–0406 APPLIED TO PRODUCTION · 0407 PREPARED, NOT APPLIED)
+# PREMIUM-FOUNDATION 1.1.0 (0401–0407 APPLIED TO PRODUCTION)
 
 The Premium database layer: accounts' profiles, Free/Premium entitlements, Stripe-ready billing, saved calculations, the Engineering Lab store, and the automotive-only block. It comes after CORE-ENGINE-BASELINE → DATA-FOUNDATION → MAPPING-FOUNDATION → GARAGE-FOUNDATION in the approved sequence.
 
-**Status:** 0001–0406 were applied to production `jmztpjudwzjvrcdtjynd` on 2026-10-06 by the gated GitHub Action (run 37403342820, commit `b2baaaa`). **0407 (final product model) is prepared and tested locally only; it has not been applied.** Applying it requires explicit owner approval (see `supabase/PROVISIONING.md`).
+**Status:** production `jmztpjudwzjvrcdtjynd` is at migration **0407**, with 17 migrations applied (0001 through 0407).
+- 0001–0406 were applied on 2026-10-06 by the gated GitHub Action (run 37403342820, commit `b2baaaa`).
+- 0407 (final product model) was applied the same day by run #8 (run 37493952993, package `ca8e582`) with owner approval.
+- Read-only verification passed, and no user data was changed. The full record is in `supabase/PROVISIONING.md`.
 
 ## Final product model (owner decision, 2026-10-06; 0407)
 

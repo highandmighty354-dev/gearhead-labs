@@ -1,6 +1,10 @@
 # Provisioning the Gearhead Labs Premium database
 
-**Status (2026-10-06):** the 16 files in the table below (0001–0406) were applied to the production project `jmztpjudwzjvrcdtjynd` by the gated workflow *Provision Supabase (manual, gated)*, pinned to commit b2baaaa. **`0407_premium_product_model.sql` is prepared and tested but NOT applied** (see "Pending: 0407" below). Every step that writes to the project needs explicit owner approval first.
+**Status (2026-10-06): production is at migration 0407.** All 17 migrations (0001 through 0407) are applied to the production project `jmztpjudwzjvrcdtjynd`, by the gated workflow *Provision Supabase (manual, gated)*:
+- 0001–0406 were applied first, from commit b2baaaa.
+- `0407_premium_product_model.sql` was applied by run #8 (see "Applied: 0407" below).
+
+Every step that writes to the project needs explicit owner approval first.
 
 **Credentials:** the database password, service-role key, JWT secret and any Stripe secret are never pasted into chat, source files, GitHub or prompts. The owner types the database password into the Supabase CLI on their own machine, or uses the Supabase dashboard while signed in.
 
@@ -25,23 +29,51 @@
 | 15 | `0405_premium_saved_calculations.sql` | PREMIUM-FOUNDATION (new) |
 | 16 | `0406_premium_engineering_analyses.sql` | PREMIUM-FOUNDATION (new) |
 
-## Pending: 0407 (final product model, owner approval required)
+## Applied: 0407 (final product model)
 
 | # | File | Origin |
 |---|---|---|
-| 17 | `0407_premium_product_model.sql` | PREMIUM-FOUNDATION 1.1.0 (new, not applied) |
+| 17 | `0407_premium_product_model.sql` | PREMIUM-FOUNDATION 1.1.0 (applied to production 2026-10-06) |
+
+**Production record (2026-10-06):**
+- Project ref: `jmztpjudwzjvrcdtjynd`.
+- Migration level: **0407**. The history holds 17 versions, 0001 through 0407; version `0407` is named `premium_product_model`.
+- How it was applied: the workflow *Provision Supabase (manual, gated)* from `main` at 12cac10, package pinned to `ca8e582`.
+  - **Run #8** (Actions run 37493952993) used target `production` and mode `apply`, with the owner's typed APPLY and the owner's approval of the production gate.
+  - The APPLY job's built-in fresh dry run found exactly one pending file, `0407_premium_product_model.sql`, and then applied it. The job succeeded.
+- Earlier runs, none of which changed the database:
+  - Run #4 and run #7: production dry runs, both passed.
+  - Run #5: stopped by the project-ref safety check before connecting.
+  - Run #6: targeted the unused `rehearsal` environment, which has no connection setting, and stopped before connecting.
+- **Read-only verification after the apply: passed.**
+  - Plans: `plans` premium features = `engineering_lab, saved_calculations, garage`; free has no features; only Premium is paid.
+  - Prices: `plan_offers` = premium/month/usd/599 and premium/year/usd/5999, both active. Signed-in users can only read it, anonymous users can't, and RLS is enabled and forced. `plan_prices` is still empty: no Stripe.
+  - Free allowance: `pf_machines_free_allowance` and `pf_machine_allowance_ok()` are removed.
+  - Garage rules: restrictive `pf_garage_premium_insert` and `pf_garage_premium_update` policies, both requiring `pf_has_feature('garage')`, are on all six Garage tables: garages, machines, machine_details, components, component_connections and test_setups.
+  - Totals: 23 tables, all with RLS enabled and forced; 15 SECURITY DEFINER functions.
+  - Reference data unchanged: calculators 583, formula_versions 577, engine_proven 252, canonical_fields 47, engineering_analyzers 14.
+- **No user data was changed.** Every user table still holds 0 rows: auth users, accounts, profiles, grants, subscriptions, garages, machines, Test Setups, calculations, values, saved calculations and analyses.
+- Supabase advisors after the apply reported nothing new from 0407 except one INFO: the foreign key from the empty `plan_prices` table to `plan_offers` has no covering index.
+- PR #2 (the Premium frontend) **remains unmerged** at the time of this record.
 
 What it does: Premium becomes the single paid product ($5.99/month, $59.99/year, recorded in the new reference table `plan_offers`); My Garage (garages, machines, details, components, connections, Test Setups) requires the Premium `garage` feature to create or edit; the 0404 Free one-vehicle allowance is removed; `plan_prices` (still empty, no Stripe) can only ever hold an approved offer.
 
 Production data it alters: **only the `plans` row `premium`**, whose `features` array changes from `garage_unlimited` to `garage`. No account, grant, garage, machine or saved-work row is touched. Everything else is additive (one new table with 2 rows, one constraint, one foreign key, 12 restrictive policies) or removes the retired allowance policy and its function. Rollback: `supabase/rollback/0407_premium_product_model.rollback.sql` restores the exact 0406 catalog (tested).
 
-To apply it, the workflow on `main` must be updated in a reviewed change: re-pin it to the commit that contains 0407 and extend its manifest from 16 to 17 files. Then run DRY-RUN, review, and APPLY with owner approval. **Apply 0407 before PR #2 is merged:** the PR's frontend expects the `garage` feature, and until 0407 is applied the live database still allows a Free account to add one vehicle through the API.
+Workflow change made for this apply (on `main`, 12cac10):
+- the package is pinned to `ca8e582` with a 17-file manifest;
+- APPLY accepts only a pending list that is exactly the end of the approved order (here, only 0407).
+
+0407 had to be applied before PR #2 is merged, and it now is.
 
 The obsolete Phase 3A `0001_premium_schema.sql` is **not** applied. It was retired to `docs/retired/phase-3a/` (see `RETIRED.md`).
 
 ## Before applying (all read-only)
 
-1. On the commit to be applied, run `cd premium-foundation && npm install && npm test`, and confirm 47/47 checks pass, idempotency, order and rollback are OK, and 24/24 mutants are killed (counts as of 0407). If possible, run it once with PostgreSQL 17 binaries as well (`PG_BIN=/usr/lib/postgresql/17/bin npm test`). The live project runs 17.11, and local testing so far used 16.14 only.
+1. On the commit to be applied, run `cd premium-foundation && npm install && npm test`. Confirm the following (counts as of 0407):
+   - 47/47 checks pass;
+   - the idempotency, order, rollback and upgrade checks are OK;
+   - 24/24 mutants are killed. If possible, run it once with PostgreSQL 17 binaries as well (`PG_BIN=/usr/lib/postgresql/17/bin npm test`). The live project runs 17.11, and local testing so far used 16.14 only.
 2. Run `awk '!/^#/ && NF{print $1"  "$2}' supabase/FROZEN-SOURCES.sha256 | sha256sum -c -` and confirm all 12 frozen files report OK.
 3. Re-run the read-only inspection of the live project and confirm it is still empty: no `public` tables, no `supabase_migrations` schema, no `auth.users` rows and no `auth.users` triggers.
 
