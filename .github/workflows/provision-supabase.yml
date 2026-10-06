@@ -1,0 +1,229 @@
+# Gearhead Labs — Supabase provisioning (MANUAL ONLY, APPROVAL-GATED)
+#
+# Applies the approved 16-file migration package, read directly from the repository at the
+# pinned commit below. No SQL is retyped or transcribed anywhere.
+#
+# Safety design
+#   * Runs only when a person clicks "Run workflow" (workflow_dispatch). No push / PR triggers.
+#   * Default mode is dry-run. Apply must be chosen explicitly AND confirmed by typing APPLY.
+#   * The target database is decided by the GitHub Environment you pick (rehearsal / production);
+#     its connection settings live only in that Environment. Nothing is hard-coded here.
+#   * You must also type the target project ref; the run stops if it does not match the Environment.
+#   * Every job that can reach a database uses the Environment, so it waits for a required
+#     reviewer's approval before any credential is released.
+#   * The package is verified before any credential is touched: exact commit, exact 16 file names,
+#     exact order, exact SHA-256 of every file, and the frozen-source hashes.
+#   * Apply refuses to run unless the target's pending list is exactly these 16 files in order
+#     (i.e. a fresh, empty project). It never applies a partial or reordered set.
+#   * Credentials: one Environment secret (database password). It is masked in logs and never printed.
+
+name: Provision Supabase (manual, gated)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Environment to use. Its settings decide which Supabase project is touched."
+        type: choice
+        options: [rehearsal, production]
+        default: rehearsal
+      mode:
+        description: "dry-run = show what would be applied, change nothing. apply = change the database."
+        type: choice
+        options: [dry-run, apply]
+        default: dry-run
+      confirm_project_ref:
+        description: "Safety check: type the target project ref exactly (e.g. abcdefghijklmnopqrst)."
+        type: string
+        required: true
+      confirm_apply:
+        description: "Apply mode only: type APPLY in capitals. Leave blank for dry-run."
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-provision-${{ inputs.target }}
+  cancel-in-progress: false
+
+env:
+  PINNED_SHA: b2baaaa61e95f70d42d20f332d61e4e072ca9012
+  SUPABASE_CLI_VERSION: 2.119.0
+
+jobs:
+  verify-package:
+    name: Verify pinned migration package (no credentials)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse apply without typed confirmation
+        if: inputs.mode == 'apply'
+        env:
+          CONFIRM_APPLY: ${{ inputs.confirm_apply }}
+        run: |
+          if [ "$CONFIRM_APPLY" != "APPLY" ]; then
+            echo "::error::Apply mode requires typing APPLY in the confirm_apply box. Nothing was done."
+            exit 1
+          fi
+
+      - name: Check out the pinned commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.PINNED_SHA }}
+          persist-credentials: false
+
+      - name: Verify commit, file list, order and checksums
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PINNED_SHA"
+          cat > "$RUNNER_TEMP/manifest.sha256" <<'EOF'
+          e6ff6301b302bd794ee6bdb1ddc65cc2ebd9de9c8e27c141ae5403b2092432e6  supabase/migrations/0001_enums.sql
+          5332f1396283b1d106cfe9c719cedae24069bef317e738b760a76c2131b3c947  supabase/migrations/0002_tables.sql
+          e1e241f7422c9040b2b8bd6ddaecafb2b55bc4b3a4a4d375546b7ef7f3c59e3a  supabase/migrations/0003_constraints_triggers.sql
+          8663ab2b5e6e4a5f16d6d781d1e26c915197541a7ce8e083d8a27eb07c27fcdb  supabase/migrations/0004_rls.sql
+          7bebd26f100c9f8010539a9052988d28b289349d89ed3abd4ff4431dabfdd14f  supabase/migrations/0005_reference_seed.sql
+          a3256a08de2f25e7c52f0f26cb6be32f1b16b999b29e6b3c0abf65e7d773b5b4  supabase/migrations/0101_test_setups.sql
+          7ba5b02fd016c45b45043e3358dd4683076216eae028a3f3ca597e886759dea4  supabase/migrations/0102_test_setups_triggers.sql
+          b1f778b9d13117a270f8240702bb2678543552a54f6f91f55acef478104bfae8  supabase/migrations/0103_test_setups_rls.sql
+          ccc6bb56f070f67b972026972a3ec1c963c180c045996ff1551ffa6be485ae09  supabase/migrations/0201_value_write_boundary.sql
+          b5f7fbe495403d5367fb5dde2850bcbf20d46295997e928dc25bae1987c1bea1  supabase/migrations/0301_value_foundation_v1_seed.sql
+          6174b0f7b2b43022fbda2248f2e824c082062d50fcdf54e5a0c69893ea10fc62  supabase/migrations/0401_automotive_only.sql
+          f962e8f00b2830957b90bf40406eaf1b91469dacde9292028d8d21085c3312c7  supabase/migrations/0402_premium_entitlements.sql
+          3309328906074246bb3c13dacb2818107d3a926260352b72581a9180f5c5c35f  supabase/migrations/0403_premium_profiles.sql
+          0c89dd3a1b3949b998cedb0fe075db78668878ff2216a32d00eddbd07c0bcc6e  supabase/migrations/0404_premium_garage.sql
+          c63a2d1803b0a90e685e64688943602064a111db862244e41d50f89badde49b0  supabase/migrations/0405_premium_saved_calculations.sql
+          75eccb9260a0265be95bbe5f5d34981ba482ad08bc4ff5ee14225839e1e43f43  supabase/migrations/0406_premium_engineering_analyses.sql
+          EOF
+          expected="$(awk '{print $2}' "$RUNNER_TEMP/manifest.sha256" | xargs -n1 basename)"
+          actual="$(ls -1 supabase/migrations/*.sql | xargs -n1 basename | LC_ALL=C sort)"
+          if [ "$expected" != "$actual" ]; then
+            echo "::error::Migration directory does not contain exactly the approved 16 files in the approved order."
+            diff <(echo "$expected") <(echo "$actual") || true
+            exit 1
+          fi
+          sha256sum -c "$RUNNER_TEMP/manifest.sha256"
+          awk '!/^#/ && NF{print $1"  "$2}' supabase/FROZEN-SOURCES.sha256 | sha256sum -c -
+          echo "Package verified: commit $PINNED_SHA, 16 files, approved order, all checksums match."
+
+  dry-run:
+    name: Dry run (no database changes)
+    needs: verify-package
+    if: inputs.mode == 'dry-run'
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.PINNED_SHA }}
+          persist-credentials: false
+      - uses: supabase/setup-cli@v1
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+      - name: Dry run against the selected target
+        env:
+          POOLER_URL: ${{ vars.SUPABASE_POOLER_URL }}
+          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          CONFIRM_REF: ${{ inputs.confirm_project_ref }}
+        run: |
+          set -euo pipefail
+          # --- resolve and check target
+          ref="$(printf '%s' "$POOLER_URL" | sed -nE 's#^postgres(ql)?://postgres\.([a-z0-9]+):\[YOUR-PASSWORD\]@.*#\2#p')"
+          if [ -z "$ref" ]; then
+            echo "::error::Environment variable SUPABASE_POOLER_URL is missing or not in the expected Session pooler form (it must still contain [YOUR-PASSWORD])."
+            exit 1
+          fi
+          if [ "$ref" != "$CONFIRM_REF" ]; then
+            echo "::error::The project ref you typed does not match this Environment's project. Nothing was done."
+            exit 1
+          fi
+          if [ -z "${DB_PASSWORD:-}" ]; then echo "::error::Environment secret SUPABASE_DB_PASSWORD is not set."; exit 1; fi
+          enc="$(python3 -c 'import os,urllib.parse;print(urllib.parse.quote(os.environ["DB_PASSWORD"],safe=""))')"
+          echo "::add-mask::$enc"
+          url="${POOLER_URL/\[YOUR-PASSWORD\]/$enc}"
+          echo "::add-mask::$url"
+          echo "Target project ref: $ref (environment: ${{ inputs.target }})"
+          # --- dry run
+          supabase db push --dry-run --db-url "$url" 2>&1 | tee "$RUNNER_TEMP/dry.txt"
+          pending="$(grep -oE '[0-9]{4}_[a-z0-9_]+\.sql' "$RUNNER_TEMP/dry.txt" || true)"
+          expected="$(ls -1 supabase/migrations/*.sql | xargs -n1 basename | LC_ALL=C sort)"
+          {
+            echo "### Dry run — ${{ inputs.target }} ($ref)"
+            echo
+            echo "Pending migrations reported by the Supabase CLI: $(printf '%s\n' "$pending" | grep -c . || true)"
+            echo
+            printf '%s\n' "$pending" | sed 's/^/- /'
+            echo
+            if [ "$pending" = "$expected" ]; then
+              echo "✅ Exactly the approved 16 migrations, in the approved order. This target is eligible for APPLY."
+            else
+              echo "⚠️ The pending list is NOT exactly the approved 16. APPLY will refuse to run against this target."
+            fi
+            echo
+            echo "No database changes were made."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  apply:
+    name: APPLY migrations (changes the database)
+    needs: verify-package
+    if: inputs.mode == 'apply'
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.PINNED_SHA }}
+          persist-credentials: false
+      - uses: supabase/setup-cli@v1
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+      - name: Re-check target, dry run, then apply
+        env:
+          POOLER_URL: ${{ vars.SUPABASE_POOLER_URL }}
+          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          CONFIRM_REF: ${{ inputs.confirm_project_ref }}
+        run: |
+          set -euo pipefail
+          ref="$(printf '%s' "$POOLER_URL" | sed -nE 's#^postgres(ql)?://postgres\.([a-z0-9]+):\[YOUR-PASSWORD\]@.*#\2#p')"
+          if [ -z "$ref" ]; then
+            echo "::error::Environment variable SUPABASE_POOLER_URL is missing or not in the expected Session pooler form (it must still contain [YOUR-PASSWORD])."
+            exit 1
+          fi
+          if [ "$ref" != "$CONFIRM_REF" ]; then
+            echo "::error::The project ref you typed does not match this Environment's project. Nothing was done."
+            exit 1
+          fi
+          if [ -z "${DB_PASSWORD:-}" ]; then echo "::error::Environment secret SUPABASE_DB_PASSWORD is not set."; exit 1; fi
+          enc="$(python3 -c 'import os,urllib.parse;print(urllib.parse.quote(os.environ["DB_PASSWORD"],safe=""))')"
+          echo "::add-mask::$enc"
+          url="${POOLER_URL/\[YOUR-PASSWORD\]/$enc}"
+          echo "::add-mask::$url"
+          echo "Target project ref: $ref (environment: ${{ inputs.target }})"
+
+          # 1) Fresh dry run immediately before applying.
+          supabase db push --dry-run --db-url "$url" 2>&1 | tee "$RUNNER_TEMP/dry.txt"
+          pending="$(grep -oE '[0-9]{4}_[a-z0-9_]+\.sql' "$RUNNER_TEMP/dry.txt" || true)"
+          expected="$(ls -1 supabase/migrations/*.sql | xargs -n1 basename | LC_ALL=C sort)"
+          if [ "$pending" != "$expected" ]; then
+            echo "::error::Target is not a fresh project: the pending list is not exactly the approved 16 in order. Nothing was applied."
+            exit 1
+          fi
+
+          # 2) Apply. Each file runs atomically; the CLI stops at the first error.
+          supabase db push --db-url "$url" --yes 2>&1 | tee "$RUNNER_TEMP/apply.txt"
+
+          # 3) Confirm nothing is left pending.
+          supabase db push --dry-run --db-url "$url" 2>&1 | tee "$RUNNER_TEMP/after.txt"
+          left="$(grep -oE '[0-9]{4}_[a-z0-9_]+\.sql' "$RUNNER_TEMP/after.txt" || true)"
+          if [ -n "$left" ]; then
+            echo "::error::Some migrations are still pending after apply."
+            exit 1
+          fi
+          {
+            echo "### APPLY complete — ${{ inputs.target }} ($ref)"
+            echo
+            grep -E '^Applying migration' "$RUNNER_TEMP/apply.txt" | sed 's/^/- /'
+            echo
+            echo "All 16 approved migrations applied from commit \`$PINNED_SHA\`; nothing remains pending."
+          } >> "$GITHUB_STEP_SUMMARY"
