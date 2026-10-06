@@ -793,6 +793,49 @@ const MUTANTS = [
     reprovision: reprovisionOk, rollback_0407_to_0406: rb0407Ok };
   await dropDb(once); await dropDb(twice); await dropDb(altDb); await dropDb(frozenDb); await dropDb(rb); await dropDb(at0406); await dropDb(rb0407);
 
+  // upgrade in place, as production will run it: a populated 0406 database (accounts, profiles, grants, garages, machines,
+  // Test Setups, calculations, values, saved work, analyses, plus a Free account's single vehicle that 0404's allowance
+  // permitted) gets 0407. Every row of every table must be byte-identical afterwards, except the plans 'premium' features
+  // array and the new plan_offers reference rows; the Free vehicle stays readable and deletable but not editable.
+  out.upgrade = await (async () => {
+    const db = await freshDb('upgrade', { order: EXPECTED_MIGRATIONS.slice(0, 16) });
+    await fixtures(db);
+    { const c = await connect(db, 'postgres'); await c.query('BEGIN'); await as(c, 'C');
+      await c.query(`INSERT INTO public.garages (id, name) VALUES ($1, 'C garage')`, ['10000000-0000-4000-8000-0000000000c0']);
+      await c.query(`INSERT INTO public.machines (id, garage_id, name, machine_type) VALUES ($1, $2, 'C free car', 'automotive')`,
+        ['20000000-0000-4000-8000-0000000000c1', '10000000-0000-4000-8000-0000000000c0']);
+      await c.query('COMMIT'); await c.end(); }
+    const SNAP = `SELECT format('%I.%I', n.nspname, c.relname) AS t FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                   WHERE c.relkind = 'r' AND (n.nspname = 'public' OR (n.nspname = 'auth' AND c.relname = 'users')) ORDER BY 1`;
+    const snapshot = async () => { const c = await connect(db, 'supabase_admin'); const res = {};
+      for (const { t } of await q(c, SNAP)) res[t] = await one(c, `SELECT count(*) || ':' || coalesce(md5(string_agg(x::text, '|' ORDER BY x::text)), '-') FROM ${t} x`);
+      await c.end(); return res; };
+    const before = await snapshot();
+    const plansBefore = await (async () => { const c = await connect(db, 'postgres'); const r = await q(c, `SELECT plan_key, name, is_paid, features, active FROM public.plans ORDER BY 1`); await c.end(); return r; })();
+    const rows = Object.values(before).reduce((n, v) => n + +v.split(':')[0], 0);
+    const pg = await connect(db, 'postgres');
+    await pg.query(fs.readFileSync(path.join(MIG_DIR, '0407_premium_product_model.sql'), 'utf8'));
+    await pg.query(fs.readFileSync(path.join(MIG_DIR, '0407_premium_product_model.sql'), 'utf8')); // re-run: no-op
+    const plansAfter = await q(pg, `SELECT plan_key, name, is_paid, features, active FROM public.plans ORDER BY 1`);
+    await pg.end();
+    const after = await snapshot();
+    const changed = Object.keys({ ...before, ...after }).filter(t => before[t] !== after[t]).sort();
+    const expectedPlans = plansBefore.map(p => p.plan_key === 'premium' ? { ...p, features: ['engineering_lab', 'saved_calculations', 'garage'] } : p);
+    const c = await connect(db, 'postgres'); await c.query('BEGIN'); await as(c, 'C');
+    const freeSees = +(await one(c, `SELECT count(*) FROM public.machines WHERE id = $1`, ['20000000-0000-4000-8000-0000000000c1']));
+    let freeEditRefused = false;
+    try { await c.query('SAVEPOINT s'); await c.query(`UPDATE public.machines SET name = 'x' WHERE id = $1`, ['20000000-0000-4000-8000-0000000000c1']); }
+    catch (e) { freeEditRefused = e.code === DENIED; await c.query('ROLLBACK TO SAVEPOINT s'); }
+    await c.query(`SELECT public.df_soft_delete_machine($1)`, ['20000000-0000-4000-8000-0000000000c1']);
+    const freeDeleted = +(await one(c, `SELECT count(*) FROM public.machines WHERE id = $1`, ['20000000-0000-4000-8000-0000000000c1'])) === 0;
+    await c.query('ROLLBACK'); await c.end();
+    await dropDb(db);
+    const pass = JSON.stringify(changed) === JSON.stringify(['public.plan_offers', 'public.plans'])
+      && JSON.stringify(plansAfter) === JSON.stringify(expectedPlans) && freeSees === 1 && freeEditRefused && freeDeleted;
+    return { pass, tables: Object.keys(before).length, rows_before: rows, changed_tables: changed, plans_after: plansAfter.map(p => `${p.plan_key}:${p.features.join(',')}`),
+      free_vehicle_readable: freeSees === 1, free_vehicle_edit_refused: freeEditRefused, free_vehicle_deletable: freeDeleted };
+  })();
+
   // A mutant is applied to the fresh schema before the fixtures, unless it would stop the fixtures themselves from being
   // created (afterFixtures), in which case it is applied to the populated database.
   for (const [name, sql, target, opts = {}] of MUTANTS) {
@@ -810,10 +853,11 @@ const MUTANTS = [
   console.log(`${out.idempotency.pass ? 'PASS' : 'FAIL'}  [idempotency] every migration applied twice in a row leaves the catalog fingerprint unchanged`);
   console.log(`${out.order_equivalence.pass ? 'PASS' : 'FAIL'}  [order] 0201 before 0101-0103 yields the same catalog as version order`);
   console.log(`${out.rollback.pass ? 'PASS' : 'FAIL'}  [rollback] 0407->0401 restores the frozen catalog (only the inert sign-up trigger remains); re-applying 0401-0407 restores the full catalog; 0407 alone rolls back to the exact 0406 catalog${out.rollback.pass ? '' : '\n      -> ' + JSON.stringify(out.rollback)}`);
+  console.log(`${out.upgrade.pass ? 'PASS' : 'FAIL'}  [upgrade] 0407 on a populated 0406 database (${out.upgrade.tables} tables, ${out.upgrade.rows_before} rows): only plans (premium features) and the new plan_offers change; a pre-existing Free vehicle stays readable and deletable, not editable${out.upgrade.pass ? '' : '\n      -> ' + JSON.stringify(out.upgrade)}`);
   for (const m of out.mutants) console.log(`${m.killed ? 'KILLED  ' : 'SURVIVED'}  mutant: ${m.mutant}`);
-  const failed = out.checks.filter(r => !r.pass).length + (out.idempotency.pass ? 0 : 1) + (out.order_equivalence.pass ? 0 : 1) + (out.rollback.pass ? 0 : 1);
+  const failed = out.checks.filter(r => !r.pass).length + (out.idempotency.pass ? 0 : 1) + (out.order_equivalence.pass ? 0 : 1) + (out.rollback.pass ? 0 : 1) + (out.upgrade.pass ? 0 : 1);
   const survived = out.mutants.filter(m => !m.killed).length;
-  console.log(`\n${out.checks.length} checks: ${out.checks.length - out.checks.filter(r => !r.pass).length} passed, ${out.checks.filter(r => !r.pass).length} failed; idempotency ${out.idempotency.pass ? 'ok' : 'FAILED'}; order ${out.order_equivalence.pass ? 'ok' : 'FAILED'}; rollback ${out.rollback.pass ? 'ok' : 'FAILED'}; mutants: ${out.mutants.length - survived}/${out.mutants.length} killed. PostgreSQL ${out.postgres}.`);
+  console.log(`\n${out.checks.length} checks: ${out.checks.length - out.checks.filter(r => !r.pass).length} passed, ${out.checks.filter(r => !r.pass).length} failed; idempotency ${out.idempotency.pass ? 'ok' : 'FAILED'}; order ${out.order_equivalence.pass ? 'ok' : 'FAILED'}; rollback ${out.rollback.pass ? 'ok' : 'FAILED'}; upgrade ${out.upgrade.pass ? 'ok' : 'FAILED'}; mutants: ${out.mutants.length - survived}/${out.mutants.length} killed. PostgreSQL ${out.postgres}.`);
   out.summary = { checks: out.checks.length, failed, mutants: out.mutants.length, survived };
   fs.mkdirSync(path.join(HERE, 'evidence'), { recursive: true });
   fs.writeFileSync(path.join(HERE, 'evidence', 'test-results.json'), JSON.stringify(out, null, 2) + '\n');
