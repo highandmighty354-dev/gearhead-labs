@@ -1,6 +1,6 @@
 # Gearhead Labs — Supabase provisioning (MANUAL ONLY, APPROVAL-GATED)
 #
-# Applies the approved 16-file migration package, read directly from the repository at the
+# Applies the approved 17-file migration package (0001-0407), read directly from the repository at the
 # pinned commit below. No SQL is retyped or transcribed anywhere.
 #
 # Safety design
@@ -13,8 +13,10 @@
 #     reviewer's approval before any credential is released.
 #   * The package is verified before any credential is touched: exact commit, exact 16 file names,
 #     exact order, exact SHA-256 of every file, and the frozen-source hashes.
-#   * Apply refuses to run unless the target's pending list is exactly these 16 files in order
-#     (i.e. a fresh, empty project). It never applies a partial or reordered set.
+#   * Apply refuses to run unless the target's pending list is exactly the END of the approved order:
+#     all 17 files for a fresh, empty project, or only the files after the last one already applied
+#     (production at 0406 -> only 0407). It never applies a reordered set or skips a file. The CLI also
+#     refuses if the target's recorded history contains a version that is not in this package.
 #   * Credentials: one Environment secret (database password). It is masked in logs and never printed.
 
 name: Provision Supabase (manual, gated)
@@ -50,7 +52,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  PINNED_SHA: b2baaaa61e95f70d42d20f332d61e4e072ca9012
+  PINNED_SHA: ca8e58249b2285c42feec547f8193b2763199ac8
   SUPABASE_CLI_VERSION: 2.119.0
 
 jobs:
@@ -95,17 +97,18 @@ jobs:
           0c89dd3a1b3949b998cedb0fe075db78668878ff2216a32d00eddbd07c0bcc6e  supabase/migrations/0404_premium_garage.sql
           c63a2d1803b0a90e685e64688943602064a111db862244e41d50f89badde49b0  supabase/migrations/0405_premium_saved_calculations.sql
           75eccb9260a0265be95bbe5f5d34981ba482ad08bc4ff5ee14225839e1e43f43  supabase/migrations/0406_premium_engineering_analyses.sql
+          e5e0cb582c9ed19c17134bace602f539697ae3f10af813f08486de6a5181de70  supabase/migrations/0407_premium_product_model.sql
           EOF
           expected="$(awk '{print $2}' "$RUNNER_TEMP/manifest.sha256" | xargs -n1 basename)"
           actual="$(ls -1 supabase/migrations/*.sql | xargs -n1 basename | LC_ALL=C sort)"
           if [ "$expected" != "$actual" ]; then
-            echo "::error::Migration directory does not contain exactly the approved 16 files in the approved order."
+            echo "::error::Migration directory does not contain exactly the approved 17 files in the approved order."
             diff <(echo "$expected") <(echo "$actual") || true
             exit 1
           fi
           sha256sum -c "$RUNNER_TEMP/manifest.sha256"
           awk '!/^#/ && NF{print $1"  "$2}' supabase/FROZEN-SOURCES.sha256 | sha256sum -c -
-          echo "Package verified: commit $PINNED_SHA, 16 files, approved order, all checksums match."
+          echo "Package verified: commit $PINNED_SHA, 17 files, approved order, all checksums match."
 
   dry-run:
     name: Dry run (no database changes)
@@ -148,6 +151,8 @@ jobs:
           supabase db push --dry-run --db-url "$url" 2>&1 | tee "$RUNNER_TEMP/dry.txt"
           pending="$(grep -oE '[0-9]{4}_[a-z0-9_]+\.sql' "$RUNNER_TEMP/dry.txt" || true)"
           expected="$(ls -1 supabase/migrations/*.sql | xargs -n1 basename | LC_ALL=C sort)"
+          # Eligible = the pending list is a non-empty END of the approved order (fresh project: all files).
+          is_suffix() { [ -n "$1" ] && [ "$(printf '%s\n' "$2" | tail -n "$(printf '%s\n' "$1" | wc -l)")" = "$1" ]; }
           {
             echo "### Dry run — ${{ inputs.target }} ($ref)"
             echo
@@ -155,10 +160,12 @@ jobs:
             echo
             printf '%s\n' "$pending" | sed 's/^/- /'
             echo
-            if [ "$pending" = "$expected" ]; then
-              echo "✅ Exactly the approved 16 migrations, in the approved order. This target is eligible for APPLY."
+            if is_suffix "$pending" "$expected"; then
+              echo "✅ The pending list is exactly the end of the approved order (nothing skipped or reordered). This target is eligible for APPLY."
+            elif [ -z "$pending" ]; then
+              echo "ℹ️ Nothing is pending: this target already has every approved migration."
             else
-              echo "⚠️ The pending list is NOT exactly the approved 16. APPLY will refuse to run against this target."
+              echo "⚠️ The pending list is NOT the end of the approved order. APPLY will refuse to run against this target."
             fi
             echo
             echo "No database changes were made."
@@ -205,10 +212,13 @@ jobs:
           supabase db push --dry-run --db-url "$url" 2>&1 | tee "$RUNNER_TEMP/dry.txt"
           pending="$(grep -oE '[0-9]{4}_[a-z0-9_]+\.sql' "$RUNNER_TEMP/dry.txt" || true)"
           expected="$(ls -1 supabase/migrations/*.sql | xargs -n1 basename | LC_ALL=C sort)"
-          if [ "$pending" != "$expected" ]; then
-            echo "::error::Target is not a fresh project: the pending list is not exactly the approved 16 in order. Nothing was applied."
+          # Eligible = the pending list is a non-empty END of the approved order (fresh project: all files).
+          is_suffix() { [ -n "$1" ] && [ "$(printf '%s\n' "$2" | tail -n "$(printf '%s\n' "$1" | wc -l)")" = "$1" ]; }
+          if ! is_suffix "$pending" "$expected"; then
+            echo "::error::The pending list is empty or is not exactly the end of the approved order. Nothing was applied."
             exit 1
           fi
+          echo "Pending (will be applied, in order):"; printf '%s\n' "$pending" | sed 's/^/  /'
 
           # 2) Apply. Each file runs atomically; the CLI stops at the first error.
           supabase db push --db-url "$url" --yes 2>&1 | tee "$RUNNER_TEMP/apply.txt"
@@ -225,5 +235,5 @@ jobs:
             echo
             grep -E '^Applying migration' "$RUNNER_TEMP/apply.txt" | sed 's/^/- /'
             echo
-            echo "All 16 approved migrations applied from commit \`$PINNED_SHA\`; nothing remains pending."
+            echo "Applied $(printf '%s\n' "$pending" | wc -l) approved migration(s) from commit \`$PINNED_SHA\`; nothing remains pending."
           } >> "$GITHUB_STEP_SUMMARY"
