@@ -1,153 +1,128 @@
 # Gearhead Labs canonical tool catalog
 
-The machine-readable source of truth is [`catalog/gearhead-catalog.json`](../catalog/gearhead-catalog.json). It is **generated** from the authoritative sources, never typed by hand, and validated on every test run. This page explains it.
+The machine-readable source of truth is [`catalog/gearhead-catalog.json`](../catalog/gearhead-catalog.json). It is **generated** from authoritative sources, never typed by hand, and validated on every test run (`node catalog/check-catalog.js`).
 
-## Product model
+## Three tiers
 
-| | Free | Gearhead Labs Premium |
+| Tier | What it is | Count | Working today |
+|---|---|---|---|
+| **FREE** | The public calculators of F1.12.4. No account needed. | **606** | 606 |
+| **ENGINEERING** | The Premium-only Engineering Lab, E01–E14 (10 analyzers, 4 workbenches). | **14** | 14 |
+| **PREMIUM** | The Premium calculator roadmap: the owner's workbook pool of 147 candidates. | **147** | **0** |
+
+- Gearhead Labs Premium ($5.99/month or $59.99/year) includes everything *implemented* in all three tiers, plus My Garage, Saved and Profile. Projects are deferred.
+- Working tools available with Premium today: **620** (606 Free + 14 Engineering).
+- Only status **IMPLEMENTED** is a working tool. Roadmap candidates are never counted as calculators until they are built.
+- 6 aliases resolve to Free calculators and are never counted.
+
+## Statuses
+
+| Status | Meaning | Count in the Premium tier |
 |---|---|---|
-| Price | Free, no account | **$5.99/month or $59.99/year** (the single paid product; Stripe not implemented yet) |
-| Public calculators | All 606 | All 606 |
-| Engineering Lab (E01–E14) | No | Yes (14 Premium-only tools) |
-| My Garage: vehicle profiles, details, components, Test Setups (builds) | No | Yes, unlimited |
-| Saved calculations and saved engineering analyses | No | Yes |
-
-The early $1.99 Garage / $3.99 additional-profile concept is retired and implemented nowhere: there is no Free vehicle and no separate Garage subscription. The database side is `supabase/migrations/0407_premium_product_model.sql`, which adds the entitlement feature `garage` and records the approved offers in `plan_offers`.
-
-## Counts (current, authoritative)
-
-| | Count |
-|---|---|
-| Free public calculators (F1.12.4; F1.12.3 is the frozen baseline) | **606** |
-| Premium-only tools: the Engineering Lab, E01–E14 (10 analyzers, 4 workbenches) | **14** |
-| Tools available in Premium (Free + Premium-only) | **620** |
-| Premium expansion tools validated from approved work (= E01–E14) | **14** |
-| Approved future Premium tools (not yet built) | **0** |
-| Aliases (alternate ids, never counted) | 6 |
-
-Free calculators by lab: universal 325, gasoline 173, diesel 42, EV 39, towing 27.
-
-**620 is the current Premium catalog, not the final one.** The Premium catalog is incomplete. The historical target of about 752 tools (612 Free plus about 140 Premium expansion tools) is not used here, for two reasons:
-- the authoritative Free baseline is now 606, not 612;
-- the approved Premium expansion list is not in the repository.
-
-No tool is added just to reach a number. A future tool enters the catalog with `status: "approved"` once its spec is approved, and becomes `"current"` when it ships.
-
-### Premium expansion: where the count comes from
-
-- **ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)**: 14 research-qualified systems E01-E14: all built (engineering-expansion-v1.js, 4ac4ba3) and live in the Premium Engineering Lab.
-- **engineering-expansion-v1.js history (406d6a1, 2026-10-04)**: 3 out-of-scope (non-automotive) analyzers removed by the owner; not in the catalog.
-- **earlier planning outside this repository (a 39-item "Coming Soon" queue, a 791-item master list)**: not in the repository and not designated Premium; not counted until provided, reviewed and approved.
-
-The validated Premium expansion is therefore **14 tools**, all live today.
+| IMPLEMENTED | Real inputs, formula, outputs, units, validation and help, with a referenced implementation | 0 |
+| PARTIALLY IMPLEMENTED | An existing Free calculator or E01–E14 already computes the core relation | 34 |
+| PLANNED | No existing equivalent; needs a build | 110 |
+| BLOCKED | Waiting on a decision or infrastructure | 0 |
+| DUPLICATE | An existing Free calculator already does exactly this (proposed exclusion) | 3 |
+| DUPLICATE / EXCLUDED | The workbook's Do Not Add tab: kept out of the catalog | 10 (listed separately) |
 
 ## Fields
 
-| Field | Meaning |
-|---|---|
-| `id` | Tool id: the calculator id on the page, or the analyzer id for E01–E14. Unique; aliases never appear here. |
-| `name`, `category` | As shown on the site. |
-| `lab` | `gasoline`, `diesel`, `ev`, `towing` or `universal` for Free calculators (from `ghLabForCalc`); `engineering` for Premium. |
-| `tier` | `free` (public, no account) or `premium` (Premium-only). Every Free tool is also in Premium. |
-| `kind` | `calculator`, `analyzer` or `workbench` (a multi-step Builder, Lab or Workbench). |
-| `save` | One of three values: `eligible`, `excluded` or `saveable`. See "Save values" below. |
-| `formula` | For `eligible` calculators: the formula version, engine registry and engine-proven flag, exactly as in the production seed. |
-| `vehicle_link` | `optional` for every current tool. Each tool runs without a vehicle, and a Premium user can link a result to a vehicle or Test Setup in My Garage. No current tool requires a vehicle. |
-| `status` | `current` (live), `approved` (approved, not built) or `future` (planned, not approved). Only `current` exists today. |
-| `aliases` | Legacy ids that resolve to this tool. |
+Every tool has the following fields:
+- `id`: stable. Premium roadmap ids start with `p_`.
+- `name`, `category` (the workbook section for Premium), `lab`.
+- `tier` (`free`, `engineering` or `premium`), `access` (`public` or `premium`) and `kind` (`calculator`, `analyzer` or `workbench`).
+- `status`, `save`, `implementation` (file and id, or `null` while not built) and `aliases`.
 
-**Save values:**
-- `eligible`: the calculator has a production catalog row and a formula fingerprint, so a Premium user can save its result.
-- `excluded`: excluded from saved calculations by owner decision (2026-10-06). The calculator itself is unchanged and stays Free.
-- `saveable`: a Premium analysis, saved through `engineering_analyses`.
+Premium candidates also carry:
+- `source`: the workbook sheet, row, list and rank.
+- `existing`: equivalent or related existing tools from the reconciliation.
+- `internal_overlaps` and `first_batch`.
 
-## Why 606 public calculators but 583 production catalog rows
+The `save` values:
+- `not_yet_saveable` for every Premium candidate: saving needs catalog rows in the database (see "Database").
+- `eligible` or `excluded` for Free calculators.
+- `saveable` for E01–E14.
 
-- 606 = 577 calculators with an engine formula fingerprint + 29 render-only calculators with no registry formula.
-- 583 = those 577 + 6 legacy alias rows.
+## Roadmap source and reconciliation
 
-Nothing is missing and nothing has been deleted. Full analysis: [CALCULATOR-CATALOG-RECONCILIATION.md](CALCULATOR-CATALOG-RECONCILIATION.md).
+The source is the owner's workbook `catalog/source/Gearhead_Labs_Premium_Master_Roadmap.xlsx`:
+- **Historical roadmap recovered: 140.** That is 20 Top-20 Planned plus 120 V5.3 expansion candidates.
+- **Do Not Add: 10.** The template in the request said 9, but the workbook tab and the request's own list both name 10.
+- **Retained: 130.**
+- **New research additions: 17.**
+- **Working pool: 147.**
 
-Saving is not being extended to new tools while the catalog is incomplete. The existing saved-calculation tables (0405) accept only the 577 fingerprinted calculators, and that does not change.
+Full per-item table: [PREMIUM-ROADMAP-RECONCILIATION.md](PREMIUM-ROADMAP-RECONCILIATION.md).
 
-## Decisions and open items
+**Duplicates of existing Free calculators (3):**
+- Bolt Preload from Torque (`p_bolt_preload_from_torque`) → `clamp_load`
+- Convection Heat Transfer (`p_convection_heat_transfer`) → `heat_transfer`
+- Suspension Frequency from Loaded Weight (`p_suspension_frequency_from_loaded_weight`) → `ride_frequency`, `natural_frequency`
 
-- **Decided (2026-10-06):** the 29 public calculators without a formula fingerprint are **excluded** from saved calculations for now. Their behavior and the Free count are unchanged. The production database already refuses to save them, because they have no `calculators` row. Making one saveable later needs a new engine formula plus a new, reviewed catalog migration.
-- **Open: further Premium tools.** None is approved in the repository beyond E01–E14. The planning lists from earlier work (a 39-item "Coming Soon" queue and a 791-item master list) are not in the repository and are not designated Premium. They are counted only once they are provided, reviewed and approved.
-- **Open: E01–E14 QA counting.** They are live in the Premium Engineering Lab, but ENGINEERING_EXPANSION_CATALOG_V1.md says they are not counted as public calculators until QA sign-off.
+**Overlaps with the Engineering Lab (5).** The workbook calls some of these distinct, but the code already computes the core result:
+- Oil Cooler Sizing (`p_oil_cooler_sizing`) → `e14_heat_exchanger_matching`: E14 computes Q = U × A × LMTD and is specified as the common engine for oil, coolant, transmission, intercooler and battery exchangers; solving for A is the extension
+- Transmission Cooler Sizing (`p_transmission_cooler_sizing`) → `e14_heat_exchanger_matching`: same LMTD engine; solving for A is the extension
+- Specific Time-Area (STA) Evaluator (`p_specific_time_area_sta_evaluator`) → `e05_two_stroke_time_area`: E05 already outputs Specific Time-Area from effective port area, open-to-close angle, RPM and displacement; target-STA evaluation would be the extension
+- Tuned-Pipe Length (`p_tuned_pipe_length`) → `e07_expansion_chamber_reverse`: E07 computes the model wave distance (wave speed × timing window / RPM), i.e. the tuned length, to compare with a measured pipe
+- Valve Acceleration (`p_valve_acceleration`) → `e08_valvetrain_dynamic_control`: E08 outputs a peak valve acceleration (simple-harmonic estimate lift × ω²) and inertial force
 
-### Calculators excluded from saving (29)
+**Two-stroke candidates (5).** These are kept and prioritised:
+- Crankcase Compression Ratio: PLANNED · first batch
+- Port Timing from Measured Geometry: PLANNED · first batch
+- Specific Time-Area (STA) Evaluator: PARTIALLY IMPLEMENTED
+- Tuned-Pipe Length: PARTIALLY IMPLEMENTED
+- Two-Stroke Scavenging / Charging Efficiency: PLANNED · first batch
 
-| id | name | category | lab |
-|---|---|---|---|
-| `ac_pressure` | A/C Pressure/Temp Chart | ELECTRICAL, FLUID & UTILITIES | universal |
-| `airflow_power_estimate` | AIRFLOW / ENGINE · Airflow → Power Estimate | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `brake_controller_gain` | Brake Controller Gain Setting | TOWING & TRAILER | towing |
-| `cam_card` | CAMSHAFT · Complete Cam Card / Valve Events | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `camshaft_duration` | CAMSHAFT · Duration | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `camshaft_exhaust_events` | CAMSHAFT · Exhaust Valve Events | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `camshaft_ivc` | CAMSHAFT · Intake Valve Closing — IVC | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `camshaft_lsa` | CAMSHAFT · Lobe Separation Angle | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `ct_push_loose` | Push / Loose Diagnosis | CIRCLE TRACK | universal |
-| `density_altitude` | Density Altitude | ENVIRONMENT & DYNO | universal |
-| `drill_decimal` | Drill Size to Decimal | SHOP & MACHINING | universal |
-| `engine_airflow_estimate` | AIRFLOW / ENGINE · Engine Airflow Estimation | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `gear_shift_rpm_drag` | Gear/Shift Point Planner | DRAG RACING | universal |
-| `head_flow_curve` | CYLINDER HEAD / FLOW · Cylinder Head Flow Curve | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `lsa_calc` | LSA from Centerlines | ENGINE | gasoline |
-| `nitrous_jet` | Nitrous Jet Sizing | PERFORMANCE | gasoline |
-| `octane_for_cr` | Octane Required for CR | FUEL, AIR & EXHAUST | gasoline |
-| `resistor_color` | Resistor Color Code | ELECTRICAL, FLUID & UTILITIES | universal |
-| `sheet_gauge` | Sheet Metal Gauge Converter | SHOP & MACHINING | universal |
-| `sim_acceleration` | Simulator — Acceleration | GEARHEAD SIMULATOR | universal |
-| `sim_braking` | Simulator — Braking | GEARHEAD SIMULATOR | universal |
-| `sim_cornering` | Simulator — Cornering | GEARHEAD SIMULATOR | universal |
-| `sim_curve_editor` | Power / Torque Curve | GEARHEAD SIMULATOR | universal |
-| `sim_dragstrip` | Simulator — Dragstrip | GEARHEAD SIMULATOR | universal |
-| `sim_gear_rpm` | Simulator — Gear / RPM | GEARHEAD SIMULATOR | universal |
-| `sim_top_speed` | Simulator — Top Speed | GEARHEAD SIMULATOR | universal |
-| `sim_weight_transfer` | Simulator — Weight Transfer | GEARHEAD SIMULATOR | universal |
-| `trailer_sway` | Trailer Sway Risk Check | TOWING & TRAILER | towing |
-| `universal_automotive_converter` | Universal Automotive Unit Converter | UNIVERSAL / UNIT CONVERSIONS | universal |
+**New research additions (17).** All are represented: 11 PLANNED and 6 PARTIALLY IMPLEMENTED (STA → E05, Tuned-Pipe → E07, Valve Acceleration → E08, Throat sizing → Free required-port-area, Test Curve Builder → Free curve editor).
 
-## Premium-only tools (Engineering Lab)
+## Proposed first Premium build batch (not built)
 
-| Code | id | Name | Category | Kind |
-|---|---|---|---|---|
-| E01 | `e01_turbo_compressor_map` | Turbo Compressor Map Builder | Turbo | workbench |
-| E02 | `e02_turbo_surge_choke_margin` | Turbo Surge / Choke Margin Analyzer | Turbo | analyzer |
-| E03 | `e03_turbo_turbine_matching` | Turbo Turbine Matching Analyzer | Turbo | analyzer |
-| E04 | `e04_turbo_pressure_ratio_stack` | Turbo Pressure-Ratio Stack Analyzer | Turbo | analyzer |
-| E05 | `e05_two_stroke_time_area` | 2-Stroke Port Time-Area Analyzer | Two-Stroke | analyzer |
-| E06 | `e06_two_stroke_blowdown` | 2-Stroke Blowdown Analyzer | Two-Stroke | analyzer |
-| E07 | `e07_expansion_chamber_reverse` | 2-Stroke Expansion-Chamber Reverse Analyzer | Two-Stroke | analyzer |
-| E08 | `e08_valvetrain_dynamic_control` | Valvetrain Dynamic Control Analyzer | Valvetrain | analyzer |
-| E09 | `e09_valve_spring_surge` | Valve Spring Natural-Frequency / Surge Analyzer | Valvetrain | analyzer |
-| E10 | `e10_suspension_kinematics` | Suspension Kinematics Lab | Chassis | workbench |
-| E11 | `e11_driveline_dynamics` | Driveline Dynamics Lab | Driveline | workbench |
-| E12 | `e12_radiator_heat_rejection` | Radiator Heat-Rejection Analyzer | Thermal | analyzer |
-| E13 | `e13_intercooler_thermal` | Intercooler Thermal / Pressure-Drop Analyzer | Thermal | analyzer |
-| E14 | `e14_heat_exchanger_matching` | Heat-Exchanger Matching Workbench | Thermal | workbench |
+Each item is new, high-confidence and textbook-grounded, with no Free/Engineering equivalent and no overlap inside the workbook. Two-stroke comes first. The validator enforces these properties.
 
-## Aliases (not counted)
+1. Crankcase Compression Ratio (`p_crankcase_compression_ratio`) · Two-Stroke · calculator
+2. Port Timing from Measured Geometry (`p_port_timing_from_measured_geometry`) · Two-Stroke · analyzer
+3. Two-Stroke Scavenging / Charging Efficiency (`p_two_stroke_scavenging_charging_efficiency`) · Two-Stroke · analyzer
+4. Corrected Compressor Mass Flow + Corrected Turbo Speed (`p_corrected_compressor_mass_flow_and_corrected_turbo_speed`) · Turbo / Air · analyzer
+5. DC Fast-Charge Time with CC–CV Taper (`p_dc_fast_charge_time_with_cc_cv_taper`) · EV / Hybrid · analyzer
+6. Euler Column Buckling (`p_euler_column_buckling`) · Materials & Structural Engineering · calculator
+7. Piston Acceleration (`p_piston_acceleration`) · Engine — Core & Geometry · calculator
+8. Connecting-Rod Angularity (`p_connecting_rod_angularity`) · Engine — Core & Geometry · calculator
+9. Piston Inertial Force (`p_piston_inertial_force`) · Engine — Core & Geometry · calculator
+10. Planetary Gearset Ratio (`p_planetary_gearset_ratio`) · Transmission, Gearing & Clutch · calculator
+11. Cooling System Pressure & Boil Point (`p_cooling_system_pressure_boil_point`) · Cooling, Thermal & HVAC · calculator
+12. Von Mises Stress (`p_von_mises_stress`) · Materials & Structural Engineering · calculator
 
-| Alias id | Resolves to |
-|---|---|
-| `airflow_from_ve` | `engine_airflow` |
-| `carb_cfm` | `carb_sizing` |
-| `fraction_to_decimal` | `fraction_decimal` |
-| `sae_fraction_to_mm` | `inch_fraction_to_mm` |
-| `valve_curtain_area` | `curtain_area` |
-| `volumetric_efficiency` | `volumetric_eff` |
+## Premium access and the database
+
+- **What already works (main, PR #2):**
+  - Supabase Auth with magic link, session restore and sign-out.
+  - Entitlement read from the database (`pf_my_entitlement`), failing closed to Free.
+  - RLS on every table; clients cannot write entitlements.
+  - Premium gates on the Engineering Lab, My Garage and Saved.
+- **What 0407 does not cover for Premium calculators:**
+  1. **Withholding the calculator code.** Calculators are client-side JavaScript served as public static files. E01–E14 are hidden by the UI but `engineering-expansion-v1.js` can be fetched by direct URL. Blocking direct-URL or direct-JavaScript use of Premium calculators needs the code delivered only to Premium accounts. Options:
+     - a private Supabase Storage bucket with a Premium-only access policy;
+     - an RLS-protected table holding the calculator modules;
+     - server-side computation (Edge Function).
+
+     The first two are a database migration (0408); the third deploys server code.
+  2. **A Premium-calculator entitlement feature.** Today the plan features are `engineering_lab`, `saved_calculations` and `garage`. A separate `premium_calculators` feature (or a decision to reuse the Premium plan check) is part of the same migration.
+  3. **Saving Premium calculator results.** Saved calculations reference the frozen `calculators` and `formula_versions` catalog (583 / 577 rows), so each Premium calculator needs catalog rows in a reviewed migration before its results can be saved.
+
+  The catalog metadata itself needs no database change; it lives in this repository.
 
 ## Regenerate and validate
 
-- `node catalog/build-catalog.js` regenerates the JSON. It needs Playwright Chromium and runs without network access.
-- `node catalog/build-catalog.js --check` fails if the committed file no longer matches the sources.
-- `node catalog/check-catalog.js` runs in `premium/tests/run-tests.sh`. It checks:
-  - exactly 606 Free and 14 Premium-only tools;
-  - unique ids and the alias rules;
-  - every `eligible` calculator against the production seed, and no `excluded` one in it;
-  - E01–E14 against `premium/models.js` and `engineering-expansion-v1.js`;
-  - the field vocabulary;
+- `python3 catalog/extract-roadmap.py [--check]`: workbook → `premium-roadmap.json`.
+- `node catalog/reconcile-roadmap.js [--check]`: reviewed findings → `premium-reconciliation.json`.
+- `node catalog/build-catalog.js [--check]`: all sources → `gearhead-catalog.json` (needs Playwright Chromium).
+- `node catalog/check-catalog.js`, which also runs in `premium/tests/run-tests.sh`, checks:
+  - Free = 606, Engineering = 14, Premium roadmap = 147;
+  - workbook arithmetic, and that no Do Not Add item was re-added;
+  - unique ids, and no Free/Premium name or tier overlap;
+  - every candidate is reconciled with real references;
+  - IMPLEMENTED appears only with an implementation;
+  - the first batch is clean;
+  - the production seed fingerprints and E01–E14 match;
   - no marine content.
