@@ -29,7 +29,7 @@
     { id: 'home', label: 'Home', short: 'Home' },
     { id: 'calculators', label: 'Calculators', short: 'Calcs' },
     { id: 'lab', label: 'Engineering Lab', short: 'Lab', feature: 'engineering_lab' },
-    { id: 'garage', label: 'My Garage', short: 'Garage' },
+    { id: 'garage', label: 'My Garage', short: 'Garage', feature: 'garage' },
     { id: 'saved', label: 'Saved', short: 'Saved', feature: 'saved_calculations' },
     { id: 'profile', label: 'Profile', short: 'Profile' }
   ];
@@ -102,19 +102,22 @@
   const field = (label, html, hint = '') => `<label>${label}${html}${hint ? `<small>${hint}</small>` : ''}</label>`;
   const formErrors = () => '<div class="ghp-form-error" hidden></div>';
   function upgradeCTA() {
-    if (S.mode === 'development') return S.auth.user
+    const price = `<div class="ghp-price"><b>Gearhead Labs Premium</b> · ${esc(M.PREMIUM_PRICE_TEXT)}</div>
+      <p class="ghp-fine">Premium includes My Garage, Test Setups, saved calculations and the Engineering Lab. Online checkout is not open yet, so Premium can’t be purchased here today. Every free calculator stays free.</p>`;
+    if (S.mode !== 'development') return price;
+    return price + (S.auth.user
       ? `<div class="ghp-cta-row"><button class="ghp-btn gold" data-action="dev-plan" data-plan="trial">Start development trial</button><button class="ghp-btn" data-action="dev-plan" data-plan="premium">Enable development Premium</button></div><p class="ghp-fine ghp-warn">Development only: a local stand-in for a server-side grant.</p>`
-      : `<div class="ghp-cta-row"><button class="ghp-btn gold" data-go="profile">Sign in to try Premium (development)</button></div>`;
-    return `<div class="ghp-cta-row"><button class="ghp-btn gold" disabled>Premium is coming soon</button></div><p class="ghp-fine">Premium subscriptions are not open yet. All calculators remain free.</p>`;
+      : `<div class="ghp-cta-row"><button class="ghp-btn gold" data-go="profile">Sign in to try Premium (development)</button></div>`);
   }
   function teaser(kind) {
     const T = { lab: ['Engineering Lab', 'Fourteen professional analyzers for turbo matching, two-stroke porting, valvetrain dynamics, chassis, driveline and thermal systems, with saved analyses linked to your vehicles and Test Setups.'],
-      saved: ['Saved calculations', 'Keep calculations with your vehicles and Test Setups, pin the important ones and add notes.'] }[kind];
+      saved: ['Saved calculations', 'Keep calculations with your vehicles and Test Setups, pin the important ones and add notes.'],
+      garage: ['My Garage', 'Your vehicle profiles with year, make, model, engine and transmission, unlimited Test Setups (builds) for each one, and your saved calculations and engineering analyses linked to them.'] }[kind];
     const list = kind === 'lab' ? `<div class="ghp-teaser-list">${M.ENGINEERING_CATEGORIES.map(c => `<div><h3>${c}</h3>${M.ENGINEERING_CATALOG.filter(a => a.category === c).map(a => `<p>${icon('lock', 'ghp-inline-lock')} <b>${a.code}</b> ${esc(a.name)}</p>`).join('')}</div>`).join('')}</div>` : '';
     return page(T[0], 'PREMIUM', `<div class="ghp-card ghp-teaser"><span class="ghp-badge gold">PREMIUM</span><p class="ghp-lede">${T[1]}</p>${list}${upgradeCTA()}<p class="ghp-fine">The free calculators stay free, with no account needed.</p></div>`);
   }
   function signInCard() {
-    if (S.mode === 'no-backend') return `<div class="ghp-card"><h2>Accounts are coming soon</h2><p>Gearhead Labs accounts are not available yet. Every calculator works without an account.</p><button class="ghp-btn" data-go="calculators">Open the calculators</button></div>`;
+    if (S.mode === 'no-backend') return `<div class="ghp-card"><h2>Accounts are unavailable right now</h2><p>Gearhead Labs accounts can’t be reached at the moment. Every calculator still works without an account.</p><button class="ghp-btn" data-go="calculators">Open the calculators</button></div>`;
     const dev = S.mode === 'development';
     return `<div class="ghp-card"><h2>Sign in</h2>${dev ? '<p class="ghp-fine ghp-warn">Development mode: local sign-in, no password, no email. Data stays in this browser.</p>' : '<p>We’ll email you a secure sign-in link.</p>'}
       <form data-form="signin" class="ghp-form" novalidate>${formErrors()}<label>Email<input name="email" type="email" autocomplete="email" inputmode="email" required></label><button class="ghp-btn gold" type="submit">${dev ? 'Sign in (development)' : 'Email me a sign-in link'}</button></form></div>`;
@@ -142,11 +145,11 @@
       }
       const tile = (id, title, stat, desc, feature) => { const locked = feature && !S.entitlements.has(feature);
         return `<button class="ghp-tile${locked ? ' locked' : ''}" data-go="${id}"><div class="ghp-tile-top"><span>${locked ? icon('lock', 'ghp-inline-lock') + ' PREMIUM' : feature ? 'PREMIUM' : 'FREE'}</span><b>${stat}</b></div><h3>${title}</h3><p>${desc}</p></button>`; };
-      const garageStat = vehicles == null ? (prem ? '∞' : '1') : prem ? String(vehicles) : `${vehicles}/${M.FREE_MACHINE_LIMIT}`;
+      const garageStat = vehicles == null || !S.entitlements.has('garage') ? '' : String(vehicles);
       return `<section class="ghp-page"><div class="ghp-hero"><div class="ghp-kicker">GEARHEAD LABS / THE SCIENCE OF SPEED</div><h1>${u ? `Welcome back, ${esc(u.email)}` : 'The Automotive Math Encyclopedia'}</h1>
-        <p class="ghp-lede">${prem ? 'Your Premium workshop: garage, Test Setups, engineering analyses and saved calculations.' : 'Free calculators, no account needed. A free account adds My Garage with one vehicle and unlimited Test Setups; Premium adds more vehicles, the Engineering Lab and saved calculations.'}</p>
+        <p class="ghp-lede">${prem ? 'Your Premium workshop: garage, Test Setups, engineering analyses and saved calculations.' : `${freeCount()} free calculators, no account needed. Gearhead Labs Premium (${esc(M.PREMIUM_PRICE_TEXT)}) adds My Garage with your vehicles and Test Setups, saved calculations and the Engineering Lab.`}</p>
         <div class="ghp-plan-line"><span class="ghp-plan-pill ${prem ? 'premium' : ''}">${esc(M.planLabel(ent))}</span>${S.mode === 'development' ? '<span class="ghp-dev-pill">DEVELOPMENT</span>' : ''}${u ? '' : '<button class="ghp-link" data-go="profile">Sign in</button>'}</div></div>
-        <div class="ghp-tiles">${tile('calculators', 'Free Calculators', freeCount(), 'Every free automotive calculator, ready to use.')}${tile('garage', 'My Garage', garageStat, prem ? 'Your vehicles and their Test Setups.' : 'One vehicle and unlimited Test Setups, free.')}${tile('lab', 'Engineering Lab', '14', 'Turbo, two-stroke, valvetrain, chassis, driveline and thermal analyzers.', 'engineering_lab')}${tile('saved', 'Saved', '★', 'Saved calculations with your vehicles and setups.', 'saved_calculations')}</div>
+        <div class="ghp-tiles">${tile('calculators', 'Free Calculators', freeCount(), 'Every free automotive calculator, ready to use.')}${tile('garage', 'My Garage', garageStat, 'Your vehicles, their Test Setups and everything you saved for them.', 'garage')}${tile('lab', 'Engineering Lab', '14', 'Turbo, two-stroke, valvetrain, chassis, driveline and thermal analyzers.', 'engineering_lab')}${tile('saved', 'Saved', '★', 'Saved calculations with your vehicles and setups.', 'saved_calculations')}</div>
         ${recent.length ? `<div class="ghp-card"><h2>Recent analyses</h2>${recent.map(a => analysisRow(a, null, false)).join('')}</div>` : ''}
       </section>`;
     },
@@ -171,19 +174,18 @@
     },
 
     async garage() {
-      if (!S.auth.user) return needAccount('My Garage', 'FREE · 1 VEHICLE');
-      if (state.edit) return machineForm(state.edit === 'new' ? null : await R.machines.get(state.edit));
+      if (!S.auth.user) return needAccount('My Garage', 'PREMIUM');
+      const canEdit = S.entitlements.has('garage');
+      if (state.edit) return canEdit ? machineForm(state.edit === 'new' ? null : await R.machines.get(state.edit)) : teaser('garage');
       if (state.machine) return machineDetail(state.machine);
-      const [ms, al, g] = await Promise.all([R.machines.list(), R.machines.allowance(), R.garage.get()]);
-      const meter = al.limit == null
-        ? `<p class="ghp-muted">${al.used} vehicle${al.used === 1 ? '' : 's'} · more with Premium</p>`
-        : `<div class="ghp-meter" role="meter" aria-valuemin="0" aria-valuemax="${al.limit}" aria-valuenow="${al.used}" aria-label="Vehicles used"><div class="ghp-meter-bar" style="width:${Math.min(100, 100 * al.used / al.limit)}%"></div></div><p class="ghp-muted">${al.used} of ${al.limit} vehicle${al.limit === 1 ? '' : 's'} on the Free plan · unlimited Test Setups</p>`;
-      const add = al.canAdd ? `<button class="ghp-btn gold" data-edit-machine="new">+ Add vehicle</button>` : '';
-      const full = al.canAdd ? '' : `<div class="ghp-card ghp-teaser"><h2>Your Free garage is full</h2><p>${esc(M.MESSAGES.free_machine_limit)}</p>${upgradeCTA()}</div>`;
-      return page(esc((g && g.name) || 'My Garage'), S.entitlements.has('garage_unlimited') ? 'PREMIUM' : 'FREE', `<div class="ghp-card">${meter}</div>${full}
+      const [ms, g] = await Promise.all([R.machines.list(), R.garage.get()]);
+      if (!canEdit && !ms.length) return teaser('garage');
+      const add = canEdit ? `<button class="ghp-btn gold" data-edit-machine="new">+ Add vehicle</button>` : '';
+      const lapsed = canEdit ? '' : `<div class="ghp-card"><p class="ghp-fine">Your plan no longer includes My Garage. Your vehicles and Test Setups stay available to review and delete.</p>${upgradeCTA()}</div>`;
+      return page(esc((g && g.name) || 'My Garage'), canEdit ? 'PREMIUM' : 'READ ONLY', `${lapsed}
         ${ms.length ? `<div class="ghp-list">${ms.map(m => `<article class="ghp-card ghp-vehicle"><div class="ghp-row-top"><h2>${esc(machineName(m))}</h2>${m.is_primary ? '<span class="ghp-badge gold">PRIMARY</span>' : ''}</div>
             <p class="ghp-chips">${[M.labelFor('machine_type', m.machine_type), m.power_source && M.labelFor('power_source', m.power_source), m.engine && m.engine.label, m.transmission && m.transmission.label, m.drivetrain, m.is_hypothetical && 'Planned'].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join('')}</p>
-            <div class="ghp-actions"><button class="ghp-btn" data-go-machine="${esc(m.id)}">Open</button><button class="ghp-btn" data-edit-machine="${esc(m.id)}">Edit</button>${m.is_primary ? '' : `<button class="ghp-btn" data-action="primary" data-id="${esc(m.id)}">Make primary</button>`}</div></article>`).join('')}</div>`
+            <div class="ghp-actions"><button class="ghp-btn" data-go-machine="${esc(m.id)}">Open</button>${canEdit ? `<button class="ghp-btn" data-edit-machine="${esc(m.id)}">Edit</button>${m.is_primary ? '' : `<button class="ghp-btn" data-action="primary" data-id="${esc(m.id)}">Make primary</button>`}` : ''}</div></article>`).join('')}</div>`
           : `<div class="ghp-card ghp-empty"><h2>Your garage is empty</h2><p>Add your vehicle to start Test Setups for it.</p></div>`}`, add);
     },
 
@@ -253,7 +255,7 @@
   async function machineDetail(id) {
     const m = await R.machines.get(id);
     const [setups, an, saved] = await Promise.all([R.testSetups.list(id), R.analyses.list({ machine_id: id }), R.savedCalculations.list({ machine_id: id })]);
-    const d = m.details || {}, editing = state.setup;
+    const canEdit = S.entitlements.has('garage'), d = m.details || {}, editing = canEdit ? state.setup : null;
     const setupForm = t => { const x = t || {}; return `<form data-form="setup" class="ghp-card ghp-form ghp-inset" data-id="${esc(t ? t.id : '')}" novalidate><h3>${t ? 'Edit Test Setup' : 'New Test Setup'}</h3>${formErrors()}
         <input type="hidden" name="machine_id" value="${esc(id)}">
         ${field('Name *', `<input name="name" maxlength="120" value="${esc(x.name)}" required>`)}
@@ -265,12 +267,12 @@
       ['Status', m.is_hypothetical ? 'Planned / hypothetical' : null]].filter(r => r[1]);
     return page(esc(machineName(m)), 'MY GARAGE', `<button class="ghp-link ghp-back" data-go="garage">← All vehicles</button>
       <div class="ghp-card"><div class="ghp-row-top"><h2>Vehicle</h2>${m.is_primary ? '<span class="ghp-badge gold">PRIMARY</span>' : ''}</div><dl class="ghp-dl">${specs.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>${d.notes ? `<p class="ghp-notes">${esc(d.notes)}</p>` : ''}
-        <div class="ghp-actions"><button class="ghp-btn" data-edit-machine="${esc(m.id)}">Edit vehicle</button>${m.is_primary ? '' : `<button class="ghp-btn" data-action="primary" data-id="${esc(m.id)}">Make primary</button>`}</div></div>
-      <div class="ghp-card"><div class="ghp-row-top"><h2>Test Setups <span class="ghp-muted">(${setups.length})</span></h2>${editing ? '' : '<button class="ghp-btn gold" data-new-setup>+ Add Test Setup</button>'}</div>
-        <p class="ghp-fine">A Test Setup (build) is a named configuration of this vehicle with a pinned baseline. Unlimited on every plan.</p>
+        ${canEdit ? `<div class="ghp-actions"><button class="ghp-btn" data-edit-machine="${esc(m.id)}">Edit vehicle</button>${m.is_primary ? '' : `<button class="ghp-btn" data-action="primary" data-id="${esc(m.id)}">Make primary</button>`}</div>` : ''}</div>
+      <div class="ghp-card"><div class="ghp-row-top"><h2>Test Setups <span class="ghp-muted">(${setups.length})</span></h2>${editing || !canEdit ? '' : '<button class="ghp-btn gold" data-new-setup>+ Add Test Setup</button>'}</div>
+        <p class="ghp-fine">A Test Setup (build) is a named configuration of this vehicle with a pinned baseline. Unlimited with Premium.</p>
         ${editing === 'new' ? setupForm(null) : ''}
         ${setups.map(t => editing === t.id ? setupForm(t) : `<article class="ghp-build"><div class="ghp-row-top"><h3>${esc(t.name)}</h3><span class="ghp-badge" title="Baseline pinned">● ${date(t.baseline_pinned_at)}</span></div>${t.description ? `<p>${esc(t.description)}</p>` : ''}${t.notes ? `<p class="ghp-notes">${esc(t.notes)}</p>` : ''}
-          <div class="ghp-actions"><button class="ghp-btn" data-edit-setup="${esc(t.id)}">Edit</button><button class="ghp-btn" data-action="repin-setup" data-id="${esc(t.id)}">Re-pin baseline</button><button class="ghp-btn danger" data-action="delete-setup" data-id="${esc(t.id)}">Delete</button></div></article>`).join('') || (editing ? '' : '<p class="ghp-muted">No Test Setups yet.</p>')}</div>
+          <div class="ghp-actions">${canEdit ? `<button class="ghp-btn" data-edit-setup="${esc(t.id)}">Edit</button><button class="ghp-btn" data-action="repin-setup" data-id="${esc(t.id)}">Re-pin baseline</button>` : ''}<button class="ghp-btn danger" data-action="delete-setup" data-id="${esc(t.id)}">Delete</button></div></article>`).join('') || (editing ? '' : '<p class="ghp-muted">No Test Setups yet.</p>')}</div>
       ${an.length ? `<div class="ghp-card"><h2>Engineering analyses <span class="ghp-muted">(${an.length})</span></h2>${an.map(a => analysisRow(a, null, false)).join('')}</div>` : ''}
       ${saved.length ? `<div class="ghp-card"><h2>Saved calculations <span class="ghp-muted">(${saved.length})</span></h2>${saved.map(s => `<p>${esc(s.title)}${s.pinned ? ' <span class="ghp-badge gold">PINNED</span>' : ''}</p>`).join('')}<button class="ghp-link" data-go="saved">Open saved calculations</button></div>` : ''}
       <button class="ghp-btn danger wide" data-action="delete-machine" data-id="${esc(m.id)}">Delete vehicle</button>`);

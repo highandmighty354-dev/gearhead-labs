@@ -200,15 +200,17 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
     const { M } = load();
     const free = M.entitlementFromRpc([{ plan_key: 'free', is_premium: false, features: [], source: null, ends_at: null }]);
     eq({ ...free }, { signedIn: true, plan: 'free', isPremium: false, features: [], source: null, endsAt: null, isTrial: false }, 'free');
-    const prem = M.entitlementFromRpc([{ plan_key: 'premium', is_premium: true, features: ['saved_calculations', 'engineering_lab', 'garage_unlimited', 'bogus'], source: 'manual', ends_at: null }]);
-    eq([prem.plan, prem.isPremium, [...prem.features], prem.source, prem.isTrial], ['premium', true, ['engineering_lab', 'garage_unlimited', 'saved_calculations'], 'manual', false], 'premium');
+    const prem = M.entitlementFromRpc([{ plan_key: 'premium', is_premium: true, features: ['saved_calculations', 'engineering_lab', 'garage', 'garage_unlimited', 'bogus'], source: 'manual', ends_at: null }]);
+    eq([prem.plan, prem.isPremium, [...prem.features], prem.source, prem.isTrial], ['premium', true, ['engineering_lab', 'garage', 'saved_calculations'], 'manual', false], 'premium (retired / unknown features dropped)');
     const trial = M.entitlementFromRpc({ plan_key: 'premium', is_premium: true, features: ['engineering_lab'], source: 'trial', ends_at: '2099-01-01T00:00:00Z' });
     eq([trial.isTrial, trial.endsAt, M.planLabel(trial)], [true, '2099-01-01T00:00:00.000Z', 'Premium (trial)'], 'trial grant');
     eq(M.planLabel(prem, M.subscriptionView({ stripe_subscription_id: 'sub_1', status: 'trialing' })), 'Premium (trial)', 'Stripe trialing');
     for (const junk of [[], null, undefined, 'x', [{}], [{ plan_key: 'premium', is_premium: 'yes' }], [{ plan_key: 'free', is_premium: true, features: ['engineering_lab'] }], [{ is_premium: true }]])
       eq(M.entitlementFromRpc(junk).isPremium, false, 'fails closed for ' + JSON.stringify(junk));
     eq(M.entitlementFromRpc([{ plan_key: 'premium', is_premium: true, features: [], source: 'hack' }]).source, null, 'unknown source');
-    assert(M.canAddMachine(free, 0) && !M.canAddMachine(free, 1) && M.canAddMachine(prem, 5) && !M.canAddMachine(trial, 1), 'machine allowance helper');
+    assert(!M.hasFeature(free, 'garage') && M.hasFeature(prem, 'garage') && !M.hasFeature(trial, 'garage'), 'garage is a Premium feature');
+    assert(!('canAddMachine' in M) && !('FREE_MACHINE_LIMIT' in M), 'the retired Free vehicle allowance is gone');
+    eq([M.PREMIUM_PRICE_TEXT, M.PREMIUM_OFFERS.map(o => [o.interval, o.currency, o.amount])], ['$5.99/month or $59.99/year', [['month', 'usd', 599], ['year', 'usd', 5999]]], 'approved offers');
     const env = await ready(c => c.op === 'rpc' ? { data: [{ plan_key: 'premium', is_premium: true, features: ['engineering_lab'], source: 'stripe', ends_at: null }], error: null } : undefined);
     eq((await env.A.entitlement.mine()).signedIn, false, 'anonymous');
     eq(env.client.calls.filter(c => c.op === 'rpc').length, 0, 'no rpc while signed out');
@@ -218,11 +220,11 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
     eq(env.client.calls.filter(c => c.op === 'rpc').map(c => [c.fn, c.args]), [['pf_my_entitlement', undefined]], 'rpc call');
   });
   // 12-17 (+ session / network)
-  const ALLOWANCE = 'new row violates row-level security policy "pf_machines_free_allowance" for table "machines"';
-  await test('12. 42501 naming pf_machines_free_allowance -> Free includes 1 vehicle + upgrade (and a plain 42501 -> not allowed)', async () => {
-    const { A } = await ready(pgErr('42501', ALLOWANCE, 403));
-    const e = await rejects(A.tables.machines.insert({ garage_id: U1, name: 'Second', machine_type: 'automotive' }));
-    eq([e.kind, e.upgrade, e.message], ['free_machine_limit', true, 'Free includes 1 vehicle. Upgrade to Gearhead Labs Premium to add more.'], 'mapped');
+  const GARAGE_DENIED = 'new row violates row-level security policy "pf_garage_premium_insert" for table "machines"';
+  await test('12. 42501 naming a pf_garage_premium policy -> My Garage is Premium + upgrade (and a plain 42501 -> not allowed)', async () => {
+    const { A } = await ready(pgErr('42501', GARAGE_DENIED, 403));
+    const e = await rejects(A.tables.machines.insert({ garage_id: U1, name: 'First', machine_type: 'automotive' }));
+    eq([e.kind, e.upgrade, e.message], ['premium_garage', true, 'My Garage is part of Gearhead Labs Premium.'], 'mapped');
     const { M } = load();
     const f = M.mapError({ code: '42501', message: 'new row violates row-level security policy for table "engineering_analyses"' });
     eq([f.kind, f.upgrade], ['forbidden', false], 'plain 42501');
@@ -570,18 +572,20 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
     await new Promise(r => setTimeout(r, 10));
     eq([S.mode, seen, S.auth.user], ['no-backend', ['no-backend'], null], 'fallback');
   });
-  await test('services: Free garage flow (create with specs, allowance, drivetrain/notes merge, components, primary, Test Setups)', async () => {
+  await test('services: Free has no Garage; Premium garage flow (create with specs, drivetrain/notes merge, components, primary, Test Setups)', async () => {
     const env = browserEnv({ hostname: 'localhost', files: ['models', 'dev-local', 'services'] });
     const S = env.window.GHP.services, R = S.repos; await S.ready;
     await rejects(R.machines.list(), e => assert(e.signIn, 'sign-in required'));
     await S.auth.signIn({ email: 'driver@example.test' }); await new Promise(r => setTimeout(r, 5));
     eq(S.entitlements.state.plan, 'free', 'free');
+    eq((await rejects(R.machines.create({ machine_type: 'automotive', make: 'Ford' }))).kind, 'forbidden', 'Free cannot add a vehicle');
+    eq((await rejects(R.garage.rename('Mine'))).upgrade, true, 'Free cannot create a garage');
+    eq((await R.machines.list()).length, 0, 'Free has no vehicles');
+    await S.dev.setPlan('premium');
     const m = await R.machines.create({ model_year: '2019', make: 'Ford', model: 'Mustang', machine_type: 'automotive', power_source: 'gasoline', engine: '5.0L V8', transmission: '6-speed manual', drivetrain: 'RWD', notes: 'Weekend car', is_primary: false });
     eq([m.name, m.is_primary, m.engine.label, m.transmission.label, m.drivetrain, m.details.notes], ['2019 Ford Mustang', true, '5.0L V8', '6-speed manual', 'RWD', 'Weekend car'], 'created view (first vehicle becomes primary)');
-    eq(await R.machines.allowance(), { used: 1, limit: 1, canAdd: false }, 'allowance');
-    const before = (await R.machines.list()).length;
-    eq((await rejects(R.machines.create({ machine_type: 'motorcycle', make: 'Honda' }))).kind, 'free_machine_limit', 'second vehicle');
-    eq((await R.machines.list()).length, before, 'nothing half-created');
+    const m2 = await R.machines.create({ machine_type: 'motorcycle', make: 'Honda' });
+    eq([(await R.machines.list()).length, m2.is_primary], [2, false], 'Premium adds more vehicles');
     let u = await R.machines.update(m.id, { drivetrain: 'AWD' });
     eq([u.drivetrain, u.details.notes], ['AWD', 'Weekend car'], 'drivetrain change keeps notes');
     u = await R.machines.update(m.id, { notes: 'Track car' });
@@ -598,7 +602,7 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
     eq((await R.profile.saveMine({ display_name: 'Driver', experience_level: 'enthusiast', favorite_machine_id: m.id })).display_name, 'Driver', 'profile save ignores favorite_machine_id');
     eq(await R.billing.subscriptions(), [], 'subscriptions');
     await R.machines.remove(m.id);
-    eq(await R.machines.allowance(), { used: 0, limit: 1, canAdd: true }, 'deleting frees the allowance');
+    eq((await R.machines.list()).length, 1, 'vehicle deleted');
   });
   await test('services: Premium analyses from a bridge capture (size limit, links, version), saved calculations without create, lapse', async () => {
     const env = browserEnv({ hostname: 'localhost', files: ['models', 'dev-local', 'services'] });
@@ -607,7 +611,7 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
     const snap = { analyzer_id: 'e13_intercooler_thermal', input_data: { schema: 1, analyzer_id: 'e13_intercooler_thermal', unit_system: 'metric', fields: { a: { value: '1', unit: '', canonical: null } } }, result_data: { schema: 1, results: [] } };
     await rejects(R.analyses.saveNew(snap, { title: 'IC' }), e => eq([e.kind, e.upgrade], ['forbidden', true], 'Free cannot save analyses'));
     await S.dev.setPlan('premium');
-    eq([S.entitlements.isPremium(), S.entitlements.has('garage_unlimited')], [true, true], 'premium');
+    eq([S.entitlements.isPremium(), S.entitlements.has('garage')], [true, true], 'premium');
     const m1 = await R.machines.create({ machine_type: 'automotive', make: 'BMW', model: 'M3' }), m2 = await R.machines.create({ machine_type: 'motorcycle', make: 'Ducati' });
     await R.machines.setPrimary(m2.id);
     eq((await R.machines.list()).map(m => [m.make || m.details.make, m.is_primary]), [['Ducati', true], ['BMW', false]], 'primary moved, listed first');
@@ -628,8 +632,12 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
     eq((await R.savedCalculations.list()).length, 1, 'lapsed read');
     eq((await R.analyses.list()).length, 1, 'lapsed analyses read');
     await R.analyses.remove(a.id); await R.savedCalculations.remove(sc.id);
-    eq((await R.machines.list()).length, 2, 'machines retained');
-    await rejects(R.machines.create({ machine_type: 'automotive', make: 'Audi' }), e => eq(e.kind, 'free_machine_limit', 'lapsed cannot add'));
+    eq((await R.machines.list()).length, 2, 'machines retained (read)');
+    await rejects(R.machines.create({ machine_type: 'automotive', make: 'Audi' }), e => eq([e.kind, e.upgrade], ['forbidden', true], 'lapsed cannot add'));
+    await rejects(R.machines.update(m1.id, { make: 'Edit' }), e => eq(e.kind, 'forbidden', 'lapsed cannot edit'));
+    await rejects(R.testSetups.create({ machine_id: m1.id, name: 'New' }), e => eq(e.kind, 'forbidden', 'lapsed cannot add Test Setups'));
+    await R.testSetups.remove(ts.id); await R.machines.remove(m2.id);
+    eq((await R.machines.list()).length, 1, 'lapsed can delete');
   });
   await test('services: setting the primary vehicle sends exactly ONE write (no client-side clearing anywhere in the live code)', async () => {
     // client code never clears the flag; the development adapter emulates the DATABASE (column default + 0404 trigger)
@@ -637,7 +645,7 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
     const devSrc = stripComments(read('premium/adapters/dev-local.js'));
     eq((devSrc.match(/is_primary\s*=\s*false/g) || []).length, 1, 'dev adapter clears the flag in exactly one place');
     assert(/function movePrimary[\s\S]{0,200}is_primary = false/.test(devSrc), 'that place is the trigger emulation (movePrimary)');
-    const client = fakeClient(c => c.op === 'rpc' ? { data: [{ plan_key: 'premium', is_premium: true, features: ['garage_unlimited'], source: 'manual', ends_at: null }], error: null }
+    const client = fakeClient(c => c.op === 'rpc' ? { data: [{ plan_key: 'premium', is_premium: true, features: ['garage'], source: 'manual', ends_at: null }], error: null }
       : c.op === 'update' ? { data: [{ machine_id: U2, is_primary: true }], error: null }
       : c.table === 'machine_details' && c.op === 'select' ? { data: [{ machine_id: U1, is_primary: true }, { machine_id: U2, is_primary: false }], error: null } : undefined);
     client.session = { user: { id: U1, email: 'a@x.test' } };
@@ -657,7 +665,7 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
     client.session = { user: { id: U1, email: 'a@x.test' } };
     const env = browserEnv({ files: ['models', 'foundation', 'services'], client });
     const S = env.window.GHP.services; await S.ready;
-    eq([S.entitlements.state.isTrial, S.entitlements.has('engineering_lab'), S.entitlements.has('garage_unlimited')], [true, true, false], 'from pf_my_entitlement');
+    eq([S.entitlements.state.isTrial, S.entitlements.has('engineering_lab'), S.entitlements.has('garage')], [true, true, false], 'from pf_my_entitlement');
     assert(!('setPlan' in S.entitlements) && S.dev === null, 'no client-side grant path in production');
     const authEvents = []; S.on('auth', u => authEvents.push(u));
     await rejects(S.repos.machines.list(), e => eq(e.kind, 'session_expired', 'expired'));

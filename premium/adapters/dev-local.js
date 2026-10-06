@@ -3,8 +3,9 @@
    analyses), backed by an in-browser store that emulates the approved database rules so the UI behaves exactly as
    it will in production:
      - row visibility by owner, hidden after soft delete (and with a deleted machine or garage)
-     - one active garage per owner; Free = 1 active machine (the 0404 allowance error); Premium more
-     - primary flag moves on write (0404 trigger); unlimited Test Setups; baseline re-pin
+     - one active garage per owner; garage data is written only with Premium's 'garage' feature (the 0407 policy
+       error); lapsed / former Premium owners read and delete
+     - primary flag moves on write (0404 trigger); unlimited Test Setups for Premium; baseline re-pin
      - engineering analyses need engineering_lab, version pinned to the catalog; saved calculations need
        saved_calculations to edit; nobody can create a saved calculation; lapsed users read and delete
      - the same validation (models.prepareInsert / prepareUpdate) and the same error codes, mapped by models.mapError
@@ -19,7 +20,7 @@
   const ROW_TABLES = ['profiles', 'garages', 'machines', 'machine_details', 'components', 'test_setups', 'saved_calculations',
     'engineering_analyses', 'calculation_records'];
   const ANALYZER_VERSION = 'E1-AUTO';
-  const PLAN_FEATURES = { free: [], premium: ['engineering_lab', 'saved_calculations', 'garage_unlimited'] };
+  const PLAN_FEATURES = { free: [], premium: ['engineering_lab', 'saved_calculations', 'garage'] };   // mirrors plans after 0407
   const LIST_LIMIT = 500;
 
   const emptyStore = () => ({ v: 2, users: {}, session: null, grants: [], rows: Object.fromEntries(ROW_TABLES.map(t => [t, []])) });
@@ -42,7 +43,9 @@
   const clone = v => v == null ? v : JSON.parse(JSON.stringify(v));
   /* Raise the same error the database would; models.mapError turns it into the same GHPError. */
   const fail = (code, message) => { throw M.mapError({ code, message }); };
-  const ALLOWANCE = 'new row violates row-level security policy "pf_machines_free_allowance" for table "machines"';
+  /* 0407: garage tables are writable only with the Premium 'garage' feature (restrictive insert/update policies). */
+  const GARAGE_TABLES = ['garages', 'machines', 'machine_details', 'components', 'test_setups'];
+  const garageDenied = (table, cmd) => fail('42501', `new row violates row-level security policy "pf_garage_premium_${cmd}" for table "${table}"`);
 
   function create() {
     const listeners = new Set();
@@ -106,6 +109,7 @@
 
     function insertRow(table, row) {
       const s = load(), owner = requireUid(), t = now();
+      if (GARAGE_TABLES.includes(table) && !hasFeature(s, owner, 'garage')) garageDenied(table, 'insert');
       const base = { owner_id: owner, created_at: t, updated_at: t, deleted_at: null };
       let rec;
       switch (table) {
@@ -113,7 +117,6 @@
           if (visible(s, 'garages', owner).length) fail('23505', 'duplicate key value violates unique constraint "garages_one_active_per_owner"');
           rec = { id: uuid(), ...base, name: null, ...row }; break;
         case 'machines': {
-          if (!hasFeature(s, owner, 'garage_unlimited') && visible(s, 'machines', owner).length >= M.FREE_MACHINE_LIMIT) fail('42501', ALLOWANCE);
           if (!R(s).garages.some(g => g.id === row.garage_id && g.owner_id === owner)) fail('23503', 'insert or update violates foreign key constraint (garage)');
           rec = { id: uuid(), ...base, power_source: null, is_hypothetical: false, ...row }; break;
         }
@@ -147,6 +150,7 @@
       const s = load(), owner = requireUid(), keyCol = M.TABLES[table].key;
       const target = visible(s, table, owner).find(r => r[keyCol] === key);
       if (!target) return null;   // zero rows (RLS hides it, or it is gone)
+      if (GARAGE_TABLES.includes(table) && !hasFeature(s, owner, 'garage')) garageDenied(table, 'update');
       if (table === 'saved_calculations' && !hasFeature(s, owner, 'saved_calculations')) fail('42501', 'new row violates row-level security policy for table "saved_calculations"');
       if (table === 'engineering_analyses' && !hasFeature(s, owner, 'engineering_lab')) fail('42501', 'new row violates row-level security policy for table "engineering_analyses"');
       const next = { ...target, ...patch };

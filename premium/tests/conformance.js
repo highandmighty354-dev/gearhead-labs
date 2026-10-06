@@ -16,7 +16,16 @@ function helpers() {
 }
 
 const scenarios = [
-  ['Free: one garage (idempotent), one machine, details + components; a second machine is refused with the allowance error', async (ctx, s, { eq, assert, rejects }) => {
+  ['Free: no Garage — creating a garage, vehicle, component or Test Setup is refused with the Premium error', async (ctx, s, { eq, assert, rejects }) => {
+    const A = await ctx.as('free'), M = ctx.M;
+    const e = await rejects(A.garage.ensure());
+    eq([e.kind, e.upgrade], ['premium_garage', true], 'garage refused');
+    eq((await A.tables.garages.list()).length, 0, 'no garage created');
+    const ent = await A.entitlement.mine();
+    eq([ent.plan, ent.isPremium, M.hasFeature(ent, 'garage')], ['free', false, false], 'Free has no garage feature');
+  }],
+  ['Second account built while Premium: one garage (idempotent), vehicle, details + components, unlimited Test Setups; then the grant ends', async (ctx, s, { eq, assert, rejects }) => {
+    await ctx.grant('free');
     const A = await ctx.as('free'), M = ctx.M;
     const g = await A.garage.ensure();
     eq((await A.garage.ensure()).id, g.id, 'ensure is idempotent');
@@ -28,24 +37,23 @@ const scenarios = [
     assert(d.is_primary && /Drivetrain: 4WD/.test(d.notes), 'details');
     for (const c of v.components) await A.tables.components.insert(Object.assign({ machine_id: m.id }, c));
     eq((await A.tables.components.list({ machine_id: m.id })).map(c => c.kind).sort(), ['engine', 'transmission'], 'components');
-    const second = await rejects(A.tables.machines.insert({ garage_id: g.id, name: 'Second', machine_type: 'motorcycle' }));
-    eq([second.kind, second.upgrade], ['free_machine_limit', true], 'allowance');
     const dup = await rejects(A.tables.garages.insert({ name: 'Another' }));
     eq(dup.kind, 'conflict', 'second active garage');
-    Object.assign(s, { freeGarage: g.id, freeMachine: m.id });
-  }],
-  ['Free: unlimited Test Setups with edit, re-pin and permanent soft delete', async (ctx, s, { eq, rejects }) => {
-    const A = await ctx.as('free'), M = ctx.M, ids = [];
+    const ids = [];
     for (const b of [{ name: 'Street', goals: '12s', status: 'Street' }, { name: 'Track' }, { name: 'Dyno' }, { name: 'Winter' }, { name: 'Show' }])
-      ids.push((await A.tables.test_setups.insert(Object.assign({ machine_id: s.freeMachine }, M.fromPhase3aBuild(b)))).id);
-    eq((await A.tables.test_setups.list({ machine_id: s.freeMachine })).length, 5, 'five setups on a Free account');
+      ids.push((await A.tables.test_setups.insert(Object.assign({ machine_id: m.id }, M.fromPhase3aBuild(b)))).id);
+    eq((await A.tables.test_setups.list({ machine_id: m.id })).length, 5, 'five setups');
     eq((await A.tables.test_setups.update(ids[0], { notes: 'edited' })).notes, 'edited', 'edit');
     eq(await A.testSetups.repinBaseline(ids[1]), true, 're-pin');
     await A.tables.test_setups.softDelete(ids[4]);
     eq((await A.tables.test_setups.list()).length, 4, 'hidden after delete');
     eq((await rejects(A.tables.test_setups.softDelete(ids[4]))).kind, 'not_found', 'second delete');
     eq((await rejects(A.tables.test_setups.update(ids[4], { name: 'back' }))).kind, 'not_found', 'deleted row cannot be edited');
-    s.freeSetup = ids[0];
+    await ctx.revoke('free');
+    const A2 = await ctx.as('free');
+    eq((await A2.tables.machines.list()).length, 1, 'former Premium keeps read access');
+    eq((await rejects(A2.tables.test_setups.insert({ machine_id: m.id, name: 'After' }))).kind, 'premium_garage', 'no new Test Setup once Free');
+    Object.assign(s, { freeGarage: g.id, freeMachine: m.id, freeSetup: ids[0] });
   }],
   ['Free: no engineering analyses, no saved-calculation create, entitlement reads Free', async (ctx, s, { eq }) => {
     const A = await ctx.as('free'), M = ctx.M;
@@ -54,7 +62,7 @@ const scenarios = [
     eq(A.tables.saved_calculations.insert, undefined, 'no create method');
     eq(A.capabilities.savedCalculationCreate, false, 'capability');
     const ent = await A.entitlement.mine();
-    eq([ent.plan, ent.isPremium, M.canAddMachine(ent, 1)], ['free', false, false], 'entitlement');
+    eq([ent.plan, ent.isPremium, M.hasFeature(ent, 'garage')], ['free', false, false], 'entitlement');
   }],
   ['Premium: several machines; primary set with one write and moved by the backend, also after deleting the primary', async (ctx, s, { eq }) => {
     await ctx.grant('premium');
@@ -70,7 +78,7 @@ const scenarios = [
     eq((await B.tables.machine_details.list()).filter(d => d.is_primary).map(d => d.machine_id), [ms[2]], 'no lock-in after deleting the primary');
     eq((await B.tables.machines.list()).length, 2, 'deleted machine hidden');
     const ent = await B.entitlement.mine();
-    eq([ent.isPremium, ent.source, ctx.M.canAddMachine(ent, 2)], [true, 'manual', true], 'entitlement');
+    eq([ent.isPremium, ent.source, ctx.M.hasFeature(ent, 'garage')], [true, 'manual', true], 'entitlement');
     Object.assign(s, { premGarage: g.id, premMachine: ms[0], premMachine3: ms[2] });
   }],
   ['Premium: analysis version pinned from the catalog, machine filled from the Test Setup, edit, immutable analyzer, soft delete', async (ctx, s, { eq, rejects }) => {
@@ -99,15 +107,16 @@ const scenarios = [
     eq((await B.tables.saved_calculations.list()).length, 1, 'deleted');
     s.premSaved = rows[0].id;
   }],
-  ['Lapsed Premium: keeps machines, saved calculations and analyses to read and delete; nothing Premium-only can be created or edited', async (ctx, s, { eq, rejects }) => {
+  ['Lapsed Premium: keeps garage, saved calculations and analyses to read and delete; nothing Premium-only can be created or edited', async (ctx, s, { eq, rejects }) => {
     await ctx.revoke('premium');
     const B = await ctx.as('premium');
     const ent = await B.entitlement.mine();
     eq(ent.isPremium, false, 'lapsed');
     eq((await B.tables.machines.list()).length, 2, 'machines retained');
-    eq((await rejects(B.tables.machines.insert({ garage_id: s.premGarage, name: 'Fourth', machine_type: 'automotive' }))).kind, 'free_machine_limit', 'no new machine');
-    eq((await B.tables.machine_details.update(s.premMachine, { make: 'Still mine' })).make, 'Still mine', 'existing machines editable');
-    eq((await B.tables.test_setups.insert({ machine_id: s.premMachine, name: 'Lapsed setup' })).name, 'Lapsed setup', 'Test Setups stay unlimited');
+    eq((await rejects(B.tables.machines.insert({ garage_id: s.premGarage, name: 'Fourth', machine_type: 'automotive' }))).kind, 'premium_garage', 'no new machine');
+    eq((await rejects(B.tables.machine_details.update(s.premMachine, { make: 'Edit' }))).kind, 'premium_garage', 'garage edit refused');
+    eq((await rejects(B.tables.test_setups.insert({ machine_id: s.premMachine, name: 'Lapsed setup' }))).kind, 'premium_garage', 'no new Test Setup');
+    eq((await B.tables.test_setups.list({ machine_id: s.premMachine })).length, 1, 'Test Setups readable');
     eq((await B.tables.engineering_analyses.list()).length, 1, 'analyses readable');
     eq((await rejects(B.tables.engineering_analyses.update(s.premAnalysis, { title: 'x' }))).kind, 'forbidden', 'analysis edit refused');
     eq((await rejects(B.analyses.create({ analyzer_id: 'e01_turbo_compressor_map', title: 't', inputs: {}, inputs_unit_system: 'metric' }))).kind, 'forbidden', 'analysis create refused');
@@ -126,7 +135,8 @@ const scenarios = [
     eq((await rejects(B.tables.machines.softDelete(s.freeMachine))).kind, 'not_found', 'soft delete');
     eq((await rejects(B.testSetups.repinBaseline(s.freeSetup))).kind, 'not_found', 're-pin');
     const p = await rejects(B.machines.setPrimary(s.freeMachine));
-    assert(['forbidden', 'link_not_found'].includes(p.kind), 'setPrimary on another user’s machine: ' + p.kind);
+    // refused for ownership (forbidden / link_not_found) or, since this account has lapsed, for Premium (premium_garage)
+    assert(['forbidden', 'link_not_found', 'premium_garage'].includes(p.kind), 'setPrimary on another user’s machine: ' + p.kind);
     const A = await ctx.as('free');
     eq((await A.tables.machine_details.get(s.freeMachine)).is_primary, true, 'owner primary untouched');
     eq((await A.tables.machines.get(s.freeMachine)).name, '2019 Ford F-150', 'owner machine untouched');

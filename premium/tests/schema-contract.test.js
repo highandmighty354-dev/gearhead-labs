@@ -116,7 +116,7 @@ const A_ID = 'a0000000-0000-4000-8000-00000000000a', B_ID = 'b0000000-0000-4000-
   await test('A2. protected tables: authenticated holds no write privilege; server-only tables are not readable either', async () => {
     for (const t of M.PROTECTED_TABLES) for (const p of ['INSERT', 'UPDATE', 'DELETE'])
       eq((await owner.query(`SELECT has_table_privilege('authenticated', $1, $2) x`, ['public.' + t, p])).rows[0].x, false, `${t} ${p}`);
-    for (const t of ['value_records', 'calculation_records', 'plans', 'plan_prices', 'subscriptions', 'entitlement_grants'])
+    for (const t of ['value_records', 'calculation_records', 'plans', 'plan_prices', 'plan_offers', 'subscriptions', 'entitlement_grants'])
       assert(!grants[t] || (!grants[t].INSERT && !grants[t].UPDATE), t + ' has a column write grant');
     for (const t of ['billing_customers', 'stripe_events']) assert(!grants[t], t + ' readable');
     assert(!has('entitlement_grants', 'SELECT', 'note'), 'grant note readable');
@@ -161,7 +161,17 @@ const A_ID = 'a0000000-0000-4000-8000-00000000000a', B_ID = 'b0000000-0000-4000-
   await owner.query(`SET ROLE service_role`); await owner.query(`SELECT public.pf_grant_manual($1, 'premium', NULL, 'contract test')`, [B_ID]); await owner.query(`RESET ROLE`);
 
   const fixture = { A: {}, B: {} };
-  await test('B1. Free user: one garage, one machine from Phase 3A values, details, engine/transmission components', async () => {
+  const grantA = async on => { await owner.query(`SET ROLE service_role`);
+    if (on) await owner.query(`SELECT public.pf_grant_manual($1, 'premium', NULL, 'contract test A')`, [A_ID]);
+    else for (const r of (await owner.query(`SELECT id FROM entitlement_grants WHERE account_id = $1 AND revoked_at IS NULL`, [A_ID])).rows) await owner.query(`SELECT public.pf_revoke_grant($1)`, [r.id]);
+    await owner.query(`RESET ROLE`); };
+  await test('B1. Free user: My Garage is refused by the database with the Premium error (real RLS error mapped); nothing is created', async () => {
+    const e = await rejects(A.garage.ensure());
+    eq([e.kind, e.upgrade], ['premium_garage', true], 'mapped');
+    eq((await A.tables.garages.list()).length, 0, 'no garage');
+  });
+  await test('B2. User A while Premium: one garage, one machine from Phase 3A values, details, engine/transmission components', async () => {
+    await grantA(true);
     const v = M.fromPhase3aVehicle({ year: 2019, make: 'Ford', model: 'F-150', vehicle_type: 'Truck', fuel_type: 'E85 / Flex Fuel', drivetrain: '4WD', engine: '5.0L V8', transmission: 'Automatic', is_primary: true });
     const g = await A.garage.ensure();
     eq((await A.garage.ensure()).id, g.id, 'ensure is idempotent');
@@ -173,11 +183,7 @@ const A_ID = 'a0000000-0000-4000-8000-00000000000a', B_ID = 'b0000000-0000-4000-
     eq((await A.tables.components.list({ machine_id: m.id })).map(c => c.kind).sort(), ['engine', 'transmission'], 'components');
     Object.assign(fixture.A, { garage: g.id, machine: m.id });
   });
-  await test('B2. Free user: second machine -> free_machine_limit (real RLS error mapped)', async () => {
-    const e = await rejects(A.tables.machines.insert({ garage_id: fixture.A.garage, name: 'Second', machine_type: 'motorcycle' }));
-    eq([e.kind, e.upgrade], ['free_machine_limit', true], 'mapped');
-  });
-  await test('B3. Free user: unlimited Test Setups (Phase 3A build mapping), edit, re-pin, soft delete', async () => {
+  await test('B3. User A while Premium: unlimited Test Setups (Phase 3A build mapping), edit, re-pin, soft delete', async () => {
     const ids = [];
     for (const b of [{ name: 'Street', goals: '12s', status: 'Street' }, { name: 'Track' }, { name: 'Dyno' }, { name: 'Winter' }])
       ids.push((await A.tables.test_setups.insert({ ...M.fromPhase3aBuild(b), machine_id: fixture.A.machine })).id);
@@ -189,12 +195,16 @@ const A_ID = 'a0000000-0000-4000-8000-00000000000a', B_ID = 'b0000000-0000-4000-
     await rejects(A.tables.test_setups.softDelete(ids[3]), e => eq(e.kind, 'not_found', 'second delete'));
     fixture.A.setup = ids[0];
   });
-  await test('B4. Free user: engineering analysis refused (forbidden); no saved-calculation create exists; entitlement reads Free', async () => {
+  await test('B4. User A back on Free: garage readable but not writable (premium_garage), analysis refused, no saved-calculation create, entitlement Free', async () => {
+    await grantA(false);
+    eq((await A.tables.machines.list()).length, 1, 'reads own vehicle');
+    eq((await rejects(A.tables.machines.insert({ garage_id: fixture.A.garage, name: 'Second', machine_type: 'motorcycle' }))).kind, 'premium_garage', 'insert');
+    eq((await rejects(A.tables.machines.update(fixture.A.machine, { name: 'Edit' }))).kind, 'premium_garage', 'update');
     const e = await rejects(A.analyses.create({ analyzer_id: 'e01_turbo_compressor_map', title: 'x', inputs: {}, inputs_unit_system: 'imperial' }));
     eq(e.kind, 'forbidden', 'analysis');
     eq(A.tables.saved_calculations.insert, undefined, 'no create');
     const ent = await A.entitlement.mine();
-    eq([ent.plan, ent.isPremium, M.canAddMachine(ent, 1)], ['free', false, false], 'entitlement');
+    eq([ent.plan, ent.isPremium, M.hasFeature(ent, 'garage')], ['free', false, false], 'entitlement');
   });
   await test('B5. Premium user: several machines; primary is one write and the database moves it (also after deleting the primary)', async () => {
     const g = await B.garage.ensure();
@@ -209,7 +219,7 @@ const A_ID = 'a0000000-0000-4000-8000-00000000000a', B_ID = 'b0000000-0000-4000-
     eq((await B.tables.machine_details.list()).filter(d => d.is_primary).map(d => d.machine_id), [ms[2]], 'no lock-in after deleting the primary');
     Object.assign(fixture.B, { garage: g.id, machine: ms[0], machine2: ms[2] });
     const ent = await B.entitlement.mine();
-    eq([ent.isPremium, ent.source, M.canAddMachine(ent, 3)], [true, 'manual', true], 'entitlement');
+    eq([ent.isPremium, ent.source, M.hasFeature(ent, 'garage')], [true, 'manual', true], 'entitlement');
   });
   await test('B6. Premium user: analysis version pinned from the catalog, linked to a Test Setup, edited, soft-deleted', async () => {
     const ts = await B.tables.test_setups.insert({ machine_id: fixture.B.machine, name: 'Track' });
@@ -301,7 +311,7 @@ const A_ID = 'a0000000-0000-4000-8000-00000000000a', B_ID = 'b0000000-0000-4000-
   }
 
   /* ================================================================ D. services (step 3) on the foundation adapter and the real schema */
-  await test('D1. services on the real schema: production mode, Free garage flow with specs, allowance, drivetrain merge, Test Setups, profile', async () => {
+  await test('D1. services on the real schema: production mode; Free refused (services + database); Premium garage flow with specs, drivetrain merge, Test Setups, profile', async () => {
     await freshDb('fe_svc', true);
     const sa3 = await connect('fe_svc', 'supabase_admin');
     const uid = 'd0000000-0000-4000-8000-00000000000d';
@@ -315,17 +325,22 @@ const A_ID = 'a0000000-0000-4000-8000-00000000000a', B_ID = 'b0000000-0000-4000-
     for (const f of ['premium/models.js', 'premium/adapters/foundation.js', 'premium/services.js']) vm.runInContext(read(f), ctx, { filename: f });
     const S = window.GHP.services, Rp = S.repos; await S.ready;
     eq([S.mode, S.auth.user && S.auth.user.id, S.entitlements.state.plan], ['production', uid, 'free'], 'started');
+    eq((await rejects(Rp.machines.create({ machine_type: 'automotive', make: 'Mazda' }))).upgrade, true, 'services refuse Free early');
+    const raw = await loadAdapter(window.GH_SUPABASE).F.create();
+    eq((await rejects(raw.tables.garages.insert({ name: 'Mine' }))).kind, 'premium_garage', 'database refuses Free (bypassing the services pre-check)');
+    { const svc = await connect('fe_svc', 'postgres'); await svc.query(`SET ROLE service_role`);
+      await svc.query(`SELECT public.pf_grant_manual($1, 'premium', NULL, 'services test')`, [uid]); await svc.end(); }
+    await S.entitlements.refresh();
+    eq(S.entitlements.has('garage'), true, 'Premium after the grant');
     const m = await Rp.machines.create({ model_year: '1999', make: 'Mazda', model: 'Miata', machine_type: 'automotive', power_source: 'gasoline', engine: '1.8L BP', transmission: '5-speed', drivetrain: 'RWD', notes: 'Autocross' });
     eq([m.name, m.is_primary, m.engine.label, m.drivetrain, m.details.notes], ['1999 Mazda Miata', true, '1.8L BP', 'RWD', 'Autocross'], 'created');
-    const raw = await loadAdapter(window.GH_SUPABASE).F.create();
-    const g = (await raw.tables.garages.list())[0];
-    eq((await rejects(raw.tables.machines.insert({ garage_id: g.id, name: 'Second', machine_type: 'automotive' }))).kind, 'free_machine_limit', 'database allowance (bypassing the services pre-check)');
+    eq((await Rp.machines.create({ machine_type: 'motorcycle', make: 'Honda' })).is_primary, false, 'second vehicle (Premium)');
     const u = await Rp.machines.update(m.id, { drivetrain: 'AWD', transmission: '' });
     eq([u.drivetrain, u.details.notes, u.transmission], ['AWD', 'Autocross', null], 'merge + component soft delete via df_soft_delete_component');
     for (const n of ['Street', 'Track', 'Rain']) await Rp.testSetups.create({ machine_id: m.id, name: n });
     eq((await Rp.testSetups.list(m.id)).length, 3, 'setups');
     eq((await Rp.profile.saveMine({ display_name: 'Svc', experience_level: 'professional' })).experience_level, 'professional', 'profile');
-    await rejects(Rp.analyses.saveNew({ analyzer_id: 'e01_turbo_compressor_map', input_data: { unit_system: 'imperial', fields: {} } }, { title: 'x' }), e => eq(e.kind, 'forbidden', 'Free analysis'));
+    eq((await Rp.analyses.saveNew({ analyzer_id: 'e01_turbo_compressor_map', input_data: { unit_system: 'imperial', fields: {} } }, { title: 'x' })).analyzer_version, 'E1-AUTO', 'Premium analysis');
     await c.end();
   });
 

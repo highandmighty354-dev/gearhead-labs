@@ -68,3 +68,5 @@ For each of the 29, decide one of:
 2. **Not saveable:** explicitly exclude it (simulators, reference charts and diagnostics are likely candidates), and have the service refuse it with a clear message.
 
 The service must also resolve alias ids to their canonical id before writing (the database enforces `canonical_id` = the catalog's canonical id via `df_calculation_validate`).
+
+**Canonical catalog:** every public calculator, its save status (eligible / needs_decision), the aliases and the Premium-only tools are now listed in `catalog/gearhead-catalog.json`, explained in [PREMIUM-CATALOG.md](PREMIUM-CATALOG.md).

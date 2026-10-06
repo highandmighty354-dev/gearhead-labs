@@ -208,6 +208,7 @@ $$;
 ```
 
 Premium features (initial): `engineering_lab`, `saved_calculations`, `garage_unlimited`, `test_setups`. The Free plan's garage allowance is decision P-1.
+**Superseded (2026-10-06, migration 0407):** Premium features are `engineering_lab`, `saved_calculations`, `garage`; Free has no Garage; Premium is the single paid product at $5.99/month or $59.99/year.
 
 ### 6.3 Stripe flow (future phase — no Stripe code now)
 
@@ -271,7 +272,7 @@ select count(*) from auth.users;
 
 | # | Decision | Recommendation |
 |---|---|---|
-| P-1 | Free garage allowance (OPEN #1): what can a Free account store? | Free: 1 machine, no saved calculations; Premium: unlimited. Enforce by amendment policy using `pf_has_feature('garage_unlimited')`. |
+| P-1 | Free garage allowance (OPEN #1): what can a Free account store? | Free: 1 machine, no saved calculations; Premium: unlimited. Enforce by amendment policy using `pf_has_feature('garage_unlimited')`. | **Superseded by 0407: Garage is Premium-only.**
 | P-2 | Automotive-only vs marine enums in DATA-FOUNDATION 0001 | If the schema is not yet provisioned: owner-approved amendment adding `CHECK (machine_type <> 'marine' AND marine_type IS NULL)` and restricting marine `propulsion` values. (Postgres cannot drop enum values safely.) |
 | P-3 | Projects (D-003 says "add later if a real need appears") | Defer; Test Setups + saved items cover the Phase 3 use cases. |
 | P-4 | Vehicle identity fields (year/make/model/trim) | Approve `machine_details` (descriptive, client-editable) — keep engineering values in `value_records`. |

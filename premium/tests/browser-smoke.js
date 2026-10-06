@@ -145,7 +145,7 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
     const f = await bootFacts(env.page);
     same([f.lib, f.hasClient, f.ready, f.createClient, f.mode], ['function', true, true, 1, 'no-backend'], 'boot');
     await assertCleanBoot(env);
-    await env.page.waitForSelector('text=Accounts are coming soon');
+    await env.page.waitForSelector('text=Accounts are unavailable right now');
     await env.page.click('#ghp-nav [data-go="calculators"]');
     assert(await env.page.evaluate(() => document.body.classList.contains('ghp-mode-calculators')), 'calculators mode');
     same(env.violations, [], 'non-GET requests');
@@ -163,12 +163,36 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
       same(labels, ['Home', 'Calculators', 'Engineering Lab', 'My Garage', 'Saved', 'Profile'], 'nav');
       assert(!(await page.content()).match(/\bProjects?\b/), 'Projects text present');
     });
-    await step('B2. Free garage: sign in, meter 0 of 1, add a vehicle with engine / transmission / drivetrain', async () => {
+    await step('B2. Free: My Garage is Premium — teaser with the price, no add button, locked in the navigation', async () => {
       await page.click('#ghp-nav [data-go="garage"]');
       await page.fill('form[data-form="signin"] input[name="email"]', 'smoke@example.test');
       await page.click('form[data-form="signin"] button[type="submit"]');
-      await page.waitForSelector('.ghp-meter');
-      assert(/0 of 1 vehicle/.test(await page.textContent('#ghp-view')), 'meter 0 of 1');
+      await page.waitForSelector('.ghp-teaser');
+      const t = await page.textContent('#ghp-view');
+      assert(/My Garage/.test(t) && /\$5\.99\/month or \$59\.99\/year/.test(t), 'garage teaser with price');
+      assert(!(await page.$('[data-edit-machine="new"]')), 'add button shown to Free');
+      assert(await page.$('#ghp-nav [data-go="garage"] .ghp-nav-lock'), 'garage not locked in the nav');
+      await shot(page, 'b2-free-garage');
+    });
+    await step('B3. Free: Home and Profile state the Premium price; no retired pricing or Free-vehicle copy anywhere', async () => {
+      await page.click('#ghp-nav [data-go="home"]'); await page.waitForSelector('.ghp-tiles');
+      const home = await page.textContent('#ghp-view');
+      assert(/606 free calculators/.test(home) && /\$5\.99\/month or \$59\.99\/year/.test(home), 'home copy');
+      await page.click('#ghp-nav [data-go="profile"]'); await page.waitForSelector('.ghp-price');
+      const all = home + await page.textContent('#ghp-view') + await page.textContent('#ghp-nav');
+      for (const bad of [/\$1\.99/, /\$3\.99/, /one vehicle/i, /1 vehicle/i, /coming soon/i, /Free garage/i]) assert(!bad.test(all), 'retired copy: ' + bad);
+    });
+    await step('B4. Saved and Lab show Premium teasers for Free; no create/save button anywhere', async () => {
+      await page.click('#ghp-nav [data-go="saved"]'); await page.waitForSelector('.ghp-teaser');
+      await page.click('#ghp-nav [data-go="lab"]'); await page.waitForSelector('.ghp-teaser');
+      assert(!(await page.$('[data-action="save-sheet"]:visible')), 'save visible');
+    });
+    await step('C1a. Premium (development grant): add a vehicle with engine / transmission / drivetrain, then a second vehicle', async () => {
+      await page.click('#ghp-nav [data-go="profile"]'); await page.waitForSelector('[data-action="dev-plan"][data-plan="premium"]');
+      await page.click('[data-action="dev-plan"][data-plan="premium"]'); await toastSays(page, /Development plan/);
+      await page.waitForFunction(() => /Granted by Gearhead Labs/.test(document.getElementById('ghp-view').textContent));
+      assert(/PREMIUM/.test(await page.textContent('#ghp-nav .ghp-plan-pill')), 'nav plan pill');
+      await page.click('#ghp-nav [data-go="garage"]'); await page.waitForSelector('[data-edit-machine="new"]');
       await page.click('[data-edit-machine="new"]');
       await page.fill('input[name="model_year"]', '2019'); await page.fill('input[name="make"]', 'Ford'); await page.fill('input[name="model"]', 'Mustang');
       await page.selectOption('select[name="machine_type"]', 'automotive'); await page.selectOption('select[name="power_source"]', 'gasoline');
@@ -179,9 +203,15 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
       await page.waitForSelector('[data-new-setup]');
       const t = await page.textContent('#ghp-view');
       assert(/2019 Ford Mustang/.test(t) && /PRIMARY/.test(t) && /5\.0L Coyote V8/.test(t) && /RWD/.test(t), 'machine detail');
-      await shot(page, 'b2-machine');
+      await shot(page, 'c1a-machine');
+      await page.click('[data-go="garage"]'); await page.waitForSelector('[data-edit-machine="new"]');
+      await page.click('[data-edit-machine="new"]'); await page.fill('input[name="make"]', 'Ducati'); await page.selectOption('select[name="machine_type"]', 'motorcycle');
+      await page.click('form[data-form="machine"] button[type="submit"]'); await toastSays(page, /Vehicle added/);
     });
-    await step('B3. Test Setups: add two, edit, re-pin, delete (two-step confirm)', async () => {
+    await step('C1b. Premium Test Setups: add two, edit, re-pin, delete (two-step confirm)', async () => {
+      await page.click('[data-go="garage"]'); await page.waitForSelector('[data-go-machine]');
+      const mustang = await page.$('.ghp-vehicle:has-text("Mustang") [data-go-machine]'); await mustang.click();
+      await page.waitForSelector('[data-new-setup]');
       for (const n of ['Street', 'Track']) {
         await page.click('[data-new-setup]'); await page.fill('form[data-form="setup"] input[name="name"]', n);
         await page.fill('form[data-form="setup"] textarea[name="description"]', 'Goals: ' + n);
@@ -197,26 +227,7 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
       const del = await page.$('[data-action="delete-setup"]'); await del.click(); await del.click(); await toastSays(page, /Test Setup deleted/);
       await page.waitForFunction(() => document.querySelectorAll('.ghp-build').length === 1);
     });
-    await step('B4. Free garage is full: 1 of 1, no add button, upgrade message', async () => {
-      await page.click('[data-go="garage"]'); await page.waitForSelector('.ghp-meter');
-      const t = await page.textContent('#ghp-view');
-      assert(/1 of 1 vehicle/.test(t) && /Free includes 1 vehicle/.test(t), 'full message');
-      assert(!(await page.$('[data-edit-machine="new"]')), 'add button still shown');
-      await shot(page, 'b4-full');
-    });
-    await step('B5. Saved and Lab show Premium teasers for Free; no create/save button anywhere', async () => {
-      await page.click('#ghp-nav [data-go="saved"]'); await page.waitForSelector('.ghp-teaser');
-      await page.click('#ghp-nav [data-go="lab"]'); await page.waitForSelector('.ghp-teaser');
-      assert(!(await page.$('[data-action="save-sheet"]:visible')), 'save visible');
-    });
-    await step('C1. Premium (development grant): second vehicle, plan card from the entitlement, saved calculations read / edit / pin', async () => {
-      await page.click('#ghp-nav [data-go="profile"]'); await page.waitForSelector('[data-action="dev-plan"][data-plan="premium"]');
-      await page.click('[data-action="dev-plan"][data-plan="premium"]'); await toastSays(page, /Development plan/);
-      await page.waitForFunction(() => /Granted by Gearhead Labs/.test(document.getElementById('ghp-view').textContent));
-      assert(/PREMIUM/.test(await page.textContent('#ghp-nav .ghp-plan-pill')), 'nav plan pill');
-      await page.click('#ghp-nav [data-go="garage"]'); await page.waitForSelector('[data-edit-machine="new"]');
-      await page.click('[data-edit-machine="new"]'); await page.fill('input[name="make"]', 'Ducati'); await page.selectOption('select[name="machine_type"]', 'motorcycle');
-      await page.click('form[data-form="machine"] button[type="submit"]'); await toastSays(page, /Vehicle added/);
+    await step('C1c. Premium saved calculations: read / edit / pin, no create path', async () => {
       await page.click('#ghp-nav [data-go="profile"]'); await page.waitForSelector('[data-action="dev-saved"]');
       await page.click('[data-action="dev-saved"]'); await toastSays(page, /Simulated/);
       await page.click('#ghp-nav [data-go="saved"]'); await page.waitForSelector('[data-action="pin"]');
@@ -227,7 +238,7 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
       await page.click('[data-edit-saved]'); await page.fill('form[data-form="saved"] input[name="title"]', 'Dyno pull');
       await page.click('form[data-form="saved"] button[type="submit"]'); await toastSays(page, /Saved calculation updated/);
       assert(/Dyno pull/.test(await page.textContent('#ghp-view')) && /PINNED/.test(await page.textContent('#ghp-view')), 'edited + pinned');
-      await shot(page, 'c1-saved');
+      await shot(page, 'c1c-saved');
     });
     await step('C2. Engineering Lab on F1.12.4: analyzers load in the frame, an analysis saves with its links; public calculator count unchanged', async () => {
       await page.click('#ghp-nav [data-go="lab"]'); await page.waitForSelector('[data-analyzer="e12_radiator_heat_rejection"]');
@@ -289,14 +300,14 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
     same([f.createClient, f.ready, f.mode, f.adapter], [1, true, 'no-backend', 'none'], 'fallback');
     await assertCleanBoot(env);
     same(env.requests.map(r => r.method + ' ' + new URL(r.url).pathname), ['GET /rest/v1/plans'], 'only the read-only probe');
-    await env.page.waitForSelector('text=Accounts are coming soon');
+    await env.page.waitForSelector('text=Accounts are unavailable right now');
     same(env.violations, [], 'non-GET requests'); same(appErrors(env), [], 'errors');
     await shot(env.page, 'e1-fallback');
     await env.ctx.close();
   });
 
   /* ---------------------------------------------------------------- F. the F1.12.4 calculator frame */
-  await step('F1. calculator frame: F1.12.4 loads (606 public calculators) and renders a calculator from a deep link, with no JavaScript errors', async () => {
+  await step('F1. calculator frame: F1.12.4 loads (606 public calculators, identical to the catalog Free entries) and renders a calculator from a deep link, with no JavaScript errors', async () => {
     const env = await open(base + '?gh_dev=0', { supabase: 'offline' }), page = env.page;
     await page.waitForFunction(() => window.GHShell && GHShell.isReady(), null, { timeout: 20000 });
     const frameUrl = await page.evaluate(() => GHShell.frame.contentWindow.location.pathname);
@@ -304,6 +315,10 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
     const info = await page.evaluate(() => { const C = GHShell.frame.contentWindow.eval('CALCS'); const c = C.find(c => c.id !== 'dashboard' && c.layer !== 'engineering');
       return { pub: C.filter(c => c.id !== 'dashboard' && c.layer !== 'engineering').length, eng: C.filter(c => c.layer === 'engineering').length, first: c.id }; });
     same([info.pub, info.eng], [606, 0], 'public calculators; no Premium analyzers for an anonymous visitor');
+    // Free 606 regression: the live public calculators are exactly the Free entries of the canonical catalog
+    const catalog = JSON.parse(fs.readFileSync(path.join(REPO, 'catalog', 'gearhead-catalog.json'), 'utf8'));
+    const live = await page.evaluate(() => GHShell.frame.contentWindow.eval('CALCS').filter(c => c.id !== 'dashboard' && c.layer !== 'engineering').map(c => c.id).sort());
+    same(live, catalog.tools.filter(t => t.tier === 'free').map(t => t.id).sort(), 'live public calculators = catalog Free entries');
     await page.goto(base + '?gh_dev=0&calc=' + encodeURIComponent(info.first)); await ready(page);
     await page.waitForFunction(id => { const w = GHShell.frame.contentWindow; return w.eval('typeof currentCalc!=="undefined"?currentCalc:null') === id && w.document.querySelector('#calc-container .calc-header, #calc-container .calc-body'); }, info.first, { timeout: 20000 });
     const txt = await page.evaluate(() => GHShell.frame.contentWindow.document.getElementById('calc-container').textContent);
@@ -344,7 +359,7 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
     same([f.lib, f.hasClient, f.createClient, f.mode], ['undefined', false, 0, 'no-backend'], 'blocked');
     assert(env.consoleErrors.some(t => /integrity/i.test(t)), 'no SRI error reported');
     same(env.requests, [], 'no Supabase request without the verified library');
-    await env.page.waitForSelector('text=Accounts are coming soon');
+    await env.page.waitForSelector('text=Accounts are unavailable right now');
     same(env.pageErrors, [], 'uncaught errors');
     await env.ctx.close();
   });

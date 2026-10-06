@@ -155,6 +155,6 @@ body.ghp-mode-premium #app{visibility:hidden}
   .ghp-sheet-panel{max-height:92vh}
 }
 
-/* ---------- garage allowance meter (Free: 1 vehicle) ---------- */
-.ghp-meter{height:8px;border-radius:4px;background:var(--ghp-card2);border:1px solid var(--ghp-line);overflow:hidden;margin:2px 0 8px}
-.ghp-meter-bar{height:100%;background:var(--ghp-gold)}
+/* ---------- Premium price line (Gearhead Labs Premium: $5.99/month or $59.99/year) ---------- */
+.ghp-price{margin-top:14px;padding:10px 12px;border:1px solid var(--ghp-gold);border-radius:8px;color:var(--ghp-text)}
+.ghp-price b{color:var(--ghp-gold)}

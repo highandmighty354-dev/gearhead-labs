@@ -21,18 +21,19 @@ if (!HOST || !PORT) { console.error('PF_PGHOST / PF_PGPORT not set (use tests/ru
 const EXPECTED_MIGRATIONS = ['0001_enums.sql', '0002_tables.sql', '0003_constraints_triggers.sql', '0004_rls.sql', '0005_reference_seed.sql',
   '0101_test_setups.sql', '0102_test_setups_triggers.sql', '0103_test_setups_rls.sql', '0201_value_write_boundary.sql',
   '0301_value_foundation_v1_seed.sql', '0401_automotive_only.sql', '0402_premium_entitlements.sql', '0403_premium_profiles.sql',
-  '0404_premium_garage.sql', '0405_premium_saved_calculations.sql', '0406_premium_engineering_analyses.sql'];
+  '0404_premium_garage.sql', '0405_premium_saved_calculations.sql', '0406_premium_engineering_analyses.sql',
+  '0407_premium_product_model.sql'];
 const PUBLIC_TABLES = ['accounts', 'billing_customers', 'calculation_records', 'calculators', 'canonical_fields', 'component_connections',
   'components', 'engineering_analyses', 'engineering_analyzers', 'entitlement_grants', 'formula_versions', 'garages', 'machine_details',
-  'machines', 'plan_prices', 'plans', 'profiles', 'saved_calculations', 'stripe_events', 'subscriptions', 'test_setups', 'value_records'];
+  'machines', 'plan_offers', 'plan_prices', 'plans', 'profiles', 'saved_calculations', 'stripe_events', 'subscriptions', 'test_setups', 'value_records'];
 const SECURITY_DEFINERS = ['df_handle_new_auth_user', 'df_soft_delete_component', 'df_soft_delete_connection', 'df_soft_delete_garage',
   'df_soft_delete_machine', 'gf_repin_test_setup_baseline', 'gf_soft_delete_test_setup', 'pf_engineering_analysis_check',
-  'pf_handle_new_auth_user', 'pf_has_feature', 'pf_machine_allowance_ok', 'pf_machine_details_primary', 'pf_my_entitlement', 'pf_saved_calculation_links',
+  'pf_handle_new_auth_user', 'pf_has_feature', 'pf_machine_details_primary', 'pf_my_entitlement', 'pf_saved_calculation_links',
   'pf_soft_delete_engineering_analysis', 'pf_soft_delete_saved_calculation'];
 const SERVICE_ONLY = ['pf_grant_manual(uuid, text, timestamptz, text)', 'pf_revoke_grant(uuid)',
   'pf_record_stripe_event(text, text, timestamptz, jsonb)', 'pf_mark_stripe_event_processed(text)', 'pf_upsert_billing_customer(uuid, text)',
   'pf_sync_stripe_subscription(text, uuid, text, text, text, timestamptz, timestamptz, boolean, timestamptz, timestamptz, timestamptz)'];
-const BILLING = ['billing_customers', 'subscriptions', 'entitlement_grants', 'stripe_events', 'plans', 'plan_prices'];
+const BILLING = ['billing_customers', 'subscriptions', 'entitlement_grants', 'stripe_events', 'plans', 'plan_prices', 'plan_offers'];
 
 const U = { A: 'aaaaaaaa-0000-4000-8000-00000000000a', B: 'bbbbbbbb-0000-4000-8000-00000000000b', C: 'cccccccc-0000-4000-8000-00000000000c',
   L: 'dddddddd-0000-4000-8000-00000000000d', N: 'eeeeeeee-0000-4000-8000-00000000000e', E: 'ffffffff-0000-4000-8000-00000000000f',
@@ -45,7 +46,7 @@ const ID = { GA: '10000000-0000-4000-8000-0000000000a0', GB: '10000000-0000-4000
   TA: '30000000-0000-4000-8000-0000000000a1', TB1: '30000000-0000-4000-8000-0000000000b1', TB2: '30000000-0000-4000-8000-0000000000b2',
   CA: '40000000-0000-4000-8000-0000000000a1', CB: '40000000-0000-4000-8000-0000000000b1', CL: '40000000-0000-4000-8000-0000000000d1',
   SB: '50000000-0000-4000-8000-0000000000b1', EB: '60000000-0000-4000-8000-0000000000b1', VA: '70000000-0000-4000-8000-0000000000a1',
-  GLGRANT: '80000000-0000-4000-8000-0000000000d1' };
+  GLGRANT: '80000000-0000-4000-8000-0000000000d1', GAGRANT: '80000000-0000-4000-8000-0000000000a1' };
 const NULL_NOT_ALLOWED = '22004';
 const DENIED = '42501', CHECK = '23514', FK = '23503', UNIQUE = '23505', IMMUTABLE = 'P0001', NOT_FOUND = 'P0002';
 const FUTURE = '2099-01-01T00:00:00Z';
@@ -103,11 +104,13 @@ async function fixtures(db) {
       ORDER BY f.calculator_id, f.formula_version LIMIT 1`);
   const field = await q(c, `SELECT key, canonical_unit FROM public.canonical_fields WHERE value_kind = 'numeric' ORDER BY key LIMIT 1`);
   const k = calc[0], f = field[0];
-  // Premium grants for B and L (trusted server path)
+  // Premium grants for B, L and A (trusted server path). Garage is Premium-only: A and L build their garages while
+  // Premium and are revoked below, so A ends as a FORMER Premium account that is now Free.
   await tx(async () => { await as(c, 'service');
     await c.query(`SELECT public.pf_grant_manual($1, 'premium', NULL, 'fixture B')`, [U.B]);
-    await c.query(`INSERT INTO public.entitlement_grants (id, account_id, plan_key, source, note) VALUES ($1, $2, 'premium', 'manual', 'fixture L')`, [ID.GLGRANT, U.L]); });
-  // A (Free): one garage, one machine, details, test setup
+    await c.query(`INSERT INTO public.entitlement_grants (id, account_id, plan_key, source, note) VALUES ($1, $2, 'premium', 'manual', 'fixture L')`, [ID.GLGRANT, U.L]);
+    await c.query(`INSERT INTO public.entitlement_grants (id, account_id, plan_key, source, note) VALUES ($1, $2, 'premium', 'manual', 'fixture A')`, [ID.GAGRANT, U.A]); });
+  // A (Premium while building; Free afterwards): one garage, one machine, details, test setup
   await tx(async () => { await as(c, 'A');
     await c.query(`INSERT INTO public.garages (id, name) VALUES ($1, 'A garage')`, [ID.GA]);
     await c.query(`INSERT INTO public.machines (id, garage_id, name, machine_type, power_source) VALUES ($1, $2, 'A car', 'automotive', 'gasoline')`, [ID.MA, ID.GA]);
@@ -138,8 +141,9 @@ async function fixtures(db) {
     ID.SB = await one(c, `INSERT INTO public.saved_calculations (calculation_id, title) VALUES ($1, 'B saved') RETURNING id`, [ID.CB]);
     ID.EB = await one(c, `INSERT INTO public.engineering_analyses (analyzer_id, analyzer_version, machine_id, title, inputs, inputs_unit_system)
                    VALUES ('e12_radiator_heat_rejection', 'E1-AUTO', $1, 'B radiator', '{"fields":{"e12_m":{"value":"40"}}}', 'imperial') RETURNING id`, [ID.MB1]); });
-  // L lapses (grant revoked by the server)
-  await tx(async () => { await as(c, 'service'); await c.query(`SELECT public.pf_revoke_grant($1)`, [ID.GLGRANT]); });
+  // L lapses and A returns to Free (grants revoked by the server)
+  await tx(async () => { await as(c, 'service'); await c.query(`SELECT public.pf_revoke_grant($1)`, [ID.GLGRANT]);
+    await c.query(`SELECT public.pf_revoke_grant($1)`, [ID.GAGRANT]); });
   await c.end();
   return { calc: k, field: f };
 }
@@ -149,7 +153,7 @@ const CHECKS = [];
 const check = (group, name, fn) => CHECKS.push({ group, name, fn });
 
 // ---- integrity
-check('integrity', 'migration directory is exactly the approved 16 files in version order', async () => {
+check('integrity', 'migration directory is exactly the approved 17 files in version order', async () => {
   eq(fs.readdirSync(MIG_DIR).filter(f => f.endsWith('.sql')).sort(), EXPECTED_MIGRATIONS, 'migrations');
 });
 check('integrity', 'frozen foundation files are byte-identical to tag VALUE-FOUNDATION-1.0.0 and the manifest', async () => {
@@ -163,11 +167,11 @@ check('integrity', 'frozen foundation files are byte-identical to tag VALUE-FOUN
     eq(crypto.createHash('sha256').update(localBytes).digest('hex'), sha, `${local} sha256`);
   }
 });
-check('integrity', 'reference data: 583 calculators, 577 formula versions, 252 engine-proven, 47 canonical fields, 2 plans, 14 analyzers', async (c) => {
+check('integrity', 'reference data: 583 calculators, 577 formula versions, 252 engine-proven, 47 canonical fields, 2 plans, 2 offers, 14 analyzers', async (c) => {
   const r = (await q(c, `SELECT (SELECT count(*) FROM calculators)::int a, (SELECT count(*) FROM formula_versions)::int b,
     (SELECT count(*) FROM calculators WHERE engine_proven)::int p, (SELECT count(*) FROM canonical_fields)::int cf,
-    (SELECT count(*) FROM plans)::int pl, (SELECT count(*) FROM engineering_analyzers)::int an`))[0];
-  eq(r, { a: 583, b: 577, p: 252, cf: 47, pl: 2, an: 14 }, 'counts');
+    (SELECT count(*) FROM plans)::int pl, (SELECT count(*) FROM plan_offers)::int po, (SELECT count(*) FROM engineering_analyzers)::int an`))[0];
+  eq(r, { a: 583, b: 577, p: 252, cf: 47, pl: 2, po: 2, an: 14 }, 'counts');
   eq(await one(c, `SELECT count(*)::int FROM calculators c WHERE NOT EXISTS (SELECT 1 FROM calculators k WHERE k.calculator_id = c.canonical_id)`), 0, 'dangling aliases');
   eq(await one(c, `SELECT count(*)::int FROM canonical_fields WHERE value_kind <> 'numeric' OR canonical_unit IS NULL`), 0, 'canonical field integrity');
 });
@@ -279,44 +283,76 @@ check('isolation', 'anon can read nothing and call nothing', async (c) => {
   await expectErr(c, `SELECT pf_soft_delete_saved_calculation($1)`, [ID.SB], DENIED);
 });
 
-// ---- Free allowance (owner decision 1: 1 machine)
-check('allowance', 'a Free user can create one machine; a second is refused', async (c) => {
+// ---- My Garage is part of Premium (0407: one paid product; Free has no Garage)
+check('garage', 'a Free account cannot create a garage, vehicle, component or Test Setup (never-Premium C and former-Premium A)', async (c) => {
   await as(c, 'C');
-  const g = await one(c, `INSERT INTO garages (name) VALUES ('C') RETURNING id`);
-  await c.query(`INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'first', 'automotive')`, [g]);
-  await expectErr(c, `INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'second', 'automotive')`, [g], DENIED);
-});
-check('allowance', 'a Free user cannot create two machines in one statement', async (c) => {
-  await as(c, 'C');
-  const g = await one(c, `INSERT INTO garages (name) VALUES ('C') RETURNING id`);
-  await expectErr(c, `INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'one', 'automotive'), ($1, 'two', 'automotive')`, [g], DENIED);
-});
-check('allowance', 'A (Free, already has one machine) cannot add another', async (c) => {
-  await as(c, 'A');
+  await expectErr(c, `INSERT INTO garages (name) VALUES ('C')`, [], DENIED);
+  await as(c, 'A');   // A still owns the garage it built while Premium
   await expectErr(c, `INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'second', 'automotive')`, [ID.GA], DENIED);
+  await expectErr(c, `INSERT INTO components (machine_id, kind, label) VALUES ($1, 'engine', 'x')`, [ID.MA], DENIED);
+  await expectErr(c, `INSERT INTO test_setups (machine_id, name) VALUES ($1, 'x')`, [ID.MA], DENIED);
+  eq(await one(c, `SELECT to_regprocedure('public.pf_machine_allowance_ok()') IS NULL`), true, 'retired Free allowance function removed');
 });
-check('allowance', 'soft-deleting the machine (or its garage) frees the allowance; deletion cannot be undone to exceed it', async (c) => {
-  await as(c, 'C');
-  const g1 = await one(c, `INSERT INTO garages (name) VALUES ('C1') RETURNING id`);
-  const m1 = await one(c, `INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'm1', 'automotive') RETURNING id`, [g1]);
-  await c.query(`SELECT df_soft_delete_machine($1)`, [m1]);
-  const m2 = await one(c, `INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'm2', 'automotive') RETURNING id`, [g1]);
-  await c.query(`SELECT df_soft_delete_garage($1)`, [g1]);
-  const g2 = await one(c, `INSERT INTO garages (name) VALUES ('C2') RETURNING id`);
-  await c.query(`INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'm3', 'automotive')`, [g2]);
-  eq((await c.query(`UPDATE machines SET deleted_at = NULL WHERE id = $1`, [m1])).rowCount, 0, 'client cannot revive a deleted machine');
-  eq((await c.query(`UPDATE machines SET deleted_at = NULL WHERE id = $1`, [m2])).rowCount, 0, 'client cannot revive a machine of a deleted garage');
-});
-check('allowance', 'a Premium user can create additional machines', async (c) => {
+check('garage', 'Premium: a garage with any number of vehicles, details, components and Test Setups', async (c) => {
   await as(c, 'B');
-  for (let i = 0; i < 3; i++) await c.query(`INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, $2, 'automotive')`, [ID.GB, `extra ${i}`]);
+  for (let i = 0; i < 3; i++) {
+    const m = await one(c, `INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, $2, 'automotive') RETURNING id`, [ID.GB, `extra ${i}`]);
+    await c.query(`INSERT INTO machine_details (machine_id, make) VALUES ($1, 'Make')`, [m]);
+    await c.query(`INSERT INTO components (machine_id, kind, label) VALUES ($1, 'engine', 'V8')`, [m]);
+    await c.query(`INSERT INTO test_setups (machine_id, name) VALUES ($1, 'build')`, [m]);
+  }
   eq(await one(c, `SELECT count(*)::int FROM machines`), 5, 'B machines');
+  eq((await c.query(`UPDATE machines SET name = 'renamed' WHERE id = $1`, [ID.MB1])).rowCount, 1, 'B edits');
 });
-check('allowance', 'a lapsed Premium user keeps existing machines (read/update) but cannot add more', async (c) => {
+check('garage', 'a lapsed or former Premium account keeps read access and can soft-delete, but cannot create or edit', async (c) => {
   await as(c, 'L');
   eq(await one(c, `SELECT count(*)::int FROM machines`), 3, 'L machines visible');
-  eq((await c.query(`UPDATE machine_details SET make = 'Still mine' WHERE machine_id = $1`, [ID.ML1])).rowCount, 1, 'L updates details');
+  await expectErr(c, `UPDATE machine_details SET make = 'edit' WHERE machine_id = $1`, [ID.ML1], DENIED);
+  await expectErr(c, `UPDATE machines SET name = 'edit' WHERE id = $1`, [ID.ML2], DENIED);
+  await expectErr(c, `UPDATE garages SET name = 'edit' WHERE id = $1`, [ID.GL], DENIED);
   await expectErr(c, `INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'L4', 'automotive')`, [ID.GL], DENIED);
+  await c.query(`SELECT df_soft_delete_machine($1)`, [ID.ML3]);
+  eq(await one(c, `SELECT count(*)::int FROM machines`), 2, 'L deleted one');
+  await as(c, 'A');
+  eq(await one(c, `SELECT count(*)::int FROM test_setups`), 1, 'A still reads its Test Setup');
+  await expectErr(c, `UPDATE test_setups SET name = 'edit' WHERE id = $1`, [ID.TA], DENIED);
+});
+check('garage', 'Garage access follows the entitlement: a grant enables it, revoking it disables it again', async (c) => {
+  await as(c, 'service');
+  const g = await one(c, `SELECT public.pf_grant_manual($1, 'premium', NULL, 'temporary')`, [U.C]);
+  await as(c, 'C');
+  const gar = await one(c, `INSERT INTO garages (name) VALUES ('C') RETURNING id`);
+  await c.query(`INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'c1', 'automotive')`, [gar]);
+  await as(c, 'service');
+  await c.query(`SELECT public.pf_revoke_grant($1)`, [g]);
+  await as(c, 'C');
+  await expectErr(c, `INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'c2', 'automotive')`, [gar], DENIED);
+  eq(await one(c, `SELECT count(*)::int FROM machines`), 1, 'C keeps read access');
+});
+check('garage', 'soft deletion is permanent: a client cannot revive a deleted vehicle or a vehicle of a deleted garage', async (c) => {
+  await as(c, 'B');
+  await c.query(`SELECT df_soft_delete_machine($1)`, [ID.MB2]);
+  eq((await c.query(`UPDATE machines SET deleted_at = NULL WHERE id = $1`, [ID.MB2])).rowCount, 0, 'deleted machine');
+  await c.query(`SELECT df_soft_delete_garage($1)`, [ID.GB]);
+  eq((await c.query(`UPDATE machines SET deleted_at = NULL WHERE id = $1`, [ID.MB1])).rowCount, 0, 'machine of a deleted garage');
+});
+check('offers', 'Premium is the only paid product: 5.99/month and 59.99/year; Stripe prices must match an approved offer', async (c) => {
+  await as(c, 'B');
+  eq(await q(c, `SELECT plan_key, billing_interval, currency, unit_amount FROM plan_offers WHERE active ORDER BY billing_interval`),
+    [{ plan_key: 'premium', billing_interval: 'month', currency: 'usd', unit_amount: 599 },
+     { plan_key: 'premium', billing_interval: 'year', currency: 'usd', unit_amount: 5999 }], 'offers');
+  await expectErr(c, `UPDATE plan_offers SET unit_amount = 1`, [], DENIED);
+  await expectErr(c, `INSERT INTO plan_offers VALUES ('premium', 'month', 'eur', 1, true)`, [], DENIED);
+  await as(c, 'anon');
+  await expectErr(c, `SELECT 1 FROM plan_offers`, [], DENIED);
+  await as(c, 'postgres');   // migration role: only the constraints stand in the way
+  await c.query(`INSERT INTO plan_prices VALUES ('price_month', 'premium', 'month', 'usd', 599, true), ('price_year', 'premium', 'year', 'usd', 5999, true)`);
+  await expectErr(c, `INSERT INTO plan_prices VALUES ('price_cheap', 'premium', 'month', 'usd', 199, true)`, [], FK);
+  await expectErr(c, `INSERT INTO plan_prices VALUES ('price_week', 'premium', 'year', 'usd', 599, true)`, [], FK);
+  await expectErr(c, `UPDATE plans SET is_paid = true WHERE plan_key = 'free'`, [], CHECK);
+  await expectErr(c, `INSERT INTO plans VALUES ('garage', 'Garage', true, '{}', true)`, [], CHECK);
+  await expectErr(c, `UPDATE plans SET features = ARRAY['garage_unlimited'] WHERE plan_key = 'premium'`, [], CHECK);
+  await expectErr(c, `DELETE FROM plan_offers`, [], IMMUTABLE);
 });
 
 // ---- saved calculations (owner decision 1: Free = none)
@@ -421,7 +457,7 @@ check('entitlements', 'pf_has_feature / pf_my_entitlement reflect only the calle
   await as(c, 'B');
   eq(await one(c, `SELECT pf_has_feature('engineering_lab')`), true, 'B lab');
   eq(await q(c, `SELECT plan_key, is_premium, features, source FROM pf_my_entitlement()`),
-    [{ plan_key: 'premium', is_premium: true, features: ['engineering_lab', 'garage_unlimited', 'saved_calculations'], source: 'manual' }], 'B plan');
+    [{ plan_key: 'premium', is_premium: true, features: ['engineering_lab', 'garage', 'saved_calculations'], source: 'manual' }], 'B plan');
   await as(c, 'L');
   eq(await one(c, `SELECT pf_has_feature('saved_calculations')`), false, 'L lapsed');
   await as(c, 'nouid');
@@ -466,7 +502,7 @@ check('stripe', 'webhook events are idempotent and immutable', async (c) => {
 });
 check('stripe', 'subscription lifecycle drives exactly one grant: activate, replay, renew, cancel, resubscribe', async (c) => {
   await as(c, 'postgres');
-  await c.query(`INSERT INTO plan_prices VALUES ('price_test', 'premium', 'month', 'usd', 999, true)`);
+  await c.query(`INSERT INTO plan_prices VALUES ('price_test', 'premium', 'month', 'usd', 599, true)`);
   await as(c, 'service');
   await c.query(`SELECT pf_upsert_billing_customer($1, 'cus_C')`, [U.C]);
   const sync = (status, end) => c.query(`SELECT pf_sync_stripe_subscription('sub_C', $1, 'cus_C', $2, 'price_test', now(), $3, false, NULL, NULL, clock_timestamp())`, [U.C, status, end]);
@@ -520,14 +556,12 @@ check('append_only', 'calculation_records: no client insert/update; no update/de
 
 // ---- automotive-only (owner decision 2)
 check('marine', 'marine machine types and fields are refused for clients and the server', async (c) => {
-  await as(c, 'A');
-  await expectErr(c, `UPDATE machines SET machine_type = 'marine' WHERE id = $1`, [ID.MA], CHECK);
-  await expectErr(c, `UPDATE machines SET marine_type = 'power_boat' WHERE id = $1`, [ID.MA], DENIED);
-  await expectErr(c, `UPDATE machines SET propulsion = 'outboard' WHERE id = $1`, [ID.MA], DENIED);
-  await as(c, 'C');
-  const g = await one(c, `INSERT INTO garages (name) VALUES ('C') RETURNING id`);
-  await expectErr(c, `INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'boat', 'marine')`, [g], [CHECK, DENIED]);
-  await expectErr(c, `INSERT INTO machines (garage_id, name, machine_type, propulsion) VALUES ($1, 'jet', 'automotive', 'jet')`, [g], [CHECK, DENIED]);
+  await as(c, 'B');
+  await expectErr(c, `UPDATE machines SET machine_type = 'marine' WHERE id = $1`, [ID.MB1], CHECK);
+  await expectErr(c, `UPDATE machines SET marine_type = 'power_boat' WHERE id = $1`, [ID.MB1], DENIED);
+  await expectErr(c, `UPDATE machines SET propulsion = 'outboard' WHERE id = $1`, [ID.MB1], DENIED);
+  await expectErr(c, `INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'boat', 'marine')`, [ID.GB], CHECK);
+  await expectErr(c, `INSERT INTO machines (garage_id, name, machine_type, propulsion) VALUES ($1, 'jet', 'automotive', 'jet')`, [ID.GB], [CHECK, DENIED]);
   await as(c, 'service');
   await expectErr(c, `INSERT INTO machines (owner_id, garage_id, name, machine_type, marine_type) VALUES ($1, $2, 'x', 'marine', 'pwc')`, [U.A, ID.GA], CHECK);
   await expectErr(c, `UPDATE machines SET propulsion = 'inboard' WHERE id = $1`, [ID.MA], CHECK);
@@ -566,27 +600,12 @@ check('security_definer', 'soft-delete functions require authentication and act 
   await as(c, 'postgres');
   ok(await one(c, `SELECT deleted_at IS NOT NULL FROM engineering_analyses WHERE id = $1`, [ID.EB]), 'deleted_at set under FORCE RLS by a non-superuser owner');
 });
-check('security_definer', 'internal definers (allowance, link checks, sign-up) are not callable by clients', async (c) => {
-  for (const [f, who] of [['pf_saved_calculation_links()', 'B'], ['pf_engineering_analysis_check()', 'B'], ['pf_handle_new_auth_user()', 'B'], ['pf_machine_details_primary()', 'B'], ['pf_machine_allowance_ok()', 'anon']])
+check('security_definer', 'internal definers (link checks, primary move, sign-up) are not callable by clients', async (c) => {
+  for (const [f, who] of [['pf_saved_calculation_links()', 'B'], ['pf_engineering_analysis_check()', 'B'], ['pf_handle_new_auth_user()', 'B'], ['pf_machine_details_primary()', 'B']])
     eq(await one(c, `SELECT has_function_privilege($1, $2, 'EXECUTE')`, [who === 'anon' ? 'anon' : 'authenticated', `public.${f}`]), false, f);
 });
 
 // ---- added in the pre-approval review
-check('allowance', 'outside READ COMMITTED the allowance fails closed (a REPEATABLE READ race could otherwise pass it)', async (c) => {
-  const sa = await connect(c.database, 'supabase_admin');
-  await sa.query(`INSERT INTO auth.users (id, email) VALUES ($1, 'r@example.test') ON CONFLICT (id) DO NOTHING`, [U.R]); await sa.end();
-  const s = await connect(c.database, 'postgres');
-  await s.query('BEGIN'); await as(s, 'R'); const g = await one(s, `INSERT INTO garages (name) VALUES ('R') RETURNING id`); await s.query('COMMIT'); await s.end();
-  const ins = `INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'first', 'automotive')`;
-  for (const iso of ['REPEATABLE READ', 'SERIALIZABLE']) {
-    const x = await connect(c.database, 'postgres');
-    try { await x.query(`BEGIN ISOLATION LEVEL ${iso}`); await as(x, 'R'); await expectErr(x, ins, [g], DENIED); }
-    finally { await x.query('ROLLBACK').catch(() => {}); await x.end(); }
-  }
-  const y = await connect(c.database, 'postgres');
-  try { await y.query('BEGIN ISOLATION LEVEL READ COMMITTED'); await as(y, 'R'); eq((await y.query(ins, [g])).rowCount, 1, 'READ COMMITTED first machine'); }
-  finally { await y.query('ROLLBACK').catch(() => {}); await y.end(); }
-});
 check('garage', 'marking a machine primary moves the flag; deleting the primary never locks the choice; nobody else can clear it', async (c) => {
   await as(c, 'B');
   await c.query(`INSERT INTO machine_details (machine_id, make, is_primary) VALUES ($1, 'one', true)`, [ID.MB1]);
@@ -601,10 +620,12 @@ check('garage', 'marking a machine primary moves the flag; deleting the primary 
   eq(await q(c, `SELECT owner_id, machine_id FROM machine_details WHERE is_primary ORDER BY owner_id`),
     [{ owner_id: U.A, machine_id: ID.MA }, { owner_id: U.B, machine_id: ID.MB2 }], 'one primary per owner; A untouched by B');
 });
-check('test_setups', 'owner decision (approved): Test Setups are unlimited for Free on its one machine; saved work cannot be attached to them', async (c) => {
+check('test_setups', 'Test Setups (Builds) are unlimited for Premium; a Free account cannot create them or attach saved work to them', async (c) => {
+  await as(c, 'B');
+  for (const n of ['street', 'track', 'dyno']) await c.query(`INSERT INTO test_setups (machine_id, name) VALUES ($1, $2)`, [ID.MB1, n]);
+  eq(await one(c, `SELECT count(*)::int FROM test_setups`), 5, 'B test setups');
   await as(c, 'A');
-  for (const n of ['street', 'track', 'dyno']) await c.query(`INSERT INTO test_setups (machine_id, name) VALUES ($1, $2)`, [ID.MA, n]);
-  eq(await one(c, `SELECT count(*)::int FROM test_setups`), 4, 'A test setups');
+  await expectErr(c, `INSERT INTO test_setups (machine_id, name) VALUES ($1, 'x')`, [ID.MA], DENIED);
   await expectErr(c, `INSERT INTO saved_calculations (calculation_id, test_setup_id, title) VALUES ($1, $2, 'x')`, [ID.CA, ID.TA], DENIED);
   await expectErr(c, `INSERT INTO engineering_analyses (analyzer_id, analyzer_version, test_setup_id, title, inputs, inputs_unit_system)
                       VALUES ('e01_turbo_compressor_map', 'E1-AUTO', $1, 'x', '{}', 'imperial')`, [ID.TA], DENIED);
@@ -617,7 +638,7 @@ check('entitlements', 'clients read their own grants but never the operator note
 });
 check('stripe', 'late or out-of-order webhooks never overwrite a newer state or re-open access', async (c) => {
   await as(c, 'postgres');
-  await c.query(`INSERT INTO plan_prices VALUES ('price_order', 'premium', 'month', 'usd', 999, true)`);
+  await c.query(`INSERT INTO plan_prices VALUES ('price_order', 'premium', 'month', 'usd', 599, true)`);
   await as(c, 'service');
   await c.query(`SELECT pf_upsert_billing_customer($1, 'cus_O')`, [U.C]);
   const sync = (status, at) => one(c, `SELECT pf_sync_stripe_subscription('sub_O', $1, 'cus_O', $2, 'price_order', now(), '2098-01-01', false, NULL, NULL, $3)`, [U.C, status, at]);
@@ -649,7 +670,7 @@ const FP_SQL = `SELECT x FROM (
 const FP_CORE_SQL = FP_SQL.replace(/\/\*ROWS\*\/[^\n]*\n/, '');
 async function fpLines(db, sql = FP_SQL) { const c = await connect(db, 'postgres'); const r = (await q(c, sql)).map(x => x.x); await c.end(); return r; }
 async function fingerprint(db) { return crypto.createHash('sha256').update((await fpLines(db)).join('\n')).digest('hex'); }
-const ROLLBACKS = ['0406_premium_engineering_analyses', '0405_premium_saved_calculations', '0404_premium_garage', '0403_premium_profiles',
+const ROLLBACKS = ['0407_premium_product_model', '0406_premium_engineering_analyses', '0405_premium_saved_calculations', '0404_premium_garage', '0403_premium_profiles',
   '0402_premium_entitlements', '0401_automotive_only'].map(n => path.join(REPO, 'supabase', 'rollback', `${n}.rollback.sql`));
 /* Function body taken from a migration, for mutants that must differ from the real definition by one clause. */
 function fnDef(file, name, from, to) {
@@ -672,34 +693,19 @@ async function runChecks(db, { only } = {}) {
   return results;
 }
 
-async function concurrencyCheck(db) {
-  // Two simultaneous first-machine inserts by the same Free user: exactly one may succeed.
-  const setup = await connect(db, 'postgres');
-  await setup.query('BEGIN'); await as(setup, 'E');
-  const g = await one(setup, `INSERT INTO garages (name) VALUES ('E') RETURNING id`);
-  await setup.query('COMMIT'); await setup.end();
-  const c1 = await connect(db, 'postgres'), c2 = await connect(db, 'postgres');
-  await c1.query('BEGIN'); await as(c1, 'E');
-  await c2.query('BEGIN'); await as(c2, 'E');
-  await c1.query(`INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'race-1', 'automotive')`, [g]);   // holds the allowance lock
-  const second = c2.query(`INSERT INTO machines (garage_id, name, machine_type) VALUES ($1, 'race-2', 'automotive')`, [g])
-    .then(() => 'succeeded', e => e.code);
-  await new Promise(r => setTimeout(r, 400));
-  await c1.query('COMMIT');
-  const outcome = await second;
-  await c2.query(outcome === 'succeeded' ? 'COMMIT' : 'ROLLBACK');
-  await c1.end(); await c2.end();
-  const v = await connect(db, 'postgres');
-  const n = await one(v, `SELECT count(*)::int FROM machines WHERE owner_id = $1 AND deleted_at IS NULL`, [U.E]); await v.end();
-  const pass = outcome === DENIED && n === 1;
-  return { group: 'allowance', name: 'concurrent first-machine inserts by one Free user: exactly one succeeds (advisory lock)', pass,
-    error: pass ? undefined : `second insert: ${outcome}; active machines: ${n}` };
-}
-
 const MUTANTS = [
-  ['restrictive allowance policy dropped', `DROP POLICY pf_machines_free_allowance ON public.machines`, 'a Free user can create one machine; a second is refused'],
-  ['allowance function always true', `CREATE OR REPLACE FUNCTION public.pf_machine_allowance_ok() RETURNS boolean LANGUAGE sql VOLATILE SECURITY DEFINER SET search_path = '' AS $$ SELECT true $$`,
-    'A (Free, already has one machine) cannot add another'],
+  ['Premium garage insert policy dropped on machines', `DROP POLICY pf_garage_premium_insert ON public.machines`,
+    'a Free account cannot create a garage, vehicle, component or Test Setup (never-Premium C and former-Premium A)'],
+  ['Premium garage insert policy dropped on test_setups', `DROP POLICY pf_garage_premium_insert ON public.test_setups`,
+    'Test Setups (Builds) are unlimited for Premium; a Free account cannot create them or attach saved work to them'],
+  ['Premium garage update policy dropped on machine_details', `DROP POLICY pf_garage_premium_update ON public.machine_details`,
+    'a lapsed or former Premium account keeps read access and can soft-delete, but cannot create or edit'],
+  ['garage feature removed from the Premium plan', `UPDATE public.plans SET features = ARRAY['engineering_lab','saved_calculations'] WHERE plan_key = 'premium'`,
+    'Premium: a garage with any number of vehicles, details, components and Test Setups', { afterFixtures: true }],
+  ['Stripe prices no longer tied to the approved offers', `ALTER TABLE public.plan_prices DROP CONSTRAINT plan_prices_approved_offer_fk`,
+    'Premium is the only paid product: 5.99/month and 59.99/year; Stripe prices must match an approved offer'],
+  ['a second paid product allowed', `ALTER TABLE public.plans DROP CONSTRAINT plans_single_paid_product`,
+    'Premium is the only paid product: 5.99/month and 59.99/year; Stripe prices must match an approved offer'],
   ['client granted INSERT on entitlement_grants + permissive policy', `GRANT INSERT ON public.entitlement_grants TO authenticated;
      CREATE POLICY m_ins ON public.entitlement_grants FOR INSERT TO authenticated WITH CHECK (account_id = auth.uid())`,
     'a client cannot self-grant, extend, alter, delete or truncate entitlements'],
@@ -739,8 +745,6 @@ const MUTANTS = [
     'SECURITY DEFINER inventory is exact; each pins search_path, is owned by non-superuser postgres (BYPASSRLS), not executable by anon'],
   ['Stripe ordering guard removed', fnDef('0402_premium_entitlements.sql', 'pf_sync_stripe_subscription', '\n  WHERE s.stripe_state_at <= EXCLUDED.stripe_state_at;', ';'),
     'late or out-of-order webhooks never overwrite a newer state or re-open access'],
-  ['allowance isolation guard removed', fnDef('0404_premium_garage.sql', 'pf_machine_allowance_ok', "  IF current_setting('transaction_isolation') <> 'read committed' THEN RETURN false; END IF;\n", ''),
-    'outside READ COMMITTED the allowance fails closed (a REPEATABLE READ race could otherwise pass it)'],
   ['primary-move trigger dropped', `DROP TRIGGER pf_primary ON public.machine_details`,
     'marking a machine primary moves the flag; deleting the primary never locks the choice; nobody else can clear it'],
   ['primary-move not owner-scoped', fnDef('0404_premium_garage.sql', 'pf_machine_details_primary', 'WHERE owner_id = NEW.owner_id AND machine_id', 'WHERE machine_id'),
@@ -756,12 +760,13 @@ const MUTANTS = [
   { const c = await connect(main, 'postgres'); out.postgres = await one(c, `SHOW server_version`); await c.end(); }
   await fixtures(main);
   out.checks = await runChecks(main);
-  out.checks.push(await concurrencyCheck(main));
   await dropDb(main);
 
-  // idempotency: every migration applied twice -> identical catalog
-  const once = await freshDb('once'), twice = await freshDb('twice');
-  { const c = await connect(twice, 'postgres'); for (const f of EXPECTED_MIGRATIONS) await c.query(fs.readFileSync(path.join(MIG_DIR, f), 'utf8')); await c.end(); }
+  // idempotency: every migration applied twice in a row -> identical catalog. (Replaying the WHOLE set after 0407 is not a
+  // valid scenario: 0407 deliberately supersedes 0402's plan seed, so a replayed 0402 aborts on its own post-condition and
+  // rolls back; the migration history never replays an applied file.)
+  const once = await freshDb('once');
+  const twice = await freshDb('twice', { order: EXPECTED_MIGRATIONS.flatMap(f => [f, f]) });
   const fpOnce = await fingerprint(once), fpTwice = await fingerprint(twice);
   out.idempotency = { pass: fpOnce === fpTwice };
   // order equivalence: 0201 before 0101-0103 (as listed in the brief) vs version order
@@ -779,22 +784,32 @@ const MUTANTS = [
   const residueOk = extra.length === 2 && extra.some(l => l.startsWith('fn pf_handle_new_auth_user() ')) && extra.some(l => l.startsWith('trg CREATE TRIGGER pf_on_auth_user_created '));
   { const c = await connect(rb, 'postgres'); for (const f of EXPECTED_MIGRATIONS.slice(10)) await c.query(fs.readFileSync(path.join(MIG_DIR, f), 'utf8')); await c.end(); }
   const reprovisionOk = (await fingerprint(rb)) === fpOnce;
-  out.rollback = { pass: missing.length === 0 && residueOk && reprovisionOk, missing: missing.length, extra: extra.map(l => l.slice(0, 60)), reprovision: reprovisionOk };
-  await dropDb(once); await dropDb(twice); await dropDb(altDb); await dropDb(frozenDb); await dropDb(rb);
+  // 0407 alone: rolling it back on a fully provisioned database must reproduce the exact 0406 catalog.
+  const at0406 = await freshDb('at0406', { order: EXPECTED_MIGRATIONS.slice(0, 16) });
+  const rb0407 = await freshDb('rb0407');
+  { const c = await connect(rb0407, 'postgres'); await c.query(fs.readFileSync(ROLLBACKS[0], 'utf8')); await c.end(); }
+  const rb0407Ok = (await fingerprint(rb0407)) === (await fingerprint(at0406));
+  out.rollback = { pass: missing.length === 0 && residueOk && reprovisionOk && rb0407Ok, missing: missing.length, extra: extra.map(l => l.slice(0, 60)),
+    reprovision: reprovisionOk, rollback_0407_to_0406: rb0407Ok };
+  await dropDb(once); await dropDb(twice); await dropDb(altDb); await dropDb(frozenDb); await dropDb(rb); await dropDb(at0406); await dropDb(rb0407);
 
-  for (const [name, sql, target] of MUTANTS) {
+  // A mutant is applied to the fresh schema before the fixtures, unless it would stop the fixtures themselves from being
+  // created (afterFixtures), in which case it is applied to the populated database.
+  for (const [name, sql, target, opts = {}] of MUTANTS) {
     const db = await freshDb('mutant');
-    const m = await connect(db, 'postgres'); await m.query(sql); await m.end();
+    const mutate = async () => { const m = await connect(db, 'postgres'); await m.query(sql); await m.end(); };
+    if (!opts.afterFixtures) await mutate();
     await fixtures(db);
+    if (opts.afterFixtures) await mutate();
     const r = await runChecks(db, { only: [target] });
     out.mutants.push({ mutant: name, target, killed: r.length === 1 && !r[0].pass });
     await dropDb(db);
   }
 
   for (const r of out.checks) console.log(`${r.pass ? 'PASS' : 'FAIL'}  [${r.group}] ${r.name}${r.pass ? '' : '\n      -> ' + r.error}`);
-  console.log(`${out.idempotency.pass ? 'PASS' : 'FAIL'}  [idempotency] every migration applied twice leaves the catalog fingerprint unchanged`);
+  console.log(`${out.idempotency.pass ? 'PASS' : 'FAIL'}  [idempotency] every migration applied twice in a row leaves the catalog fingerprint unchanged`);
   console.log(`${out.order_equivalence.pass ? 'PASS' : 'FAIL'}  [order] 0201 before 0101-0103 yields the same catalog as version order`);
-  console.log(`${out.rollback.pass ? 'PASS' : 'FAIL'}  [rollback] 0406->0401 restores the frozen catalog (only the inert sign-up trigger remains); re-applying 0401-0406 restores the full catalog${out.rollback.pass ? '' : '\n      -> ' + JSON.stringify(out.rollback)}`);
+  console.log(`${out.rollback.pass ? 'PASS' : 'FAIL'}  [rollback] 0407->0401 restores the frozen catalog (only the inert sign-up trigger remains); re-applying 0401-0407 restores the full catalog; 0407 alone rolls back to the exact 0406 catalog${out.rollback.pass ? '' : '\n      -> ' + JSON.stringify(out.rollback)}`);
   for (const m of out.mutants) console.log(`${m.killed ? 'KILLED  ' : 'SURVIVED'}  mutant: ${m.mutant}`);
   const failed = out.checks.filter(r => !r.pass).length + (out.idempotency.pass ? 0 : 1) + (out.order_equivalence.pass ? 0 : 1) + (out.rollback.pass ? 0 : 1);
   const survived = out.mutants.filter(m => !m.killed).length;

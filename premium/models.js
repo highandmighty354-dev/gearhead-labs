@@ -36,10 +36,17 @@
   const MARINE_COLUMNS = ['marine_type', 'propulsion'];
   const SERVER_CONTROLLED = ['id', 'owner_id', 'account_id', 'created_at', 'updated_at', 'deleted_at', 'baseline_pinned_at', 'result_trust'];
 
-  /* ---------------------------------------------------------------- plans and features */
-  const FEATURES = ['engineering_lab', 'saved_calculations', 'garage_unlimited'];
+  /* ---------------------------------------------------------------- plans, features and the approved offers (0407)
+     ONE paid product: Gearhead Labs Premium. Free is the public calculators only (no Garage, no saved work).
+     Premium features: My Garage (vehicles, details, components, Test Setups/Builds), saved calculations, Engineering Lab. */
+  const FEATURES = ['engineering_lab', 'saved_calculations', 'garage'];
   const GRANT_SOURCES = ['stripe', 'manual', 'trial', 'promo'];
-  const FREE_MACHINE_LIMIT = 1;   // owner decision 1 (0404 restrictive policy)
+  /* Mirrors public.plan_offers; display only (Stripe checkout is not implemented). amount is in cents. */
+  const PREMIUM_OFFERS = [
+    { interval: 'month', currency: 'usd', amount: 599, label: '$5.99/month' },
+    { interval: 'year', currency: 'usd', amount: 5999, label: '$59.99/year' }
+  ];
+  const PREMIUM_PRICE_TEXT = PREMIUM_OFFERS.map(o => o.label).join(' or ');
 
   /* ---------------------------------------------------------------- Engineering Lab catalog (0406) */
   const ENGINEERING_CATEGORIES = ['Turbo', 'Two-Stroke', 'Valvetrain', 'Chassis', 'Driveline', 'Thermal'];
@@ -240,7 +247,7 @@
     }
   }
   const MESSAGES = {
-    free_machine_limit: 'Free includes 1 vehicle. Upgrade to Gearhead Labs Premium to add more.',
+    premium_garage: 'My Garage is part of Gearhead Labs Premium.',
     forbidden: 'That isn’t allowed for your account, or it requires Gearhead Labs Premium.',
     conflict: 'That already exists. Refresh and try again.',
     link_not_found: 'A linked item was not found. It may have been deleted.',
@@ -263,7 +270,7 @@
     const text = [e.message, e.details, e.hint].filter(Boolean).join(' ');
     const make = (kind, extra) => new GHPError(kind, MESSAGES[kind], { code: code || null, status, cause: err, ...extra });
     // Code-specific mappings come first: PostgREST also answers 401 for permission errors of signed-out users.
-    if (code === '42501') return /pf_machines_free_allowance/.test(text) ? make('free_machine_limit', { upgrade: true }) : make('forbidden');
+    if (code === '42501') return /pf_garage_premium_/.test(text) ? make('premium_garage', { upgrade: true }) : make('forbidden');
     if (code === '23505') return make('conflict', { retry: true });
     if (code === '23503') return make('link_not_found');
     if (code === '23514' || code === '23502' || code === '22P02' || code === '22001' || code === '22004') return make('invalid');
@@ -397,7 +404,6 @@
     return deepFreeze({ signedIn: true, plan: r.plan_key, isPremium: true, features, source, endsAt, isTrial: source === 'trial' });
   }
   const hasFeature = (ent, feature) => !!ent && Array.isArray(ent.features) && ent.features.includes(feature);
-  const canAddMachine = (ent, activeMachines) => hasFeature(ent, 'garage_unlimited') || activeMachines < FREE_MACHINE_LIMIT;
   /* A Stripe trial arrives as a 'stripe' grant whose subscription status is 'trialing'. */
   function subscriptionView(row) {
     if (!row) return null;
@@ -478,14 +484,14 @@
   }
 
   const api = deepFreeze({
-    ENUMS, BLOCKED_VALUES, MARINE_COLUMNS, SERVER_CONTROLLED, FEATURES, GRANT_SOURCES, FREE_MACHINE_LIMIT, RPC, TABLES, PROTECTED_TABLES,
+    ENUMS, BLOCKED_VALUES, MARINE_COLUMNS, SERVER_CONTROLLED, FEATURES, GRANT_SOURCES, PREMIUM_OFFERS, PREMIUM_PRICE_TEXT, RPC, TABLES, PROTECTED_TABLES,
     RULES, JSON_MAX_BYTES, ENGINEERING_CATEGORIES, ENGINEERING_CATALOG, ANONYMOUS_ENTITLEMENT, MESSAGES,
     VEHICLE_TYPE_MAP, FUEL_MAP, DRIVETRAIN_OPTIONS
   });
 
   GHP.models = Object.freeze(Object.assign({}, api, {
     enumValues, labelFor, ValidationError, GHPError, mapError, notFound, prepareInsert, prepareUpdate, prepareFilters, isUuid,
-    entitlementFromRpc, hasFeature, canAddMachine, subscriptionView, planLabel, fromPhase3aVehicle, fromPhase3aBuild,
+    entitlementFromRpc, hasFeature, subscriptionView, planLabel, fromPhase3aVehicle, fromPhase3aBuild,
     splitDrivetrain, withDrivetrain, analysisFromCapture,
     ANALYZER_IDS
   }));

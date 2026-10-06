@@ -121,11 +121,15 @@
     }
   };
 
-  /* ---------------------------------------------------------------- garage (one active garage per owner) */
+  /* ---------------------------------------------------------------- My Garage: part of Premium (0407)
+     Creating or editing garage data needs the 'garage' feature. Reading and deleting stay open to the owner, so a lapsed
+     or former Premium member can still review and remove what they saved. The database enforces the same rule. */
+  const GARAGE_MSG = M.MESSAGES.premium_garage;
+  const requireGarage = () => requireFeature('garage', GARAGE_MSG);
   const garage = {
     async get() { requireUser(); return call(async () => (await T().garages.list())[0] || null); },
     async rename(name) {
-      requireUser();
+      requireGarage();
       return call(async () => { const g = await adapter.garage.ensure(); const r = await T().garages.update(g.id, { name }); changed('garages'); return r; });
     }
   };
@@ -158,14 +162,10 @@
       });
     },
     async get(id) { const v = (await this.list()).find(m => m.id === id); if (!v) throw M.notFound(); return v; },
-    async allowance() {
-      const used = (await this.list()).length, unlimited = entitlements.has('garage_unlimited');
-      return { used, limit: unlimited ? null : M.FREE_MACHINE_LIMIT, canAdd: M.canAddMachine(entitlements.state, used) };
-    },
     /* input: machine fields + detail fields + drivetrain + engine/transmission labels. Everything is validated before
-       the first write; the database enforces the Free allowance (the check here only gives the answer early). */
+       the first write; the database enforces Premium (the check here only gives the answer early). */
     async create(input) {
-      requireUser();
+      requireGarage();
       input = input || {};
       const machineRow = pick(input, MACHINE_FIELDS);
       if (!machineRow.name || !String(machineRow.name).trim()) machineRow.name = displayName(input) || 'My vehicle';
@@ -176,7 +176,6 @@
       specs.forEach(c => M.prepareInsert('components', Object.assign({ machine_id: PLACEHOLDER }, c)));
       return call(async () => {
         const existing = await this.list();
-        if (!M.canAddMachine(entitlements.state, existing.length)) throw new M.GHPError('free_machine_limit', M.MESSAGES.free_machine_limit, { upgrade: true });
         if (!existing.some(m => m.is_primary)) details.is_primary = true;   // with no primary yet, the new vehicle becomes primary
         const g = await adapter.garage.ensure();
         const m = await T().machines.insert(Object.assign({ garage_id: g.id }, machineRow));
@@ -192,7 +191,7 @@
       });
     },
     async update(id, input) {
-      requireUser();
+      requireGarage();
       input = input || {};
       const machinePatch = pick(input, MACHINE_FIELDS);
       const details = detailRow(input);
@@ -220,23 +219,23 @@
       });
     },
     /* One write; the database moves the flag (no client-side clearing). */
-    async setPrimary(id) { requireUser(); return call(async () => { const r = await adapter.machines.setPrimary(id); changed('machines'); return r; }); },
+    async setPrimary(id) { requireGarage(); return call(async () => { const r = await adapter.machines.setPrimary(id); changed('machines'); return r; }); },
     /* Soft delete (permanent). Its details, setups and links are hidden with it. */
     async remove(id) { requireUser(); return call(async () => { await T().machines.softDelete(id); changed('machines'); return true; }); }
   };
 
-  /* ---------------------------------------------------------------- Test Setups (Builds): unlimited for every plan */
+  /* ---------------------------------------------------------------- Test Setups (Builds): part of Premium, unlimited */
   const SETUP_FIELDS = ['name', 'description', 'notes'];
   const testSetups = {
     async list(machineId) { requireUser(); return call(() => T().test_setups.list(machineId ? { machine_id: machineId } : undefined)); },
     async get(id) { requireUser(); return call(async () => { const r = await T().test_setups.get(id); if (!r) throw M.notFound(); return r; }); },
     async create(data) {
-      requireUser();
+      requireGarage();
       return call(async () => { const r = await T().test_setups.insert(Object.assign({ machine_id: data && data.machine_id }, pick(data, SETUP_FIELDS))); changed('test_setups'); return r; });
     },
-    async update(id, data) { requireUser(); return call(async () => { const r = await T().test_setups.update(id, pick(data, SETUP_FIELDS)); changed('test_setups'); return r; }); },
+    async update(id, data) { requireGarage(); return call(async () => { const r = await T().test_setups.update(id, pick(data, SETUP_FIELDS)); changed('test_setups'); return r; }); },
     async remove(id) { requireUser(); return call(async () => { await T().test_setups.softDelete(id); changed('test_setups'); return true; }); },
-    async repin(id) { requireUser(); return call(async () => { await adapter.testSetups.repinBaseline(id); changed('test_setups'); return true; }); }
+    async repin(id) { requireGarage(); return call(async () => { await adapter.testSetups.repinBaseline(id); changed('test_setups'); return true; }); }
   };
 
   /* ---------------------------------------------------------------- engineering analyses (Premium; lapsed: read + delete) */
@@ -317,7 +316,7 @@
     ready, on, auth, entitlements,
     get adapter() { return adapter; },
     get mode() { return mode; },
-    limits: Object.freeze({ freeMachines: M.FREE_MACHINE_LIMIT }),
+    pricing: Object.freeze({ offers: M.PREMIUM_OFFERS, text: M.PREMIUM_PRICE_TEXT }),
     repos: Object.freeze({ profile, garage, machines, testSetups, analyses, savedCalculations, billing, analyzers }),
     /* Development-only: present only when the development adapter is active. */
     get dev() {
