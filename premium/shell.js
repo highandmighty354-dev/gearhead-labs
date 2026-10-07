@@ -123,7 +123,17 @@
       <form data-form="signin" class="ghp-form" novalidate>${formErrors()}<label>Email<input name="email" type="email" autocomplete="email" inputmode="email" required></label><button class="ghp-btn gold" type="submit">${dev ? 'Sign in (development)' : 'Email me a sign-in link'}</button></form></div>`;
   }
   const needAccount = (title, kicker) => page(title, kicker, signInCard());
-  function freeCount() { try { const w = window.GHShell.frame.contentWindow; const n = w.eval("CALCS.filter(c=>c.id!=='dashboard'&&c.layer!=='engineering').length"); return n || 606; } catch (e) { return 606; } }
+  /* 606 Free calculators minus the 21 migrated to Premium (2026-10-06) = 585. The exclusion list comes from
+     M.PREMIUM_CALC_IDS (premium/models.js), the same single source of truth catalog/build-catalog.js and the
+     calculator engine's own gating shim (premium-calculator-gating.js) read, so this can never drift from them. */
+  function freeCount() {
+    try {
+      const w = window.GHShell.frame.contentWindow;
+      const premiumIds = JSON.stringify(M.PREMIUM_CALC_IDS.values());
+      const n = w.eval(`CALCS.filter(c=>c.id!=='dashboard'&&c.layer!=='engineering'&&!(${premiumIds}).includes(c.id)).length`);
+      return n || 585;
+    } catch (e) { return 585; }
+  }
   async function linkNames() {
     const [ms, ts] = await Promise.all([R.machines.list(), R.testSetups.list()]);
     return { machines: ms, setups: ts, m: Object.fromEntries(ms.map(m => [m.id, machineName(m)])), t: Object.fromEntries(ts.map(t => [t.id, t.name])) };

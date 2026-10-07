@@ -70,6 +70,64 @@
   /* read-only view: a Set itself cannot be frozen */
   const ANALYZER_IDS = Object.freeze({ has: id => ANALYZER_SET.has(id), get size() { return ANALYZER_SET.size; }, values: () => [...ANALYZER_SET] });
 
+  /* ---------------------------------------------------------------- Premium calculators (Free -> Premium migration, 2026-10-06)
+     Owner-approved migration of 21 existing Free calculators to Premium (Gearhead_Labs_Premium_Migration_AUDIT.xlsx,
+     "RECOMMENDED 21-Item List"; audit ruled out 49 of the originally-proposed 70 as Engineering-Lab duplicates,
+     SEO anchors, or basic on-ramp tools that should stay Free). Each one stays visible in the Free calculator
+     navigation (unlike the Engineering Lab, which is hidden until entitled) with a Premium indicator, but requires
+     an active Premium entitlement to execute. free_companion names the retained Free calculator that is the natural
+     on-ramp into it. This is the single source of truth: catalog/build-catalog.js assigns tier from PREMIUM_CALC_IDS,
+     and premium-calculator-gating.js (injected into the calculator engine frame) reads PREMIUM_CALCULATORS directly
+     from this file at runtime (via window.parent.GHP.models) for both the id set and the promotion copy, so the two
+     never drift. */
+  const PREMIUM_CALCULATORS = [
+    { id: 'advanced_et', name: 'Advanced ET Prediction', free_companion: 'et_mph_prediction',
+      promo: 'Use the free ET & MPH Prediction calculator for a quick quarter-mile estimate. Premium’s Advanced ET Prediction refines it with the extra variables that actually move the number.' },
+    { id: 'dynamic_compression', name: 'Dynamic Compression Ratio', free_companion: 'static_compression',
+      promo: 'Use the free Static Compression Ratio calculator to get your baseline CR. Premium’s Dynamic Compression Ratio accounts for cam timing to show what the engine actually sees.' },
+    { id: 'optimal_shift', name: 'Optimal Shift Point', free_companion: 'gear_ratio_speed',
+      promo: 'Use the free Gear Ratio Speed and Engine RPM from Speed calculators to understand your gearing. Premium’s Optimal Shift Point turns that into a complete shift-point workflow.' },
+    { id: 'portal_gear_reduction', name: 'Portal Gear Reduction', free_companion: 'crawl_ratio',
+      promo: 'Use the free Crawl Ratio calculator for standard axle gearing. Premium’s Portal Gear Reduction handles the portal-axle math off-road builds need.' },
+    { id: 'master_cylinder', name: 'Master Cylinder Sizing', free_companion: 'brake_torque',
+      promo: 'Use the free Brake Torque calculator to establish the baseline. Premium’s Master Cylinder Sizing turns that into a complete bore-sizing and pedal-ratio workflow.' },
+    { id: 'brake_rotor_temp', name: 'Brake Rotor Temp Rise', free_companion: 'brake_torque',
+      promo: 'Use the free Brake Torque calculator to establish the baseline. Premium’s Brake Rotor Temp Rise analyzes the complete thermal picture — rotor temp, energy and fade, together.' },
+    { id: 'turbo_sizing', name: 'Turbo Sizing', free_companion: 'turbo_airflow',
+      promo: 'Use the free Turbocharger Airflow calculator to establish your baseline airflow numbers. Premium’s Turbo Sizing turns that into a compressor selection workflow. (For the complete compressor map, see E01 in the Engineering Lab.)' },
+    { id: 'hp_cr_change', name: 'HP Change from CR Change', free_companion: 'static_compression',
+      promo: 'Use the free Static Compression Ratio calculator to see where you stand. Premium’s HP Change from CR Change shows exactly how much power a compression bump is worth.' },
+    { id: 'hp_from_specs', name: 'HP from CID/CR/RPM/VE', free_companion: 'hp_from_torque',
+      promo: 'Use the free HP from Torque calculator for a quick estimate. Premium’s HP from CID/CR/RPM/VE builds the complete spec-based horsepower picture.' },
+    { id: 'torque_converter', name: 'Torque Converter Stall Speed', free_companion: 'converter_slip',
+      promo: 'Use the free Converter Slip % calculator to establish the baseline. Premium’s Torque Converter Stall Speed analyzes the complete stall-speed tuning problem.' },
+    { id: 'incremental_et', name: 'Incremental ET Analyzer (60/330/660/1000/1320)', free_companion: 'et_mph_prediction',
+      promo: 'Use the free ET & MPH Prediction calculator for a single-point estimate. Premium’s Incremental ET Analyzer breaks down the complete 60/330/660/1000/1320 split-time picture.' },
+    { id: 'sim_curve_editor', name: 'Power / Torque Curve', free_companion: 'sim_weight_transfer',
+      promo: 'Use the free Weight Transfer and Braking simulators to get a feel for vehicle dynamics. Premium unlocks the complete simulator suite — Power/Torque Curve, Acceleration, Cornering, Top Speed and Dragstrip — for the full build simulation.' },
+    { id: 'sim_acceleration', name: 'Simulator — Acceleration', free_companion: 'sim_weight_transfer',
+      promo: 'Use the free Weight Transfer and Braking simulators to get a feel for vehicle dynamics. Premium unlocks the complete simulator suite for the full build simulation.' },
+    { id: 'sim_cornering', name: 'Simulator — Cornering', free_companion: 'sim_weight_transfer',
+      promo: 'Use the free Weight Transfer and Braking simulators to get a feel for vehicle dynamics. Premium unlocks the complete simulator suite for the full build simulation.' },
+    { id: 'sim_top_speed', name: 'Simulator — Top Speed', free_companion: 'sim_weight_transfer',
+      promo: 'Use the free Weight Transfer and Braking simulators to get a feel for vehicle dynamics. Premium unlocks the complete simulator suite for the full build simulation.' },
+    { id: 'sim_dragstrip', name: 'Simulator — Dragstrip', free_companion: 'sim_weight_transfer',
+      promo: 'Use the free Weight Transfer and Braking simulators to get a feel for vehicle dynamics. Premium unlocks the complete simulator suite for the full build simulation.' },
+    { id: 'intake_port_cfm', name: 'Intake Port CFM', free_companion: 'cfm_velocity_csa',
+      promo: 'Use the free CFM ↔ Velocity ↔ CSA calculator to establish the baseline relationship. Premium’s Intake Port CFM analyzes the complete intake-side flow picture.' },
+    { id: 'exhaust_port_cfm', name: 'Exhaust Port CFM', free_companion: 'cfm_velocity_csa',
+      promo: 'Use the free CFM ↔ Velocity ↔ CSA calculator to establish the baseline relationship. Premium’s Exhaust Port CFM analyzes the complete exhaust-side flow picture.' },
+    { id: 'head_flow_curve', name: 'Cylinder Head Flow Curve', free_companion: 'cfm_velocity_csa',
+      promo: 'Use the free single-point flow calculators to check individual numbers. Premium’s Cylinder Head Flow Curve builds the complete lift-vs-flow curve with charting — the full engineering problem, not just one point.' },
+    { id: 'brake_energy', name: 'Brake Energy', free_companion: 'brake_torque',
+      promo: 'Use the free Brake Torque calculator to establish the baseline. Premium’s Brake Energy analyzes the complete thermal workflow alongside Brake Rotor Temp Rise and Brake Heat per Stop.' },
+    { id: 'brake_fade_energy', name: 'Brake Heat per Stop', free_companion: 'brake_torque',
+      promo: 'Use the free Brake Torque calculator to establish the baseline. Premium’s Brake Heat per Stop completes the thermal workflow alongside Brake Energy and Brake Rotor Temp Rise.' }
+  ];
+  const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
+  /* read-only view: a Set itself cannot be frozen */
+  const PREMIUM_CALC_IDS = Object.freeze({ has: id => PREMIUM_CALC_SET.has(id), get size() { return PREMIUM_CALC_SET.size; }, values: () => [...PREMIUM_CALC_SET] });
+
   /* ---------------------------------------------------------------- client RPCs (the complete approved set) */
   const RPC = {
     myEntitlement: 'pf_my_entitlement',
@@ -485,7 +543,7 @@
 
   const api = deepFreeze({
     ENUMS, BLOCKED_VALUES, MARINE_COLUMNS, SERVER_CONTROLLED, FEATURES, GRANT_SOURCES, PREMIUM_OFFERS, PREMIUM_PRICE_TEXT, RPC, TABLES, PROTECTED_TABLES,
-    RULES, JSON_MAX_BYTES, ENGINEERING_CATEGORIES, ENGINEERING_CATALOG, ANONYMOUS_ENTITLEMENT, MESSAGES,
+    RULES, JSON_MAX_BYTES, ENGINEERING_CATEGORIES, ENGINEERING_CATALOG, PREMIUM_CALCULATORS, ANONYMOUS_ENTITLEMENT, MESSAGES,
     VEHICLE_TYPE_MAP, FUEL_MAP, DRIVETRAIN_OPTIONS
   });
 
@@ -493,6 +551,6 @@
     enumValues, labelFor, ValidationError, GHPError, mapError, notFound, prepareInsert, prepareUpdate, prepareFilters, isUuid,
     entitlementFromRpc, hasFeature, subscriptionView, planLabel, fromPhase3aVehicle, fromPhase3aBuild,
     splitDrivetrain, withDrivetrain, analysisFromCapture,
-    ANALYZER_IDS
+    ANALYZER_IDS, PREMIUM_CALC_IDS
   }));
 })();
