@@ -1,13 +1,17 @@
-/* Gearhead Labs — Premium calculator gating (Free -> Premium migration, 2026-10-06)
+/* Gearhead Labs — Premium calculator gating (Free -> Premium migration, 2026-10-06;
+   extended for the net-new Premium Calculator Expansion, 2026-10-07-)
    Loaded into the encyclopedia frame by app-shell.js, alongside qa-math-corrections.js
-   and navigation-ux.js. Gates the 21 calculators approved for migration from Free to
-   Premium (see premium/models.js PREMIUM_CALCULATORS — the single source of truth this
-   script reads at runtime from the parent frame, so the id list and the promotion copy
-   can never drift from catalog/build-catalog.js's) behind an active Premium entitlement,
-   while keeping every one of them visible and discoverable in the calculator navigation —
+   and navigation-ux.js. Gates every calculator in premium/models.js PREMIUM_CALCULATORS
+   behind an active Premium entitlement (the single source of truth this script reads at
+   runtime from the parent frame, so the id list and the promotion copy can never drift
+   from catalog/build-catalog.js's) -- originally the 21 calculators approved for
+   migration from Free to Premium, now also the Premium Calculator Expansion's net-new
+   calculators added batch by batch (no prior Free existence, so no free_companion) --
+   while keeping every one of them visible and discoverable in the calculator navigation,
    unlike the Engineering Lab, which stays hidden entirely until entitled. An anonymous or
-   Free visitor who opens one of the 21 sees an upgrade card with the audit-approved
-   Free-companion promotion copy instead of the real calculator; a Premium account sees the
+   Free visitor who opens any of them sees an upgrade card (the migrated 21's card links
+   its audit-approved Free companion; an expansion calculator's card has no companion to
+   link, since none exists) instead of the real calculator; a Premium account sees the
    real calculator exactly as before, unchanged.
 
    This script never grants access and never talks to Supabase: it only decides what the

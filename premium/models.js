@@ -122,7 +122,34 @@
     { id: 'brake_energy', name: 'Brake Energy', free_companion: 'brake_torque',
       promo: 'Use the free Brake Torque calculator to establish the baseline. Premium’s Brake Energy analyzes the complete thermal workflow alongside Brake Rotor Temp Rise and Brake Heat per Stop.' },
     { id: 'brake_fade_energy', name: 'Brake Heat per Stop', free_companion: 'brake_torque',
-      promo: 'Use the free Brake Torque calculator to establish the baseline. Premium’s Brake Heat per Stop completes the thermal workflow alongside Brake Energy and Brake Rotor Temp Rise.' }
+      promo: 'Use the free Brake Torque calculator to establish the baseline. Premium’s Brake Heat per Stop completes the thermal workflow alongside Brake Energy and Brake Rotor Temp Rise.' },
+
+    /* ---- Premium Batch 1 — Engine / Bottom End (2026-10-07) ----
+       Net-new Premium engineering calculators with no Free counterpart: no existing Free
+       calculator covers piston kinematics, reciprocating balance, bobweight, or bearing
+       PV/surface-speed/clearance-flow analysis, so there is no Free calculation to protect
+       here and free_companion is intentionally omitted (see premium-calculator-gating.js —
+       promo displays without a companion link when free_companion is absent). */
+    { id: 'piston_acceleration', name: 'Piston Acceleration',
+      promo: 'Gearhead Labs Premium unlocks Piston Acceleration — full crank-slider kinematics at any crank angle, the foundation for inertial loading, balance, and bearing analysis.' },
+    { id: 'piston_inertial_force', name: 'Reciprocating Inertial Force',
+      promo: 'Gearhead Labs Premium unlocks Reciprocating Inertial Force — the actual shaking load your rod and crank see at speed, independent of cylinder pressure.' },
+    { id: 'connecting_rod_angularity', name: 'Connecting Rod Angularity',
+      promo: 'Gearhead Labs Premium unlocks Connecting Rod Angularity — the max rod angle and thrust-side loading behind every rod-ratio decision.' },
+    { id: 'primary_secondary_balance_force', name: 'Primary & Secondary Balance Force',
+      promo: 'Gearhead Labs Premium unlocks Primary & Secondary Balance Force — the harmonic breakdown behind inline-4 secondary shake and balance-shaft design.' },
+    { id: 'engine_bobweight', name: 'Engine Bobweight',
+      promo: 'Gearhead Labs Premium unlocks Engine Bobweight — the exact combined mass your balancer needs for a correct crank balance job.' },
+    { id: 'crankshaft_counterweight_requirement', name: 'Crankshaft Counterweight Requirement',
+      promo: 'Gearhead Labs Premium unlocks Crankshaft Counterweight Requirement — turns a bobweight into the counterweight mass needed to offset it.' },
+    { id: 'rod_bearing_pv', name: 'Rod Bearing PV',
+      promo: 'Gearhead Labs Premium unlocks Rod Bearing PV — a pressure-velocity screening check against your bearing’s rated limit before you spin it up.' },
+    { id: 'main_bearing_load', name: 'Main Bearing Load (Screening Estimate)',
+      promo: 'Gearhead Labs Premium unlocks Main Bearing Load — a combined gas-and-centrifugal screening estimate for main bearing loading.' },
+    { id: 'bearing_surface_speed', name: 'Bearing Journal Surface Speed',
+      promo: 'Gearhead Labs Premium unlocks Bearing Journal Surface Speed — the velocity term every bearing PV and oil-film check depends on.' },
+    { id: 'oil_clearance_flow', name: 'Idealized Oil Clearance Flow',
+      promo: 'Gearhead Labs Premium unlocks Idealized Oil Clearance Flow — a first-principles estimate of oil flow through a bearing’s running clearance.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */

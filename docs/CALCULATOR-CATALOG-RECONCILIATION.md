@@ -3,6 +3,7 @@
 **Status:** explained; **not** a production defect. Must be acted on before the trusted calculation-saving service is built.
 **Checked:** 2026-10-06 against production `jmztpjudwzjvrcdtjynd` (read-only) and F1.12.4 / frozen F1.12.3 loaded in Chromium.
 **Note (2026-10-06, later the same day):** this reconciliation is about the formula-registry/catalog-row split, which is orthogonal to and unaffected by the Free → Premium calculator migration decided the same day. "606 public calculators" below means calculator-kind tools, not "Free" — 21 of the 606 are now Premium-tier (gated, still visible in the page nav), so the current Free count is **585**. See [PREMIUM-CATALOG.md](PREMIUM-CATALOG.md) for the full current split.
+**Note (2026-10-07):** the split mechanics below (577 fingerprinted + N render-only = calculator-kind total; 577 + 6 alias rows = 583) are unchanged and still the reconciliation to use, but the calculator-kind total itself is no longer frozen at 606: the Premium Calculator Expansion is adding net-new, never-Free, never-fingerprinted calculators batch by batch (10 so far, "render-only" the same way the pre-existing 29 are), growing both the total and the render-only count while 577 and 583 stay fixed. See [PREMIUM-CATALOG.md](PREMIUM-CATALOG.md) for the current, authoritative total.
 
 ## The numbers
 
