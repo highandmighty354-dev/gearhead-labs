@@ -309,7 +309,32 @@
     { id: 'gear_tooth_contact_stress', name: 'Gear Tooth Contact Stress',
       promo: 'Gearhead Labs Premium unlocks Gear Tooth Contact Stress — a simplified AGMA/Hertzian contact (pitting) stress screening check, the companion failure mode to Gear Tooth Bending Stress.' },
     { id: 'gearbox_efficiency_by_gear', name: 'Gearbox Efficiency by Gear',
-      promo: 'Gearhead Labs Premium unlocks Gearbox Efficiency by Gear — runs the Free Gearbox Efficiency calculator’s own formula once per gear position, since different gears engage different numbers of gear meshes.' }
+      promo: 'Gearhead Labs Premium unlocks Gearbox Efficiency by Gear — runs the Free Gearbox Efficiency calculator’s own formula once per gear position, since different gears engage different numbers of gear meshes.' },
+
+    /* ---- Premium Batch 8 — Chassis / Suspension (2026-10-07) ----
+       8 net-new Premium calculators under the UNIVERSAL / VEHICLE DYNAMICS category, no
+       free_companion on any of them. All eight generalize, reverse-solve, or add a second
+       dimension to an existing single-purpose Free calculator (Roll Stiffness, Circle Track
+       Sway Bar, Damping Ratio, Wheel Rate from Spring Rate, Anti-Squat %, Bump Steer Rate) --
+       see docs/PREMIUM-CATALOG.md Batch 8 section for the full per-calculator disposition,
+       including the Roll Couple Distribution item the exceptions doc promoted back to its own
+       standalone build rather than folding it into Roll Stiffness. */
+    { id: 'roll_stiffness_distribution', name: 'Front/Rear Roll Stiffness Distribution',
+      promo: 'Gearhead Labs Premium unlocks Front/Rear Roll Stiffness Distribution — runs the Free Roll Stiffness formula for both axles in one pass, feeding straight into Roll Couple Distribution for the front/rear balance tuners actually act on.' },
+    { id: 'anti_roll_bar_wheel_rate', name: 'Anti-Roll Bar Wheel Rate',
+      promo: 'Gearhead Labs Premium unlocks Anti-Roll Bar Wheel Rate — the general torsion-bar sizing formula behind the Free Circle Track Sway Bar calculator, with an editable shear modulus and the bar’s actual wheel-rate effect via the motion ratio.' },
+    { id: 'damping_coefficient_from_ratio', name: 'Damping Coefficient from Target Ratio',
+      promo: 'Gearhead Labs Premium unlocks Damping Coefficient from Target Ratio — reverse-solves the Free Damping Ratio relationship from physical wheel rate and corner weight, giving the actual shock valving spec instead of requiring it as an input.' },
+    { id: 'damper_velocity_from_wheel_travel', name: 'Damper Velocity from Wheel Travel',
+      promo: 'Gearhead Labs Premium unlocks Damper Velocity from Wheel Travel — converts a wheel-travel event into the shaft velocity a damper dyno plot is actually indexed against.' },
+    { id: 'bump_stop_rate', name: 'Bump Stop Rate',
+      promo: 'Gearhead Labs Premium unlocks Bump Stop Rate — turns a bump stop’s force-at-compression spec into a linear rate and combines it with the existing wheel rate, springs-in-parallel style.' },
+    { id: 'anti_squat_from_link_coordinates', name: 'Anti-Squat from Link Coordinates',
+      promo: 'Gearhead Labs Premium unlocks Anti-Squat from Link Coordinates — builds the Instant Center Height that the Free Anti-Squat % calculator takes as a direct input, from actual suspension link geometry.' },
+    { id: 'bump_steer_curve', name: 'Bump Steer Curve',
+      promo: 'Gearhead Labs Premium unlocks the Bump Steer Curve — a five-checkpoint version of the Free Bump Steer Rate calculator that reveals whether the toe curve is linear or progressive across the full stroke.' },
+    { id: 'roll_couple_distribution', name: 'Roll Couple Distribution',
+      promo: 'Gearhead Labs Premium unlocks Roll Couple Distribution — converts front and rear roll stiffness into the front/rear percentage split chassis tuners move when they shift roll couple forward or rearward.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */
