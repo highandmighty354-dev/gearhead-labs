@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "5f956c94b4d6c04ca42d408b4f328f237031b53b86b0f3a21f20d0df7135172f"
+      "sha256": "d2dfd8d3436553a544cfd08269ea35f9cf11a86426abb3b4b075fa66d7dda829"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -12,7 +12,7 @@
     },
     "models": {
       "file": "premium/models.js",
-      "sha256": "f53350afbe7a29f8954b0f71004b9f91812c1bffff098ec7fce60350dcad6ee8"
+      "sha256": "ef88344972f546f9dd78153f5ec42e2c656e90b45d78c223df8685819cdf6946"
     },
     "engineering": {
       "file": "engineering-expansion-v1.js",
@@ -22,10 +22,10 @@
   "counts": {
     "free_public_calculators": 585,
     "migrated_premium_calculators": 21,
-    "premium_expansion_calculators": 10,
+    "premium_expansion_calculators": 14,
     "engineering_lab_tools": 14,
-    "premium_only_tools": 45,
-    "premium_total_access": 630,
+    "premium_only_tools": 49,
+    "premium_total_access": 634,
     "aliases_not_counted": 6,
     "free_by_lab": {
       "universal": 315,
@@ -35,22 +35,22 @@
       "ev": 39
     },
     "premium_by_kind": {
-      "calculator": 31,
+      "calculator": 35,
       "workbench": 4,
       "analyzer": 10
     },
     "save": {
       "eligible": 577,
-      "excluded": 39,
+      "excluded": 43,
       "saveable": 14
     },
-    "premium_expansion_validated": 24,
+    "premium_expansion_validated": 28,
     "approved_future_tools": 0
   },
   "decisions": [
-    "Owner decision 2026-10-06: the 39 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
+    "Owner decision 2026-10-06: the 43 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
     "Owner decision 2026-10-06: 21 existing Free calculators are migrated to Premium, cutting the originally-proposed 70-item list to the 21 the audit actually recommended (Gearhead_Labs_Premium_Migration_AUDIT.xlsx; 49 rejected as Engineering Lab duplicates, SEO/on-ramp anchors, or workbook-arithmetic errors). Free drops from 606 to 585; the Engineering Lab (E01-E14) is unaffected. The 147-item future roadmap remains unimplemented and uncounted.",
-    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 10 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
+    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 14 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
   ],
   "premium_migration": {
     "rule": "A Free calculator moves to Premium only from an owner-approved audit in this repository (Gearhead_Labs_Premium_Migration_AUDIT.xlsx). Each migrated calculator keeps a named Free companion as its on-ramp and stays visible (not hidden) in the Free calculator navigation with a Premium indicator.",
@@ -186,7 +186,7 @@
   },
   "premium_expansion": {
     "rule": "A Premium tool enters this catalog only from approved engineering/product work in this repository, after QA. No count target (the historical ~140 / 752 figures are not used).",
-    "validated": 24,
+    "validated": 28,
     "sources": [
       {
         "source": "ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)",
@@ -202,16 +202,26 @@
       },
       {
         "source": "Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list from the Phase 1 reconciliation and exception resolution)",
-        "outcome": "10 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 133 remain"
+        "outcome": "14 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 129 remain"
       }
     ],
     "premium_calculators": {
-      "validated": 10,
+      "validated": 14,
       "tools": [
         {
           "id": "bearing_surface_speed",
           "name": "Bearing Journal Surface Speed",
           "category": "UNIVERSAL / ENGINE MECHANICAL DESIGN"
+        },
+        {
+          "id": "cam_area_time_area",
+          "name": "Cam Area / Time-Area",
+          "category": "GASOLINE / ENGINE AIRFLOW & VALVETRAIN"
+        },
+        {
+          "id": "cam_motion_profile",
+          "name": "Cam Motion Profile Analyzer",
+          "category": "GASOLINE / ENGINE AIRFLOW & VALVETRAIN"
         },
         {
           "id": "connecting_rod_angularity",
@@ -257,6 +267,16 @@
           "id": "rod_bearing_pv",
           "name": "Rod Bearing PV",
           "category": "UNIVERSAL / ENGINE MECHANICAL DESIGN"
+        },
+        {
+          "id": "valve_acceleration",
+          "name": "Valve Acceleration",
+          "category": "GASOLINE / ENGINE AIRFLOW & VALVETRAIN"
+        },
+        {
+          "id": "valve_motion_velocity",
+          "name": "Valve Motion Velocity",
+          "category": "GASOLINE / ENGINE AIRFLOW & VALVETRAIN"
         }
       ]
     }
@@ -865,6 +885,8 @@
     {"id":"brake_energy","name":"Brake Energy","category":"BRAKES","lab":"universal","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-71b01416","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"brake_torque","promotion":"Use the free Brake Torque calculator to establish the baseline. Premium’s Brake Energy analyzes the complete thermal workflow alongside Brake Rotor Temp Rise and Brake Heat per Stop."},
     {"id":"brake_fade_energy","name":"Brake Heat per Stop","category":"BRAKES","lab":"universal","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-6dd1feda","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"brake_torque","promotion":"Use the free Brake Torque calculator to establish the baseline. Premium’s Brake Heat per Stop completes the thermal workflow alongside Brake Energy and Brake Rotor Temp Rise."},
     {"id":"brake_rotor_temp","name":"Brake Rotor Temp Rise","category":"BRAKES","lab":"universal","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-cf438dd5","registry":"GH_LEGACY_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"brake_torque","promotion":"Use the free Brake Torque calculator to establish the baseline. Premium’s Brake Rotor Temp Rise analyzes the complete thermal picture — rotor temp, energy and fade, together."},
+    {"id":"cam_area_time_area","name":"Cam Area / Time-Area","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Cam Area / Time-Area — a true curtain-area time-area breathing index integrated across the full cam event."},
+    {"id":"cam_motion_profile","name":"Cam Motion Profile Analyzer","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Cam Motion Profile Analyzer — lift, velocity, and acceleration across the whole valve event in one table."},
     {"id":"connecting_rod_angularity","name":"Connecting Rod Angularity","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Connecting Rod Angularity — the max rod angle and thrust-side loading behind every rod-ratio decision."},
     {"id":"crankshaft_counterweight_requirement","name":"Crankshaft Counterweight Requirement","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Crankshaft Counterweight Requirement — turns a bobweight into the counterweight mass needed to offset it."},
     {"id":"dynamic_compression","name":"Dynamic Compression Ratio","category":"ENGINE","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-7927a709","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"static_compression","promotion":"Use the free Static Compression Ratio calculator to get your baseline CR. Premium’s Dynamic Compression Ratio accounts for cam timing to show what the engine actually sees."},
@@ -904,6 +926,8 @@
     {"id":"sim_dragstrip","name":"Simulator — Dragstrip","category":"GEARHEAD SIMULATOR","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"sim_weight_transfer","promotion":"Use the free Weight Transfer and Braking simulators to get a feel for vehicle dynamics. Premium unlocks the complete simulator suite for the full build simulation."},
     {"id":"sim_top_speed","name":"Simulator — Top Speed","category":"GEARHEAD SIMULATOR","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"sim_weight_transfer","promotion":"Use the free Weight Transfer and Braking simulators to get a feel for vehicle dynamics. Premium unlocks the complete simulator suite for the full build simulation."},
     {"id":"torque_converter","name":"Torque Converter Stall Speed","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-19f72f57","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"converter_slip","promotion":"Use the free Converter Slip % calculator to establish the baseline. Premium’s Torque Converter Stall Speed analyzes the complete stall-speed tuning problem."},
-    {"id":"turbo_sizing","name":"Turbo Sizing","category":"FORCED INDUCTION","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-a0c172d2","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"turbo_airflow","promotion":"Use the free Turbocharger Airflow calculator to establish your baseline airflow numbers. Premium’s Turbo Sizing turns that into a compressor selection workflow. (For the complete compressor map, see E01 in the Engineering Lab.)"}
+    {"id":"turbo_sizing","name":"Turbo Sizing","category":"FORCED INDUCTION","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-a0c172d2","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"turbo_airflow","promotion":"Use the free Turbocharger Airflow calculator to establish your baseline airflow numbers. Premium’s Turbo Sizing turns that into a compressor selection workflow. (For the complete compressor map, see E01 in the Engineering Lab.)"},
+    {"id":"valve_acceleration","name":"Valve Acceleration","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Valve Acceleration — the inertial loading your valvetrain and springs must control through the lift event."},
+    {"id":"valve_motion_velocity","name":"Valve Motion Velocity","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Valve Motion Velocity — how fast the valve is actually moving at any point in the lift event, not just how far it opens."}
   ]
 }

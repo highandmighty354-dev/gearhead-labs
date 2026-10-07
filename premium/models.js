@@ -149,7 +149,24 @@
     { id: 'bearing_surface_speed', name: 'Bearing Journal Surface Speed',
       promo: 'Gearhead Labs Premium unlocks Bearing Journal Surface Speed — the velocity term every bearing PV and oil-film check depends on.' },
     { id: 'oil_clearance_flow', name: 'Idealized Oil Clearance Flow',
-      promo: 'Gearhead Labs Premium unlocks Idealized Oil Clearance Flow — a first-principles estimate of oil flow through a bearing’s running clearance.' }
+      promo: 'Gearhead Labs Premium unlocks Idealized Oil Clearance Flow — a first-principles estimate of oil flow through a bearing’s running clearance.' },
+
+    /* ---- Premium Batch 2 — Valvetrain (2026-10-07) ----
+       Net-new Premium engineering calculators with no Free counterpart: the existing Free
+       camshaft calculators (Duration, IVC, Exhaust Valve Events, LSA, etc.) compute timing
+       events, and Valve Lift (Rocker) computes static lift — none of them differentiate the
+       lift curve for dynamic velocity/acceleration or integrate it into a time-area figure,
+       so there is no Free calculation to protect here and free_companion is intentionally
+       omitted (see premium-calculator-gating.js — promo displays without a companion link
+       when free_companion is absent). */
+    { id: 'valve_motion_velocity', name: 'Valve Motion Velocity',
+      promo: 'Gearhead Labs Premium unlocks Valve Motion Velocity — how fast the valve is actually moving at any point in the lift event, not just how far it opens.' },
+    { id: 'valve_acceleration', name: 'Valve Acceleration',
+      promo: 'Gearhead Labs Premium unlocks Valve Acceleration — the inertial loading your valvetrain and springs must control through the lift event.' },
+    { id: 'cam_motion_profile', name: 'Cam Motion Profile Analyzer',
+      promo: 'Gearhead Labs Premium unlocks the Cam Motion Profile Analyzer — lift, velocity, and acceleration across the whole valve event in one table.' },
+    { id: 'cam_area_time_area', name: 'Cam Area / Time-Area',
+      promo: 'Gearhead Labs Premium unlocks Cam Area / Time-Area — a true curtain-area time-area breathing index integrated across the full cam event.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */
