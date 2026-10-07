@@ -248,11 +248,12 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
       const cat = await page.evaluate(() => GHP.engineering.catalogCheck());
       same([cat.count, cat.missing, cat.extra], [14, [], []], 'engineering catalog in the frame');
       const counts = await page.evaluate(() => { const C = GHShell.frame.contentWindow.eval('CALCS'); return [C.filter(c => c.id !== 'dashboard' && c.layer !== 'engineering').length, C.filter(c => c.layer === 'engineering').length]; });
-      // 623 is the engine's own calculator-kind tally (585 Free-tier + 21 migrated to Premium on 2026-10-06 +
-      // 17 net-new Premium Calculator Expansion calculators, Batch 1 "Engine/Bottom End" + Batch 2 "Valvetrain" +
-      // Batch 3 "Airflow/Cylinder Head", 2026-10-07); gating wraps RENDERS/nav in the UI layer and never touches
-      // CALCS, so this count is unaffected by tier or by loading the Lab. 14 is the Engineering Lab.
-      same(counts, [623, 14], 'calculator-kind tools in the frame stay 623 with the 14 Premium analyzers loaded');
+      // 624 is the engine's own calculator-kind tally (585 Free-tier + 21 migrated to Premium on 2026-10-06 +
+      // 18 net-new Premium Calculator Expansion calculators, Batch 1 "Engine/Bottom End" + Batch 2 "Valvetrain" +
+      // Batch 3 "Airflow/Cylinder Head" + Batch 4 "Forced Induction", 2026-10-07); gating wraps RENDERS/nav in the
+      // UI layer and never touches CALCS, so this count is unaffected by tier or by loading the Lab. 14 is the
+      // Engineering Lab.
+      same(counts, [624, 14], 'calculator-kind tools in the frame stay 624 with the 14 Premium analyzers loaded');
       const migratedUnlocked = await page.evaluate(id => {
         // Read-only probe: restores currentCalc so it doesn't disturb the e12 analyzer flow this step is mid-way through.
         const w = GHShell.frame.contentWindow;
@@ -332,18 +333,18 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
   });
 
   /* ---------------------------------------------------------------- F. the F1.12.4 calculator frame */
-  await step('F1. calculator frame: F1.12.4 loads (623 calculator-kind tools: 585 Free-tier + 21 migrated to Premium on 2026-10-06 + 17 Premium Calculator Expansion Batches 1-3, identical to the catalog) and renders a calculator from a deep link, with no JavaScript errors', async () => {
+  await step('F1. calculator frame: F1.12.4 loads (624 calculator-kind tools: 585 Free-tier + 21 migrated to Premium on 2026-10-06 + 18 Premium Calculator Expansion Batches 1-4, identical to the catalog) and renders a calculator from a deep link, with no JavaScript errors', async () => {
     const env = await open(base + '?gh_dev=0', { supabase: 'offline' }), page = env.page;
     await page.waitForFunction(() => window.GHShell && GHShell.isReady(), null, { timeout: 20000 });
     const frameUrl = await page.evaluate(() => GHShell.frame.contentWindow.location.pathname);
     assert(frameUrl.endsWith('/' + F124), 'frame is ' + frameUrl);
     const info = await page.evaluate(() => { const C = GHShell.frame.contentWindow.eval('CALCS'); const c = C.find(c => c.id !== 'dashboard' && c.layer !== 'engineering');
       return { pub: C.filter(c => c.id !== 'dashboard' && c.layer !== 'engineering').length, eng: C.filter(c => c.layer === 'engineering').length, first: c.id }; });
-    // The engine ships every calculator-kind tool to every browser (623 = 585 Free-tier + 21 migrated to Premium
-    // + 17 net-new Premium Calculator Expansion calculators); gating which of the 38 Premium calculators actually
+    // The engine ships every calculator-kind tool to every browser (624 = 585 Free-tier + 21 migrated to Premium
+    // + 18 net-new Premium Calculator Expansion calculators); gating which of the 39 Premium calculators actually
     // render is a UI-layer decision (premium-calculator-gating.js, checked in F2), not something the frame itself
     // enforces. No Engineering Lab module is injected for an anonymous visitor (0).
-    same([info.pub, info.eng], [623, 0], 'calculator-kind tools in the frame; no Premium analyzers for an anonymous visitor');
+    same([info.pub, info.eng], [624, 0], 'calculator-kind tools in the frame; no Premium analyzers for an anonymous visitor');
     // Regression: the live calculator-kind tools are exactly the catalog's Free + migrated-Premium calculator entries
     // (never scope this to tier === 'free' alone: the 21 migrated ids still ship in CALCS, just gated in the UI).
     const catalog = JSON.parse(fs.readFileSync(path.join(REPO, 'catalog', 'gearhead-catalog.json'), 'utf8'));

@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "114d7af4c9851c32652b1c9883f1f464f86c3da081b53ce03f6d3cba6afbd6cc"
+      "sha256": "cf2fd9b6e2794f2cc2de382579c8160a163a540c01db55dc662c73afa4723607"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -12,7 +12,7 @@
     },
     "models": {
       "file": "premium/models.js",
-      "sha256": "4a667b9dc37ecdf4b430dfdd894e2f09e10bcde72c262ea213f9918f62df23f6"
+      "sha256": "9b9fcff844daa076d2c1cdbcb73c22b85f03b1c7fc9b808c8ebce779b45bfdc2"
     },
     "engineering": {
       "file": "engineering-expansion-v1.js",
@@ -22,10 +22,10 @@
   "counts": {
     "free_public_calculators": 585,
     "migrated_premium_calculators": 21,
-    "premium_expansion_calculators": 17,
+    "premium_expansion_calculators": 18,
     "engineering_lab_tools": 14,
-    "premium_only_tools": 52,
-    "premium_total_access": 637,
+    "premium_only_tools": 53,
+    "premium_total_access": 638,
     "aliases_not_counted": 6,
     "free_by_lab": {
       "universal": 315,
@@ -35,22 +35,22 @@
       "ev": 39
     },
     "premium_by_kind": {
-      "calculator": 38,
+      "calculator": 39,
       "workbench": 4,
       "analyzer": 10
     },
     "save": {
       "eligible": 577,
-      "excluded": 46,
+      "excluded": 47,
       "saveable": 14
     },
-    "premium_expansion_validated": 31,
+    "premium_expansion_validated": 32,
     "approved_future_tools": 0
   },
   "decisions": [
-    "Owner decision 2026-10-06: the 46 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
+    "Owner decision 2026-10-06: the 47 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
     "Owner decision 2026-10-06: 21 existing Free calculators are migrated to Premium, cutting the originally-proposed 70-item list to the 21 the audit actually recommended (Gearhead_Labs_Premium_Migration_AUDIT.xlsx; 49 rejected as Engineering Lab duplicates, SEO/on-ramp anchors, or workbook-arithmetic errors). Free drops from 606 to 585; the Engineering Lab (E01-E14) is unaffected. The 147-item future roadmap remains unimplemented and uncounted.",
-    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 17 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
+    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 18 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
   ],
   "premium_migration": {
     "rule": "A Free calculator moves to Premium only from an owner-approved audit in this repository (Gearhead_Labs_Premium_Migration_AUDIT.xlsx). Each migrated calculator keeps a named Free companion as its on-ramp and stays visible (not hidden) in the Free calculator navigation with a Premium indicator.",
@@ -186,7 +186,7 @@
   },
   "premium_expansion": {
     "rule": "A Premium tool enters this catalog only from approved engineering/product work in this repository, after QA. No count target (the historical ~140 / 752 figures are not used).",
-    "validated": 31,
+    "validated": 32,
     "sources": [
       {
         "source": "ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)",
@@ -202,11 +202,11 @@
       },
       {
         "source": "Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list from the Phase 1 reconciliation and exception resolution)",
-        "outcome": "17 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 126 remain"
+        "outcome": "18 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 125 remain"
       }
     ],
     "premium_calculators": {
-      "validated": 17,
+      "validated": 18,
       "tools": [
         {
           "id": "bearing_surface_speed",
@@ -227,6 +227,11 @@
           "id": "connecting_rod_angularity",
           "name": "Connecting Rod Angularity",
           "category": "UNIVERSAL / ENGINE MECHANICAL DESIGN"
+        },
+        {
+          "id": "corrected_compressor_flow_speed",
+          "name": "Corrected Compressor Mass Flow & Speed",
+          "category": "GASOLINE / FORCED INDUCTION"
         },
         {
           "id": "crankshaft_counterweight_requirement",
@@ -903,6 +908,7 @@
     {"id":"cam_area_time_area","name":"Cam Area / Time-Area","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Cam Area / Time-Area — a true curtain-area time-area breathing index integrated across the full cam event."},
     {"id":"cam_motion_profile","name":"Cam Motion Profile Analyzer","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Cam Motion Profile Analyzer — lift, velocity, and acceleration across the whole valve event in one table."},
     {"id":"connecting_rod_angularity","name":"Connecting Rod Angularity","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Connecting Rod Angularity — the max rod angle and thrust-side loading behind every rod-ratio decision."},
+    {"id":"corrected_compressor_flow_speed","name":"Corrected Compressor Mass Flow & Speed","category":"GASOLINE / FORCED INDUCTION","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Corrected Compressor Mass Flow & Speed — converts a measured flow and shaft speed to the SAE-corrected values your compressor map is actually plotted in, and stages them straight into the Turbo Compressor Map Builder."},
     {"id":"crankshaft_counterweight_requirement","name":"Crankshaft Counterweight Requirement","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Crankshaft Counterweight Requirement — turns a bobweight into the counterweight mass needed to offset it."},
     {"id":"dynamic_compression","name":"Dynamic Compression Ratio","category":"ENGINE","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-7927a709","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"static_compression","promotion":"Use the free Static Compression Ratio calculator to get your baseline CR. Premium’s Dynamic Compression Ratio accounts for cam timing to show what the engine actually sees."},
     {"id":"e01_turbo_compressor_map","code":"E01","name":"Turbo Compressor Map Builder","category":"Turbo","lab":"engineering","tier":"premium","kind":"workbench","save":"saveable","formula":null,"vehicle_link":"optional","status":"current","qa":"qualified for engineering design/QA; not counted as public calculators (ENGINEERING_EXPANSION_CATALOG_V1.md)","module_group":"ENGINEERING / TURBO SYSTEMS","aliases":[]},

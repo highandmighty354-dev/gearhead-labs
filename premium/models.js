@@ -180,7 +180,18 @@
     { id: 'exhaust_throat_diameter_sizing', name: 'Exhaust Throat Diameter Sizing',
       promo: 'Gearhead Labs Premium unlocks Exhaust Throat Diameter Sizing — the exhaust-side sizing target, defaulted to the higher velocity exhaust ports are conventionally run at.' },
     { id: 'port_area_hp_estimator', name: 'Port/Throat Area → HP Estimator',
-      promo: 'Gearhead Labs Premium unlocks the Port/Throat Area → HP Estimator — find out whether your heads can flow enough to support your power target before you buy them.' }
+      promo: 'Gearhead Labs Premium unlocks the Port/Throat Area → HP Estimator — find out whether your heads can flow enough to support your power target before you buy them.' },
+
+    /* ---- Premium Batch 4 — Forced Induction (2026-10-07) ----
+       Net-new Premium engineering calculator with no Free counterpart: the existing Free
+       Turbocharger Airflow and Compressor PR / Outlet Temp calculators work in actual,
+       measured units -- none of them corrects a measured flow and shaft speed onto the
+       standard SAE referred basis a compressor map is actually plotted in, so there is no
+       Free calculation to protect here and free_companion is intentionally omitted (see
+       premium-calculator-gating.js -- promo displays without a companion link when
+       free_companion is absent). */
+    { id: 'corrected_compressor_flow_speed', name: 'Corrected Compressor Mass Flow & Speed',
+      promo: 'Gearhead Labs Premium unlocks Corrected Compressor Mass Flow & Speed — converts a measured flow and shaft speed to the SAE-corrected values your compressor map is actually plotted in, and stages them straight into the Turbo Compressor Map Builder.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */
