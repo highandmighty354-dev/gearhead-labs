@@ -273,7 +273,43 @@
     { id: 'npsh_safety_margin', name: 'NPSH Safety Margin',
       promo: 'Gearhead Labs Premium unlocks the NPSH Safety Margin analyzer — compares NPSH Available against a pump’s rated NPSH Required with a safety-margin classification.' },
     { id: 'pump_power_requirement', name: 'Pump Power Requirement',
-      promo: 'Gearhead Labs Premium unlocks Pump Power Requirement — the standard hydraulic pump-power formula for any automotive hydraulic pump.' }
+      promo: 'Gearhead Labs Premium unlocks Pump Power Requirement — the standard hydraulic pump-power formula for any automotive hydraulic pump.' },
+
+    /* ---- Premium Batch 7 — Drivetrain / Transmission (2026-10-07) ----
+       12 net-new Premium calculators, no free_companion on any of them -- same rule as every
+       prior batch (see catalog/check-catalog.js and catalog/build-catalog.js: the migrated/expansion
+       split, and the "N of 143 built / remaining" count, are both derived purely from free_companion
+       presence). Several of these DO have a genuine overlap with an existing Free calculator -- a
+       simpler/different-question Free sibling, not a duplicate -- and each such promo line below
+       names that Free calculator by hand in prose, the same cross-promotion pattern used since
+       Batch 6. Gearbox Efficiency by Gear is the exceptions doc's own resolution for that item: it
+       runs the existing Free Gearbox Efficiency calculator's identical formula once per gear
+       position instead of once for the whole box. See docs/PREMIUM-CATALOG.md Batch 7 section for
+       the full per-calculator disposition. */
+    { id: 'optimal_gear_ratio_set', name: 'Optimal Gear Ratio Set',
+      promo: 'Gearhead Labs Premium unlocks Optimal Gear Ratio Set — designs a complete geometric-progression gear set between 1st and top gear, so every upshift drops the engine the same percentage down the power curve.' },
+    { id: 'lsd_bias_lock_effect', name: 'Limited-Slip Bias/Lock % Effect',
+      promo: 'Gearhead Labs Premium unlocks the Limited-Slip Bias/Lock % Effect calculator — model exactly how a clutch-type or Torsen-style LSD splits torque once a wheel loses traction, from its rated Torque Bias Ratio.' },
+    { id: 'final_drive_selector', name: 'Differential/Final Drive Selector',
+      promo: 'Gearhead Labs Premium unlocks the Differential/Final Drive Selector — goes beyond the Free Final Drive Ratio calculator’s single check to recommend the nearest commonly-manufactured axle ratio for a target cruising RPM.' },
+    { id: 'planetary_gearset_ratio', name: 'Planetary Gearset Ratio',
+      promo: 'Gearhead Labs Premium unlocks Planetary Gearset Ratio — standard epicyclic gearset kinematics for the ring-fixed and sun-fixed configurations behind automatic-transmission and transfer-case planetary stages.' },
+    { id: 'bearing_preload', name: 'Bearing Preload Calculator',
+      promo: 'Gearhead Labs Premium unlocks the Bearing Preload Calculator — the same torque-to-clamp-force method as the Free Bolt Torque Spec calculator, applied to a preload/spindle nut instead of a structural bolt.' },
+    { id: 'shaft_angular_deflection', name: 'Shaft Angular Deflection under Torque',
+      promo: 'Gearhead Labs Premium unlocks Shaft Angular Deflection under Torque — complements the Free Torsional Stress calculator by reporting the actual twist angle a shaft sees under load, not just the stress.' },
+    { id: 'driveshaft_diameter_sizing', name: 'Driveshaft Diameter Sizing',
+      promo: 'Gearhead Labs Premium unlocks Driveshaft Diameter Sizing — the strength-based sizing question the Free Driveshaft Critical Speed calculator doesn’t answer: the minimum diameter a solid shaft needs for a given torque and allowable stress.' },
+    { id: 'driveshaft_torque_capacity', name: 'Driveshaft Torque Capacity',
+      promo: 'Gearhead Labs Premium unlocks Driveshaft Torque Capacity — the forward direction of Driveshaft Diameter Sizing’s torsion equation: the maximum torque an actual shaft or tube can carry.' },
+    { id: 'axle_shaft_torque_capacity', name: 'Axle Shaft Torque Capacity',
+      promo: 'Gearhead Labs Premium unlocks Axle Shaft Torque Capacity — the same shaft-torsion strength limit as Driveshaft Torque Capacity, framed the way axle specs are quoted: yield torque and safe working torque after a safety factor.' },
+    { id: 'gear_tooth_bending_stress', name: 'Gear Tooth Bending Stress',
+      promo: 'Gearhead Labs Premium unlocks Gear Tooth Bending Stress — the classic Lewis equation screening check for gear-tooth root bending, alongside the Free general Bending Stress calculator.' },
+    { id: 'gear_tooth_contact_stress', name: 'Gear Tooth Contact Stress',
+      promo: 'Gearhead Labs Premium unlocks Gear Tooth Contact Stress — a simplified AGMA/Hertzian contact (pitting) stress screening check, the companion failure mode to Gear Tooth Bending Stress.' },
+    { id: 'gearbox_efficiency_by_gear', name: 'Gearbox Efficiency by Gear',
+      promo: 'Gearhead Labs Premium unlocks Gearbox Efficiency by Gear — runs the Free Gearbox Efficiency calculator’s own formula once per gear position, since different gears engage different numbers of gear meshes.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */
