@@ -177,7 +177,7 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
     await step('B3. Free: Home and Profile state the Premium price; no retired pricing or Free-vehicle copy anywhere', async () => {
       await page.click('#ghp-nav [data-go="home"]'); await page.waitForSelector('.ghp-tiles');
       const home = await page.textContent('#ghp-view');
-      assert(/606 free calculators/.test(home) && /\$5\.99\/month or \$59\.99\/year/.test(home), 'home copy');
+      assert(/585 free calculators/.test(home) && /\$5\.99\/month or \$59\.99\/year/.test(home), 'home copy');
       await page.click('#ghp-nav [data-go="profile"]'); await page.waitForSelector('.ghp-price');
       const all = home + await page.textContent('#ghp-view') + await page.textContent('#ghp-nav');
       for (const bad of [/\$1\.99/, /\$3\.99/, /one vehicle/i, /1 vehicle/i, /coming soon/i, /Free garage/i]) assert(!bad.test(all), 'retired copy: ' + bad);
@@ -248,7 +248,20 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
       const cat = await page.evaluate(() => GHP.engineering.catalogCheck());
       same([cat.count, cat.missing, cat.extra], [14, [], []], 'engineering catalog in the frame');
       const counts = await page.evaluate(() => { const C = GHShell.frame.contentWindow.eval('CALCS'); return [C.filter(c => c.id !== 'dashboard' && c.layer !== 'engineering').length, C.filter(c => c.layer === 'engineering').length]; });
-      same(counts, [606, 14], 'public calculators stay 606 with the 14 Premium analyzers loaded');
+      // 606 is the engine's own calculator-kind tally (585 Free-tier + the 21 migrated to Premium on 2026-10-06);
+      // gating wraps RENDERS/nav in the UI layer and never touches CALCS, so this count is unaffected by tier or
+      // by loading the Lab. 14 is the Engineering Lab.
+      same(counts, [606, 14], 'calculator-kind tools in the frame stay 606 with the 14 Premium analyzers loaded');
+      const migratedUnlocked = await page.evaluate(id => {
+        // Read-only probe: restores currentCalc so it doesn't disturb the e12 analyzer flow this step is mid-way through.
+        const w = GHShell.frame.contentWindow;
+        const prev = w.eval('typeof currentCalc!=="undefined"?currentCalc:null');
+        w.eval(`currentCalc = ${JSON.stringify(id)}`);
+        const html = w.eval(`RENDERS[${JSON.stringify(id)}]()`);
+        if (prev !== null) w.eval(`currentCalc = ${JSON.stringify(prev)}`);
+        return !html.includes('gh-premium-upsell');
+      }, 'turbo_sizing');
+      assert(migratedUnlocked, 'migrated calculator (turbo_sizing) renders for real in a Premium session, not the upsell');
       await page.click('#ghp-runbar [data-action="save-sheet"]'); await page.waitForSelector('form[data-form="analysis"]');
       await page.fill('form[data-form="analysis"] input[name="title"]', 'Radiator baseline');
       const opts = await page.$$eval('form[data-form="analysis"] select[name="machine_id"] option', o => o.map(x => x.value).filter(Boolean));
@@ -307,18 +320,22 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
   });
 
   /* ---------------------------------------------------------------- F. the F1.12.4 calculator frame */
-  await step('F1. calculator frame: F1.12.4 loads (606 public calculators, identical to the catalog Free entries) and renders a calculator from a deep link, with no JavaScript errors', async () => {
+  await step('F1. calculator frame: F1.12.4 loads (606 calculator-kind tools: 585 Free-tier + 21 migrated to Premium on 2026-10-06, identical to the catalog) and renders a calculator from a deep link, with no JavaScript errors', async () => {
     const env = await open(base + '?gh_dev=0', { supabase: 'offline' }), page = env.page;
     await page.waitForFunction(() => window.GHShell && GHShell.isReady(), null, { timeout: 20000 });
     const frameUrl = await page.evaluate(() => GHShell.frame.contentWindow.location.pathname);
     assert(frameUrl.endsWith('/' + F124), 'frame is ' + frameUrl);
     const info = await page.evaluate(() => { const C = GHShell.frame.contentWindow.eval('CALCS'); const c = C.find(c => c.id !== 'dashboard' && c.layer !== 'engineering');
       return { pub: C.filter(c => c.id !== 'dashboard' && c.layer !== 'engineering').length, eng: C.filter(c => c.layer === 'engineering').length, first: c.id }; });
-    same([info.pub, info.eng], [606, 0], 'public calculators; no Premium analyzers for an anonymous visitor');
-    // Free 606 regression: the live public calculators are exactly the Free entries of the canonical catalog
+    // The engine ships every calculator-kind tool to every browser (606 = 585 Free-tier + 21 migrated to Premium);
+    // gating which of the 21 actually render is a UI-layer decision (premium-calculator-gating.js, checked in F2),
+    // not something the frame itself enforces. No Engineering Lab module is injected for an anonymous visitor (0).
+    same([info.pub, info.eng], [606, 0], 'calculator-kind tools in the frame; no Premium analyzers for an anonymous visitor');
+    // Regression: the live calculator-kind tools are exactly the catalog's Free + migrated-Premium calculator entries
+    // (never scope this to tier === 'free' alone: the 21 migrated ids still ship in CALCS, just gated in the UI).
     const catalog = JSON.parse(fs.readFileSync(path.join(REPO, 'catalog', 'gearhead-catalog.json'), 'utf8'));
     const live = await page.evaluate(() => GHShell.frame.contentWindow.eval('CALCS').filter(c => c.id !== 'dashboard' && c.layer !== 'engineering').map(c => c.id).sort());
-    same(live, catalog.tools.filter(t => t.tier === 'free').map(t => t.id).sort(), 'live public calculators = catalog Free entries');
+    same(live, catalog.tools.filter(t => t.kind === 'calculator').map(t => t.id).sort(), 'live calculator-kind tools = catalog Free + migrated-Premium calculator entries');
     await page.goto(base + '?gh_dev=0&calc=' + encodeURIComponent(info.first)); await ready(page);
     await page.waitForFunction(id => { const w = GHShell.frame.contentWindow; return w.eval('typeof currentCalc!=="undefined"?currentCalc:null') === id && w.document.querySelector('#calc-container .calc-header, #calc-container .calc-body'); }, info.first, { timeout: 20000 });
     const txt = await page.evaluate(() => GHShell.frame.contentWindow.document.getElementById('calc-container').textContent);
@@ -328,6 +345,32 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
     await shot(page, 'f1-calculator');
     await env.ctx.close();
     console.log(`      note: environment-only Google Fonts TLS failure observed: ${env.fontsNoise ? 'yes (classified, not an app error)' : 'no'}`);
+  });
+
+  /* ---------------------------------------------------------------- F (cont). Free -> Premium calculator gating */
+  await step('F2. migrated calculator gating (2026-10-06): an anonymous visitor sees the upsell with a real Free-companion link and a nav PREMIUM badge; the Free companion renders normally', async () => {
+    const env = await open(base + '?gh_dev=0&calc=turbo_sizing', { supabase: 'offline' }), page = env.page;
+    await page.waitForFunction(() => window.GHShell && GHShell.isReady(), null, { timeout: 20000 });
+    await page.waitForFunction(() => { const w = GHShell.frame.contentWindow; return w.eval('typeof currentCalc!=="undefined"?currentCalc:null') === 'turbo_sizing' && w.document.querySelector('#calc-container .gh-premium-upsell'); }, null, { timeout: 20000 });
+    const upsell = await page.evaluate(() => GHShell.frame.contentWindow.document.getElementById('calc-container').innerHTML);
+    assert(/PREMIUM/.test(upsell) && /Upgrade to Premium/.test(upsell), 'anonymous visitor sees the PREMIUM upsell card, not the real calculator');
+    assert(/turbo_airflow|Turbocharger Airflow/.test(upsell), 'upsell names its real Free companion (turbo_airflow)');
+    assert(!/pay to use this calculator/i.test(upsell), 'upsell avoids generic placeholder copy');
+    const navBadge = await page.evaluate(() => {
+      const w = GHShell.frame.contentWindow; w.eval("ghBuildNav('')");
+      const html = w.document.getElementById('calc-nav').innerHTML;
+      const idx = html.indexOf("renderCalc('turbo_sizing')");
+      return idx === -1 ? null : html.slice(Math.max(0, idx - 300), idx + 300);
+    });
+    assert(navBadge && /gh-nav-premium/.test(navBadge) && /PREMIUM/.test(navBadge), 'nav shows a PREMIUM badge for the migrated calculator');
+    await page.goto(base + '?gh_dev=0&calc=turbo_airflow'); await ready(page);
+    await page.waitForFunction(() => { const w = GHShell.frame.contentWindow; return w.eval('typeof currentCalc!=="undefined"?currentCalc:null') === 'turbo_airflow'; }, null, { timeout: 20000 });
+    const companionHtml = await page.evaluate(() => GHShell.frame.contentWindow.document.getElementById('calc-container').innerHTML);
+    const companionTxt = await page.evaluate(() => GHShell.frame.contentWindow.document.getElementById('calc-container').textContent);
+    assert(!/gh-premium-upsell/.test(companionHtml) && companionTxt.length > 40 && !/\bNaN\b|\bundefined\b/.test(companionTxt), 'free companion (turbo_airflow) renders normally, not gated');
+    same(appErrors(env), [], 'errors');
+    await shot(page, 'f2-premium-gate');
+    await env.ctx.close();
   });
 
   /* ---------------------------------------------------------------- H. development mode is local-only */
