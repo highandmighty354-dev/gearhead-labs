@@ -334,7 +334,45 @@
     { id: 'bump_steer_curve', name: 'Bump Steer Curve',
       promo: 'Gearhead Labs Premium unlocks the Bump Steer Curve — a five-checkpoint version of the Free Bump Steer Rate calculator that reveals whether the toe curve is linear or progressive across the full stroke.' },
     { id: 'roll_couple_distribution', name: 'Roll Couple Distribution',
-      promo: 'Gearhead Labs Premium unlocks Roll Couple Distribution — converts front and rear roll stiffness into the front/rear percentage split chassis tuners move when they shift roll couple forward or rearward.' }
+      promo: 'Gearhead Labs Premium unlocks Roll Couple Distribution — converts front and rear roll stiffness into the front/rear percentage split chassis tuners move when they shift roll couple forward or rearward.' },
+
+    /* ---- Batch 9: Brakes / Tires / Vehicle Dynamics (14 calculators) ----
+       Physical rotor/duct/fluid sizing and thermal-cycle tools alongside the existing
+       Rotor Heat/Temperature-Rise and Energy-per-Stop Free calculators (Brake Fade
+       Prediction is the exceptions doc's own promoted "cumulative multi-stop thermal
+       prediction" build, distinct from the single-stop energy bookkeeping those perform);
+       and a Tires/Vehicle-Dynamics family generalizing or adding a missing axis/force
+       coupling to existing single-purpose Free tire and weight-transfer calculators
+       (Combined Slip and Load Transfer Distribution are the exceptions doc's own
+       promoted builds). */
+    { id: 'brake_rotor_sizing', name: 'Brake Rotor Sizing',
+      promo: 'Gearhead Labs Premium unlocks Brake Rotor Sizing — the physical effective-radius and minimum-diameter a rotor needs to hit a target torque at a given clamp force, distinct from the existing thermal Rotor Heat/Temperature-Rise calculators.' },
+    { id: 'brake_fluid_boiling_margin', name: 'Brake Fluid Boiling Margin',
+      promo: 'Gearhead Labs Premium unlocks Brake Fluid Boiling Margin — how much headroom is left between your fluid’s own boiling-point spec and its estimated temperature, with no existing calculator for this today.' },
+    { id: 'brake_duct_cfm', name: 'Brake Duct CFM',
+      promo: 'Gearhead Labs Premium unlocks Brake Duct CFM — the same sensible-heat airflow formula behind the Free Electric Fan CFM Requirement calculator, sized for a brake cooling duct’s heat-rejection target instead of a radiator’s.' },
+    { id: 'rotor_cooling_rate', name: 'Rotor Cooling Rate',
+      promo: 'Gearhead Labs Premium unlocks Rotor Cooling Rate — a Newton’s-law cooling-down model between stops, the other half of the existing Rotor Heat/Temperature-Rise calculators’ heating-up event.' },
+    { id: 'brake_fade_prediction', name: 'Brake Fade Prediction',
+      promo: 'Gearhead Labs Premium unlocks Brake Fade Prediction — steps a full braking session stop-by-stop with cooling between stops against your pad’s fade-onset spec, well beyond the existing Energy per Stop calculator’s single-number average.' },
+    { id: 'tire_contact_patch', name: 'Tire Contact Patch Pressure & Area',
+      promo: 'Gearhead Labs Premium unlocks Tire Contact Patch Pressure & Area — the standard load-over-pressure footprint estimate, with no existing contact-patch calculator today.' },
+    { id: 'tire_deflection', name: 'Tire Deflection',
+      promo: 'Gearhead Labs Premium unlocks Tire Deflection — the straightforward load/spring-rate relationship for vertical tire compliance, the reverse direction of Tire Vertical Stiffness.' },
+    { id: 'tire_vertical_stiffness', name: 'Tire Vertical Stiffness',
+      promo: 'Gearhead Labs Premium unlocks Tire Vertical Stiffness — the vertical (ride) spring-rate axis, distinct from the Free Cornering Stiffness calculator’s lateral axis.' },
+    { id: 'tire_slip_ratio', name: 'Tire Slip Ratio',
+      promo: 'Gearhead Labs Premium unlocks Tire Slip Ratio — the standard SAE longitudinal slip percentage, a distinct quantity from the Free Slip Angle calculator’s lateral angle.' },
+    { id: 'tire_rolling_resistance', name: 'Tire Rolling Resistance',
+      promo: 'Gearhead Labs Premium unlocks Tire Rolling Resistance — the universal, non-towing version of the Free Towing Rolling Resistance calculator’s same physics.' },
+    { id: 'tire_heat_generation', name: 'Tire Heat Generation',
+      promo: 'Gearhead Labs Premium unlocks Tire Heat Generation — carries rolling-resistance power forward into accumulated heat energy and an adiabatic temperature-rise estimate, beyond Tire Rolling Resistance’s force/power alone.' },
+    { id: 'yaw_inertia_estimate', name: 'Yaw Inertia Estimate',
+      promo: 'Gearhead Labs Premium unlocks Yaw Inertia Estimate — a rotational mass property (moment of inertia) distinct from the Free Yaw Moment calculator’s force-times-lever-arm moment.' },
+    { id: 'combined_slip', name: 'Combined Slip',
+      promo: 'Gearhead Labs Premium unlocks Combined Slip — the slip-kinematics analog of the Free Friction Circle, showing how simultaneous braking/accelerating and cornering slip reduce each other’s available tire force.' },
+    { id: 'load_transfer_distribution', name: 'Load Transfer Distribution',
+      promo: 'Gearhead Labs Premium unlocks Load Transfer Distribution — combines the Free Longitudinal and Lateral Load Transfer formulas into all four corners at once for a real combined maneuver like trail-braking.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */
