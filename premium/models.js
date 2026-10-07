@@ -191,7 +191,34 @@
        premium-calculator-gating.js -- promo displays without a companion link when
        free_companion is absent). */
     { id: 'corrected_compressor_flow_speed', name: 'Corrected Compressor Mass Flow & Speed',
-      promo: 'Gearhead Labs Premium unlocks Corrected Compressor Mass Flow & Speed — converts a measured flow and shaft speed to the SAE-corrected values your compressor map is actually plotted in, and stages them straight into the Turbo Compressor Map Builder.' }
+      promo: 'Gearhead Labs Premium unlocks Corrected Compressor Mass Flow & Speed — converts a measured flow and shaft speed to the SAE-corrected values your compressor map is actually plotted in, and stages them straight into the Turbo Compressor Map Builder.' },
+
+    /* ---- Premium Batch 5 — Fuel/Ignition + Electrical Fundamentals (2026-10-07) ----
+       Net-new Premium engineering calculators with no Free counterpart: no existing Free
+       calculator models ignition coil dwell/charging, spark discharge duration, a
+       user-supplied mechanical timing curve, or any AC/transient circuit-theory relationship
+       (RC/RL time constants, reactance, impedance, power factor), so there is no Free
+       calculation to protect here and free_companion is intentionally omitted (see
+       premium-calculator-gating.js -- promo displays without a companion link when
+       free_companion is absent). */
+    { id: 'coil_dwell_spark_energy', name: 'Coil Dwell & Spark Energy',
+      promo: 'Gearhead Labs Premium unlocks Coil Dwell & Spark Energy — models ignition coil primary charging as a standard RL circuit, showing stored spark energy at your actual dwell time.' },
+    { id: 'total_timing_helper', name: 'Total Timing vs RPM/Load Helper',
+      promo: 'Gearhead Labs Premium unlocks the Total Timing vs RPM/Load Helper — interpolates total ignition timing from your own base-timing and mechanical-advance curve points.' },
+    { id: 'spark_duration', name: 'Spark Duration',
+      promo: 'Gearhead Labs Premium unlocks Spark Duration — the discharge-side half of the ignition event, completing the picture alongside Coil Dwell & Spark Energy.' },
+    { id: 'rc_time_constant', name: 'RC Time Constant',
+      promo: 'Gearhead Labs Premium unlocks the RC Time Constant calculator — a foundational circuit-theory tool for sensor filters, debounce circuits, and signal conditioning.' },
+    { id: 'rl_time_constant', name: 'RL Time Constant',
+      promo: 'Gearhead Labs Premium unlocks the RL Time Constant calculator — the same relationship behind ignition coil charging, generalized to any solenoid, relay, or field winding.' },
+    { id: 'inductive_reactance', name: 'Inductive Reactance',
+      promo: 'Gearhead Labs Premium unlocks Inductive Reactance — the AC opposition an inductor presents to current flow, feeding directly into Impedance and AC Power Factor.' },
+    { id: 'capacitive_reactance', name: 'Capacitive Reactance',
+      promo: 'Gearhead Labs Premium unlocks Capacitive Reactance — the AC opposition a capacitor presents to current flow, feeding directly into Impedance and AC Power Factor.' },
+    { id: 'impedance', name: 'Impedance (RLC Combination)',
+      promo: 'Gearhead Labs Premium unlocks Impedance — combines resistance and net reactance into total AC impedance and phase angle for a complete RLC circuit picture.' },
+    { id: 'ac_power_factor', name: 'AC Power Factor',
+      promo: 'Gearhead Labs Premium unlocks AC Power Factor — the real-power fraction behind alternator/stator loading and AC accessory circuit analysis.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */
