@@ -6,10 +6,17 @@
  *   - formula fingerprints / registries / aliases:          the engine registries in the same page + GH_CALC_ALIASES
  *   - the production catalog rows and engine-proven flags:  supabase/migrations/0005_reference_seed.sql (byte-identical to prod)
  *   - the Premium engineering layer (E01-E14):              premium/models.js ENGINEERING_CATALOG + engineering-expansion-v1.js
- *   - the Free -> Premium calculator migration (21 ids):    premium/models.js PREMIUM_CALCULATORS (2026-10-06, owner-approved;
- *                                                            see Gearhead_Labs_Premium_Migration_AUDIT.xlsx). A calculator id
+ *   - Premium calculators (kind:'calculator', tier:'premium'): premium/models.js PREMIUM_CALCULATORS. A calculator id
  *                                                            in this list gets tier:'premium' instead of the default 'free';
- *                                                            everything else found in CALCS stays Free, unchanged.
+ *                                                            everything else found in CALCS stays Free, unchanged. This one
+ *                                                            array holds two distinct, separately-tracked groups, split below
+ *                                                            by whether the entry has a free_companion:
+ *                                                              - migrated (21 ids, 2026-10-06, owner-approved; see
+ *                                                                Gearhead_Labs_Premium_Migration_AUDIT.xlsx): an existing Free
+ *                                                                calculator moved to Premium, always naming a free_companion.
+ *                                                              - expansion (added from the 2026-10-07 Premium Calculator
+ *                                                                Expansion brief, batch by batch): net-new Premium-only
+ *                                                                calculators with no prior Free existence, so no free_companion.
  *
  * Usage:  node catalog/build-catalog.js            write catalog/gearhead-catalog.json
  *         node catalog/build-catalog.js --check    regenerate in memory and fail if the committed file differs
@@ -111,16 +118,24 @@ async function build() {
   const count = (pred) => tools.filter(pred).length;
   const by = (list, key) => list.reduce((o, t) => (o[t[key]] = (o[t[key]] || 0) + 1, o), {});
   const free = tools.filter(t => t.tier === 'free'), prem = tools.filter(t => t.tier === 'premium');
-  const migratedPremiumCalcs = prem.filter(t => t.kind === 'calculator');
+  /* The 21-calculator Free -> Premium migration and the 2026-10-07 Premium Calculator
+     Expansion share one array (premium/models.js PREMIUM_CALCULATORS) but are tracked
+     separately everywhere below: a migrated entry always names a real free_companion
+     (it used to BE that Free calculator); an expansion entry never does (no prior Free
+     existence to companion to). This split, not array membership, is what the counts,
+     premium_migration and premium_expansion sections below are built from. */
+  const migratedPremiumCalcs = prem.filter(t => t.kind === 'calculator' && t.free_companion);
+  const expansionPremiumCalcs = prem.filter(t => t.kind === 'calculator' && !t.free_companion);
   const engineeringLabTools = prem.filter(t => t.lab === 'engineering');
   return {
     schema: 'gearhead-catalog/1',
-    description: 'Canonical Gearhead Labs tool catalog. Free = public calculators (no account). Premium ($5.99/month or $59.99/year) = everything Free plus the Premium-only tools below (21 migrated calculators, approved 2026-10-06, plus the Engineering Lab), My Garage and saved work. Aliases are alternate ids that resolve to a tool; they are never counted.',
+    description: 'Canonical Gearhead Labs tool catalog. Free = public calculators (no account). Premium ($5.99/month or $59.99/year) = everything Free plus the Premium-only tools below (the original 21 Free -> Premium migrated calculators approved 2026-10-06, the approved Premium Calculator Expansion\'s net-new calculators, and the Engineering Lab), My Garage and saved work. Aliases are alternate ids that resolve to a tool; they are never counted.',
     generated_from: { page: { file: PAGE, sha256: sha(PAGE) }, seed: { file: SEED, sha256: sha(SEED) },
       models: { file: 'premium/models.js', sha256: sha('premium/models.js') }, engineering: { file: 'engineering-expansion-v1.js', sha256: sha('engineering-expansion-v1.js') } },
     counts: {
       free_public_calculators: free.length,
       migrated_premium_calculators: migratedPremiumCalcs.length,
+      premium_expansion_calculators: expansionPremiumCalcs.length,
       engineering_lab_tools: engineeringLabTools.length,
       premium_only_tools: prem.length,
       premium_total_access: tools.length,
@@ -128,12 +143,13 @@ async function build() {
       free_by_lab: by(free, 'lab'),
       premium_by_kind: by(prem, 'kind'),
       save: { eligible: count(t => t.save === 'eligible'), excluded: count(t => t.save === 'excluded'), saveable: count(t => t.save === 'saveable') },
-      premium_expansion_validated: engineeringLabTools.length,
+      premium_expansion_validated: engineeringLabTools.length + expansionPremiumCalcs.length,
       approved_future_tools: 0
     },
     decisions: [
       `Owner decision 2026-10-06: the ${count(t => t.save === 'excluded')} public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = "excluded"). They stay Free and unchanged; the database already refuses them (no calculators row).`,
-      `Owner decision 2026-10-06: ${migratedPremiumCalcs.length} existing Free calculators are migrated to Premium, cutting the originally-proposed 70-item list to the 21 the audit actually recommended (Gearhead_Labs_Premium_Migration_AUDIT.xlsx; 49 rejected as Engineering Lab duplicates, SEO/on-ramp anchors, or workbook-arithmetic errors). Free drops from 606 to ${free.length}; the Engineering Lab (E01-E14) is unaffected. The 147-item future roadmap remains unimplemented and uncounted.`
+      `Owner decision 2026-10-06: ${migratedPremiumCalcs.length} existing Free calculators are migrated to Premium, cutting the originally-proposed 70-item list to the 21 the audit actually recommended (Gearhead_Labs_Premium_Migration_AUDIT.xlsx; 49 rejected as Engineering Lab duplicates, SEO/on-ramp anchors, or workbook-arithmetic errors). Free drops from 606 to ${free.length}; the Engineering Lab (E01-E14) is unaffected. The 147-item future roadmap remains unimplemented and uncounted.`,
+      ...(expansionPremiumCalcs.length ? [`Owner decision 2026-10-07: the approved Premium Calculator Expansion has added ${expansionPremiumCalcs.length} net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at ${free.length}.`] : [])
     ],
     premium_migration: {
       rule: 'A Free calculator moves to Premium only from an owner-approved audit in this repository (Gearhead_Labs_Premium_Migration_AUDIT.xlsx). Each migrated calculator keeps a named Free companion as its on-ramp and stays visible (not hidden) in the Free calculator navigation with a Premium indicator.',
@@ -142,17 +158,22 @@ async function build() {
     },
     premium_expansion: {
       rule: 'A Premium tool enters this catalog only from approved engineering/product work in this repository, after QA. No count target (the historical ~140 / 752 figures are not used).',
-      validated: engineeringLabTools.length,
+      validated: engineeringLabTools.length + expansionPremiumCalcs.length,
       sources: [
         { source: 'ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)', outcome: `${engineeringLabTools.length} research-qualified systems E01-E14: all built (engineering-expansion-v1.js, 4ac4ba3) and live in the Premium Engineering Lab` },
         { source: 'engineering-expansion-v1.js history (406d6a1, 2026-10-04)', outcome: '3 out-of-scope (non-automotive) analyzers removed by the owner; not in the catalog' },
-        { source: 'earlier planning outside this repository (a 39-item "Coming Soon" queue, a 791-item master list)', outcome: 'not in the repository and not designated Premium; not counted until provided, reviewed and approved' }
-      ]
+        { source: 'earlier planning outside this repository (a 39-item "Coming Soon" queue, a 791-item master list)', outcome: 'not in the repository and not designated Premium; not counted until provided, reviewed and approved' },
+        ...(expansionPremiumCalcs.length ? [{ source: 'Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list from the Phase 1 reconciliation and exception resolution)', outcome: `${expansionPremiumCalcs.length} net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); ${143 - expansionPremiumCalcs.length} remain` }] : [])
+      ],
+      premium_calculators: {
+        validated: expansionPremiumCalcs.length,
+        tools: expansionPremiumCalcs.map(t => ({ id: t.id, name: t.name, category: t.category })).sort((a, b) => a.id.localeCompare(b.id))
+      }
     },
     pending_human_approval: [
-      'Any further Premium expansion tools: none is approved in the repository beyond E01-E14, so approved_future_tools is 0.',
+      'Any further Premium expansion tools beyond the approved 143-item BUILD list: none is approved in the repository, so approved_future_tools is 0.',
       'E01-E14 are live in the Premium Engineering Lab but are not counted as public calculators until their QA sign-off (ENGINEERING_EXPANSION_CATALOG_V1.md).',
-      'The 147-item future Premium calculator roadmap (beyond the 21 migrated 2026-10-06) is not in this repository and is not counted until provided, reviewed and approved.'
+      'The remainder of the approved 143-item Premium Calculator Expansion BUILD list not yet implemented is not counted until built and QA\'d here, batch by batch.'
     ],
     aliases: Object.entries(pg.aliases).map(([id, canonical]) => ({ id, canonical })).sort((a, b) => a.id.localeCompare(b.id)),
     tools
