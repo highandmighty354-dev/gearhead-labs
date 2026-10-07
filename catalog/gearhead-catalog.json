@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "867ed537561b304c28f7d9a5c7404153c1a861e5fb2f594d328a13e04d5e5c92"
+      "sha256": "e024496bad64ec7645081d45f354788c2ff6d843dee1a02a2ace0950510fe323"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -12,7 +12,7 @@
     },
     "models": {
       "file": "premium/models.js",
-      "sha256": "796a2ad9f66fdfa5452fafc33d70255defc89dd8a7e36a495864594ee2031279"
+      "sha256": "54bcb2dc16f1a1d07060862263544b9053e9b6dc574fa3711ecee8639d153a91"
     },
     "engineering": {
       "file": "engineering-expansion-v1.js",
@@ -22,10 +22,10 @@
   "counts": {
     "free_public_calculators": 585,
     "migrated_premium_calculators": 21,
-    "premium_expansion_calculators": 27,
+    "premium_expansion_calculators": 47,
     "engineering_lab_tools": 14,
-    "premium_only_tools": 62,
-    "premium_total_access": 647,
+    "premium_only_tools": 82,
+    "premium_total_access": 667,
     "aliases_not_counted": 6,
     "free_by_lab": {
       "universal": 315,
@@ -35,22 +35,22 @@
       "ev": 39
     },
     "premium_by_kind": {
-      "calculator": 48,
+      "calculator": 68,
       "workbench": 4,
       "analyzer": 10
     },
     "save": {
       "eligible": 577,
-      "excluded": 56,
+      "excluded": 76,
       "saveable": 14
     },
-    "premium_expansion_validated": 41,
+    "premium_expansion_validated": 61,
     "approved_future_tools": 0
   },
   "decisions": [
-    "Owner decision 2026-10-06: the 56 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
+    "Owner decision 2026-10-06: the 76 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
     "Owner decision 2026-10-06: 21 existing Free calculators are migrated to Premium, cutting the originally-proposed 70-item list to the 21 the audit actually recommended (Gearhead_Labs_Premium_Migration_AUDIT.xlsx; 49 rejected as Engineering Lab duplicates, SEO/on-ramp anchors, or workbook-arithmetic errors). Free drops from 606 to 585; the Engineering Lab (E01-E14) is unaffected. The 147-item future roadmap remains unimplemented and uncounted.",
-    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 27 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
+    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 47 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
   ],
   "premium_migration": {
     "rule": "A Free calculator moves to Premium only from an owner-approved audit in this repository (Gearhead_Labs_Premium_Migration_AUDIT.xlsx). Each migrated calculator keeps a named Free companion as its on-ramp and stays visible (not hidden) in the Free calculator navigation with a Premium indicator.",
@@ -186,7 +186,7 @@
   },
   "premium_expansion": {
     "rule": "A Premium tool enters this catalog only from approved engineering/product work in this repository, after QA. No count target (the historical ~140 / 752 figures are not used).",
-    "validated": 41,
+    "validated": 61,
     "sources": [
       {
         "source": "ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)",
@@ -202,11 +202,11 @@
       },
       {
         "source": "Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list from the Phase 1 reconciliation and exception resolution)",
-        "outcome": "27 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 116 remain"
+        "outcome": "47 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 96 remain"
       }
     ],
     "premium_calculators": {
-      "validated": 27,
+      "validated": 47,
       "tools": [
         {
           "id": "ac_power_factor",
@@ -217,6 +217,11 @@
           "id": "bearing_surface_speed",
           "name": "Bearing Journal Surface Speed",
           "category": "UNIVERSAL / ENGINE MECHANICAL DESIGN"
+        },
+        {
+          "id": "bernoulli_equation",
+          "name": "Bernoulli Equation",
+          "category": "HYDRAULICS"
         },
         {
           "id": "cam_area_time_area",
@@ -239,9 +244,24 @@
           "category": "GASOLINE / IGNITION"
         },
         {
+          "id": "conduction_heat_transfer",
+          "name": "Conduction Heat Transfer",
+          "category": "UNIVERSAL / THERMAL & HVAC"
+        },
+        {
           "id": "connecting_rod_angularity",
           "name": "Connecting Rod Angularity",
           "category": "UNIVERSAL / ENGINE MECHANICAL DESIGN"
+        },
+        {
+          "id": "convection_heat_transfer",
+          "name": "Convection Heat Transfer",
+          "category": "UNIVERSAL / THERMAL & HVAC"
+        },
+        {
+          "id": "cooling_boil_point",
+          "name": "Cooling System Pressure & Boil Point",
+          "category": "UNIVERSAL / THERMAL & HVAC"
         },
         {
           "id": "corrected_compressor_flow_speed",
@@ -264,6 +284,26 @@
           "category": "GASOLINE / ENGINE AIRFLOW & VALVETRAIN"
         },
         {
+          "id": "fan_cfm_requirement",
+          "name": "Electric Fan CFM Requirement",
+          "category": "UNIVERSAL / THERMAL & HVAC"
+        },
+        {
+          "id": "fan_shroud_effectiveness",
+          "name": "Fan Shroud Effectiveness",
+          "category": "UNIVERSAL / THERMAL & HVAC"
+        },
+        {
+          "id": "fan_static_pressure",
+          "name": "Fan Static Pressure Requirement",
+          "category": "UNIVERSAL / THERMAL & HVAC"
+        },
+        {
+          "id": "hydraulic_flow_coefficient",
+          "name": "Flow Coefficient (Cv)",
+          "category": "HYDRAULICS"
+        },
+        {
           "id": "impedance",
           "name": "Impedance (RLC Combination)",
           "category": "UNIVERSAL / ELECTRICAL"
@@ -279,14 +319,39 @@
           "category": "GASOLINE / ENGINE AIRFLOW & VALVETRAIN"
         },
         {
+          "id": "intercooler_core_sizing",
+          "name": "Intercooler Core Sizing",
+          "category": "UNIVERSAL / THERMAL & HVAC"
+        },
+        {
           "id": "main_bearing_load",
           "name": "Main Bearing Load (Screening Estimate)",
           "category": "UNIVERSAL / ENGINE MECHANICAL DESIGN"
         },
         {
+          "id": "npsh_available",
+          "name": "NPSH Available",
+          "category": "HYDRAULICS"
+        },
+        {
+          "id": "npsh_safety_margin",
+          "name": "NPSH Safety Margin",
+          "category": "HYDRAULICS"
+        },
+        {
           "id": "oil_clearance_flow",
           "name": "Idealized Oil Clearance Flow",
           "category": "UNIVERSAL / ENGINE MECHANICAL DESIGN"
+        },
+        {
+          "id": "oil_cooler_sizing",
+          "name": "Oil Cooler Sizing",
+          "category": "UNIVERSAL / THERMAL & HVAC"
+        },
+        {
+          "id": "pipe_pressure_drop",
+          "name": "Pipe/Hose Pressure Drop",
+          "category": "HYDRAULICS"
         },
         {
           "id": "piston_acceleration",
@@ -309,9 +374,34 @@
           "category": "UNIVERSAL / ENGINE MECHANICAL DESIGN"
         },
         {
+          "id": "pump_power_requirement",
+          "name": "Pump Power Requirement",
+          "category": "HYDRAULICS"
+        },
+        {
+          "id": "radiation_heat_transfer",
+          "name": "Radiation Heat Transfer",
+          "category": "UNIVERSAL / THERMAL & HVAC"
+        },
+        {
+          "id": "radiator_airflow_vs_speed",
+          "name": "Radiator Airflow vs Vehicle Speed",
+          "category": "UNIVERSAL / THERMAL & HVAC"
+        },
+        {
+          "id": "radiator_core_sizing",
+          "name": "Radiator Core Sizing",
+          "category": "UNIVERSAL / THERMAL & HVAC"
+        },
+        {
           "id": "rc_time_constant",
           "name": "RC Time Constant",
           "category": "UNIVERSAL / ELECTRICAL"
+        },
+        {
+          "id": "reynolds_number",
+          "name": "Reynolds Number",
+          "category": "HYDRAULICS"
         },
         {
           "id": "rl_time_constant",
@@ -329,9 +419,19 @@
           "category": "GASOLINE / IGNITION"
         },
         {
+          "id": "thermal_resistance_network",
+          "name": "Thermal Resistance Network",
+          "category": "UNIVERSAL / THERMAL & HVAC"
+        },
+        {
           "id": "total_timing_helper",
           "name": "Total Timing vs RPM/Load Helper",
           "category": "GASOLINE / IGNITION"
+        },
+        {
+          "id": "trans_cooler_sizing",
+          "name": "Transmission Cooler Sizing",
+          "category": "UNIVERSAL / THERMAL & HVAC"
         },
         {
           "id": "valve_acceleration",
@@ -948,6 +1048,7 @@
     {"id":"ac_power_factor","name":"AC Power Factor","category":"UNIVERSAL / ELECTRICAL","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks AC Power Factor — the real-power fraction behind alternator/stator loading and AC accessory circuit analysis."},
     {"id":"advanced_et","name":"Advanced ET Prediction","category":"PERFORMANCE","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-0a2c6b69","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"et_mph_prediction","promotion":"Use the free ET & MPH Prediction calculator for a quick quarter-mile estimate. Premium’s Advanced ET Prediction refines it with the extra variables that actually move the number."},
     {"id":"bearing_surface_speed","name":"Bearing Journal Surface Speed","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Bearing Journal Surface Speed — the velocity term every bearing PV and oil-film check depends on."},
+    {"id":"bernoulli_equation","name":"Bernoulli Equation","category":"HYDRAULICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Bernoulli Equation calculator — solve for pressure change across a fluid-line transition in elevation, diameter, or velocity."},
     {"id":"brake_energy","name":"Brake Energy","category":"BRAKES","lab":"universal","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-71b01416","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"brake_torque","promotion":"Use the free Brake Torque calculator to establish the baseline. Premium’s Brake Energy analyzes the complete thermal workflow alongside Brake Rotor Temp Rise and Brake Heat per Stop."},
     {"id":"brake_fade_energy","name":"Brake Heat per Stop","category":"BRAKES","lab":"universal","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-6dd1feda","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"brake_torque","promotion":"Use the free Brake Torque calculator to establish the baseline. Premium’s Brake Heat per Stop completes the thermal workflow alongside Brake Energy and Brake Rotor Temp Rise."},
     {"id":"brake_rotor_temp","name":"Brake Rotor Temp Rise","category":"BRAKES","lab":"universal","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-cf438dd5","registry":"GH_LEGACY_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"brake_torque","promotion":"Use the free Brake Torque calculator to establish the baseline. Premium’s Brake Rotor Temp Rise analyzes the complete thermal picture — rotor temp, energy and fade, together."},
@@ -955,7 +1056,10 @@
     {"id":"cam_motion_profile","name":"Cam Motion Profile Analyzer","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Cam Motion Profile Analyzer — lift, velocity, and acceleration across the whole valve event in one table."},
     {"id":"capacitive_reactance","name":"Capacitive Reactance","category":"UNIVERSAL / ELECTRICAL","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Capacitive Reactance — the AC opposition a capacitor presents to current flow, feeding directly into Impedance and AC Power Factor."},
     {"id":"coil_dwell_spark_energy","name":"Coil Dwell & Spark Energy","category":"GASOLINE / IGNITION","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Coil Dwell & Spark Energy — models ignition coil primary charging as a standard RL circuit, showing stored spark energy at your actual dwell time."},
+    {"id":"conduction_heat_transfer","name":"Conduction Heat Transfer","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Conduction Heat Transfer — Fourier’s Law for heat flow through a solid material, complementing the Free (convective) Heat Transfer calculator."},
     {"id":"connecting_rod_angularity","name":"Connecting Rod Angularity","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Connecting Rod Angularity — the max rod angle and thrust-side loading behind every rod-ratio decision."},
+    {"id":"convection_heat_transfer","name":"Convection Heat Transfer","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Convection Heat Transfer — derives the convective coefficient itself from flow conditions (Dittus-Boelter), instead of requiring it as a raw input like the Free Heat Transfer calculator."},
+    {"id":"cooling_boil_point","name":"Cooling System Pressure & Boil Point","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Cooling System Pressure & Boil Point — see your coolant mixture’s boiling point at your actual radiator cap rating, not just at sea-level atmospheric."},
     {"id":"corrected_compressor_flow_speed","name":"Corrected Compressor Mass Flow & Speed","category":"GASOLINE / FORCED INDUCTION","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Corrected Compressor Mass Flow & Speed — converts a measured flow and shaft speed to the SAE-corrected values your compressor map is actually plotted in, and stages them straight into the Turbo Compressor Map Builder."},
     {"id":"crankshaft_counterweight_requirement","name":"Crankshaft Counterweight Requirement","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Crankshaft Counterweight Requirement — turns a bobweight into the counterweight mass needed to offset it."},
     {"id":"dynamic_compression","name":"Dynamic Compression Ratio","category":"ENGINE","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-7927a709","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"static_compression","promotion":"Use the free Static Compression Ratio calculator to get your baseline CR. Premium’s Dynamic Compression Ratio accounts for cam timing to show what the engine actually sees."},
@@ -976,24 +1080,38 @@
     {"id":"engine_bobweight","name":"Engine Bobweight","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Engine Bobweight — the exact combined mass your balancer needs for a correct crank balance job."},
     {"id":"exhaust_port_cfm","name":"CYLINDER HEAD / FLOW · Exhaust Port CFM","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-a8507398","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"cfm_velocity_csa","promotion":"Use the free CFM ↔ Velocity ↔ CSA calculator to establish the baseline relationship. Premium’s Exhaust Port CFM analyzes the complete exhaust-side flow picture."},
     {"id":"exhaust_throat_diameter_sizing","name":"CYLINDER HEAD / FLOW · Exhaust Throat Diameter Sizing","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Exhaust Throat Diameter Sizing — the exhaust-side sizing target, defaulted to the higher velocity exhaust ports are conventionally run at."},
+    {"id":"fan_cfm_requirement","name":"Electric Fan CFM Requirement","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Electric Fan CFM Requirement — size an electric fan from your actual required heat rejection instead of guessing at a CFM rating."},
+    {"id":"fan_shroud_effectiveness","name":"Fan Shroud Effectiveness","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Fan Shroud Effectiveness — checks fan-to-core coverage geometry, a different question from the Free Heat Exchanger Effectiveness calculator’s actual-vs-maximum heat transfer."},
+    {"id":"fan_static_pressure","name":"Fan Static Pressure Requirement","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Fan Static Pressure Requirement — the pressure a fan must develop to push its required CFM through your core’s actual flow resistance."},
     {"id":"head_flow_curve","name":"CYLINDER HEAD / FLOW · Cylinder Head Flow Curve","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"cfm_velocity_csa","promotion":"Use the free single-point flow calculators to check individual numbers. Premium’s Cylinder Head Flow Curve builds the complete lift-vs-flow curve with charting — the full engineering problem, not just one point."},
     {"id":"hp_cr_change","name":"HP Change from CR Change","category":"ENGINE","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-94636c60","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"static_compression","promotion":"Use the free Static Compression Ratio calculator to see where you stand. Premium’s HP Change from CR Change shows exactly how much power a compression bump is worth."},
     {"id":"hp_from_specs","name":"HP from CID/CR/RPM/VE","category":"ENGINE","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-30798b6c","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"hp_from_torque","promotion":"Use the free HP from Torque calculator for a quick estimate. Premium’s HP from CID/CR/RPM/VE builds the complete spec-based horsepower picture."},
+    {"id":"hydraulic_flow_coefficient","name":"Flow Coefficient (Cv)","category":"HYDRAULICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the hydraulic Flow Coefficient (Cv) — the general liquid-valve Cv rating, alongside the Free engine-valve-specific Flow Coefficient calculator."},
     {"id":"impedance","name":"Impedance (RLC Combination)","category":"UNIVERSAL / ELECTRICAL","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Impedance — combines resistance and net reactance into total AC impedance and phase angle for a complete RLC circuit picture."},
     {"id":"incremental_et","name":"Incremental ET Analyzer (60/330/660/1000/1320)","category":"DRAG RACING","lab":"universal","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-cfd3fea5","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"et_mph_prediction","promotion":"Use the free ET & MPH Prediction calculator for a single-point estimate. Premium’s Incremental ET Analyzer breaks down the complete 60/330/660/1000/1320 split-time picture."},
     {"id":"inductive_reactance","name":"Inductive Reactance","category":"UNIVERSAL / ELECTRICAL","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Inductive Reactance — the AC opposition an inductor presents to current flow, feeding directly into Impedance and AC Power Factor."},
     {"id":"intake_port_cfm","name":"CYLINDER HEAD / FLOW · Intake Port CFM","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-80d7c590","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"cfm_velocity_csa","promotion":"Use the free CFM ↔ Velocity ↔ CSA calculator to establish the baseline relationship. Premium’s Intake Port CFM analyzes the complete intake-side flow picture."},
     {"id":"intake_throat_diameter_sizing","name":"CYLINDER HEAD / FLOW · Intake Throat Diameter Sizing","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Intake Throat Diameter Sizing — turns a target CFM and velocity straight into an actual throat diameter to size or machine to."},
+    {"id":"intercooler_core_sizing","name":"Intercooler Core Sizing","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Intercooler Core Sizing — go beyond the Free Intercooler Efficiency calculator’s check to the actual core heat-transfer surface area your setup requires."},
     {"id":"main_bearing_load","name":"Main Bearing Load (Screening Estimate)","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Main Bearing Load — a combined gas-and-centrifugal screening estimate for main bearing loading."},
     {"id":"master_cylinder","name":"Master Cylinder Sizing","category":"SUSPENSION, TIRES & GEOMETRY","lab":"universal","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-a07ce7ac","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"brake_torque","promotion":"Use the free Brake Torque calculator to establish the baseline. Premium’s Master Cylinder Sizing turns that into a complete bore-sizing and pedal-ratio workflow."},
+    {"id":"npsh_available","name":"NPSH Available","category":"HYDRAULICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks NPSH Available — the standard pump-cavitation design metric for fuel, oil, coolant, or power-steering pump systems."},
+    {"id":"npsh_safety_margin","name":"NPSH Safety Margin","category":"HYDRAULICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the NPSH Safety Margin analyzer — compares NPSH Available against a pump’s rated NPSH Required with a safety-margin classification."},
     {"id":"oil_clearance_flow","name":"Idealized Oil Clearance Flow","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Idealized Oil Clearance Flow — a first-principles estimate of oil flow through a bearing’s running clearance."},
+    {"id":"oil_cooler_sizing","name":"Oil Cooler Sizing","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Oil Cooler Sizing — the same heat-exchanger sizing method as Radiator/Intercooler Core Sizing, tuned for oil-to-air coolers."},
     {"id":"optimal_shift","name":"Optimal Shift Point","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-29aaa14d","registry":"GH_LEGACY_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"gear_ratio_speed","promotion":"Use the free Gear Ratio Speed and Engine RPM from Speed calculators to understand your gearing. Premium’s Optimal Shift Point turns that into a complete shift-point workflow."},
+    {"id":"pipe_pressure_drop","name":"Pipe/Hose Pressure Drop","category":"HYDRAULICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Pipe/Hose Pressure Drop — a real Darcy-Weisbach flow-physics model for any line, generalizing the Free Intercooler Pressure Drop’s simple inlet-minus-outlet subtraction."},
     {"id":"piston_acceleration","name":"Piston Acceleration","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Piston Acceleration — full crank-slider kinematics at any crank angle, the foundation for inertial loading, balance, and bearing analysis."},
     {"id":"piston_inertial_force","name":"Reciprocating Inertial Force","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Reciprocating Inertial Force — the actual shaking load your rod and crank see at speed, independent of cylinder pressure."},
     {"id":"port_area_hp_estimator","name":"CYLINDER HEAD / FLOW · Port/Throat Area → HP Estimator","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Port/Throat Area → HP Estimator — find out whether your heads can flow enough to support your power target before you buy them."},
     {"id":"portal_gear_reduction","name":"Portal Gear Reduction","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-5b95b265","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"crawl_ratio","promotion":"Use the free Crawl Ratio calculator for standard axle gearing. Premium’s Portal Gear Reduction handles the portal-axle math off-road builds need."},
     {"id":"primary_secondary_balance_force","name":"Primary & Secondary Balance Force","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Primary & Secondary Balance Force — the harmonic breakdown behind inline-4 secondary shake and balance-shaft design."},
+    {"id":"pump_power_requirement","name":"Pump Power Requirement","category":"HYDRAULICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Pump Power Requirement — the standard hydraulic pump-power formula for any automotive hydraulic pump."},
+    {"id":"radiation_heat_transfer","name":"Radiation Heat Transfer","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Radiation Heat Transfer — the Stefan-Boltzmann fourth-power relationship for hot components like headers and turbo housings, a mode the Free Heat Transfer calculator doesn’t cover."},
+    {"id":"radiator_airflow_vs_speed","name":"Radiator Airflow vs Vehicle Speed","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Radiator Airflow vs Vehicle Speed — models how ram air takes over from fan airflow as road speed increases, and where the crossover point is."},
+    {"id":"radiator_core_sizing","name":"Radiator Core Sizing","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Radiator Core Sizing — solves the sizing problem the Free Radiator Heat Rejection calculator doesn’t: how much core area you actually need."},
     {"id":"rc_time_constant","name":"RC Time Constant","category":"UNIVERSAL / ELECTRICAL","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the RC Time Constant calculator — a foundational circuit-theory tool for sensor filters, debounce circuits, and signal conditioning."},
+    {"id":"reynolds_number","name":"Reynolds Number","category":"HYDRAULICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Reynolds Number calculator — classify flow as laminar, transitional, or turbulent in any coolant, oil, fuel, or hydraulic line."},
     {"id":"rl_time_constant","name":"RL Time Constant","category":"UNIVERSAL / ELECTRICAL","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the RL Time Constant calculator — the same relationship behind ignition coil charging, generalized to any solenoid, relay, or field winding."},
     {"id":"rod_bearing_pv","name":"Rod Bearing PV","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Rod Bearing PV — a pressure-velocity screening check against your bearing’s rated limit before you spin it up."},
     {"id":"sim_acceleration","name":"Simulator — Acceleration","category":"GEARHEAD SIMULATOR","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"sim_weight_transfer","promotion":"Use the free Weight Transfer and Braking simulators to get a feel for vehicle dynamics. Premium unlocks the complete simulator suite for the full build simulation."},
@@ -1002,8 +1120,10 @@
     {"id":"sim_dragstrip","name":"Simulator — Dragstrip","category":"GEARHEAD SIMULATOR","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"sim_weight_transfer","promotion":"Use the free Weight Transfer and Braking simulators to get a feel for vehicle dynamics. Premium unlocks the complete simulator suite for the full build simulation."},
     {"id":"sim_top_speed","name":"Simulator — Top Speed","category":"GEARHEAD SIMULATOR","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"sim_weight_transfer","promotion":"Use the free Weight Transfer and Braking simulators to get a feel for vehicle dynamics. Premium unlocks the complete simulator suite for the full build simulation."},
     {"id":"spark_duration","name":"Spark Duration","category":"GASOLINE / IGNITION","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Spark Duration — the discharge-side half of the ignition event, completing the picture alongside Coil Dwell & Spark Energy."},
+    {"id":"thermal_resistance_network","name":"Thermal Resistance Network","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Thermal Resistance Network analyzer — chains conduction and convection resistance in series for a complete heat-shield or wall heat-loss picture, beyond the Free single-mode Heat Transfer calculator."},
     {"id":"torque_converter","name":"Torque Converter Stall Speed","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-19f72f57","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"converter_slip","promotion":"Use the free Converter Slip % calculator to establish the baseline. Premium’s Torque Converter Stall Speed analyzes the complete stall-speed tuning problem."},
     {"id":"total_timing_helper","name":"Total Timing vs RPM/Load Helper","category":"GASOLINE / IGNITION","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Total Timing vs RPM/Load Helper — interpolates total ignition timing from your own base-timing and mechanical-advance curve points."},
+    {"id":"trans_cooler_sizing","name":"Transmission Cooler Sizing","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Transmission Cooler Sizing — size an ATF cooler from your actual heat-rejection target instead of a generic cooler-by-horsepower chart."},
     {"id":"turbo_sizing","name":"Turbo Sizing","category":"FORCED INDUCTION","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-a0c172d2","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"turbo_airflow","promotion":"Use the free Turbocharger Airflow calculator to establish your baseline airflow numbers. Premium’s Turbo Sizing turns that into a compressor selection workflow. (For the complete compressor map, see E01 in the Engineering Lab.)"},
     {"id":"valve_acceleration","name":"Valve Acceleration","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Valve Acceleration — the inertial loading your valvetrain and springs must control through the lift event."},
     {"id":"valve_motion_velocity","name":"Valve Motion Velocity","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Valve Motion Velocity — how fast the valve is actually moving at any point in the lift event, not just how far it opens."}

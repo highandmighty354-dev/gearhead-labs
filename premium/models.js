@@ -218,7 +218,62 @@
     { id: 'impedance', name: 'Impedance (RLC Combination)',
       promo: 'Gearhead Labs Premium unlocks Impedance — combines resistance and net reactance into total AC impedance and phase angle for a complete RLC circuit picture.' },
     { id: 'ac_power_factor', name: 'AC Power Factor',
-      promo: 'Gearhead Labs Premium unlocks AC Power Factor — the real-power fraction behind alternator/stator loading and AC accessory circuit analysis.' }
+      promo: 'Gearhead Labs Premium unlocks AC Power Factor — the real-power fraction behind alternator/stator loading and AC accessory circuit analysis.' },
+
+    /* ---- Premium Batch 6 — Cooling/Thermal + Hydraulics (2026-10-07) ----
+       20 net-new Premium calculators, no free_companion on any of them -- same rule as every
+       prior batch (see catalog/check-catalog.js and catalog/build-catalog.js: the migrated/expansion
+       split, and the "N of 143 built / remaining" count, are both derived purely from free_companion
+       presence, so an expansion entry naming one would silently misclassify itself as one of the
+       original 21 migrated calculators and corrupt the approved-BUILD-list progress count).
+       Several of these DO have an identified "Partial" overlap with an existing Free calculator per
+       the Phase 1 reconciliation -- a genuinely simpler/different-question Free sibling, not a
+       duplicate -- and each such promo line below names that Free calculator by hand in prose
+       ("...beyond the Free X calculator") so the cross-promotion still reaches the user; it is just
+       not the structural free_companion field, which stays reserved for the 2026-10-06 migration.
+       See docs/PREMIUM-CATALOG.md Batch 6 section for the full disposition of each item, including
+       the Convection Heat Transfer vs. existing generic Heat Transfer redundancy check required by
+       the reconciliation doc before this batch was coded. */
+    { id: 'cooling_boil_point', name: 'Cooling System Pressure & Boil Point',
+      promo: 'Gearhead Labs Premium unlocks Cooling System Pressure & Boil Point — see your coolant mixture’s boiling point at your actual radiator cap rating, not just at sea-level atmospheric.' },
+    { id: 'fan_cfm_requirement', name: 'Electric Fan CFM Requirement',
+      promo: 'Gearhead Labs Premium unlocks Electric Fan CFM Requirement — size an electric fan from your actual required heat rejection instead of guessing at a CFM rating.' },
+    { id: 'intercooler_core_sizing', name: 'Intercooler Core Sizing',
+      promo: 'Gearhead Labs Premium unlocks Intercooler Core Sizing — go beyond the Free Intercooler Efficiency calculator’s check to the actual core heat-transfer surface area your setup requires.' },
+    { id: 'oil_cooler_sizing', name: 'Oil Cooler Sizing',
+      promo: 'Gearhead Labs Premium unlocks Oil Cooler Sizing — the same heat-exchanger sizing method as Radiator/Intercooler Core Sizing, tuned for oil-to-air coolers.' },
+    { id: 'trans_cooler_sizing', name: 'Transmission Cooler Sizing',
+      promo: 'Gearhead Labs Premium unlocks Transmission Cooler Sizing — size an ATF cooler from your actual heat-rejection target instead of a generic cooler-by-horsepower chart.' },
+    { id: 'radiator_airflow_vs_speed', name: 'Radiator Airflow vs Vehicle Speed',
+      promo: 'Gearhead Labs Premium unlocks Radiator Airflow vs Vehicle Speed — models how ram air takes over from fan airflow as road speed increases, and where the crossover point is.' },
+    { id: 'thermal_resistance_network', name: 'Thermal Resistance Network',
+      promo: 'Gearhead Labs Premium unlocks the Thermal Resistance Network analyzer — chains conduction and convection resistance in series for a complete heat-shield or wall heat-loss picture, beyond the Free single-mode Heat Transfer calculator.' },
+    { id: 'conduction_heat_transfer', name: 'Conduction Heat Transfer',
+      promo: 'Gearhead Labs Premium unlocks Conduction Heat Transfer — Fourier’s Law for heat flow through a solid material, complementing the Free (convective) Heat Transfer calculator.' },
+    { id: 'convection_heat_transfer', name: 'Convection Heat Transfer',
+      promo: 'Gearhead Labs Premium unlocks Convection Heat Transfer — derives the convective coefficient itself from flow conditions (Dittus-Boelter), instead of requiring it as a raw input like the Free Heat Transfer calculator.' },
+    { id: 'radiation_heat_transfer', name: 'Radiation Heat Transfer',
+      promo: 'Gearhead Labs Premium unlocks Radiation Heat Transfer — the Stefan-Boltzmann fourth-power relationship for hot components like headers and turbo housings, a mode the Free Heat Transfer calculator doesn’t cover.' },
+    { id: 'fan_static_pressure', name: 'Fan Static Pressure Requirement',
+      promo: 'Gearhead Labs Premium unlocks Fan Static Pressure Requirement — the pressure a fan must develop to push its required CFM through your core’s actual flow resistance.' },
+    { id: 'fan_shroud_effectiveness', name: 'Fan Shroud Effectiveness',
+      promo: 'Gearhead Labs Premium unlocks Fan Shroud Effectiveness — checks fan-to-core coverage geometry, a different question from the Free Heat Exchanger Effectiveness calculator’s actual-vs-maximum heat transfer.' },
+    { id: 'radiator_core_sizing', name: 'Radiator Core Sizing',
+      promo: 'Gearhead Labs Premium unlocks Radiator Core Sizing — solves the sizing problem the Free Radiator Heat Rejection calculator doesn’t: how much core area you actually need.' },
+    { id: 'reynolds_number', name: 'Reynolds Number',
+      promo: 'Gearhead Labs Premium unlocks the Reynolds Number calculator — classify flow as laminar, transitional, or turbulent in any coolant, oil, fuel, or hydraulic line.' },
+    { id: 'bernoulli_equation', name: 'Bernoulli Equation',
+      promo: 'Gearhead Labs Premium unlocks the Bernoulli Equation calculator — solve for pressure change across a fluid-line transition in elevation, diameter, or velocity.' },
+    { id: 'pipe_pressure_drop', name: 'Pipe/Hose Pressure Drop',
+      promo: 'Gearhead Labs Premium unlocks Pipe/Hose Pressure Drop — a real Darcy-Weisbach flow-physics model for any line, generalizing the Free Intercooler Pressure Drop’s simple inlet-minus-outlet subtraction.' },
+    { id: 'hydraulic_flow_coefficient', name: 'Flow Coefficient (Cv)',
+      promo: 'Gearhead Labs Premium unlocks the hydraulic Flow Coefficient (Cv) — the general liquid-valve Cv rating, alongside the Free engine-valve-specific Flow Coefficient calculator.' },
+    { id: 'npsh_available', name: 'NPSH Available',
+      promo: 'Gearhead Labs Premium unlocks NPSH Available — the standard pump-cavitation design metric for fuel, oil, coolant, or power-steering pump systems.' },
+    { id: 'npsh_safety_margin', name: 'NPSH Safety Margin',
+      promo: 'Gearhead Labs Premium unlocks the NPSH Safety Margin analyzer — compares NPSH Available against a pump’s rated NPSH Required with a safety-margin classification.' },
+    { id: 'pump_power_requirement', name: 'Pump Power Requirement',
+      promo: 'Gearhead Labs Premium unlocks Pump Power Requirement — the standard hydraulic pump-power formula for any automotive hydraulic pump.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */

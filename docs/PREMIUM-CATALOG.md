@@ -7,7 +7,7 @@ The machine-readable source of truth is [`catalog/gearhead-catalog.json`](../cat
 | | Free | Gearhead Labs Premium |
 |---|---|---|
 | Price | Free, no account | **$5.99/month or $59.99/year** (the single paid product; Stripe not implemented yet) |
-| Public calculators | 585 | All 633 and growing (585 Free-tier + 21 migrated from Free + 27 net-new Premium Calculator Expansion calculators so far, visible but gated for everyone else) |
+| Public calculators | 585 | All 653 and growing (585 Free-tier + 21 migrated from Free + 47 net-new Premium Calculator Expansion calculators so far, visible but gated for everyone else) |
 | Engineering Lab (E01–E14) | No | Yes (14 Premium-only tools) |
 | My Garage: vehicle profiles, details, components, Test Setups (builds) | No | Yes, unlimited |
 | Saved calculations and saved engineering analyses | No | Yes |
@@ -20,19 +20,19 @@ The early $1.99 Garage / $3.99 additional-profile concept is retired and impleme
 |---|---|
 | Free public calculators (F1.12.4; F1.12.3 is the frozen baseline) | **585** |
 | Calculators migrated from Free to Premium (owner-approved audit, 2026-10-06) | **21** |
-| Premium Calculator Expansion calculators (net-new, no Free counterpart; owner-approved brief, 2026-10-07-) | **27** (of 143 approved; see below) |
+| Premium Calculator Expansion calculators (net-new, no Free counterpart; owner-approved brief, 2026-10-07-) | **47** (of 143 approved; see below) |
 | Premium-only tools: the Engineering Lab, E01–E14 (10 analyzers, 4 workbenches) | **14** |
-| Premium-only tools total (21 migrated + 27 expansion calculators + 14 Engineering Lab) | **62** |
-| Tools available in Premium (Free + Premium-only) | **647** |
-| Premium expansion tools validated from approved work (E01–E14 + expansion calculators) | **41** |
+| Premium-only tools total (21 migrated + 47 expansion calculators + 14 Engineering Lab) | **82** |
+| Tools available in Premium (Free + Premium-only) | **667** |
+| Premium expansion tools validated from approved work (E01–E14 + expansion calculators) | **61** |
 | Approved future Premium tools (not yet built) | **0** |
 | Aliases (alternate ids, never counted) | 6 |
 
 Free calculators by lab: universal 315, gasoline 162, diesel 42, EV 39, towing 27 (585 total; see "Calculators migrated from Free to Premium" below for the 21 that moved out of these lab counts on 2026-10-06; the Premium Calculator Expansion's calculators were never Free and so never counted in these lab totals).
 
-**647 is the current Premium catalog, not the final one.** The Premium catalog is still incomplete, implemented batch by batch. The historical target of about 752 tools (612 Free plus about 140 Premium expansion tools) is still not used here, for two reasons:
+**667 is the current Premium catalog, not the final one.** The Premium catalog is still incomplete, implemented batch by batch. The historical target of about 752 tools (612 Free plus about 140 Premium expansion tools) is still not used here, for two reasons:
 - the authoritative baseline for calculator-kind tools before the expansion began was 606 (585 Free + 21 migrated to Premium), not 612;
-- the Premium Calculator Expansion is implementing a specific, owner-approved 143-item BUILD list (from the Phase 1 reconciliation and exception resolution of the 147-candidate future roadmap below), not an open-ended target — 27 are built so far (Batch 1 "Engine/Bottom End" + Batch 2 "Valvetrain" + Batch 3 "Airflow/Cylinder Head" + Batch 4 "Forced Induction" + Batch 5 "Fuel/Ignition + Electrical Fundamentals"), 116 remain across 11 further batches.
+- the Premium Calculator Expansion is implementing a specific, owner-approved 143-item BUILD list (from the Phase 1 reconciliation and exception resolution of the 147-candidate future roadmap below), not an open-ended target — 47 are built so far (Batch 1 "Engine/Bottom End" + Batch 2 "Valvetrain" + Batch 3 "Airflow/Cylinder Head" + Batch 4 "Forced Induction" + Batch 5 "Fuel/Ignition + Electrical Fundamentals" + Batch 6 "Cooling/Thermal + Hydraulics"), 96 remain across 10 further batches.
 
 A separate 147-item list of future Premium calculator candidates was reviewed in the original Premium Migration Audit (the one that approved the 21 migrated calculators) and not approved at the time. A subsequent Phase 1 reconciliation and exception-resolution pass (2026-10-07) re-examined that list against the live code and approved **143 of those candidates** for the Premium Calculator Expansion (1 held for a follow-up merge decision, 3 rejected as duplicates/out of scope). Each approved candidate becomes real the same way any tool does: it stays `status: "approved"`, uncounted, until its batch ships, then `"current"` and counted here.
 
@@ -43,9 +43,9 @@ No tool is added just to reach a number. A future tool enters the catalog with `
 - **ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)**: 14 research-qualified systems E01-E14: all built (engineering-expansion-v1.js, 4ac4ba3) and live in the Premium Engineering Lab.
 - **engineering-expansion-v1.js history (406d6a1, 2026-10-04)**: 3 out-of-scope (non-automotive) analyzers removed by the owner; not in the catalog.
 - **earlier planning outside this repository (a 39-item "Coming Soon" queue, a 791-item master list)**: not in the repository and not designated Premium; not counted until provided, reviewed and approved.
-- **Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list)**: 27 net-new Premium-only calculators built and QA'd so far — Batch 1, "Engine/Bottom End" (piston kinematics, reciprocating balance, bobweight, bearing PV/surface-speed/clearance-flow); Batch 2, "Valvetrain" (valve motion velocity/acceleration, cam motion profile, cam area/time-area); Batch 3, "Airflow/Cylinder Head" (intake throat diameter sizing, exhaust throat diameter sizing, port/throat area → HP estimator); Batch 4, "Forced Induction" (corrected compressor mass flow & speed); Batch 5, "Fuel/Ignition + Electrical Fundamentals" (coil dwell & spark energy, total timing helper, spark duration, RC/RL time constants, inductive/capacitive reactance, impedance, AC power factor); 116 remain across 11 further batches.
+- **Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list)**: 47 net-new Premium-only calculators built and QA'd so far — Batch 1, "Engine/Bottom End" (piston kinematics, reciprocating balance, bobweight, bearing PV/surface-speed/clearance-flow); Batch 2, "Valvetrain" (valve motion velocity/acceleration, cam motion profile, cam area/time-area); Batch 3, "Airflow/Cylinder Head" (intake throat diameter sizing, exhaust throat diameter sizing, port/throat area → HP estimator); Batch 4, "Forced Induction" (corrected compressor mass flow & speed); Batch 5, "Fuel/Ignition + Electrical Fundamentals" (coil dwell & spark energy, total timing helper, spark duration, RC/RL time constants, inductive/capacitive reactance, impedance, AC power factor); Batch 6, "Cooling/Thermal + Hydraulics" (cooling system pressure & boil point, electric fan CFM, intercooler/oil/transmission/radiator core sizing, radiator airflow vs speed, thermal resistance network, conduction/convection/radiation heat transfer, fan static pressure, fan shroud effectiveness, Reynolds number, Bernoulli equation, pipe/hose pressure drop, hydraulic flow coefficient, NPSH available, NPSH safety margin, pump power requirement); 96 remain across 10 further batches.
 
-The validated Premium expansion is therefore **41 tools** today (14 Engineering Lab + 27 expansion calculators), growing batch by batch toward the approved 157 (14 + 143).
+The validated Premium expansion is therefore **61 tools** today (14 Engineering Lab + 47 expansion calculators), growing batch by batch toward the approved 157 (14 + 143).
 
 ## Fields
 
@@ -67,11 +67,11 @@ The validated Premium expansion is therefore **41 tools** today (14 Engineering 
 - `excluded`: excluded from saved calculations by owner decision (2026-10-06). The calculator itself is unchanged and stays Free.
 - `saveable`: a Premium analysis, saved through `engineering_analyses`.
 
-## Why 633 calculator-kind tools but 583 production catalog rows
+## Why 653 calculator-kind tools but 583 production catalog rows
 
-633 is the total count of calculator-kind tools — 585 Free, plus the 21 migrated to Premium on 2026-10-06, plus the 27 net-new Premium Calculator Expansion calculators built so far (Batches 1-5) — and is unaffected by which tier a calculator sits in: the production seed and its formula fingerprints describe the calculator's *engine*, not its *tier*, so a migrated calculator keeps the exact seed row (or lack of one) it always had, and an expansion calculator (net-new, no prior Free existence) never had one.
+653 is the total count of calculator-kind tools — 585 Free, plus the 21 migrated to Premium on 2026-10-06, plus the 47 net-new Premium Calculator Expansion calculators built so far (Batches 1-6) — and is unaffected by which tier a calculator sits in: the production seed and its formula fingerprints describe the calculator's *engine*, not its *tier*, so a migrated calculator keeps the exact seed row (or lack of one) it always had, and an expansion calculator (net-new, no prior Free existence) never had one.
 
-- 633 = 577 calculators with an engine formula fingerprint + 56 render-only calculators with no registry formula (6 of those are the migrated-Premium ones already excluded before 2026-10-06; the other 27 are the new Premium Calculator Expansion calculators — see "Calculators excluded from saving" below). 606 was this same total before the expansion began.
+- 653 = 577 calculators with an engine formula fingerprint + 76 render-only calculators with no registry formula (6 of those are the migrated-Premium ones already excluded before 2026-10-06; the other 47 are the new Premium Calculator Expansion calculators — see "Calculators excluded from saving" below). 606 was this same total before the expansion began.
 - 583 = the same 577 fingerprinted calculators + 6 legacy alias rows (unaffected by the expansion: none of its calculators has a production seed row).
 
 Nothing is missing and nothing has been deleted. Full analysis: [CALCULATOR-CATALOG-RECONCILIATION.md](CALCULATOR-CATALOG-RECONCILIATION.md).
@@ -81,14 +81,14 @@ Saving is not being extended to new tools while the catalog is incomplete. The e
 ## Decisions and open items
 
 - **Decided (2026-10-06):** 21 calculators approved in the Premium Migration Audit move from Free to Premium. See "Calculators migrated from Free to Premium" below for the full list, the gating behavior, and the Free companion each one keeps. A further 147 candidate calculators reviewed in the same audit were **not** approved at the time and remained Free, unimplemented as Premium, and uncounted anywhere in this catalog.
-- **Decided (2026-10-06):** the 29 public calculators without a formula fingerprint were **excluded** from saved calculations (now 56 with the 27 expansion calculators added the same way). Their behavior and the Free count are unchanged. The production database already refuses to save them, because they have no `calculators` row. Making one saveable later needs a new engine formula plus a new, reviewed catalog migration.
-- **Decided (2026-10-07):** a Phase 1 reconciliation and exception-resolution pass re-examined the 147-candidate future roadmap against the live code and approved **143 candidates** for implementation as the Premium Calculator Expansion (1 held for a follow-up merge decision, 3 rejected). Batch 1, "Engine/Bottom End" (10 calculators: piston kinematics, reciprocating balance, bobweight, bearing PV/surface-speed/clearance-flow), Batch 2, "Valvetrain" (4 calculators: valve motion velocity/acceleration, cam motion profile, cam area/time-area), Batch 3, "Airflow/Cylinder Head" (3 calculators: intake throat diameter sizing, exhaust throat diameter sizing, port/throat area → HP estimator), Batch 4, "Forced Induction" (1 calculator: corrected compressor mass flow & speed), and Batch 5, "Fuel/Ignition + Electrical Fundamentals" (9 calculators: coil dwell & spark energy, total timing helper, spark duration, RC/RL time constants, inductive/capacitive reactance, impedance, AC power factor), are built and QA'd; see "Premium Calculator Expansion" below. 116 candidates remain across 11 further batches, implemented and counted here only as each batch ships.
+- **Decided (2026-10-06):** the 29 public calculators without a formula fingerprint were **excluded** from saved calculations (now 76 with the 47 expansion calculators added the same way). Their behavior and the Free count are unchanged. The production database already refuses to save them, because they have no `calculators` row. Making one saveable later needs a new engine formula plus a new, reviewed catalog migration.
+- **Decided (2026-10-07):** a Phase 1 reconciliation and exception-resolution pass re-examined the 147-candidate future roadmap against the live code and approved **143 candidates** for implementation as the Premium Calculator Expansion (1 held for a follow-up merge decision, 3 rejected). Batch 1, "Engine/Bottom End" (10 calculators: piston kinematics, reciprocating balance, bobweight, bearing PV/surface-speed/clearance-flow), Batch 2, "Valvetrain" (4 calculators: valve motion velocity/acceleration, cam motion profile, cam area/time-area), Batch 3, "Airflow/Cylinder Head" (3 calculators: intake throat diameter sizing, exhaust throat diameter sizing, port/throat area → HP estimator), Batch 4, "Forced Induction" (1 calculator: corrected compressor mass flow & speed), Batch 5, "Fuel/Ignition + Electrical Fundamentals" (9 calculators: coil dwell & spark energy, total timing helper, spark duration, RC/RL time constants, inductive/capacitive reactance, impedance, AC power factor), and Batch 6, "Cooling/Thermal + Hydraulics" (20 calculators: cooling system pressure & boil point, electric fan CFM requirement, intercooler/oil/transmission/radiator core sizing, radiator airflow vs vehicle speed, thermal resistance network, conduction/convection/radiation heat transfer, fan static pressure, fan shroud effectiveness, Reynolds number, Bernoulli equation, pipe/hose pressure drop, hydraulic flow coefficient, NPSH available, NPSH safety margin, pump power requirement), are built and QA'd; see "Premium Calculator Expansion" below. 96 candidates remain across 10 further batches, implemented and counted here only as each batch ships.
 - **Open: further Premium tools beyond the approved 143.** None is approved in the repository. The planning lists from earlier work (a 39-item "Coming Soon" queue and a 791-item master list) are not in the repository and are not designated Premium. They are counted only once they are provided, reviewed and approved.
 - **Open: E01–E14 QA counting.** They are live in the Premium Engineering Lab, but ENGINEERING_EXPANSION_CATALOG_V1.md says they are not counted as public calculators until QA sign-off.
 
-### Calculators excluded from saving (56)
+### Calculators excluded from saving (76)
 
-6 of these 56 are also among the 21 calculators migrated to Premium on 2026-10-06 (marked **Premium** below); that migration did not change their saving status, which was already `excluded`. The other 27 are the Premium Calculator Expansion's Batch 1 through Batch 5 calculators (also marked **Premium**), net-new and never had a production seed row to begin with.
+6 of these 76 are also among the 21 calculators migrated to Premium on 2026-10-06 (marked **Premium** below); that migration did not change their saving status, which was already `excluded`. The other 47 are the Premium Calculator Expansion's Batch 1 through Batch 6 calculators (also marked **Premium**), net-new and never had a production seed row to begin with.
 
 | id | name | category | lab | tier |
 |---|---|---|---|---|
@@ -148,6 +148,26 @@ Saving is not being extended to new tools while the catalog is incomplete. The e
 | `capacitive_reactance` | Capacitive Reactance | UNIVERSAL / ELECTRICAL | universal | Premium |
 | `impedance` | Impedance (RLC Combination) | UNIVERSAL / ELECTRICAL | universal | Premium |
 | `ac_power_factor` | AC Power Factor | UNIVERSAL / ELECTRICAL | universal | Premium |
+| `cooling_boil_point` | Cooling System Pressure & Boil Point | UNIVERSAL / THERMAL & HVAC | universal | Premium |
+| `fan_cfm_requirement` | Electric Fan CFM Requirement | UNIVERSAL / THERMAL & HVAC | universal | Premium |
+| `intercooler_core_sizing` | Intercooler Core Sizing | UNIVERSAL / THERMAL & HVAC | universal | Premium |
+| `oil_cooler_sizing` | Oil Cooler Sizing | UNIVERSAL / THERMAL & HVAC | universal | Premium |
+| `trans_cooler_sizing` | Transmission Cooler Sizing | UNIVERSAL / THERMAL & HVAC | universal | Premium |
+| `radiator_airflow_vs_speed` | Radiator Airflow vs Vehicle Speed | UNIVERSAL / THERMAL & HVAC | universal | Premium |
+| `thermal_resistance_network` | Thermal Resistance Network | UNIVERSAL / THERMAL & HVAC | universal | Premium |
+| `conduction_heat_transfer` | Conduction Heat Transfer | UNIVERSAL / THERMAL & HVAC | universal | Premium |
+| `convection_heat_transfer` | Convection Heat Transfer | UNIVERSAL / THERMAL & HVAC | universal | Premium |
+| `radiation_heat_transfer` | Radiation Heat Transfer | UNIVERSAL / THERMAL & HVAC | universal | Premium |
+| `fan_static_pressure` | Fan Static Pressure Requirement | UNIVERSAL / THERMAL & HVAC | universal | Premium |
+| `fan_shroud_effectiveness` | Fan Shroud Effectiveness | UNIVERSAL / THERMAL & HVAC | universal | Premium |
+| `radiator_core_sizing` | Radiator Core Sizing | UNIVERSAL / THERMAL & HVAC | universal | Premium |
+| `reynolds_number` | Reynolds Number | HYDRAULICS | universal | Premium |
+| `bernoulli_equation` | Bernoulli Equation | HYDRAULICS | universal | Premium |
+| `pipe_pressure_drop` | Pipe/Hose Pressure Drop | HYDRAULICS | universal | Premium |
+| `hydraulic_flow_coefficient` | Flow Coefficient (Cv) | HYDRAULICS | universal | Premium |
+| `npsh_available` | NPSH Available | HYDRAULICS | universal | Premium |
+| `npsh_safety_margin` | NPSH Safety Margin | HYDRAULICS | universal | Premium |
+| `pump_power_requirement` | Pump Power Requirement | HYDRAULICS | universal | Premium |
 
 ## Calculators migrated from Free to Premium (21)
 
@@ -183,7 +203,7 @@ Note on `turbo_sizing`: its promotion copy explicitly distinguishes it from the 
 
 Access is gated client-side only (same approach as the Engineering Lab, `premium/engineering-bridge.js`): `premium-calculator-gating.js` wraps each of these 21 ids' render function and nav entry, checking `GHP.services.entitlements.isPremium()` fresh on every render. It grants no access and talks to no database — these calculators are entirely client-side math, same as every Free calculator, so there is nothing for Supabase RLS to enforce here. What Supabase enforces is Premium status itself (`entitlement_grants`, `pf_has_feature`; see `PREMIUM_ARCHITECTURE.md`), which this gate reads but never decides.
 
-## Premium Calculator Expansion (27 of 143 approved, batch by batch)
+## Premium Calculator Expansion (47 of 143 approved, batch by batch)
 
 Decided 2026-10-07, from a Phase 1 reconciliation and exception-resolution pass that re-examined the 147-candidate future roadmap (left unapproved by the original Premium Migration Audit, above) against the live code. **143 candidates** were approved for implementation as net-new Premium-only calculators; 1 was held for a follow-up merge decision and 3 were rejected (duplicates or out of scope — see `claude/premium-expansion-phase1-exceptions-resolved.md` and `claude/premium-expansion-batch-plan.md` in the project). Implementation proceeds in 16 named engineering-family batches on the `premium/full-calculator-expansion` branch; each batch is implemented, QA'd (unit/formula tests, catalog validation, browser smoke tests, Premium gating tests, metric/imperial tests, NaN/Infinity/undefined scan) and committed before the next begins. `main` is untouched until the expansion is reviewed and merged.
 
@@ -261,7 +281,40 @@ Two families under one batch, per the batch plan's own grouping: three ignition-
 
 Categories: `GASOLINE / IGNITION` for the three ignition calculators (lab `gasoline`, a new category following the established `GASOLINE / *` convention) and `UNIVERSAL / ELECTRICAL` for the six circuit-theory calculators (lab `universal`, matching the existing Free `voltage_drop`/`electrical_power`/`wire_current_capacity`/etc.). `save: "excluded"` for all 9 (no Supabase seed-SQL formula registration, same precedent as Batches 1-4). `free_companion` intentionally omitted from all 9 — no existing Free calculator models ignition coil dwell/charging, spark discharge duration, a user-supplied mechanical timing curve, or any AC/transient circuit-theory relationship (per the Phase 1 reconciliation's own "no existing equivalent" findings for every one of these). All nine use genuinely new, unregistered unit labels (V, Ω, mH, µF, Hz, ms, mJ) that pass through unconverted in both unit systems, since none of them has an Imperial/metric distinction; verified clean in both modes and on live re-render.
 
-**Remaining:** 116 approved calculators across 11 further batches (Cooling/Thermal, Drivetrain/Transmission, Chassis/Suspension, Brakes/Tires/Vehicle Dynamics, Aerodynamics, Structural/Mechanical/Machining, Diesel, Two-Stroke, EV/Hybrid, Performance/Simulation, Workbenches), implemented and documented here batch by batch. See `claude/premium-expansion-batch-plan.md` in the project for the full mapping and status log.
+### Batch 6 — Cooling/Thermal + Hydraulics (20, done 2026-10-07)
+
+Two families under one batch, per the batch plan's own grouping (Hydraulics folded into this batch rather than a separate one). Thirteen cooling/thermal calculators build on standard heat-exchanger sizing (`Area = Q / (U × LMTD)`, counter-flow LMTD, with `U` always a disclosed, user-adjustable input rather than a fabricated constant — the same resolution already applied to the existing Free `radiator_heat_capacity`) plus the fundamental conduction/convection/radiation heat-transfer modes; seven hydraulics calculators cover standard fluid-mechanics relationships (Reynolds number, Bernoulli's equation, Darcy-Weisbach pressure drop, ISA valve Cv, NPSH/cavitation, pump power).
+
+| id | name | notes |
+|---|---|---|
+| `cooling_boil_point` | Cooling System Pressure & Boil Point | Raises a coolant mixture's atmospheric boiling point by its actual radiator cap pressure rating. |
+| `fan_cfm_requirement` | Electric Fan CFM Requirement | Backs an airflow target out of a required heat-rejection rate and design temperature rise. |
+| `intercooler_core_sizing` | Intercooler Core Sizing | LMTD/UA sizing applied to an air-to-air intercooler core. |
+| `oil_cooler_sizing` | Oil Cooler Sizing | Same LMTD/UA method, tuned for an oil-to-air cooler (lower typical `U`). |
+| `trans_cooler_sizing` | Transmission Cooler Sizing | Same method again, tuned for an ATF cooler. |
+| `radiator_airflow_vs_speed` | Radiator Airflow vs Vehicle Speed | Converts vehicle speed and frontal core area into ram-air CFM via a user-set core efficiency factor, for comparison against fan-driven CFM. |
+| `thermal_resistance_network` | Thermal Resistance Network | Chains a conduction resistance and a convection resistance in series (R = L/kA + 1/hA) for a complete heat-shield/wall heat-loss picture — genuinely distinct from the Free single-mode Heat Transfer calculator, which takes a convective `h` as a raw input. |
+| `conduction_heat_transfer` | Conduction Heat Transfer | Fourier's Law, `Q = kAΔT/L`, through a solid material — the conductive mode the Free Heat Transfer calculator doesn't cover. |
+| `convection_heat_transfer` | Convection Heat Transfer | Derives the convective coefficient itself from flow conditions via the Dittus-Boelter correlation (`Nu = 0.023 Re^0.8 Pr^0.4`) instead of requiring `h` as an input like the Free calculator — confirmed as a materially different, non-duplicate calculation during the required pre-batch redundancy check against items #95-97 of the Phase 1 reconciliation. Discloses a caution when Re < 10,000 (the correlation assumes turbulent flow). |
+| `radiation_heat_transfer` | Radiation Heat Transfer | Stefan-Boltzmann fourth-power law for radiant heat loss from hot components (headers, turbo housings) — a mode no existing Free or Premium calculator models. |
+| `fan_static_pressure` | Fan Static Pressure Requirement | Fan "square law" (`ΔP ∝ CFM²`) scaling from a reference operating point to a required CFM. |
+| `fan_shroud_effectiveness` | Fan Shroud Effectiveness | Fan-to-core coverage-area geometry check — a different question from the Free Heat Exchanger Effectiveness calculator's actual-vs-maximum heat transfer. |
+| `radiator_core_sizing` | Radiator Core Sizing | The same LMTD/UA method sized for a radiator core; answers the sizing question the Free Radiator Heat Rejection calculator doesn't (how much core area is actually needed, not just how much heat a given core rejects). |
+| `reynolds_number` | Reynolds Number | `Re = VD/ν`; classifies flow as laminar, transitional or turbulent, with a disclosed classification note. |
+| `bernoulli_equation` | Bernoulli Equation | Head-form solve for pressure change across a fluid-line transition in elevation, diameter or velocity. |
+| `pipe_pressure_drop` | Pipe/Hose Pressure Drop | Darcy-Weisbach pressure drop (laminar `f = 64/Re` or Blasius turbulent `f = 0.316/Re^0.25`) — a real flow-physics model generalizing the Free Intercooler Pressure Drop calculator's simple inlet-minus-outlet subtraction. |
+| `hydraulic_flow_coefficient` | Flow Coefficient (Cv) | The standard ISA liquid-valve Cv rating (`Cv = Q√(SG/ΔP)`) — the general hydraulic-valve counterpart to the Free engine-valve-specific Flow Coefficient calculator. |
+| `npsh_available` | NPSH Available | Standard pump-cavitation design metric: `NPSHa = (Patm − Pvap)×144/γ + hs − hf`. |
+| `npsh_safety_margin` | NPSH Safety Margin | Companion analyzer to NPSH Available: `Margin = NPSHa − NPSHr`, classified Safe / Marginal / will-cavitate against a user-set threshold. **Renamed from its originally-specified id/name `cavitation_risk`/"Cavitation Risk"** after `catalog/check-catalog.js`'s hard-coded no-marine-content guardrail (which bans "cavitation" — among "marine", "propeller", "outboard", "boat" — from any catalog `id`/`name`/`category`) flagged it; this is a legitimate hydraulics/pump-engineering term with zero actual marine content, so the fix was a rename rather than any weakening of the guardrail, per the brief's "reopen only on a concrete contradiction" allowance. The word "cavitation" remains in the calculator's own help text (not scanned by the check) and the engineering content is unchanged. |
+| `pump_power_requirement` | Pump Power Requirement | Standard hydraulic pump-power formula, `HP = (Q×ΔP)/(1714×eff)`. |
+
+Categories: `UNIVERSAL / THERMAL & HVAC` (lab `universal`, reusing the category already established by the Free `heat_transfer`/`radiator_heat_capacity`/`heat_exchanger_effectiveness`) for the 13 cooling/thermal calculators; bare `HYDRAULICS` (lab `universal`, reusing the category already established by the existing 6 Free `hydraulic_*` calculators) for the 7 hydraulics calculators. `save: "excluded"` for all 20 (no Supabase seed-SQL formula registration, same precedent as Batches 1-5).
+
+`free_companion` is omitted from all 20, same as every prior batch. Nine of these (Intercooler Core Sizing, Thermal Resistance Network, Conduction/Convection/Radiation Heat Transfer, Fan Shroud Effectiveness, Radiator Core Sizing, Pipe/Hose Pressure Drop, Flow Coefficient) have an identified "Partial" overlap with an existing Free calculator per the Phase 1 reconciliation — a genuinely simpler/different-question Free sibling, not a duplicate — and each one's promo copy names that Free calculator by hand in prose ("...beyond the Free X calculator") so the cross-promotion still reaches the user. An earlier draft of this batch set the structural `free_companion` field on those nine as well; this was reverted before commit, because `catalog/build-catalog.js` and `catalog/check-catalog.js` both classify "migrated" vs. "expansion" purely by whether a `premium/models.js` entry names a `free_companion` (documented explicitly in both files' header comments), so an expansion entry naming one would silently reclassify itself as one of the original 21 migrated calculators and corrupt the "N of 143 built / remaining" progress count against the approved BUILD list — a concrete contradiction between a one-off product-linking idea and an established, documented counting invariant, resolved in favor of the invariant since no runtime code reads `free_companion` for anything user-visible (the cross-reference already lives in the promo text) and every prior batch (1-5) followed the same no-`free_companion` rule.
+
+A second, unrelated issue was found and fixed during this batch's QA: an initial large source-insertion left about 268 instances of literal double-backslash Unicode escape sequences (e.g. a help-text em dash or apostrophe written as two literal backslash characters followed by `u2014`/`u2019` instead of a real single-backslash JS escape or a literal UTF-8 character) scattered through this batch's help text. Caught by the self-test suite's renderer checks failing to find expected result labels during a routine rename, traced with a byte-level scan confirming the corruption was confined entirely to this batch's own insertion range, and fixed by converting every instance to its correct literal Unicode character (matching the codebase's own established style of embedding literal UTF-8 characters rather than escape sequences). Confirmed via a full self-test re-run (526 total, 518 passed, the same 8 pre-existing unrelated failures) that the fix introduced no regressions.
+
+**Remaining:** 96 approved calculators across 10 further batches (Drivetrain/Transmission, Chassis/Suspension, Brakes/Tires/Vehicle Dynamics, Aerodynamics, Structural/Mechanical/Machining, Diesel, Two-Stroke, EV/Hybrid, Performance/Simulation, Workbenches), implemented and documented here batch by batch. See `claude/premium-expansion-batch-plan.md` in the project for the full mapping and status log.
 
 ## Premium-only tools (Engineering Lab)
 
@@ -298,7 +351,7 @@ Categories: `GASOLINE / IGNITION` for the three ignition calculators (lab `gasol
 - `node catalog/build-catalog.js` regenerates the JSON. It needs Playwright Chromium and runs without network access.
 - `node catalog/build-catalog.js --check` fails if the committed file no longer matches the sources.
 - `node catalog/check-catalog.js` runs in `premium/tests/run-tests.sh`. It checks:
-  - exactly 585 Free, 21 migrated Premium calculators, 27 Premium Calculator Expansion calculators, and 14 Engineering Lab tools (62 Premium-only, 647 total in Premium) — the migrated and expansion counts come live from `premium/models.js`'s `PREMIUM_CALCULATORS`, split by whether an entry names a `free_companion`, never hand-counted;
+  - exactly 585 Free, 21 migrated Premium calculators, 47 Premium Calculator Expansion calculators, and 14 Engineering Lab tools (82 Premium-only, 667 total in Premium) — the migrated and expansion counts come live from `premium/models.js`'s `PREMIUM_CALCULATORS`, split by whether an entry names a `free_companion`, never hand-counted;
   - the 21 migrated calculators against `premium/models.js`'s `PREMIUM_CALCULATORS` (ids, Free companions, non-placeholder promotion copy); the expansion calculators the same way, minus the Free-companion requirement;
   - unique ids and the alias rules;
   - every `eligible` calculator against the production seed, and no `excluded` one in it;
