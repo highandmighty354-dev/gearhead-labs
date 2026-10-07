@@ -7,7 +7,7 @@ The machine-readable source of truth is [`catalog/gearhead-catalog.json`](../cat
 | | Free | Gearhead Labs Premium |
 |---|---|---|
 | Price | Free, no account | **$5.99/month or $59.99/year** (the single paid product; Stripe not implemented yet) |
-| Public calculators | 585 | All 620 and growing (585 Free-tier + 21 migrated from Free + 14 net-new Premium Calculator Expansion calculators so far, visible but gated for everyone else) |
+| Public calculators | 585 | All 623 and growing (585 Free-tier + 21 migrated from Free + 17 net-new Premium Calculator Expansion calculators so far, visible but gated for everyone else) |
 | Engineering Lab (E01–E14) | No | Yes (14 Premium-only tools) |
 | My Garage: vehicle profiles, details, components, Test Setups (builds) | No | Yes, unlimited |
 | Saved calculations and saved engineering analyses | No | Yes |
@@ -20,19 +20,19 @@ The early $1.99 Garage / $3.99 additional-profile concept is retired and impleme
 |---|---|
 | Free public calculators (F1.12.4; F1.12.3 is the frozen baseline) | **585** |
 | Calculators migrated from Free to Premium (owner-approved audit, 2026-10-06) | **21** |
-| Premium Calculator Expansion calculators (net-new, no Free counterpart; owner-approved brief, 2026-10-07-) | **14** (of 143 approved; see below) |
+| Premium Calculator Expansion calculators (net-new, no Free counterpart; owner-approved brief, 2026-10-07-) | **17** (of 143 approved; see below) |
 | Premium-only tools: the Engineering Lab, E01–E14 (10 analyzers, 4 workbenches) | **14** |
-| Premium-only tools total (21 migrated + 14 expansion calculators + 14 Engineering Lab) | **49** |
-| Tools available in Premium (Free + Premium-only) | **634** |
-| Premium expansion tools validated from approved work (E01–E14 + expansion calculators) | **28** |
+| Premium-only tools total (21 migrated + 17 expansion calculators + 14 Engineering Lab) | **52** |
+| Tools available in Premium (Free + Premium-only) | **637** |
+| Premium expansion tools validated from approved work (E01–E14 + expansion calculators) | **31** |
 | Approved future Premium tools (not yet built) | **0** |
 | Aliases (alternate ids, never counted) | 6 |
 
 Free calculators by lab: universal 315, gasoline 162, diesel 42, EV 39, towing 27 (585 total; see "Calculators migrated from Free to Premium" below for the 21 that moved out of these lab counts on 2026-10-06; the Premium Calculator Expansion's calculators were never Free and so never counted in these lab totals).
 
-**634 is the current Premium catalog, not the final one.** The Premium catalog is still incomplete, implemented batch by batch. The historical target of about 752 tools (612 Free plus about 140 Premium expansion tools) is still not used here, for two reasons:
+**637 is the current Premium catalog, not the final one.** The Premium catalog is still incomplete, implemented batch by batch. The historical target of about 752 tools (612 Free plus about 140 Premium expansion tools) is still not used here, for two reasons:
 - the authoritative baseline for calculator-kind tools before the expansion began was 606 (585 Free + 21 migrated to Premium), not 612;
-- the Premium Calculator Expansion is implementing a specific, owner-approved 143-item BUILD list (from the Phase 1 reconciliation and exception resolution of the 147-candidate future roadmap below), not an open-ended target — 14 are built so far (Batch 1 "Engine/Bottom End" + Batch 2 "Valvetrain"), 129 remain across 14 further batches.
+- the Premium Calculator Expansion is implementing a specific, owner-approved 143-item BUILD list (from the Phase 1 reconciliation and exception resolution of the 147-candidate future roadmap below), not an open-ended target — 17 are built so far (Batch 1 "Engine/Bottom End" + Batch 2 "Valvetrain" + Batch 3 "Airflow/Cylinder Head"), 126 remain across 13 further batches.
 
 A separate 147-item list of future Premium calculator candidates was reviewed in the original Premium Migration Audit (the one that approved the 21 migrated calculators) and not approved at the time. A subsequent Phase 1 reconciliation and exception-resolution pass (2026-10-07) re-examined that list against the live code and approved **143 of those candidates** for the Premium Calculator Expansion (1 held for a follow-up merge decision, 3 rejected as duplicates/out of scope). Each approved candidate becomes real the same way any tool does: it stays `status: "approved"`, uncounted, until its batch ships, then `"current"` and counted here.
 
@@ -43,9 +43,9 @@ No tool is added just to reach a number. A future tool enters the catalog with `
 - **ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)**: 14 research-qualified systems E01-E14: all built (engineering-expansion-v1.js, 4ac4ba3) and live in the Premium Engineering Lab.
 - **engineering-expansion-v1.js history (406d6a1, 2026-10-04)**: 3 out-of-scope (non-automotive) analyzers removed by the owner; not in the catalog.
 - **earlier planning outside this repository (a 39-item "Coming Soon" queue, a 791-item master list)**: not in the repository and not designated Premium; not counted until provided, reviewed and approved.
-- **Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list)**: 14 net-new Premium-only calculators built and QA'd so far — Batch 1, "Engine/Bottom End" (piston kinematics, reciprocating balance, bobweight, bearing PV/surface-speed/clearance-flow); Batch 2, "Valvetrain" (valve motion velocity/acceleration, cam motion profile, cam area/time-area); 129 remain across 14 further batches.
+- **Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list)**: 17 net-new Premium-only calculators built and QA'd so far — Batch 1, "Engine/Bottom End" (piston kinematics, reciprocating balance, bobweight, bearing PV/surface-speed/clearance-flow); Batch 2, "Valvetrain" (valve motion velocity/acceleration, cam motion profile, cam area/time-area); Batch 3, "Airflow/Cylinder Head" (intake throat diameter sizing, exhaust throat diameter sizing, port/throat area → HP estimator); 126 remain across 13 further batches.
 
-The validated Premium expansion is therefore **28 tools** today (14 Engineering Lab + 14 expansion calculators), growing batch by batch toward the approved 157 (14 + 143).
+The validated Premium expansion is therefore **31 tools** today (14 Engineering Lab + 17 expansion calculators), growing batch by batch toward the approved 157 (14 + 143).
 
 ## Fields
 
@@ -67,11 +67,11 @@ The validated Premium expansion is therefore **28 tools** today (14 Engineering 
 - `excluded`: excluded from saved calculations by owner decision (2026-10-06). The calculator itself is unchanged and stays Free.
 - `saveable`: a Premium analysis, saved through `engineering_analyses`.
 
-## Why 620 calculator-kind tools but 583 production catalog rows
+## Why 623 calculator-kind tools but 583 production catalog rows
 
-620 is the total count of calculator-kind tools — 585 Free, plus the 21 migrated to Premium on 2026-10-06, plus the 14 net-new Premium Calculator Expansion calculators built so far (Batches 1-2) — and is unaffected by which tier a calculator sits in: the production seed and its formula fingerprints describe the calculator's *engine*, not its *tier*, so a migrated calculator keeps the exact seed row (or lack of one) it always had, and an expansion calculator (net-new, no prior Free existence) never had one.
+623 is the total count of calculator-kind tools — 585 Free, plus the 21 migrated to Premium on 2026-10-06, plus the 17 net-new Premium Calculator Expansion calculators built so far (Batches 1-3) — and is unaffected by which tier a calculator sits in: the production seed and its formula fingerprints describe the calculator's *engine*, not its *tier*, so a migrated calculator keeps the exact seed row (or lack of one) it always had, and an expansion calculator (net-new, no prior Free existence) never had one.
 
-- 620 = 577 calculators with an engine formula fingerprint + 43 render-only calculators with no registry formula (6 of those are the migrated-Premium ones already excluded before 2026-10-06; the other 14 are the new Premium Calculator Expansion calculators — see "Calculators excluded from saving" below). 606 was this same total before the expansion began.
+- 623 = 577 calculators with an engine formula fingerprint + 46 render-only calculators with no registry formula (6 of those are the migrated-Premium ones already excluded before 2026-10-06; the other 17 are the new Premium Calculator Expansion calculators — see "Calculators excluded from saving" below). 606 was this same total before the expansion began.
 - 583 = the same 577 fingerprinted calculators + 6 legacy alias rows (unaffected by the expansion: none of its calculators has a production seed row).
 
 Nothing is missing and nothing has been deleted. Full analysis: [CALCULATOR-CATALOG-RECONCILIATION.md](CALCULATOR-CATALOG-RECONCILIATION.md).
@@ -81,14 +81,14 @@ Saving is not being extended to new tools while the catalog is incomplete. The e
 ## Decisions and open items
 
 - **Decided (2026-10-06):** 21 calculators approved in the Premium Migration Audit move from Free to Premium. See "Calculators migrated from Free to Premium" below for the full list, the gating behavior, and the Free companion each one keeps. A further 147 candidate calculators reviewed in the same audit were **not** approved at the time and remained Free, unimplemented as Premium, and uncounted anywhere in this catalog.
-- **Decided (2026-10-06):** the 29 public calculators without a formula fingerprint were **excluded** from saved calculations (now 43 with the 14 expansion calculators added the same way). Their behavior and the Free count are unchanged. The production database already refuses to save them, because they have no `calculators` row. Making one saveable later needs a new engine formula plus a new, reviewed catalog migration.
-- **Decided (2026-10-07):** a Phase 1 reconciliation and exception-resolution pass re-examined the 147-candidate future roadmap against the live code and approved **143 candidates** for implementation as the Premium Calculator Expansion (1 held for a follow-up merge decision, 3 rejected). Batch 1, "Engine/Bottom End" (10 calculators: piston kinematics, reciprocating balance, bobweight, bearing PV/surface-speed/clearance-flow), and Batch 2, "Valvetrain" (4 calculators: valve motion velocity/acceleration, cam motion profile, cam area/time-area), are built and QA'd; see "Premium Calculator Expansion" below. 129 candidates remain across 14 further batches, implemented and counted here only as each batch ships.
+- **Decided (2026-10-06):** the 29 public calculators without a formula fingerprint were **excluded** from saved calculations (now 46 with the 17 expansion calculators added the same way). Their behavior and the Free count are unchanged. The production database already refuses to save them, because they have no `calculators` row. Making one saveable later needs a new engine formula plus a new, reviewed catalog migration.
+- **Decided (2026-10-07):** a Phase 1 reconciliation and exception-resolution pass re-examined the 147-candidate future roadmap against the live code and approved **143 candidates** for implementation as the Premium Calculator Expansion (1 held for a follow-up merge decision, 3 rejected). Batch 1, "Engine/Bottom End" (10 calculators: piston kinematics, reciprocating balance, bobweight, bearing PV/surface-speed/clearance-flow), Batch 2, "Valvetrain" (4 calculators: valve motion velocity/acceleration, cam motion profile, cam area/time-area), and Batch 3, "Airflow/Cylinder Head" (3 calculators: intake throat diameter sizing, exhaust throat diameter sizing, port/throat area → HP estimator), are built and QA'd; see "Premium Calculator Expansion" below. 126 candidates remain across 13 further batches, implemented and counted here only as each batch ships.
 - **Open: further Premium tools beyond the approved 143.** None is approved in the repository. The planning lists from earlier work (a 39-item "Coming Soon" queue and a 791-item master list) are not in the repository and are not designated Premium. They are counted only once they are provided, reviewed and approved.
 - **Open: E01–E14 QA counting.** They are live in the Premium Engineering Lab, but ENGINEERING_EXPANSION_CATALOG_V1.md says they are not counted as public calculators until QA sign-off.
 
-### Calculators excluded from saving (43)
+### Calculators excluded from saving (46)
 
-6 of these 43 are also among the 21 calculators migrated to Premium on 2026-10-06 (marked **Premium** below); that migration did not change their saving status, which was already `excluded`. The other 14 are the Premium Calculator Expansion's Batch 1 and Batch 2 calculators (also marked **Premium**), net-new and never had a production seed row to begin with.
+6 of these 46 are also among the 21 calculators migrated to Premium on 2026-10-06 (marked **Premium** below); that migration did not change their saving status, which was already `excluded`. The other 17 are the Premium Calculator Expansion's Batch 1, Batch 2 and Batch 3 calculators (also marked **Premium**), net-new and never had a production seed row to begin with.
 
 | id | name | category | lab | tier |
 |---|---|---|---|---|
@@ -135,6 +135,9 @@ Saving is not being extended to new tools while the catalog is incomplete. The e
 | `valve_acceleration` | Valve Acceleration | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline | Premium |
 | `cam_motion_profile` | Cam Motion Profile Analyzer | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline | Premium |
 | `cam_area_time_area` | Cam Area / Time-Area | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline | Premium |
+| `intake_throat_diameter_sizing` | CYLINDER HEAD / FLOW · Intake Throat Diameter Sizing | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline | Premium |
+| `exhaust_throat_diameter_sizing` | CYLINDER HEAD / FLOW · Exhaust Throat Diameter Sizing | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline | Premium |
+| `port_area_hp_estimator` | CYLINDER HEAD / FLOW · Port/Throat Area → HP Estimator | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline | Premium |
 
 ## Calculators migrated from Free to Premium (21)
 
@@ -170,7 +173,7 @@ Note on `turbo_sizing`: its promotion copy explicitly distinguishes it from the 
 
 Access is gated client-side only (same approach as the Engineering Lab, `premium/engineering-bridge.js`): `premium-calculator-gating.js` wraps each of these 21 ids' render function and nav entry, checking `GHP.services.entitlements.isPremium()` fresh on every render. It grants no access and talks to no database — these calculators are entirely client-side math, same as every Free calculator, so there is nothing for Supabase RLS to enforce here. What Supabase enforces is Premium status itself (`entitlement_grants`, `pf_has_feature`; see `PREMIUM_ARCHITECTURE.md`), which this gate reads but never decides.
 
-## Premium Calculator Expansion (14 of 143 approved, batch by batch)
+## Premium Calculator Expansion (17 of 143 approved, batch by batch)
 
 Decided 2026-10-07, from a Phase 1 reconciliation and exception-resolution pass that re-examined the 147-candidate future roadmap (left unapproved by the original Premium Migration Audit, above) against the live code. **143 candidates** were approved for implementation as net-new Premium-only calculators; 1 was held for a follow-up merge decision and 3 were rejected (duplicates or out of scope — see `claude/premium-expansion-phase1-exceptions-resolved.md` and `claude/premium-expansion-batch-plan.md` in the project). Implementation proceeds in 16 named engineering-family batches on the `premium/full-calculator-expansion` branch; each batch is implemented, QA'd (unit/formula tests, catalog validation, browser smoke tests, Premium gating tests, metric/imperial tests, NaN/Infinity/undefined scan) and committed before the next begins. `main` is untouched until the expansion is reviewed and merged.
 
@@ -208,7 +211,19 @@ Idealized simple-harmonic-motion (SHM) valve-lift kinematics, built from the sta
 
 Category: `GASOLINE / ENGINE AIRFLOW & VALVETRAIN` (lab `gasoline`, matching the existing Free camshaft/cylinder-head calculators). `save: "excluded"` for all 4 (no Supabase seed-SQL formula registration, same precedent as Batch 1).
 
-**Remaining:** 129 approved calculators across 14 further batches (Airflow/Cylinder Head, Forced Induction, Fuel/Ignition, Cooling/Thermal, Drivetrain/Transmission, Chassis/Suspension, Brakes/Tires/Vehicle Dynamics, Aerodynamics, Structural/Mechanical/Machining, Diesel, Two-Stroke, EV/Hybrid, Performance/Simulation, Workbenches), implemented and documented here batch by batch. See `claude/premium-expansion-batch-plan.md` in the project for the full mapping and status log.
+### Batch 3 — Airflow / Cylinder Head (3, done 2026-10-07)
+
+Chains two already-proven, already-live relationships from the existing Free airflow calculators (continuity, `Area = Q × 144 / (V × 60)`, the same formula behind the Free `required_port_csa`; and mass-flow-to-HP, `HP = (ṁ/AFR) × 60/BSFC`, the same formula behind the Free `hp_from_specs`/`airflow_power_estimate`) into three net-new sizing/estimation targets none of the existing Free calculators reach: an actual throat diameter to machine or size to, and an HP ceiling from a port's physical area rather than from a flow-bench CFM number.
+
+| id | name | notes |
+|---|---|---|
+| `intake_throat_diameter_sizing` | Intake Throat Diameter Sizing | Target CFM and port velocity → required port CSA → idealized throat diameter (assumes a circular throat cross-section). |
+| `exhaust_throat_diameter_sizing` | Exhaust Throat Diameter Sizing | Same relationship, defaulted to the higher velocity (320 ft/sec vs. 300 ft/sec) exhaust ports are conventionally sized to. |
+| `port_area_hp_estimator` | Port/Throat Area → HP Estimator | Port CSA, target velocity and cylinder count → total engine CFM → air mass flow → estimated HP ceiling via AFR/BSFC; answers "can these heads flow enough to support my power target" from physical port dimensions instead of a flow bench. |
+
+Category: `GASOLINE / ENGINE AIRFLOW & VALVETRAIN` (lab `gasoline`, with the `CYLINDER HEAD / FLOW ·` display-name prefix matching the existing Free `required_port_csa`). `save: "excluded"` for all 3 (no Supabase seed-SQL formula registration, same precedent as Batches 1-2). Although the existing Free Required Port CSA, CFM↔Velocity↔CSA and Airflow→Power Estimate calculators share the underlying formulas, none of them is extended to a throat diameter or an HP ceiling, so there is no Free calculation these three duplicate or paywall; `free_companion` is intentionally omitted from all three.
+
+**Remaining:** 126 approved calculators across 13 further batches (Forced Induction, Fuel/Ignition, Cooling/Thermal, Drivetrain/Transmission, Chassis/Suspension, Brakes/Tires/Vehicle Dynamics, Aerodynamics, Structural/Mechanical/Machining, Diesel, Two-Stroke, EV/Hybrid, Performance/Simulation, Workbenches), implemented and documented here batch by batch. See `claude/premium-expansion-batch-plan.md` in the project for the full mapping and status log.
 
 ## Premium-only tools (Engineering Lab)
 
@@ -245,7 +260,7 @@ Category: `GASOLINE / ENGINE AIRFLOW & VALVETRAIN` (lab `gasoline`, matching the
 - `node catalog/build-catalog.js` regenerates the JSON. It needs Playwright Chromium and runs without network access.
 - `node catalog/build-catalog.js --check` fails if the committed file no longer matches the sources.
 - `node catalog/check-catalog.js` runs in `premium/tests/run-tests.sh`. It checks:
-  - exactly 585 Free, 21 migrated Premium calculators, 14 Premium Calculator Expansion calculators, and 14 Engineering Lab tools (49 Premium-only, 634 total in Premium) — the migrated and expansion counts come live from `premium/models.js`'s `PREMIUM_CALCULATORS`, split by whether an entry names a `free_companion`, never hand-counted;
+  - exactly 585 Free, 21 migrated Premium calculators, 17 Premium Calculator Expansion calculators, and 14 Engineering Lab tools (52 Premium-only, 637 total in Premium) — the migrated and expansion counts come live from `premium/models.js`'s `PREMIUM_CALCULATORS`, split by whether an entry names a `free_companion`, never hand-counted;
   - the 21 migrated calculators against `premium/models.js`'s `PREMIUM_CALCULATORS` (ids, Free companions, non-placeholder promotion copy); the expansion calculators the same way, minus the Free-companion requirement;
   - unique ids and the alias rules;
   - every `eligible` calculator against the production seed, and no `excluded` one in it;

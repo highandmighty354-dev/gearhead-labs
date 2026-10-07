@@ -166,7 +166,21 @@
     { id: 'cam_motion_profile', name: 'Cam Motion Profile Analyzer',
       promo: 'Gearhead Labs Premium unlocks the Cam Motion Profile Analyzer — lift, velocity, and acceleration across the whole valve event in one table.' },
     { id: 'cam_area_time_area', name: 'Cam Area / Time-Area',
-      promo: 'Gearhead Labs Premium unlocks Cam Area / Time-Area — a true curtain-area time-area breathing index integrated across the full cam event.' }
+      promo: 'Gearhead Labs Premium unlocks Cam Area / Time-Area — a true curtain-area time-area breathing index integrated across the full cam event.' },
+
+    /* ---- Premium Batch 3 — Airflow / Cylinder Head (2026-10-07) ----
+       Net-new Premium engineering calculators with no Free counterpart: the existing Free
+       Required Port CSA, CFM <-> Velocity <-> CSA and Airflow -> Power Estimate calculators
+       each stop at CFM, area or velocity -- none of them carries a target flow through to a
+       throat diameter or an HP ceiling, so there is no Free calculation to protect here and
+       free_companion is intentionally omitted (see premium-calculator-gating.js -- promo
+       displays without a companion link when free_companion is absent). */
+    { id: 'intake_throat_diameter_sizing', name: 'Intake Throat Diameter Sizing',
+      promo: 'Gearhead Labs Premium unlocks Intake Throat Diameter Sizing — turns a target CFM and velocity straight into an actual throat diameter to size or machine to.' },
+    { id: 'exhaust_throat_diameter_sizing', name: 'Exhaust Throat Diameter Sizing',
+      promo: 'Gearhead Labs Premium unlocks Exhaust Throat Diameter Sizing — the exhaust-side sizing target, defaulted to the higher velocity exhaust ports are conventionally run at.' },
+    { id: 'port_area_hp_estimator', name: 'Port/Throat Area → HP Estimator',
+      promo: 'Gearhead Labs Premium unlocks the Port/Throat Area → HP Estimator — find out whether your heads can flow enough to support your power target before you buy them.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */
