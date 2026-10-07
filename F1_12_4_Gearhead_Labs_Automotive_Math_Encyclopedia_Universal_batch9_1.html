@@ -10805,6 +10805,16 @@ document.addEventListener("DOMContentLoaded",()=>{
     T('valve_lash gross lift','valve_lash',{base_lift:0.320,rocker_r:1.5,target_lash:0.020},'gross',0.48,0.001,'lobe*ratio');
     T('turbo_sizing airflow','turbo_sizing',{hp7:500,bsfc:0.60,afr_t:11.5,pr:2.0},'airflow',(500*0.6/60)*11.5,0.05,'fuel lb/min * AFR');
     T('hp_from_specs airflow path','hp_from_specs',{cid2:426,rpm_s:6000,ve4:0.90,bsfc_s:0.50,afr_s:12.5},'airflow',426*6000*0.90/3456,1,'V*rpm*VE/3456');
+    /* REGRESSION (audit, 2026-10): the 2026-09 fix converted volumetric airflow
+       (CFM) to a mass flow via air density before dividing by AFR, fixing an
+       impossible ~6,390 HP result at these inputs. The airflow-path test above
+       only ever covered the CFM step, which was never the bug — it never
+       protected the actual fix. These three close that gap by asserting the
+       mass-flow, fuel-flow and final-HP outputs directly. */
+    T('hp_from_specs air mass flow','hp_from_specs',{cid2:426,rpm_s:6000,ve4:0.90,bsfc_s:0.50,afr_s:12.5,air_density_s:0.0765},'Air Mass Flow',(426*6000*0.90/3456)*0.0765,0.05,'CFM*density, lb/min');
+    T('hp_from_specs fuel flow','hp_from_specs',{cid2:426,rpm_s:6000,ve4:0.90,bsfc_s:0.50,afr_s:12.5,air_density_s:0.0765},'Fuel Flow',((426*6000*0.90/3456)*0.0765)/12.5,0.01,'air mass flow / AFR');
+    T('hp_from_specs estimated HP (426ci, was 6390hp bug)','hp_from_specs',{cid2:426,rpm_s:6000,ve4:0.90,bsfc_s:0.50,afr_s:12.5,air_density_s:0.0765},'Estimated HP',((((426*6000*0.90/3456)*0.0765)/12.5)*60)/0.50,2,'fuel lb/min*60/BSFC; must be a plausible crank HP, not ~6390');
+    T('hp_from_specs estimated HP (350ci defaults)','hp_from_specs',{cid2:350,rpm_s:6000,ve4:0.85,bsfc_s:0.50,afr_s:12.5,air_density_s:0.0765},'Estimated HP',((((350*6000*0.85/3456)*0.0765)/12.5)*60)/0.50,2,'default-field case, matches page defaults');
     T('drivetrain_loss auto 18pct','drivetrain_loss',{fwhp:425},'wheel',Math.round(425*0.82),1,'auto default 18%');
     T('estimate_60ft','estimate_60ft',{et_6:12.5},'60',12.5*0.120,0.002,'empirical 12% rule');
     T('hp_cr_change 9.5->10.5','hp_cr_change',{hp_cr:425,cr_old:9.5,cr_new:10.5},'idealized hp change',425*(Math.sqrt(10.5/9.5)-1),0.2,'sqrt ratio approx');
