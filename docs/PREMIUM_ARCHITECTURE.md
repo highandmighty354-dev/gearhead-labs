@@ -26,6 +26,11 @@ index.html  (product shell — parent page)
 supabase/migrations/0001_premium_schema.sql — tables, RLS, has_premium(), signup trigger
 ```
 
+> This diagram describes the frozen F1.12.3 file, which this document's own architecture never shipped against live.
+> The current live engine is F1.12.4, and since 2026-10-06 it is 585 Free calculators + 21 migrated to Premium (also
+> gated by app-shell.js, visible but locked for non-Premium — see `docs/PREMIUM-CATALOG.md`), not 606 Free; its 606
+> calculator-kind tools and 14-tool Engineering Lab are otherwise unchanged from this diagram's shape.
+
 ## Adapter selection
 
 | Condition | Adapter | Accounts | Entitlement source |

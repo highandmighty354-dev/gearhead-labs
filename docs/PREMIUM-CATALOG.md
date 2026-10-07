@@ -7,7 +7,7 @@ The machine-readable source of truth is [`catalog/gearhead-catalog.json`](../cat
 | | Free | Gearhead Labs Premium |
 |---|---|---|
 | Price | Free, no account | **$5.99/month or $59.99/year** (the single paid product; Stripe not implemented yet) |
-| Public calculators | All 606 | All 606 |
+| Public calculators | 585 | All 606 (585 Free-tier + 21 migrated from Free, visible but gated for everyone else) |
 | Engineering Lab (E01–E14) | No | Yes (14 Premium-only tools) |
 | My Garage: vehicle profiles, details, components, Test Setups (builds) | No | Yes, unlimited |
 | Saved calculations and saved engineering analyses | No | Yes |
@@ -18,18 +18,22 @@ The early $1.99 Garage / $3.99 additional-profile concept is retired and impleme
 
 | | Count |
 |---|---|
-| Free public calculators (F1.12.4; F1.12.3 is the frozen baseline) | **606** |
+| Free public calculators (F1.12.4; F1.12.3 is the frozen baseline) | **585** |
+| Calculators migrated from Free to Premium (owner-approved audit, 2026-10-06) | **21** |
 | Premium-only tools: the Engineering Lab, E01–E14 (10 analyzers, 4 workbenches) | **14** |
+| Premium-only tools total (21 migrated calculators + 14 Engineering Lab) | **35** |
 | Tools available in Premium (Free + Premium-only) | **620** |
 | Premium expansion tools validated from approved work (= E01–E14) | **14** |
 | Approved future Premium tools (not yet built) | **0** |
 | Aliases (alternate ids, never counted) | 6 |
 
-Free calculators by lab: universal 325, gasoline 173, diesel 42, EV 39, towing 27.
+Free calculators by lab: universal 315, gasoline 162, diesel 42, EV 39, towing 27 (585 total; see "Calculators migrated from Free to Premium" below for the 21 that moved out of these lab counts on 2026-10-06).
 
 **620 is the current Premium catalog, not the final one.** The Premium catalog is incomplete. The historical target of about 752 tools (612 Free plus about 140 Premium expansion tools) is not used here, for two reasons:
-- the authoritative Free baseline is now 606, not 612;
+- the authoritative baseline for calculator-kind tools is 606 (585 Free + 21 migrated to Premium), not 612;
 - the approved Premium expansion list is not in the repository.
+
+A separate 147-item list of **future** Premium calculator candidates exists in planning only (the Premium Migration Audit that approved the 21 above also reviewed, and did not approve, a further 147 candidates). It is **not implemented, not in the catalog, and not counted** anywhere in this document or in `gearhead-catalog.json`. It becomes real the same way any future tool does: `status: "approved"` once a spec is approved, `"current"` once it ships.
 
 No tool is added just to reach a number. A future tool enters the catalog with `status: "approved"` once its spec is approved, and becomes `"current"` when it ships.
 
@@ -61,54 +65,93 @@ The validated Premium expansion is therefore **14 tools**, all live today.
 - `excluded`: excluded from saved calculations by owner decision (2026-10-06). The calculator itself is unchanged and stays Free.
 - `saveable`: a Premium analysis, saved through `engineering_analyses`.
 
-## Why 606 public calculators but 583 production catalog rows
+## Why 606 calculator-kind tools but 583 production catalog rows
 
-- 606 = 577 calculators with an engine formula fingerprint + 29 render-only calculators with no registry formula.
+606 is the total count of calculator-kind tools — 585 Free plus the 21 migrated to Premium on 2026-10-06 — and is unaffected by which tier a calculator sits in: the production seed and its formula fingerprints describe the calculator's *engine*, not its *tier*, so a migrated calculator keeps the exact seed row (or lack of one) it always had.
+
+- 606 = 577 calculators with an engine formula fingerprint + 29 render-only calculators with no registry formula (6 of those 29 are now Premium; see "Calculators excluded from saving" below).
 - 583 = those 577 + 6 legacy alias rows.
 
 Nothing is missing and nothing has been deleted. Full analysis: [CALCULATOR-CATALOG-RECONCILIATION.md](CALCULATOR-CATALOG-RECONCILIATION.md).
 
-Saving is not being extended to new tools while the catalog is incomplete. The existing saved-calculation tables (0405) accept only the 577 fingerprinted calculators, and that does not change.
+Saving is not being extended to new tools while the catalog is incomplete. The existing saved-calculation tables (0405) accept only the 577 fingerprinted calculators, and that does not change. Saved calculations are a Premium-only feature regardless of this split, so moving 6 already-excluded calculators to Premium changes nothing about what can be saved.
 
 ## Decisions and open items
 
+- **Decided (2026-10-06):** 21 calculators approved in the Premium Migration Audit move from Free to Premium. See "Calculators migrated from Free to Premium" below for the full list, the gating behavior, and the Free companion each one keeps. A further 147 candidate calculators reviewed in the same audit were **not** approved and remain Free, unimplemented as Premium, and uncounted anywhere in this catalog.
 - **Decided (2026-10-06):** the 29 public calculators without a formula fingerprint are **excluded** from saved calculations for now. Their behavior and the Free count are unchanged. The production database already refuses to save them, because they have no `calculators` row. Making one saveable later needs a new engine formula plus a new, reviewed catalog migration.
 - **Open: further Premium tools.** None is approved in the repository beyond E01–E14. The planning lists from earlier work (a 39-item "Coming Soon" queue and a 791-item master list) are not in the repository and are not designated Premium. They are counted only once they are provided, reviewed and approved.
 - **Open: E01–E14 QA counting.** They are live in the Premium Engineering Lab, but ENGINEERING_EXPANSION_CATALOG_V1.md says they are not counted as public calculators until QA sign-off.
 
 ### Calculators excluded from saving (29)
 
-| id | name | category | lab |
+6 of these 29 are also among the 21 calculators migrated to Premium on 2026-10-06 (marked **Premium** below); that migration did not change their saving status, which was already `excluded`.
+
+| id | name | category | lab | tier |
+|---|---|---|---|---|
+| `ac_pressure` | A/C Pressure/Temp Chart | ELECTRICAL, FLUID & UTILITIES | universal | Free |
+| `airflow_power_estimate` | AIRFLOW / ENGINE · Airflow → Power Estimate | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline | Free |
+| `brake_controller_gain` | Brake Controller Gain Setting | TOWING & TRAILER | towing | Free |
+| `cam_card` | CAMSHAFT · Complete Cam Card / Valve Events | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline | Free |
+| `camshaft_duration` | CAMSHAFT · Duration | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline | Free |
+| `camshaft_exhaust_events` | CAMSHAFT · Exhaust Valve Events | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline | Free |
+| `camshaft_ivc` | CAMSHAFT · Intake Valve Closing — IVC | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline | Free |
+| `camshaft_lsa` | CAMSHAFT · Lobe Separation Angle | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline | Free |
+| `ct_push_loose` | Push / Loose Diagnosis | CIRCLE TRACK | universal | Free |
+| `density_altitude` | Density Altitude | ENVIRONMENT & DYNO | universal | Free |
+| `drill_decimal` | Drill Size to Decimal | SHOP & MACHINING | universal | Free |
+| `engine_airflow_estimate` | AIRFLOW / ENGINE · Engine Airflow Estimation | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline | Free |
+| `gear_shift_rpm_drag` | Gear/Shift Point Planner | DRAG RACING | universal | Free |
+| `head_flow_curve` | CYLINDER HEAD / FLOW · Cylinder Head Flow Curve | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline | Premium |
+| `lsa_calc` | LSA from Centerlines | ENGINE | gasoline | Free |
+| `nitrous_jet` | Nitrous Jet Sizing | PERFORMANCE | gasoline | Free |
+| `octane_for_cr` | Octane Required for CR | FUEL, AIR & EXHAUST | gasoline | Free |
+| `resistor_color` | Resistor Color Code | ELECTRICAL, FLUID & UTILITIES | universal | Free |
+| `sheet_gauge` | Sheet Metal Gauge Converter | SHOP & MACHINING | universal | Free |
+| `sim_acceleration` | Simulator — Acceleration | GEARHEAD SIMULATOR | universal | Premium |
+| `sim_braking` | Simulator — Braking | GEARHEAD SIMULATOR | universal | Free |
+| `sim_cornering` | Simulator — Cornering | GEARHEAD SIMULATOR | universal | Premium |
+| `sim_curve_editor` | Power / Torque Curve | GEARHEAD SIMULATOR | universal | Premium |
+| `sim_dragstrip` | Simulator — Dragstrip | GEARHEAD SIMULATOR | universal | Premium |
+| `sim_gear_rpm` | Simulator — Gear / RPM | GEARHEAD SIMULATOR | universal | Free |
+| `sim_top_speed` | Simulator — Top Speed | GEARHEAD SIMULATOR | universal | Premium |
+| `sim_weight_transfer` | Simulator — Weight Transfer | GEARHEAD SIMULATOR | universal | Free |
+| `trailer_sway` | Trailer Sway Risk Check | TOWING & TRAILER | towing | Free |
+| `universal_automotive_converter` | Universal Automotive Unit Converter | UNIVERSAL / UNIT CONVERSIONS | universal | Free |
+
+## Calculators migrated from Free to Premium (21)
+
+Decided 2026-10-06, from the owner-approved Premium Migration Audit (`Gearhead_Labs_Premium_Migration_AUDIT.xlsx`). These are the **only** calculators that moved; a further 147 candidates reviewed in the same audit were not approved and remain Free, unimplemented and uncounted. `premium/models.js`'s `PREMIUM_CALCULATORS` is the single source of truth — `catalog/build-catalog.js`, the gating shim (`premium-calculator-gating.js`) and the Premium shell's displayed counts (`premium/shell.js`) all read it, so this list, the catalog and the UI can never drift apart.
+
+Each one stays **visible** in the Free calculator navigation (tagged "PREMIUM" with a lock icon, same list position as before) rather than being hidden like the Engineering Lab — an anonymous or Free visitor who opens one sees an upgrade card naming its Free companion instead of the real calculator; a Premium account sees the real calculator unchanged. Nothing about how these calculate changed; only who can see the result changed.
+
+| id | name | category | Free companion |
 |---|---|---|---|
-| `ac_pressure` | A/C Pressure/Temp Chart | ELECTRICAL, FLUID & UTILITIES | universal |
-| `airflow_power_estimate` | AIRFLOW / ENGINE · Airflow → Power Estimate | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `brake_controller_gain` | Brake Controller Gain Setting | TOWING & TRAILER | towing |
-| `cam_card` | CAMSHAFT · Complete Cam Card / Valve Events | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `camshaft_duration` | CAMSHAFT · Duration | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `camshaft_exhaust_events` | CAMSHAFT · Exhaust Valve Events | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `camshaft_ivc` | CAMSHAFT · Intake Valve Closing — IVC | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `camshaft_lsa` | CAMSHAFT · Lobe Separation Angle | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `ct_push_loose` | Push / Loose Diagnosis | CIRCLE TRACK | universal |
-| `density_altitude` | Density Altitude | ENVIRONMENT & DYNO | universal |
-| `drill_decimal` | Drill Size to Decimal | SHOP & MACHINING | universal |
-| `engine_airflow_estimate` | AIRFLOW / ENGINE · Engine Airflow Estimation | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `gear_shift_rpm_drag` | Gear/Shift Point Planner | DRAG RACING | universal |
-| `head_flow_curve` | CYLINDER HEAD / FLOW · Cylinder Head Flow Curve | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | gasoline |
-| `lsa_calc` | LSA from Centerlines | ENGINE | gasoline |
-| `nitrous_jet` | Nitrous Jet Sizing | PERFORMANCE | gasoline |
-| `octane_for_cr` | Octane Required for CR | FUEL, AIR & EXHAUST | gasoline |
-| `resistor_color` | Resistor Color Code | ELECTRICAL, FLUID & UTILITIES | universal |
-| `sheet_gauge` | Sheet Metal Gauge Converter | SHOP & MACHINING | universal |
-| `sim_acceleration` | Simulator — Acceleration | GEARHEAD SIMULATOR | universal |
-| `sim_braking` | Simulator — Braking | GEARHEAD SIMULATOR | universal |
-| `sim_cornering` | Simulator — Cornering | GEARHEAD SIMULATOR | universal |
-| `sim_curve_editor` | Power / Torque Curve | GEARHEAD SIMULATOR | universal |
-| `sim_dragstrip` | Simulator — Dragstrip | GEARHEAD SIMULATOR | universal |
-| `sim_gear_rpm` | Simulator — Gear / RPM | GEARHEAD SIMULATOR | universal |
-| `sim_top_speed` | Simulator — Top Speed | GEARHEAD SIMULATOR | universal |
-| `sim_weight_transfer` | Simulator — Weight Transfer | GEARHEAD SIMULATOR | universal |
-| `trailer_sway` | Trailer Sway Risk Check | TOWING & TRAILER | towing |
-| `universal_automotive_converter` | Universal Automotive Unit Converter | UNIVERSAL / UNIT CONVERSIONS | universal |
+| `advanced_et` | Advanced ET Prediction | PERFORMANCE | `et_mph_prediction` |
+| `brake_energy` | Brake Energy | BRAKES | `brake_torque` |
+| `brake_fade_energy` | Brake Heat per Stop | BRAKES | `brake_torque` |
+| `brake_rotor_temp` | Brake Rotor Temp Rise | BRAKES | `brake_torque` |
+| `dynamic_compression` | Dynamic Compression Ratio | ENGINE | `static_compression` |
+| `exhaust_port_cfm` | CYLINDER HEAD / FLOW · Exhaust Port CFM | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | `cfm_velocity_csa` |
+| `head_flow_curve` | CYLINDER HEAD / FLOW · Cylinder Head Flow Curve | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | `cfm_velocity_csa` |
+| `hp_cr_change` | HP Change from CR Change | ENGINE | `static_compression` |
+| `hp_from_specs` | HP from CID/CR/RPM/VE | ENGINE | `hp_from_torque` |
+| `incremental_et` | Incremental ET Analyzer (60/330/660/1000/1320) | DRAG RACING | `et_mph_prediction` |
+| `intake_port_cfm` | CYLINDER HEAD / FLOW · Intake Port CFM | GASOLINE / ENGINE AIRFLOW & VALVETRAIN | `cfm_velocity_csa` |
+| `master_cylinder` | Master Cylinder Sizing | SUSPENSION, TIRES & GEOMETRY | `brake_torque` |
+| `optimal_shift` | Optimal Shift Point | DRIVETRAIN & GEARING | `gear_ratio_speed` |
+| `portal_gear_reduction` | Portal Gear Reduction | DRIVETRAIN & GEARING | `crawl_ratio` |
+| `sim_acceleration` | Simulator — Acceleration | GEARHEAD SIMULATOR | `sim_weight_transfer` |
+| `sim_cornering` | Simulator — Cornering | GEARHEAD SIMULATOR | `sim_weight_transfer` |
+| `sim_curve_editor` | Power / Torque Curve | GEARHEAD SIMULATOR | `sim_weight_transfer` |
+| `sim_dragstrip` | Simulator — Dragstrip | GEARHEAD SIMULATOR | `sim_weight_transfer` |
+| `sim_top_speed` | Simulator — Top Speed | GEARHEAD SIMULATOR | `sim_weight_transfer` |
+| `torque_converter` | Torque Converter Stall Speed | DRIVETRAIN & GEARING | `converter_slip` |
+| `turbo_sizing` | Turbo Sizing | FORCED INDUCTION | `turbo_airflow` |
+
+Note on `turbo_sizing`: its promotion copy explicitly distinguishes it from the Engineering Lab's E01 Turbo Compressor Map Builder, which solves a related but more advanced problem — see `premium/models.js` for the exact wording shown to Free users.
+
+Access is gated client-side only (same approach as the Engineering Lab, `premium/engineering-bridge.js`): `premium-calculator-gating.js` wraps each of these 21 ids' render function and nav entry, checking `GHP.services.entitlements.isPremium()` fresh on every render. It grants no access and talks to no database — these calculators are entirely client-side math, same as every Free calculator, so there is nothing for Supabase RLS to enforce here. What Supabase enforces is Premium status itself (`entitlement_grants`, `pf_has_feature`; see `PREMIUM_ARCHITECTURE.md`), which this gate reads but never decides.
 
 ## Premium-only tools (Engineering Lab)
 
@@ -145,7 +188,8 @@ Saving is not being extended to new tools while the catalog is incomplete. The e
 - `node catalog/build-catalog.js` regenerates the JSON. It needs Playwright Chromium and runs without network access.
 - `node catalog/build-catalog.js --check` fails if the committed file no longer matches the sources.
 - `node catalog/check-catalog.js` runs in `premium/tests/run-tests.sh`. It checks:
-  - exactly 606 Free and 14 Premium-only tools;
+  - exactly 585 Free, 21 migrated Premium calculators, and 14 Engineering Lab tools (35 Premium-only, 620 total in Premium);
+  - the 21 migrated calculators against `premium/models.js`'s `PREMIUM_CALCULATORS` (ids, Free companions, non-placeholder promotion copy);
   - unique ids and the alias rules;
   - every `eligible` calculator against the production seed, and no `excluded` one in it;
   - E01–E14 against `premium/models.js` and `engineering-expansion-v1.js`;
