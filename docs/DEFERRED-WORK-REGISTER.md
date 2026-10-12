@@ -46,6 +46,8 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-019](#gh-def-019--distanceconverter-turns-yards-into-kilometres-with-0000914-instead-of-00009144) | `distance_converter` turns yards into kilometres with 0.000914 instead of 0.0009144 | OPEN | Low | P3 |
 | [GH-DEF-020](#gh-def-020--29-free-calculators-declare-a-metric-named-unit-on-a-value-the-engine-treats-as-imperial-so-metric-shows-and-reads-the-wrong-number) | 29 Free calculators declare a Metric-named unit on a value the engine treats as Imperial, so Metric shows and reads the wrong number | OPEN | High | P1 candidate |
 | [GH-DEF-022](#gh-def-022--a-result-that-is-a-tiny-negative-number-is-shown-as--0-pressure-altitude--0-m-in-metric) | A result that is a tiny negative number is shown as "-0" (Pressure Altitude "-0 m" in Metric) | OPEN | Low | P3 |
+| [GH-DEF-023](#gh-def-023--airflow-power-and-engine-airflow-handoffs-read-displacement-and-air-density-as-raw-text-ignoring-the-unit-system) | Airflow Power and Engine Airflow handoffs read displacement and air density as raw text, ignoring the unit system | OPEN | Medium | P1 |
+| [GH-DEF-024](#gh-def-024--stage-estimate-for-powertorque-simulator-ignores-the-displacement-and-bsfc-entered-in-the-calculator) | "Stage Estimate for Power/Torque Simulator" ignores the displacement and BSFC entered in the calculator | OPEN | Medium | P2 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | DEFERRED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
 | [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
@@ -60,10 +62,10 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-IMP-012](#gh-imp-012--cda-from-coast-down-uses-one-constant-crr) | CdA from Coast-Down uses one constant Crr | DEFERRED | Low | P2 |
 | [GH-IMP-013](#gh-imp-013--vehicle-trailer-and-part-weights-show-newtons-in-metric-should-they-show-kilograms) | Vehicle, trailer and part weights show newtons in Metric: should they show kilograms? | DEFERRED | Low | P3 |
 | [GH-IMP-014](#gh-imp-014--sixty-one-us-customary-units-are-not-registered-so-a-metric-page-shows-them-unconverted) | Sixty-one US-customary units are not registered, so a Metric page shows them unconverted | DEFERRED | Low | P2 |
-| [GH-IMP-015](#gh-imp-015--energy-rows-declared-ft-lb-read-nm-in-metric-instead-of-j) | Energy rows declared `ft-lb` read N·m in Metric instead of J | DEFERRED | Low | P3 |
+| [GH-IMP-015](#gh-imp-015--energy-rows-declared-ft-lb-read-nm-in-metric-instead-of-j) | Energy rows declared `ft-lb` read N·m in Metric instead of J | SUPERSEDED | Low | P3 |
 | [GH-ENG-001](#gh-eng-001--which-of-the-65-metric-named-unit-inventory-entries-are-real-defects) | Which of the 65 "metric-named unit" inventory entries are real defects? | INVESTIGATING | Medium | P1 |
 | [GH-ENG-002](#gh-eng-002--are-all-registered-unit-conversion-factors-correct) | Are all registered unit conversion factors correct? | VERIFIED CLOSED | Low | P1 |
-| [GH-ENG-003](#gh-eng-003--do-the-airflow-block-an-readers-have-the-head-flow-curve-defect) | Do the airflow-block `an()` readers have the Head Flow Curve defect? | INVESTIGATING | Medium | P1 |
+| [GH-ENG-003](#gh-eng-003--do-the-airflow-block-an-readers-have-the-head-flow-curve-defect) | Do the airflow-block `an()` readers have the Head Flow Curve defect? | SUPERSEDED | Medium | P1 |
 | [GH-ENG-004](#gh-eng-004--do-the-cross-calculator-stage-handoffs-write-values-in-the-right-unit-system) | Do the cross-calculator "stage" handoffs write values in the right unit system? | OPEN | Unknown | P2 |
 | [GH-ENG-005](#gh-eng-005--does-leaving-a-calculator-write-its-inputs-into-the-next-calculators-remembered-state) | Does leaving a calculator write its inputs into the next calculator's remembered state? | SUPERSEDED | Unknown | P2 |
 | [GH-ENG-006](#gh-eng-006--is-the-vehicle-profile-editor-covered-by-the-unit-handling-fixes) | Is the vehicle-profile editor covered by the unit-handling fixes? | OPEN | Unknown | P2 |
@@ -466,6 +468,40 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Verification:** Metric `density_altitude` after a live re-render at the defaults reads "0 m"; no other calculator shows a stand-alone "-0".
 - **History:** 2026-10-12 — found while explaining 43 Metric differences in the Item 3b comparison; confirmed to exist before that change; entry created.
 
+### GH-DEF-023 — Airflow Power and Engine Airflow handoffs read displacement and air density as raw text, ignoring the unit system
+- **Status:** OPEN
+- **Severity:** Medium
+- **Priority:** P1 (authorized; Item 4d)
+- **Description:** `an(id, default)` in the airflow extension is a bare `parseFloat` of the box text. A Metric box shows centimetres cubed, kilograms per cubic metre and so on, and `an()` hands that number to code that expects Imperial. Two buttons use it for a unit-bearing box: the **Airflow vs RPM** graph of Engine Airflow Estimation reads `air_d` (displacement, declared `ci`; Metric shows cc) and the **Stage Estimate for Power/Torque Simulator** button of Airflow → Power Estimate reads `ap_rho` (air density, declared `lb/ft³`; Metric shows kg/m³). The same raw read is in `GHM_AIRFLOW_POWER`, the helper that function was written for. The unitless boxes (`air_ve`, `air_cycle`, `ap_ve`, `ap_afr`) are unaffected.
+- **Evidence:** Reproduced on the engine at `4b38fe2` (page defaults, active profile 408 ci / 2,800 RPM / 6 cylinders): Imperial, the graph's value at 2,800 RPM is 297.5 CFM, equal to the displayed Engine Volume Flow 297.5 CFM. Metric, the displayed Engine Volume Flow is 8,424.26 L/min and the graph's value at 2,800 RPM is 138,048.9 L/min, **16.39 times too high** (the box reads 6,685.92 cc and the graph computes with 6,685.92 cubic inches). Staging: Imperial, the curve's value at 2,800 RPM is 185.8 HP, equal to the displayed Estimated Horsepower 185.79 HP; Metric the same click stages 2,976 HP, **16.02 times too high** (the box reads 1.22541 kg/m³ and the curve computes with 1.22541 lb/ft³ instead of 0.0765). `an()` has no other consumer (GH-ENG-003).
+- **Affected:** `engine_airflow_estimate` (graph button), `airflow_power_estimate` (Stage Estimate button), `window.GHM_ENGINE_AIR_GRAPH`, `window.GHM_STAGE_AIRFLOW`, `window.GHM_AIRFLOW_POWER`. Not the numeric results of either calculator, which read every box with `vd()`. The staged curve is what the Power/Torque Simulator plots when its curve source is "airflow".
+- **Impact:** In Metric, a chart 16.4 times too high beside a correct result, and a horsepower curve 16.0 times too high staged into the Simulator. Imperial is correct.
+- **Decision:** Fix with the smallest change: read these two unit-bearing boxes with `vd()` (the unit-aware reader every calculator in the same block already uses, with the same default behaviour) instead of `an()`. No formula, registry entry or helper changes.
+- **Dependencies:** GH-DEF-013 (the same class of defect in Head Flow Curve); GH-DEF-024 (same function, different cause).
+- **Revisit:** Reliability pass Item 4d.
+- **Commits:** None yet.
+- **Tests:** None yet.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** `premium/tests/airflow-readers.test.js` passes with independent expected values (volume flow = displacement x RPM x VE / 3456 for a four-stroke, horsepower = airflow x density / AFR x 60 / BSFC / 33,000-form) in both systems, and fails on the engine before the change.
+- **History:** 2026-10-12 — found by reproducing GH-ENG-003 (Item 4d); entry created.
+
+### GH-DEF-024 — "Stage Estimate for Power/Torque Simulator" ignores the displacement and BSFC entered in the calculator
+- **Status:** OPEN
+- **Severity:** Medium
+- **Priority:** P2 (found while fixing GH-DEF-023)
+- **Description:** The staging button sweeps ten RPM points from 1,000 to the profile's peak RPM and computes horsepower at each. It takes the displacement from the active profile (`p.displacement`, never the **Displacement** box `ap_d`) and reads BSFC from `ap_bsfc`, a box that does not exist (the box is `ap_bs`), so the default 0.5 lb/hp-hr is always used. `GHM_AIRFLOW_POWER`, the helper meant for the same purpose, has the same stale ids (`ap_disp`, `ap_rpm`, `ap_bsfc`). A person who changes the displacement or the BSFC and then stages the estimate stages a curve that does not contain their numbers. The air density, VE and AFR are read from the right boxes.
+- **Evidence:** Reproduced on the engine at `4b38fe2`, both systems: at the defaults the curve's value at 2,800 RPM equals the displayed estimate. After typing Displacement 400 ci (6,554.8 cc in Metric) and BSFC 0.45 (0.2737 kg/kW-hr) the displayed Estimated Horsepower moves from 185.79 to 202.38 HP (150.93 kW in Metric) and the staged curve is unchanged: 185.8 HP at 2,800 RPM before and after.
+- **Affected:** `window.GHM_STAGE_AIRFLOW`, `window.GHM_AIRFLOW_POWER`; `airflow_power_estimate` button. The code does not say whether using the profile's displacement was intended; the button sits under the estimate and is labelled "Stage Estimate", and the helper written for it reads boxes, so the numbers on the page are taken to be what is staged.
+- **Impact:** The Simulator plots a curve for a different engine than the one the estimate describes, whenever the displacement or BSFC was changed from its default. Same in both unit systems.
+- **Decision:** Fix in its own commit, after GH-DEF-023: read `ap_d` and `ap_bs` (the ids that exist) with `vd()` and keep the profile values as the defaults, in both functions. The RPM sweep range (profile peak RPM) is left alone.
+- **Dependencies:** GH-DEF-023.
+- **Revisit:** Reliability pass Item 4d.
+- **Commits:** None yet.
+- **Tests:** None yet.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** After editing displacement, VE, density, AFR and BSFC in either system, the staged curve equals the independent horsepower at each of its ten RPM points (to the 0.1 HP the curve stores), and `GHM_AIRFLOW_POWER()` equals the displayed estimate at the box RPM.
+- **History:** 2026-10-12 — found while reproducing GH-DEF-023; entry created.
+
 ## B. Deferred improvements
 
 ### GH-IMP-001 — Energy in ft-lb is labelled "N·m" rather than "J" in Metric
@@ -473,12 +509,12 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Severity:** Low
 - **Priority:** P3
 - **Description:** The engine's `ft-lb` alias resolves to the torque unit, so an energy shows "N·m" in Metric. 1 N·m = 1 J, so the number is right; only the conventional symbol differs.
-- **Evidence:** `unit-system.test.js` records the "N·m" label for `brake_energy` / `brake_fade_energy`.
-- **Affected:** Energy outputs declared `ft-lb` (for example `brake_energy`, `brake_fade_energy`, `tow_brake_energy`).
+- **Evidence:** `unit-system.test.js` records the "N·m" label for `brake_energy` / `brake_fade_energy`. Item 4c census (`unit-census.test.js`) and alias audit (`unit-factors.test.js`, GH-ENG-002): 5 rows in 4 calculators are declared `ft-lb` (`brake_energy` Kinetic Energy; `brake_fade_energy` the `bfe_e` box and Energy per Stop; `brake_fade_prediction` the `bfp_e` box; `tow_brake_energy` Kinetic Energy), every `ft-lb` use in the engine is an energy, and the cause is the alias `'ft-lb':'lb-ft'`, while `UNIT_DEFS` already holds an `ft-lb` → J entry reachable only through the alias `J`.
+- **Affected:** Energy outputs declared `ft-lb`: `brake_energy`, `brake_fade_energy`, `brake_fade_prediction`, `tow_brake_energy` (5 rows).
 - **Impact:** Cosmetic.
-- **Decision:** Not a defect; a distinct energy unit would change many displays and is not on the critical path.
+- **Decision:** Not a defect; a distinct energy unit would change many displays and is not on the critical path. If decided: point the alias at the J definition (`'ft-lb':'ft-lb'`), update the pinned expectations in `unit-system.test.js` and `unit-census.test.js`, and compare all 696 calculators before and after.
 - **Dependencies:** none.
-- **Revisit:** When the unit table is next extended (GH-DEF-007).
+- **Revisit:** When the unit table is next extended (see GH-IMP-014, which superseded GH-DEF-007).
 - **Commits:** None.
 - **Tests:** `premium/tests/unit-system.test.js`.
 - **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Item 3.
@@ -493,7 +529,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Evidence:** Batch 7 and Batch 9 notes in `docs/PREMIUM-CATALOG.md`.
 - **Affected:** `yaw_inertia_estimate`, `polar_moment_of_inertia` (Batch 7).
 - **Impact:** Metric users see an Imperial unit for these outputs.
-- **Decision:** Left as disclosed; registering the compound units is GH-DEF-007's question.
+- **Decision:** Left as disclosed; registering the compound units is now GH-IMP-014 (it supersedes GH-DEF-007; `slug-ft2` and `in⁴` are two of its 61 units).
 - **Dependencies:** GH-DEF-007.
 - **Revisit:** With the compound-unit decision.
 - **Commits:** None.
@@ -698,7 +734,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Affected:** 122 calculators; `LIST=1 node premium/tests/unit-census.test.js` prints every Imperial-only unit with the calculators that use it (not copied here, so the register does not carry a second list that can drift).
 - **Impact:** A Metric user sees an Imperial compound unit beside converted ones. The number and the label agree, so nothing is wrong; it is incomplete. The 12 spellings are the cheap first tranche, but each changes the Metric display and the Metric re-entry of 59 calculators, which needs the same before/after evidence as GH-DEF-006 (all 696 calculators compared), so it was not folded into a reliability fix.
 - **Decision:** Deferred. Registering units (or aliasing the 12 spellings) is a presentation improvement that touches more than 50 calculators, not a defect repair. `unit-census.test.js` makes the state visible and stops it growing silently: a new unit text that is not classified fails the test, so Batch 11 (which adds torque, inertia and stress units) classifies each new unit when it introduces it.
-- **Dependencies:** GH-ENG-002 (factors audited), GH-IMP-013 (weight / force convention: `lb/deg`, `lbs/deg`), GH-DEF-020 (the 134 metric-declared rows are a different population).
+- **Dependencies:** GH-IMP-002 (yaw / polar inertia units are two of the 61), GH-IMP-001 (energy label), GH-ENG-002 (factors audited), GH-IMP-013 (weight / force convention: `lb/deg`, `lbs/deg`), GH-DEF-020 (the 134 metric-declared rows are a different population).
 - **Revisit:** When the Metric audience is prioritised, or when Batch 11 is authorised (decide whether its new units should be registered as they are added), whichever comes first.
 - **Commits:** None (test and data only, `e9af30f`).
 - **Tests:** `premium/tests/unit-census.test.js` pins the classification of every unit.
@@ -707,21 +743,22 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-10-12 — created from the Item 4c census; replaces GH-DEF-007.
 
 ### GH-IMP-015 — Energy rows declared `ft-lb` read N·m in Metric instead of J
-- **Status:** DEFERRED
+- **Status:** SUPERSEDED
 - **Severity:** Low
 - **Priority:** P3 (label only; the number is right)
-- **Description:** `UNIT_ALIASES` maps `ft-lb` to `lb-ft` (the torque unit, Metric N·m), so the energy rows declared `ft-lb` read newton-metres in Metric. An N·m and a joule are the same unit and the number is correct (1 ft·lbf = 1.355817948 N·m = 1.355817948 J), but an energy is conventionally printed in joules. `UNIT_DEFS` already holds an `ft-lb` → J entry, reachable only through the alias `J`.
+- **Description:** Duplicate of GH-IMP-001, which already records this issue; the Item 4c alias audit found it again and its evidence is merged into GH-IMP-001. `UNIT_ALIASES` maps `ft-lb` to `lb-ft` (the torque unit, Metric N·m), so the energy rows declared `ft-lb` read newton-metres in Metric. An N·m and a joule are the same unit and the number is correct (1 ft·lbf = 1.355817948 N·m = 1.355817948 J), but an energy is conventionally printed in joules. `UNIT_DEFS` already holds an `ft-lb` → J entry, reachable only through the alias `J`.
 - **Evidence:** Census scan: 5 rows in 4 calculators: `brake_energy` (Kinetic Energy), `brake_fade_energy` (the `bfe_e` box and Energy per Stop), `brake_fade_prediction` (the `bfp_e` box), `tow_brake_energy` (Kinetic Energy). Every `ft-lb` use in the engine is an energy. Found while auditing the alias table (GH-ENG-002).
 - **Affected:** The four calculators above; shared: `UNIT_ALIASES['ft-lb']`.
 - **Impact:** Cosmetic. A change would also rename the unit printed by anything else declared `ft-lb`, and `unit-system.test.js` pins the Brake Energy display, so it is a deliberate change with its own evidence, not a side fix.
 - **Decision:** Left as is. If decided: point the alias at the J definition (`'ft-lb':'ft-lb'`), update the pinned expectations, and compare all 696 calculators before and after.
 - **Dependencies:** GH-ENG-002.
-- **Revisit:** With GH-IMP-014, or if a torque is ever declared `ft-lb`.
+- **Revisit:** None (superseded); see GH-IMP-001.
 - **Commits:** None.
 - **Tests:** `unit-census.test.js` pairs `ft-lb` → `N·m` today; it would fail on the change and be updated with it.
 - **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
 - **Verification:** The five rows read J with the same numbers; torque rows (`ft-lbs`, `lb-ft`) are unchanged.
 - **History:** 2026-10-12 — created from the GH-ENG-002 alias audit.
+  2026-10-12 — superseded by GH-IMP-001 (the same issue was already registered; the register keeps one record per issue). Entry kept for history; evidence merged into GH-IMP-001, nothing deleted.
 
 ---
 
@@ -763,10 +800,10 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Severity:** Low (audited: no wrong factor found)
 - **Priority:** P1 (done; reliability pass Item 4c)
 - **Description:** `UNIT_DEFS` / `UNIT_ALIASES` have never been audited as a whole against a trusted reference (NIST SP 811). Individual units used by the expansion were checked as they were used.
-- **Evidence:** `premium/tests/unit-factors.test.js` (`TABLE=1` prints the table) rebuilds the factor of every one of the 42 canonical units of `UNIT_DEFS` from the exact definitions (1 lb = 0.45359237 kg, 1 in = 0.0254 m, 1 ft = 0.3048 m, 1 mi = 1609.344 m, 1 US gal = 3.785411784 L, g = 9.80665 m/s², 1 hp = 550 ft·lbf/s, short ton = 2000 lb, circular mil = π/4 (0.001 in)², conventional inch of mercury 3.386389 kPa, conventional inch of water = 25.4 mm × 9.80665 Pa) and compares it with the engine. **All 42 agree within 1.63e-9 relative.** Only two are above 1e-9: `lb/in` 1.41e-9 and `lb/ft³` 1.63e-9, both because the engine writes its constant to 9 or 10 significant digits (0.175126835 against 0.1751268352; 16.0184634 against 16.01846337); the next largest is `HP/ton` / `HP/klb` 6.1e-10. Every other factor is exact or within 6e-10, `fromMetric(toMetric(x))` returns x within 1e-12, the four reference temperatures, the temperature-difference rule (× 5/9, no offset) and the mpg ↔ L/100 km reciprocal are exact. `inHg` is the SP 811 conventional value 3.386389 kPa (published to 7 digits; the 13595.1 kg/m³ definition gives 3.38638864, 1.06e-7 lower); the display shows 2 to 4 digits. `HP/ton` assumes the 2000 lb short ton. `UNIT_ALIASES` (87 entries): every alias resolves to a convertible canonical unit (two canonical units, `in-lb` and `°R`, deliberately have no conversion) and every alias that is not its own unit is the Metric label of that unit or a listed spelling. Findings that are not wrong factors: (1) five keys are written twice in the alias literal (`L/min`, `m/min`, `mm²`, `m/s`, `ft/s`); the last wins, and for four of them both targets convert identically, but for `L/min` the shadowed `cc/min` (÷1000) and the winner `CFM` (×28.3168) do not; harmless today because no calculator declares `L/min` (`unit-census.test.js` checks); (2) `qt` is aliased to `gal` although a quart is a quarter gallon; harmless today because every row that prints `qt` is a converter row printed raw (GH-DEF-003); (3) `ft-lb` is aliased to `lb-ft`, so the five energy rows declared `ft-lb` read N·m instead of J in Metric (same number, GH-IMP-015). None of the three changes a number, so none was changed.
+- **Evidence:** `premium/tests/unit-factors.test.js` (`TABLE=1` prints the table) rebuilds the factor of every one of the 42 canonical units of `UNIT_DEFS` from the exact definitions (1 lb = 0.45359237 kg, 1 in = 0.0254 m, 1 ft = 0.3048 m, 1 mi = 1609.344 m, 1 US gal = 3.785411784 L, g = 9.80665 m/s², 1 hp = 550 ft·lbf/s, short ton = 2000 lb, circular mil = π/4 (0.001 in)², conventional inch of mercury 3.386389 kPa, conventional inch of water = 25.4 mm × 9.80665 Pa) and compares it with the engine. **All 42 agree within 1.63e-9 relative.** Only two are above 1e-9: `lb/in` 1.41e-9 and `lb/ft³` 1.63e-9, both because the engine writes its constant to 9 or 10 significant digits (0.175126835 against 0.1751268352; 16.0184634 against 16.01846337); the next largest is `HP/ton` / `HP/klb` 6.1e-10. Every other factor is exact or within 6e-10, `fromMetric(toMetric(x))` returns x within 1e-12, the four reference temperatures, the temperature-difference rule (× 5/9, no offset) and the mpg ↔ L/100 km reciprocal are exact. `inHg` is the SP 811 conventional value 3.386389 kPa (published to 7 digits; the 13595.1 kg/m³ definition gives 3.38638864, 1.06e-7 lower); the display shows 2 to 4 digits. `HP/ton` assumes the 2000 lb short ton. `UNIT_ALIASES` (87 entries): every alias resolves to a convertible canonical unit (two canonical units, `in-lb` and `°R`, deliberately have no conversion) and every alias that is not its own unit is the Metric label of that unit or a listed spelling. Findings that are not wrong factors: (1) five keys are written twice in the alias literal (`L/min`, `m/min`, `mm²`, `m/s`, `ft/s`); the last wins, and for four of them both targets convert identically, but for `L/min` the shadowed `cc/min` (÷1000) and the winner `CFM` (×28.3168) do not; harmless today because no calculator declares `L/min` (`unit-census.test.js` checks); (2) `qt` is aliased to `gal` although a quart is a quarter gallon; harmless today because every row that prints `qt` is a converter row printed raw (GH-DEF-003); (3) `ft-lb` is aliased to `lb-ft`, so the five energy rows declared `ft-lb` read N·m instead of J in Metric (same number, GH-IMP-001). None of the three changes a number, so none was changed.
 - **Affected:** Shared: `UNIT_DEFS`, `UNIT_ALIASES` (read, not changed).
 - **Impact:** No wrong factor exists, so no display in either system is off because of the unit table. The three findings above are latent or cosmetic.
-- **Decision:** No engine change. The question is answered by the test; the three findings are recorded here and in GH-IMP-015 instead of changing aliases that other tests and converter rows depend on. `unit-factors.test.js` fails if a factor, a Metric label, an alias target or the set of duplicated keys changes, so a new unit has to be added to its exact-factor table.
+- **Decision:** No engine change. The question is answered by the test; the three findings are recorded here and in GH-IMP-001 instead of changing aliases that other tests and converter rows depend on. `unit-factors.test.js` fails if a factor, a Metric label, an alias target or the set of duplicated keys changes, so a new unit has to be added to its exact-factor table.
 - **Dependencies:** none.
 - **Revisit:** When a unit is added to `UNIT_DEFS` or `UNIT_ALIASES` (the test asks for its exact factor), or if a calculator ever declares `L/min` or `qt`.
 - **Commits:** `e9af30f` (tests only; the engine is unchanged).
@@ -777,21 +814,22 @@ This is the **single authoritative register** of known defects, deferred improve
   2026-10-12 — closed: audited in `e9af30f`; `unit-factors.test.js` 515 checks, 0 failures on the engine at that commit; largest relative difference 1.63e-9 (`lb/ft³`); no factor wrong, no change to the unit tables. Findings (duplicate alias keys, `qt`, `ft-lb`) recorded above. Re-run in the closing regression of this pass.
 
 ### GH-ENG-003 — Do the airflow-block `an()` readers have the Head Flow Curve defect?
-- **Status:** INVESTIGATING
+- **Status:** SUPERSEDED
 - **Severity:** Medium (unknown until reproduced)
-- **Priority:** P1 (authorized; Item 4)
+- **Priority:** P1 (answered in reliability pass Item 4d; moved to section A)
 - **Description:** The airflow extension block (`ap_*`, `air_*` fields) reads inputs with `an()` (raw `parseFloat` of the box text, no unit conversion, unaware of a unit switch in progress), the same reader that broke Head Flow Curve's query field (GH-DEF-013). No visible failure is confirmed for them.
-- **Evidence:** Code read; the catalogue sweep did not flag any airflow calculator outside the ledger.
+- **Evidence:** Code read, then reproduced on a live page (Item 4d). `an()` has exactly three consumers, all in the airflow extension: `GHM_ENGINE_AIR_GRAPH` (the "Airflow vs RPM" graph of `engine_airflow_estimate`), `GHM_AIRFLOW_POWER` and `GHM_STAGE_AIRFLOW` (the "Stage Estimate for Power/Torque Simulator" button of `airflow_power_estimate`). No calculator result is computed with `an()`, which is why the catalogue sweep (it reads result rows) never flagged one. Two of the three consumers do have the Head Flow Curve defect: see GH-DEF-023 (unit-bearing reads) and GH-DEF-024 (the staging function also reads boxes that do not exist).
 - **Affected:** Calculators of `GH_ENGINE_AIRFLOW_CALCS` reading with `an()`.
 - **Impact:** Unknown.
-- **Decision:** Item 4 reproduces with independent expected values; fixes only what fails.
+- **Decision:** Answered: yes for the graph and the staging button, no for any calculator result. The reproductions are entered as GH-DEF-023 and GH-DEF-024 and fixed in their own commits; this question entry is superseded by them (kept for history).
 - **Dependencies:** none.
-- **Revisit:** Reliability pass Item 4.
+- **Revisit:** None (superseded); see GH-DEF-023 and GH-DEF-024.
 - **Commits:** None yet.
 - **Tests:** None yet.
 - **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 4.
 - **Verification:** Each `an()`-reading calculator is exercised in both systems against independent values; any failure becomes a section A entry.
 - **History:** 2026-10-12 — entry created.
+  2026-10-12 — reproduced in Item 4d (a graph 16.4 times too high in Metric, a staged curve 16.0 times too high); moved to section A as GH-DEF-023 and GH-DEF-024 and superseded here. Nothing deleted.
 
 ### GH-ENG-004 — Do the cross-calculator "stage" handoffs write values in the right unit system?
 - **Status:** OPEN
@@ -809,6 +847,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Docs:** None.
 - **Verification:** Each handoff exercised in Metric against an independent expected value.
 - **History:** 2026-10-12 — entry created.
+  2026-10-12 — Item 4d looked at `GHM_STAGE_AIRFLOW`: it does not write into another calculator's remembered state but a ten-point horsepower curve (canonical horsepower, no unit string) into the Simulator's curve store; its input reads were wrong in Metric and ignored the entered displacement and BSFC (GH-DEF-023, GH-DEF-024). `GHM_STAGE_CORRECTED_FLOW` and `useIVC` are not part of that finding and stay open here.
 
 ### GH-ENG-005 — Does leaving a calculator write its inputs into the next calculator's remembered state?
 - **Status:** SUPERSEDED
