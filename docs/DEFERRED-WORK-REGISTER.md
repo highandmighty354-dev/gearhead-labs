@@ -18,7 +18,7 @@ This is the **single authoritative register** of known defects, deferred improve
 
 **Fields** (every entry has all of them): Status · Severity · Priority · Description · Evidence (with reproduction) · Affected (calculator ids, fields, shared helpers) · Impact · Decision (reason for deferral or the decision taken) · Dependencies · Revisit (trigger or target batch) · Commits · Tests · Docs · Verification (criteria that must pass before closure) · History.
 
-**Checking.** `node premium/tests/register-check.js` (also run by `premium/tests/run-tests.sh`) checks IDs, fields, status rules, cross-references, that every id in the known-open ledger of `premium/tests/toggle-sweep.test.js` is traced to an open entry here, and that the index below is current (`--write-index` regenerates it).
+**Checking.** `node premium/tests/register-check.js` (also run by `premium/tests/run-tests.sh`) checks IDs, fields, status rules, cross-references, that every id in the known-open ledger of `premium/tests/toggle-sweep.test.js` is traced to an open entry here (and that the file ledgers `premium/tests/data/nav-return-open.json` and `premium/tests/data/label-consistency-open.json`, when not empty, are named by an open entry), and that the index below is current (`--write-index` regenerates it).
 
 ## Index (generated — do not edit by hand)
 
@@ -26,8 +26,8 @@ This is the **single authoritative register** of known defects, deferred improve
 | ID | Title | Status | Severity | Priority |
 |---|---|---|---|---|
 | [GH-DEF-001](#gh-def-001--free-calculators-read-a-unit-bearing-field-without-its-unit-class-a) | Free calculators read a unit-bearing field without its unit (Class A) | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-002](#gh-def-002--evregenpower-labels-an-already-converted-kw-figure-kw-and-the-display-layer-converts-it-again) | `ev_regen_power` labels an already-converted kW figure "kW" and the display layer converts it again | OPEN | Medium | P1 |
-| [GH-DEF-003](#gh-def-003--seven-converter-calculators-convert-their-result-rows-a-second-time-in-metric) | Seven converter calculators convert their result rows a second time in Metric | OPEN | Medium | P1 |
+| [GH-DEF-002](#gh-def-002--evregenpower-labels-an-already-converted-kw-figure-kw-and-the-display-layer-converts-it-again) | `ev_regen_power` labels an already-converted kW figure "kW" and the display layer converts it again | FIXED — UNVERIFIED | Medium | P1 |
+| [GH-DEF-003](#gh-def-003--seven-converter-calculators-convert-their-result-rows-a-second-time-in-metric) | Seven converter calculators convert their result rows a second time in Metric | FIXED — UNVERIFIED | Medium | P1 |
 | [GH-DEF-004](#gh-def-004--remembered-values-reappear-unconverted-after-a-unit-switch-made-on-another-calculator-class-c) | Remembered values reappear unconverted after a unit switch made on another calculator (Class C) | OPEN | Medium | P1 |
 | [GH-DEF-005](#gh-def-005--dewpoint-applies-a-celsius-rule-of-thumb-to-a-fahrenheit-input) | `dew_point` applies a Celsius rule of thumb to a Fahrenheit input | OPEN | Medium | P1 |
 | [GH-DEF-006](#gh-def-006--mass-quantities-declared-in-lb-display-as-newtons-in-metric) | Mass quantities declared in `lb` display as newtons in Metric | INVESTIGATING | Medium | P1 |
@@ -42,6 +42,8 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-016](#gh-def-016--hpfromspecs-produced-a-physically-impossible-result-missing-air-density-conversion) | `hp_from_specs` produced a physically impossible result (missing air-density conversion) | FIXED — UNVERIFIED | High | P1 |
 | [GH-DEF-017](#gh-def-017--rcbrakebiasrc-bug-recorded-open-in-older-notes) | `rc_brake_bias_rc` bug recorded OPEN in older notes | FIXED — UNVERIFIED | Low | P3 |
 | [GH-DEF-018](#gh-def-018--result-panel-is-computed-from-the-shipped-defaults-after-navigating-away-and-returning-class-d) | Result panel is computed from the shipped defaults after navigating away and returning (Class D) | OPEN | High | P1 |
+| [GH-DEF-019](#gh-def-019--distanceconverter-turns-yards-into-kilometres-with-0000914-instead-of-00009144) | `distance_converter` turns yards into kilometres with 0.000914 instead of 0.0009144 | OPEN | Low | P3 |
+| [GH-DEF-020](#gh-def-020--29-free-calculators-declare-a-metric-named-unit-on-a-value-the-engine-treats-as-imperial-so-metric-shows-and-reads-the-wrong-number) | 29 Free calculators declare a Metric-named unit on a value the engine treats as Imperial, so Metric shows and reads the wrong number | OPEN | High | P1 candidate |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | DEFERRED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
 | [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
@@ -106,38 +108,40 @@ This is the **single authoritative register** of known defects, deferred improve
   2026-10-12 — scope note: eight of the 84 (`ev_charge_added`, `ev_coolant_flow`, `ev_hvac_energy`, `ev_inverter_loss`, `ev_power_conversion`, `heat_input_per_cycle`, `hybrid_power_split`, `hybrid_regen_energy`) declare a Metric-named unit (kW, °C, kg) on a value the calculator already treats in that unit. Their calculations are now correct and toggle-consistent, but the Metric display of that input is still wrong (for example `ev_charge_added` shows 7 kW as 5.2199 kW; `ev_coolant_flow` shows a 5 °C difference as −15 °C). That is the Metric-named-unit class tracked in GH-ENG-001 (Item 2), not a Class A defect; the toggle sweep cannot see it because both systems scale together. Fields declared `lb` that hold a mass still display as N: GH-DEF-006 (Item 4).
 
 ### GH-DEF-002 — `ev_regen_power` labels an already-converted kW figure "kW" and the display layer converts it again
-- **Status:** OPEN
+- **Status:** FIXED — UNVERIFIED
 - **Severity:** Medium
-- **Priority:** P1 (authorized; Item 2)
+- **Priority:** P1 (done; reliability pass Item 2)
 - **Description:** The calculator returns a power it has already converted to kW and labels it `kW`; the display layer treats `kW` as the Metric label of horsepower, so in Metric the figure is converted a second time: 112.7 kW is shown as 84.1 kW.
 - **Evidence:** Reproduced earlier in the reliability pass (Metric shows 84.1 kW where Imperial shows 112.7 kW); `toggle-sweep.test.js` ledger `CLASS_B`; unit inventory entry `result:Estimated Recovered Power [kW -> treated as HP]`.
 - **Affected:** `ev_regen_power` (Free), result "Estimated Recovered Power".
 - **Impact:** Wrong displayed result in Metric (about 25% low).
-- **Decision:** Authorized (Item 2), separate commit.
+- **Decision:** Authorized (Item 2), separate commit. Done: `resultHTML()` gained an optional `raw` argument with the meaning `multiResult`'s per-item `raw` already had, and `ev_regen_power` passes it, so the kW figure it computed is printed as computed.
 - **Dependencies:** Convention for kW-denominated EV fields (GH-ENG-001 audit); Batch 14 "Regenerative Braking Energy Recovery" builds on this area (GH-FUT-003).
 - **Revisit:** Reliability pass Item 2.
-- **Commits:** None yet.
-- **Tests:** `premium/tests/toggle-sweep.test.js` (ledger); independent-value test to be added.
+- **Commits:** `df3764b`
+- **Tests:** `premium/tests/unit-system.test.js` (new `ev_regen_power` case, independent SI physics: P = m a v eta); `premium/tests/toggle-sweep.test.js` (`CLASS_B` ledger now empty); `premium/tests/label-consistency.test.js`.
 - **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 2.
 - **Verification:** Metric and Imperial show the same physical power (112.7 kW = 151.1 HP at the default) with the label matching the number; value already in its target unit is not converted again; ledger entry removed and the sweep consistent.
 - **History:** 2026-10-12 — entry created.
+  2026-10-12 — fixed in `df3764b`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: the new `ev_regen_power` unit-system case fails 10 of 559 checks on the previous engine (Metric 84.04 kW against the independent 112.75 kW at the defaults) and passes 559 of 559 on the fix; `label-consistency.test.js` reports it on the previous engine and not on the fix; the before/after comparison of all 696 calculators changed 0 in Imperial and exactly 8 in Metric (this one and the seven converters of GH-DEF-003).
 
 ### GH-DEF-003 — Seven converter calculators convert their result rows a second time in Metric
-- **Status:** OPEN
+- **Status:** FIXED — UNVERIFIED
 - **Severity:** Medium
-- **Priority:** P1 (authorized; Item 2)
+- **Priority:** P1 (done; reliability pass Item 2)
 - **Description:** The output rows of `speed_converter`, `distance_converter`, `volume_converter`, `pressure_converter`, `power_converter`, `sheet_gauge` and `fraction_to_decimal_mm` already name the unit of each row (for example "KM/H", "Millimeters"), but the rows are passed through the Imperial→Metric display layer again, so Metric shows different numbers from Imperial for the same input. The Temperature Converter had the same defect and was fixed in `5d469cd` (GH-DEF-012) with the `multiResult` `raw` flag, which is the ready mechanism.
 - **Evidence:** `toggle-sweep.test.js` converter section (`CONVERTERS_OPEN`): each of the seven shows different rows in Metric and Imperial. Inventory hits: `speed_converter` "KM/H [km/h → mph]", "M/S"; `distance_converter` "Kilometers", "Meters"; `volume_converter` "Liters"; `pressure_converter` "bar", "kPa"; `power_converter` "kW"; `sheet_gauge` "Thickness (mm)"; `fraction_to_decimal_mm` "Millimeters".
 - **Affected:** `speed_converter`, `distance_converter`, `volume_converter`, `pressure_converter`, `power_converter`, `sheet_gauge`, `fraction_to_decimal_mm`.
 - **Impact:** Wrong numbers in Metric for these converters.
-- **Decision:** Authorized (Item 2), separate commit, no unrelated converter refactored.
+- **Decision:** Authorized (Item 2), separate commit, no unrelated converter refactored and no formula changed: `raw:true` is set on every output row of the seven converters, which makes `multiResult` print each row as computed. Audit result for the other converters: the 27 single-purpose converters were already correct (GH-ENG-001). A formula constant that is slightly off in `distance_converter` (yards to kilometres) was found while testing and is GH-DEF-019, not changed here.
 - **Dependencies:** none.
 - **Revisit:** Reliability pass Item 2.
-- **Commits:** None yet.
-- **Tests:** `premium/tests/toggle-sweep.test.js` (`CONVERTERS_OPEN`); independent-value test to be added.
+- **Commits:** `df3764b`
+- **Tests:** `premium/tests/converters.test.js` (new; 2,064 checks against exact SI factors, every From option, two inputs, both starting systems, repeated toggles; also the 27 single-purpose converters); `premium/tests/toggle-sweep.test.js` converter section (`CONVERTERS_OPEN` now empty, all eight converters in `CONVERTERS_FIXED`); `premium/tests/label-consistency.test.js`.
 - **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 2.
 - **Verification:** For each, a known input gives the independently computed output in every row in both unit systems, identical rows in both systems, and displayed unit equals the unit of the number; `CONVERTERS_OPEN` empties and the converter checks pass.
 - **History:** 2026-10-12 — entry created.
+  2026-10-12 — fixed in `df3764b`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `converters.test.js` fails 708 of 2,064 checks on the previous engine (133 distance, 20 fraction, 57 power, 159 pressure, 48 sheet gauge, 132 speed, 159 volume; none in the 27 single-purpose converters) and 0 on the fix; examples on the previous engine: speed converter in Metric showed the MPH row as "96.56 km/h" and 60 mph as 155.4 km/h, power converter showed 316.92 kW as 236.3 kW; the sweep converter section is identical in both systems for all eight converters; before/after comparison of 696 calculators: 0 changed in Imperial, exactly 8 in Metric.
 
 ### GH-DEF-004 — Remembered values reappear unconverted after a unit switch made on another calculator (Class C)
 - **Status:** OPEN
@@ -383,6 +387,40 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Verification:** The ledger emptied (or each remaining calculator reclassified here with a reason), `nav-return.test.js` passing on all 696 calculators with an empty ledger, the Item 3 navigation matrix passing, and no change in the other suites (engine self-test baseline, unit-system, temperature, toggle-sweep).
 - **History:** 2026-10-12 — found by the navigation probe while preparing Item 3; mechanism confirmed in the code; the 404 / 696 count measured on the engine at `2c89397`.
 
+### GH-DEF-019 — `distance_converter` turns yards into kilometres with 0.000914 instead of 0.0009144
+- **Status:** OPEN
+- **Severity:** Low
+- **Priority:** P3 (not part of an authorized item; found while testing Item 2)
+- **Description:** With "From Unit" set to Yards the Kilometers row uses the factor 0.000914; the exact value is 0.0009144 (1 yd = 0.9144 m). The result is 0.044 % low. Every other factor in the converter is exact to its displayed precision.
+- **Evidence:** `premium/tests/converters.test.js`: 123,456.789 yd gives 112.8395 km, exact 112.8889 km (relative −4.37e-4) in both unit systems. At small inputs the 4-decimal display hides it (1.7 yd = 0.0016 km either way).
+- **Affected:** `distance_converter`, input "Yards", row "Kilometers" only.
+- **Impact:** A fraction of a metre per kilometre; visible only for large inputs.
+- **Decision:** Not fixed in Item 2: Item 2 was the double conversion in the display layer, and a formula constant is a different change ("do not change unrelated formulas"). A one-token fix (`0.000914` → `0.0009144`) is ready when authorized; `converters.test.js` pins the deviation and fails when it changes, so the fix cannot go in unnoticed.
+- **Dependencies:** none.
+- **Revisit:** When the converters are next touched, or on request.
+- **Commits:** None (evidence-only).
+- **Tests:** `premium/tests/converters.test.js` (`KNOWN_DEVIATIONS`).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** 123,456.789 yd reads 112.8889 km; the `KNOWN_DEVIATIONS` entry removed from `converters.test.js`.
+- **History:** 2026-10-12 — found by the independent-factor converter test; entry created.
+
+### GH-DEF-020 — 29 Free calculators declare a Metric-named unit on a value the engine treats as Imperial, so Metric shows and reads the wrong number
+- **Status:** OPEN
+- **Severity:** High (a Metric user who types a labelled value into an affected field gets a different, wrong answer: the same labelled number typed in Imperial and in Metric gives a different result, in a result row whose unit text is identical in both systems, for 22 of the 29)
+- **Priority:** P1 candidate — not an authorized item of this pass; needs a decision (see Decision)
+- **Description:** These calculators print a Metric unit name (`cc`, `mm`, `kW`, `kg`, `m`, `L/100km`, `°C`, `J`) on a field or result that already holds that unit. The display layer knows the Metric names only as the Metric label of an Imperial-canonical unit (`kW` → HP, `mm` → in, `cc` → in³, `kg` → lb, `m` → ft, `°C` → °F, `J` → ft-lb), so in Metric it converts the number a second time: the same label shows a different number (`ev_charge_added`: 7 kW in Imperial, 5.2199 kW in Metric), and a value typed in Metric is converted back as if it were the other unit before the calculator uses it. Grouped by cause: **`cc`** (`static_compression`, `milling_heads`, `head_gasket_vol`); **`mm`** (`tire_size`, `tire_size_comparison`, `throttle_body` "Required Bore (metric)", `tap_drill_size`, `tap_drill`, `thread_engagement`, `fraction_decimal` "Millimeters", `wheel_offset`); **`kW`** (`ev_charge_time`, `ev_motor_power`, `ev_motor_torque`, `ev_battery_current`, `ev_peak_power`, `ev_motor_efficiency`, `ev_inverter_loss`, `ev_power_conversion`, `ev_charge_added`, `ev_hvac_energy`, `hybrid_power_split`, `hybrid_regen_energy`, `fuel_cell_power`, `fuel_cell_efficiency`); **other** (`fuel_economy` "L/100km", `reaction_distance` "Distance (m)", `heat_input_per_cycle` kg and J, `ev_coolant_flow` a 5 °C temperature rise shown as −15 °C). Imperial mode is the reference: its figures are the ones the calculators' own formulas use (not independently re-derived here). The machine-readable list is `premium/tests/data/label-consistency-open.json`.
+- **Evidence:** `premium/tests/label-consistency.test.js` (all 696 calculators, Imperial then a real click on Metric): 29 inconsistent, all in the ledger, 0 outside it. Examples (Imperial → Metric, same label): `static_compression` Chamber Volume 64 cc → 1048.77 cc; `tire_size` Section Width 245 mm → 6223 mm; `ev_motor_power` Motor Power 340.8 kW → 254.1345 kW; `reaction_distance` Distance (m) 20.1 m → 6.1265 m; `thread_engagement` typed Major Diameter 12.5 mm gives 195 % engagement in Imperial and −421.2 % in Metric; `tap_drill` typed M10 gives a drill of 8.782 mm in Imperial and "M0.3937007874015748×1.25" / −0.824 mm in Metric; `wheel_offset` (needs non-zero input; the defaults are 0): 9 in rim, 6 in backspace gives Offset 25.4 mm in Imperial, 645.16 mm in Metric.
+- **Affected:** the 29 calculators in the ledger (21 from the GH-ENG-001 inventory, eight from GH-DEF-001's Metric-named group). Shared: `field()`, `fmtUnitValue`, `convertForDisplay`, `UNIT_ALIASES`.
+- **Impact:** Wrong inputs echoed and wrong results for Metric users on these calculators. Imperial users are unaffected.
+- **Decision:** Not fixed in this pass. Item 2 was authorized for `ev_regen_power` and the seven converters, whose output rows are all literal and whose fix is the `raw` flag. These 29 are *inputs and outputs of ordinary calculators* and no safe shared rule exists: the same literal (`'kW'`) is also returned by `getU('power')` in Metric for fields that must convert, so the display layer cannot tell a Metric-native declaration from a Metric-system label. Each field needs a declaration ("native: shown and read as written, in both systems"), i.e. a per-calculator change touching all 29. Candidate: a `field()` option that omits `data-ghm-unit` and the registry entry, plus `raw` on the result rows (`resultHTML` has it since `df3764b`), then the audit probe and the unit-system suite extended with one independent-physics case per group (`cc`, `mm`, `kW`, other). Awaiting authorization.
+- **Dependencies:** GH-DEF-001 (the field-unit registry, `dc9dfd8`), GH-DEF-007 (unregistered units), GH-ENG-001 (audit).
+- **Revisit:** On authorization, or before any calculator in the list is touched for another reason.
+- **Commits:** None (evidence-only).
+- **Tests:** `premium/tests/label-consistency.test.js` with the ledger `premium/tests/data/label-consistency-open.json` (run by `premium/tests/run-browser-tests.sh`); `register-check.js` traces the ledger to this entry.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** The ledger emptied, `label-consistency.test.js` passing on all 696 calculators with an empty ledger, one independent-physics case per group passing in both systems at defaults, after toggle, after editing each field and after repeated toggles, the toggle sweep and the other suites unchanged.
+- **History:** 2026-10-12 — found by auditing the GH-ENG-001 inventory after GH-DEF-002/003 were fixed (`df3764b`): the audit probe was run on the fixed engine and listed 28; `wheel_offset` was added after a non-zero test input exposed it (its defaults are 0). 21 of the 29 are inventory entries, eight are the Metric-named calculators noted in GH-DEF-001's scope note.
+
 ## B. Deferred improvements
 
 ### GH-IMP-001 — Energy in ft-lb is labelled "N·m" rather than "J" in Metric
@@ -597,8 +635,8 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Status:** INVESTIGATING
 - **Severity:** Medium (unknown until audited)
 - **Priority:** P1 (authorized audit; Item 2)
-- **Description:** A static inventory finds 65 Free calculators that print a Metric unit name (`cc`, `mm`, `kW`, `km/h`, …) beside a value the engine treats as Imperial. That is a *candidate* list, not a list of defects: 9 are confirmed (GH-DEF-002, GH-DEF-003, GH-DEF-012) and the other 56 have not each been checked. The sweep shows the same numbers in both systems for most of them, but whether each printed Metric label is the right label for its value was not audited.
-- **Evidence:** Inventory run 2026-10-12 (this pass); per-entry results are written into the table below by Item 2.
+- **Description:** A static inventory found 65 Free calculators that print a Metric unit name (`cc`, `mm`, `kW`, `km/h`, …) beside a value the engine treats as Imperial. That is a *candidate* list, not a list of defects. Item 2 audited every entry against a known input and an independent factor and classified it (table below): 38 confirmed defects (9 fixed, 29 open), 27 verified correct, 0 unresolved. Not all 65 are broken, and the 27 that were checked and found correct are recorded as such.
+- **Evidence:** Inventory run 2026-10-12; classification below. Method: (a) `premium/tests/converters.test.js` group 2 types a value into each of the 27 single-purpose converters in both unit systems and compares with the exact factor; (b) `premium/tests/label-consistency.test.js` renders all 696 calculators in Imperial and Metric and flags any row whose unit text is the same but whose number differs, or whose number is the same but whose unit text changed; (c) a list of the 22 calculators whose defaults show a unit-labelled 0 (a zero hides a mix-up), five of which get typed values in the test (only `wheel_offset` turned out defective); (d) a typed-value probe on the 29 open ones: the same labelled number typed in Imperial and in Metric gives a different number in a result row whose unit text is identical in both systems for 22 of the 29 (the other seven change a row's label or unit text, or only echo the wrong number; example `tap_drill`: M10 in Imperial gives an 8.782 mm drill, in Metric "M0.3937007874015748×1.25" and −0.824 mm).
 - **Affected:** Inventory ids: `static_compression`, `milling_heads`, `tire_size`, `tire_size_comparison`, `throttle_body`, `fuel_economy`, `ev_charge_time`, `ev_motor_power`, `ev_motor_torque`, `ev_battery_current`, `wheel_offset`, `reaction_distance`, `head_gasket_vol`, `tap_drill_size`, `fraction_decimal`, `thread_engagement`, `ev_peak_power`, `ev_motor_efficiency`, `tap_drill`, `fuel_cell_power`, `fuel_cell_efficiency`, `inch_fraction_to_mm`, `decimal_inch_to_mm`, `feet_to_mm`, `feet_to_meters`, `miles_to_km`, `mph_to_kmh`, `lb_to_kg`, `quarts_to_liters`, `gallons_to_liters`, `cubic_inches_to_cc`, `cubic_inches_to_liters`, `psi_to_kpa`, `psi_to_bar`, `lbft_to_nm`, `lbin_to_nm`, `hp_to_kw`, `btu_hr_to_kw`, `ftlb_to_joules`, `btu_to_joules`, `fahrenheit_to_celsius`, `kelvin_to_celsius`, `lbforce_to_newton`, `kgf_to_newton`, `cubic_feet_to_liters`, `square_inches_to_square_mm`, `square_feet_to_square_meters`, `tpi_to_thread_pitch`, plus the ten already in GH-DEF-001 (`heat_input_per_cycle`, `ev_inverter_loss`, `ev_power_conversion`, `ev_charge_added`, `ev_hvac_energy`, `ev_coolant_flow`, `hybrid_power_split`, `hybrid_regen_energy`) and GH-DEF-002/003/012.
 - **Impact:** Unknown; confirmed cases show wrong numbers in Metric.
 - **Decision:** Item 2 audits each entry against a known input and an independent conversion and classifies it: confirmed defect / verified correct / unresolved. No claim that all 65 are broken is made.
@@ -610,6 +648,19 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Verification:** Every inventory id has a recorded classification with its evidence; confirmed ones move to section A.
 - **History:** 2026-10-12 — entry created.
   2026-10-12 — after `dc9dfd8` (GH-DEF-001) the eight inventory calculators that are also in the Class A list compute correctly in Metric, but still display the Metric-named input wrongly; they are the first rows to audit in Item 2.
+
+  **Classification of the 65 inventory entries (2026-10-12)**
+
+  | Classification | Count | Calculators | Where tracked |
+  |---|---|---|---|
+  | Confirmed defect — fixed (`df3764b`) | 8 | `ev_regen_power`, `speed_converter`, `distance_converter`, `volume_converter`, `pressure_converter`, `power_converter`, `sheet_gauge`, `fraction_to_decimal_mm` | GH-DEF-002, GH-DEF-003 |
+  | Confirmed defect — fixed earlier (`5d469cd`) | 1 | `temp_converter` | GH-DEF-012 |
+  | Confirmed defect — open | 29 | the ledger `premium/tests/data/label-consistency-open.json`, grouped by cause in the entry | GH-DEF-020 |
+  | Verified correct | 27 | `inch_fraction_to_mm`, `decimal_inch_to_mm`, `feet_to_mm`, `feet_to_meters`, `miles_to_km`, `mph_to_kmh`, `lb_to_kg`, `quarts_to_liters`, `gallons_to_liters`, `cubic_inches_to_cc`, `cubic_inches_to_liters`, `psi_to_kpa`, `psi_to_bar`, `lbft_to_nm`, `lbin_to_nm`, `hp_to_kw`, `btu_hr_to_kw`, `ftlb_to_joules`, `btu_to_joules`, `fahrenheit_to_celsius`, `kelvin_to_celsius`, `lbforce_to_newton`, `kgf_to_newton`, `cubic_feet_to_liters`, `square_inches_to_square_mm`, `square_feet_to_square_meters`, `tpi_to_thread_pitch` — the typed value equals the exact factor in both systems and the two systems read identically | `converters.test.js` group 2 |
+  | Unresolved | 0 | — | — |
+
+  The 29 open ones are 21 of the 48 listed under *Affected* (which the default-values probe finds, plus `wheel_offset`, whose default 0 hides the defect until a non-zero value is typed) and the eight Metric-named calculators of GH-DEF-001. The 65 are 48 listed ids + those eight + the nine of GH-DEF-002/003/012; the earlier text said "ten", it names eight. A finding that is not shown at the shipped defaults (a defect hidden by a default of 0) can exist in a calculator that is not in the inventory: the probe covers the 22 calculators with a labelled zero and no others, so this classification is complete for the inventory and not a proof about the other 631.
+  2026-10-12 — Item 2 audit complete: all 65 entries classified (table above). Confirmed ones are in section A (GH-DEF-002, -003, -012 fixed; GH-DEF-020 open). The question is answered; the entry is closed with the final regression of this pass.
 
 ### GH-ENG-002 — Are all registered unit conversion factors correct?
 - **Status:** INVESTIGATING
