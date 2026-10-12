@@ -41,6 +41,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-015](#gh-def-015--metric-mode-live-re-render-corrupted-results-in-batch-13-calculators) | Metric-mode live re-render corrupted results in Batch 1–3 calculators | FIXED — UNVERIFIED | Medium | P1 |
 | [GH-DEF-016](#gh-def-016--hpfromspecs-produced-a-physically-impossible-result-missing-air-density-conversion) | `hp_from_specs` produced a physically impossible result (missing air-density conversion) | FIXED — UNVERIFIED | High | P1 |
 | [GH-DEF-017](#gh-def-017--rcbrakebiasrc-bug-recorded-open-in-older-notes) | `rc_brake_bias_rc` bug recorded OPEN in older notes | FIXED — UNVERIFIED | Low | P3 |
+| [GH-DEF-018](#gh-def-018--result-panel-is-computed-from-the-shipped-defaults-after-navigating-away-and-returning-class-d) | Result panel is computed from the shipped defaults after navigating away and returning (Class D) | OPEN | High | P1 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | DEFERRED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
 | [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
@@ -362,6 +363,23 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-10-07 — treated as resolved by the live repository; 2026-10-12 — entered in the register.
 
 ---
+
+### GH-DEF-018 — Result panel is computed from the shipped defaults after navigating away and returning (Class D)
+- **Status:** OPEN
+- **Severity:** High (wrong numbers shown next to the user's own inputs, on 404 of 696 calculators)
+- **Priority:** P1 (decision with Item 3; see Decision)
+- **Description:** Type a value into a calculator, open another calculator, come back: the boxes show what was typed (the remembered text is restored) but the result panel shows the result for the shipped defaults. The next keystroke or click re-renders it correctly, so the panel and the boxes disagree until then. No unit switch is involved. Cause read in the code: `renderCalc` restores every remembered box through `CALC_FIELD_SNAPSHOT`, but `v()` and `vd()` read the live DOM, and on a return trip the container still holds the previous calculator's page while the calculator function runs, so the field is "missing" and `v()` / `vd()` fall back to the default. `certValue()` reads the snapshot first, which is why none of the 84 calculators in GH-DEF-001 is affected.
+- **Evidence:** `premium/tests/nav-return.test.js` (real Chromium, real typing): 696 calculators checked, 404 inconsistent (392 Free, 12 premium-tier legacy engine calculators), 0 test errors, 0 of the 84 GH-DEF-001 calculators. Examples: `hp_quarter_mile` (weight 4275 typed → panel 479 HP; after returning 383 HP), `hp_from_torque` (612.5 → 466.5 HP; after returning 373.2 HP), `crosswind_force` (75 → 738 lbf; after returning 490 lbf), `dew_point`, `static_compression`, `hp_from_specs`. Reproduction: Imperial, open Quarter-Mile HP from ET, type 4275 in Weight, open any other calculator, return.
+- **Affected:** Shared: `v()`, `vd()`, `renderCalc`. The 404 calculators are listed once, in `premium/tests/data/nav-return-open.json` (the test's known-open ledger); they are not repeated here.
+- **Impact:** A user can read a result that does not belong to the inputs on screen, and act on it, until they touch a field.
+- **Decision:** Registered the moment it was found (reliability pass, 2026-10-12). Not an authorized item of its own; it sits on the Item 3 path ("navigating away and returning"). The decision to fix it in this pass, and the exact change, is recorded in this entry when Item 3 is designed. Candidate: when a field is not on the page, `v()` / `vd()` read the remembered text and convert it through the field's declared unit, the order `certValue()` already uses. They are used by nearly every legacy calculator, so any change needs the full 696-calculator sweep and an emptied ledger.
+- **Dependencies:** GH-DEF-001 (the field-unit registry that Item 1 adds is what a snapshot read would need); GH-DEF-004; GH-ENG-004 (staging handoffs write into the same store); GH-ENG-005 (id collisions between calculators).
+- **Revisit:** Reliability pass Item 3 design.
+- **Commits:** None yet (evidence-only: the test and ledger are in the commit that registers this entry).
+- **Tests:** `premium/tests/nav-return.test.js` with the ledger `premium/tests/data/nav-return-open.json`; run by `premium/tests/run-browser-tests.sh`.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" (summary added at the end of the pass).
+- **Verification:** The ledger emptied (or each remaining calculator reclassified here with a reason), `nav-return.test.js` passing on all 696 calculators with an empty ledger, the Item 3 navigation matrix passing, and no change in the other suites (engine self-test baseline, unit-system, temperature, toggle-sweep).
+- **History:** 2026-10-12 — found by the navigation probe while preparing Item 3; mechanism confirmed in the code; the 404 / 696 count measured on the engine at `2c89397`.
 
 ## B. Deferred improvements
 

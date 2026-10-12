@@ -11,7 +11,7 @@
           VERIFIED CLOSED     needs Commits AND Tests entries and a "closed" History line that records the evidence;
      5. every GH-... reference inside the register points at an entry that exists;
      6. every id in the known-open ledger of premium/tests/toggle-sweep.test.js appears (in backticks) in an entry that is still open,
-        so the test ledger and the register cannot drift apart;
+        and a non-empty premium/tests/data/nav-return-open.json is named by one, so the test ledgers and the register cannot drift apart;
      7. the generated index between the INDEX markers matches the entries (node premium/tests/register-check.js --write-index rewrites it).
 
    Run: node premium/tests/register-check.js          exit 0 = register is consistent, 1 = it is not
@@ -108,6 +108,12 @@ function checkLedger(entries) {
       bad(`toggle-sweep ledger id "${id}" is not named (in backticks) in any entry that is still open${closedMention ? ' (it is only named in closed entries; remove it from the test ledger if it is really fixed)' : ''}`);
     }
   }
+  /* the navigate-away-and-return ledger holds hundreds of ids: it is traced by file name, not id by id */
+  const NAV = path.join(REPO, 'premium', 'tests', 'data', 'nav-return-open.json');
+  if (fs.existsSync(NAV)) {
+    let ids = []; try { ids = JSON.parse(fs.readFileSync(NAV, 'utf8')).ids || []; } catch (e) { bad('premium/tests/data/nav-return-open.json is not valid JSON'); }
+    if (ids.length) { n += ids.length; if (!liveText.includes('premium/tests/data/nav-return-open.json')) bad(`nav-return ledger lists ${ids.length} calculators but no entry that is still open names premium/tests/data/nav-return-open.json`); }
+  }
   return n;
 }
 
@@ -134,6 +140,6 @@ function main() {
   if (args.has('--summary')) { Object.keys(counts).sort().forEach(k => console.log(k.padEnd(34), counts[k])); }
   if (problems.length) { console.error(problems.map(p => '  FAIL ' + p).join('\n')); console.error(`\nregister check: ${problems.length} problem(s) in ${entries.length} entries`); process.exit(1); }
   const kinds = {}; entries.forEach(e => kinds[e.kind] = (kinds[e.kind] || 0) + 1);
-  console.log(`register check: OK — ${entries.length} entries (${Object.keys(kinds).sort().map(k => k + ' ' + kinds[k]).join(', ')}); ${ids.size} unique IDs; ${ledgerN} sweep-ledger ids all traced to open entries`);
+  console.log(`register check: OK — ${entries.length} entries (${Object.keys(kinds).sort().map(k => k + ' ' + kinds[k]).join(', ')}); ${ids.size} unique IDs; ${ledgerN} ledger ids all traced to open entries`);
 }
 main();
