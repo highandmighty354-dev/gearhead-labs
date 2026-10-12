@@ -697,6 +697,12 @@ function canonicalUnit(unit){ return UNIT_ALIASES[(unit||'').trim()] || unit || 
 let UNIT_SWITCH_CANONICAL = null;
 let CALC_FIELD_SNAPSHOT = null;
 const CALC_PERSISTENT_STATE = {};
+/* Declared unit of every numeric field a calculator has put on the page: FIELD_UNIT_REGISTRY[calculatorId][fieldId] = the unit field() was given.
+   field() writes it on every render; certValue() reads it when a caller passes no unit, so a calculator that declares field(..., 'mph') is also read
+   as mph (reliability pass item 1, GH-DEF-001). It is keyed by calculator so two calculators that reuse a field id cannot lend each other a unit, and
+   it holds the declared unit, never one guessed from a label. A field declared with no unit is removed, which keeps the no-conversion behaviour. */
+const FIELD_UNIT_REGISTRY = {};
+function declaredFieldUnit(id){ const r=FIELD_UNIT_REGISTRY[currentCalc]; return (r&&r[id])||''; }
 
 
 function captureVisibleCanonicalFields(system){
@@ -1220,6 +1226,7 @@ function field(label, id, val, unit, type='number', step='any'){
   const showLink = profileMatch && isFinite(numericVal) && +profileMatch.value !== numericVal;
   const warning = type==='number' ? checkFieldRange(id, numericVal) : null;
   const isNumeric=type==='number';
+  if(isNumeric&&currentCalc){ const reg=FIELD_UNIT_REGISTRY[currentCalc]||(FIELD_UNIT_REGISTRY[currentCalc]={}); if(unit) reg[id]=unit; else delete reg[id]; }
   const inputType=isNumeric?'text':type;
   const inputMode=isNumeric?' inputmode="decimal"':'';
 
@@ -9860,6 +9867,7 @@ document.addEventListener("DOMContentLoaded",()=>{
      fraction output. */
   window.GH_E1_FORMULAS=GH_E1_FORMULAS;
   window.GH_E101_FORMULAS=GH_E101_FORMULAS;
+  window.GH_CERT_VALUE=(...a)=>certValue(...a);   // test hook only (premium/tests/toggle-sweep.test.js): the shared helper's contract is tested directly
   function gcd(a,b){a=Math.abs(Math.trunc(a));b=Math.abs(Math.trunc(b));while(b){[a,b]=[b,a%b];}return a||1;}
   function fraction(n,d){if(!Number.isFinite(n)||!Number.isFinite(d)||d===0)return null;const sign=n*d<0?'-':'';n=Math.abs(Math.trunc(n));d=Math.abs(Math.trunc(d));const g=gcd(n,d);return sign+(n/g)+'/'+(d/g);}
   function nearestFraction(x,max=CERT.maxDenominator,mixed=false){
@@ -9869,6 +9877,10 @@ document.addEventListener("DOMContentLoaded",()=>{
     return mixed?(sign+(whole?whole+' ':'')+bn+'/'+bd):(sign+((whole*bd+bn))+'/'+bd);
   }
   function certValue(id,fallback,unit){
+    // No unit argument: use the unit this calculator declared for the field in field(...,unit) (FIELD_UNIT_REGISTRY). Before this, a caller that
+    // forgot the unit (84 Free calculators) read a Metric display number as if it were Imperial. An explicit unit -- including '' -- is never overridden,
+    // and a field declared with no unit, or with a unit no table knows, still converts nothing, so callers that never needed the mechanism are unchanged.
+    if(unit===undefined) unit=declaredFieldUnit(id);
     // Unit-system switch: the DOM still holds the PRE-switch display strings while UNIT.system is already the NEW system,
     // so converting them (below) would treat e.g. '3200' lb as 3200 N. v()/vd() already read the exact pre-switch canonical
     // value from UNIT_SWITCH_CANONICAL for this render; do the same here. Only for unit-bearing fields (unit arg given): the

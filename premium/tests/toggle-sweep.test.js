@@ -30,26 +30,11 @@ const CHROMIUM = process.env.GH_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chr
 /* ---------------------------------------------------------------------------------------------------------------------
    KNOWN-OPEN LEDGER (reproduced 2026-10-12; see docs/PREMIUM-CATALOG.md "Reliability pass")
    --------------------------------------------------------------------------------------------------------------------- */
-/* Class A — Free calculators that call certValue(id, fallback) WITHOUT the field's unit for a field declared with a convertible unit.
-   Same defect as the six Free aero calculators fixed in 6209d74: in Metric a live re-render reads the metric number on screen as Imperial,
-   and the Metric -> Imperial toggle re-reads stale metric text. Awaiting authorization for a class-wide fix (candidate root-cause fix:
-   certValue infers the unit from the input's own data-ghm-unit). */
-const CLASS_A = [
-  'air_fuel_mass', 'beam_deflection', 'bend_allowance', 'chip_load', 'clamp_load', 'control_error', 'cornering_stiffness',
-  'curtain_area', 'diesel_airflow', 'diesel_rail_power', 'e85_fuel_multiplier', 'ev_charge_added', 'ev_coolant_flow',
-  'ev_hvac_energy', 'ev_inverter_loss', 'ev_power_conversion', 'ev_wheel_torque', 'feed_rate', 'flow_coefficient',
-  'fmep_from_imep_bmep', 'following_distance', 'fuel_flow_from_hp', 'fuel_pressure_flow', 'fuel_pump_capacity', 'fuel_pump_sizing',
-  'fuel_system_hp', 'heat_input_per_cycle', 'heat_transfer', 'hybrid_power_split', 'hybrid_regen_energy', 'imep_from_power',
-  'injector_size', 'intake_port_vel', 'intercooler_pressure_drop', 'intercooler_temp_drop', 'load_transfer_lateral',
-  'load_transfer_longitudinal', 'machining_rpm', 'material_removal', 'natural_frequency', 'pid_proportional',
-  'piston_to_valve_clearance', 'pumping_mep', 'quench_clearance', 'radiator_heat_capacity', 'ride_frequency', 'rocker_valve_lift',
-  'roll_stiffness', 'section_modulus', 'sensor_scaling', 'shear_stress', 'sheet_weight', 'spring_force_at_lift', 'spring_rate',
-  'stress', 'supercharger_parasitic', 'surface_speed', 'temperature_rise', 'thermal_efficiency', 'thermal_expansion',
-  'tire_frequency', 'tow_actual_combined', 'tow_aero_drag', 'tow_axle_load', 'tow_brake_energy', 'tow_gcwr_margin',
-  'tow_grade_power', 'tow_grade_speed', 'tow_gvwr_margin', 'tow_hitch_margin', 'tow_mpg_penalty', 'tow_payload_remaining',
-  'tow_range', 'tow_rolling_resistance', 'tow_stopping_distance', 'tow_trailer_capacity', 'tow_trip_fuel_cost', 'tow_wheel_torque',
-  'tube_weight', 'turbo_airflow', 'valve_lift_rocker', 'weight_transfer_accel', 'weight_transfer_braking', 'yaw_moment'
-];
+/* Class A — FIXED in reliability pass item 1 (GH-DEF-001): 84 Free calculators called certValue(id, fallback) without the field's unit, so in Metric a live
+   re-render read the metric number on screen as Imperial and the Metric -> Imperial toggle re-read stale metric text. certValue now takes the unit the same
+   calculator declared for the field in field(); the 84 ids are listed in docs/DEFERRED-WORK-REGISTER.md under GH-DEF-001 and all of them are swept as ordinary
+   calculators below, with the independent-physics cases in unit-system.test.js. The ledger is empty on purpose: anything that breaks again is a failure. */
+const CLASS_A = [];
 /* Class B (explicit Metric-named unit on a value already in that unit): ev_regen_power returns a figure it has already converted to kW and then
    labels it 'kW', which the display layer reads as horsepower, so Metric shows 112.7 kW as 84.1 kW. A catalogue inventory finds 65 calculators that
    print a Metric unit name beside an Imperial-canonical value (static_compression 'cc', tire_size 'mm', the ev_* kW fields, ...); the pure converters
@@ -122,6 +107,75 @@ async function helperContract(page) {
   await page.evaluate(() => { UNIT.system = 'imperial'; setUnit('imperial'); });
 }
 
+/* ---- 1b. certValue() unit inference from declared field metadata (reliability pass item 1, GH-DEF-001) ----
+   A caller that gives certValue no unit gets the unit the SAME calculator declared for that field in field(label, id, default, unit) -- not a unit guessed
+   from the label, and not one taken from another calculator that happens to reuse the id. A caller that passes a unit (even '') keeps exactly what it asked for.
+   The two throw-away calculators below exist only inside the test page and call the helper through the engine's GH_CERT_VALUE test hook; their labels are
+   deliberately misleading. */
+async function inferenceContract(page) {
+  const near = (got, want) => Number.isFinite(got) && Math.abs(got - want) <= 1e-4 * Math.abs(want) + 1e-9;
+  const check = (name, got, want) => { checks++; if (near(got, want)) ok('certValue inference', `${name} -> ${got}`); else fail('certValue inference', `${name}: got ${got}, expected ${want}`); };
+  await page.evaluate(() => {
+    setUnit('imperial');
+    /* __inf_a reads every field with NO unit argument, and a few with an explicit one; its labels name units that are NOT the declared ones */
+    RENDERS.__inf_a = () => {
+      window.__inf = { speed: GH_CERT_VALUE('inf_speed', 55), len: GH_CERT_VALUE('inf_len', 10), plain: GH_CERT_VALUE('inf_plain', 3), unreg: GH_CERT_VALUE('inf_unreg', 7), shared: GH_CERT_VALUE('inf_shared', 60),
+        absent: GH_CERT_VALUE('inf_absent', 99), explicitNone: GH_CERT_VALUE('inf_len', 10, ''), explicitSame: GH_CERT_VALUE('inf_speed', 55, 'mph'), explicitOther: GH_CERT_VALUE('inf_len', 10, 'mph') };
+      return field('Speed (km/h)', 'inf_speed', 55, 'mph') + field('Force (lbf)', 'inf_len', 10, 'in') + field('Length (m)', 'inf_plain', 3, '') + field('Density (kg/m3)', 'inf_unreg', 7, 'lb/gal') + field('Shared', 'inf_shared', 60, 'mph');
+    };
+    /* __inf_b reuses the id inf_shared for a field of a different unit family */
+    RENDERS.__inf_b = () => { window.__inf = { shared: GH_CERT_VALUE('inf_shared', 14.7) }; return field('Shared', 'inf_shared', 14.7, 'psi'); };
+  });
+  const snap = () => page.evaluate(() => window.__inf);
+  const render = id => page.evaluate(i => { document.getElementById('calc-container').innerHTML = ''; try { delete CALC_PERSISTENT_STATE[i]; } catch (e) {} renderCalc(i, false); }, id);
+  try {
+    await render('__inf_a');                                                                    // Imperial first render: nothing to convert
+    let r = await snap(); check('Imperial first render: speed', r.speed, 55); check('Imperial first render: length', r.len, 10);
+    await page.click('#btn-metric');                                                             // real toggle: boxes now show km/h and mm
+    const shown = await page.evaluate(() => ({ speed: document.getElementById('inf_speed').value, len: document.getElementById('inf_len').value, unreg: document.getElementById('inf_unreg').value, plain: document.getElementById('inf_plain').value }));
+    checks++; if (Math.abs(Number(shown.speed) - 88.5139) > 1e-3 || Math.abs(Number(shown.len) - 254) > 1e-6) fail('certValue inference', `setup: Metric boxes show ${JSON.stringify(shown)}, expected 88.5139 km/h and 254 mm`); else ok('certValue inference', `setup: Metric boxes show ${shown.speed} km/h and ${shown.len} mm`);
+    r = await snap(); check('toggle to Metric: speed read at its canonical 55 mph', r.speed, 55); check('toggle to Metric: length read at its canonical 10 in', r.len, 10);
+    /* real typing in Metric: the number on screen is a Metric number */
+    await page.click('#inf_speed'); await page.fill('#inf_speed', '160.9344'); await page.waitForTimeout(30); r = await snap();
+    check('Metric typing: 160.9344 in a field declared mph (label says km/h) is 100 mph', r.speed, 100);
+    check('explicit unit "mph" gives the same answer as the inferred one', r.explicitSame, 100);
+    await page.click('#inf_len'); await page.fill('#inf_len', '508'); await page.waitForTimeout(30); r = await snap();
+    check('Metric typing: 508 in a field declared in (label says lbf) is 20 in, not read from the label', r.len, 20);
+    check('an explicit empty unit keeps the raw number (callers that ask for no conversion keep it)', r.explicitNone, 508);
+    check('an explicit unit wins over the declared one', r.explicitOther, 508 / 1.609344);
+    check('a field declared with no unit is not converted', r.plain, 3);
+    check('a field declared with a unit the engine does not know is not converted', r.unreg, 7);
+    check('an id this calculator never declares is not converted (falls back to its default)', r.absent, 99);
+    /* the same id declared with a different unit in another calculator must not leak across */
+    await page.click('#inf_shared'); await page.fill('#inf_shared', '96.5606'); await page.waitForTimeout(30); r = await snap();
+    check('calculator A: inf_shared declared mph reads 96.5606 km/h as 60 mph', r.shared, 60);
+    await render('__inf_b'); await page.click('#inf_shared'); await page.fill('#inf_shared', '1.01353'); await page.waitForTimeout(30); r = await snap();
+    check('calculator B: inf_shared declared psi reads 1.01353 bar as 14.7 psi (not as km/h, which is what calculator A declared for the same id)', r.shared, 14.7);
+    await render('__inf_a'); await page.click('#inf_shared'); await page.fill('#inf_shared', '96.5606'); await page.waitForTimeout(30); r = await snap();
+    check('returning to calculator A: inf_shared is still read as mph (the registry is per calculator)', r.shared, 60);
+    await page.click('#btn-imperial'); r = await snap();
+    check('toggle back to Imperial: inf_shared keeps its canonical 60 mph', r.shared, 60);
+    /* the switch snapshot is honoured for an inferred field even when its box holds garbage; a non-finite canonical falls through to the box */
+    const s = await page.evaluate(() => { setUnit('metric'); renderCalc('__inf_a', false); const e = document.getElementById('inf_speed'); e.value = 'abc'; UNIT_SWITCH_CANONICAL = { inf_speed: 42 }; const a = GH_CERT_VALUE('inf_speed', 55);
+      UNIT_SWITCH_CANONICAL = { inf_speed: NaN }; e.value = '160.9344'; const b = GH_CERT_VALUE('inf_speed', 55); UNIT_SWITCH_CANONICAL = null; return { a, b }; });
+    check('switch snapshot used for an inferred field although its box holds garbage', s.a, 42);
+    check('a non-finite snapshot value falls through to the box, converted through the declared unit', s.b, 100);
+  } finally {
+    await page.evaluate(() => { delete RENDERS.__inf_a; delete RENDERS.__inf_b; delete CALC_PERSISTENT_STATE.__inf_a; delete CALC_PERSISTENT_STATE.__inf_b; UNIT_SWITCH_CANONICAL = null; if (UNIT.system !== 'imperial') setUnit('imperial'); renderCalc('dashboard', false); });
+  }
+  /* a real Class A calculator: tow_wheel_torque declares lb-ft (Engine Torque, a convertible unit), ':1' (Overall Gear Ratio, a ratio no table knows) and '' (Efficiency) */
+  await page.evaluate(() => setUnit('metric')); await page.waitForTimeout(30);                  // the dashboard re-render defers its landing page by a tick: let it land before opening the calculator
+  await page.evaluate(() => renderCalc('tow_wheel_torque', false));
+  await page.click('#twt_t'); await page.fill('#twt_t', '610.118'); await page.waitForTimeout(30);
+  await page.click('#twt_g'); await page.fill('#twt_g', '14'); await page.waitForTimeout(30);
+  await page.click('#twt_e'); await page.fill('#twt_e', '0.9'); await page.waitForTimeout(30);
+  const real = await page.evaluate(() => ({ t: GH_CERT_VALUE('twt_t', 450), g: GH_CERT_VALUE('twt_g', 12), e: GH_CERT_VALUE('twt_e', 0.88), units: ['twt_t', 'twt_g', 'twt_e'].map(i => document.getElementById(i).dataset.ghmUnit).join('|') }));
+  check('real calculator tow_wheel_torque: 610.118 N·m typed in a lb-ft field is read as 450 lb-ft', real.t, 450);
+  check('real calculator tow_wheel_torque: a ratio declared ":1" is read as typed', real.g, 14);
+  check('real calculator tow_wheel_torque: a field declared with no unit is read as typed', real.e, 0.9);
+  await page.evaluate(() => { setUnit('imperial'); renderCalc('dashboard', false); }); await page.waitForTimeout(30);
+}
+
 /* ---- 2. sweep ---- */
 async function sweep(page, ids) {
   const results = [];
@@ -189,7 +243,7 @@ async function staleStateChecks(page) {
   if (only) ids = ids.filter(id => only.includes(id));
 
   const sections = new Set((process.env.SECTION || (only || process.env.DISCOVER ? 'sweep' : 'contract,converters,stale,sweep')).split(','));
-  if (sections.has('contract')) await helperContract(page);
+  if (sections.has('contract')) { await helperContract(page); await inferenceContract(page); }
   if (sections.has('converters')) await converterChecks(page);
   if (sections.has('stale')) await staleStateChecks(page);
   const res = sections.has('sweep') ? await sweep(page, ids) : [];

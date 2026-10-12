@@ -37,8 +37,15 @@ const K = {
   ftlbf_J: 1.3558179483314004,     // J per ft.lbf (0.3048 m x 4.4482216152605 N)
   g0: 9.80665,                     // m/s^2, standard gravity (exact)
   in_m: 0.0254,                    // m per inch (exact)
-  cfm_m3s: 4.719474432e-4          // m^3/s per CFM (0.3048^3 / 60, exact)
+  cfm_m3s: 4.719474432e-4,         // m^3/s per CFM (0.3048^3 / 60, exact)
+  /* added with reliability-pass item 1 (the Free calculators that read their inputs through certValue) */
+  ft_m: 0.3048,                    // m per foot (exact)
+  lb_kg: 0.45359237,               // kg per pound mass (exact)
+  gal_L: 3.785411784,              // litres per US gallon (exact: 231 cubic inches)
+  mi_km: 1.609344,                 // km per statute mile (exact)
+  inH2O_Pa: 249.082                // Pa per inch of water at 39.2 F (NIST SP 811 table 8); the engine's own factor is 249.089, 3e-5 higher
 };
+K.psi_Pa = K.lbf_N / (K.in_m * K.in_m);          // 6894.757... Pa per psi: derived from the two exact constants above, not quoted
 /* input kinds: display (in system sys) -> SI, and SI -> display */
 const IN = {
   none:   { toSI: (s, x) => x, fromSI: (s, x) => x },
@@ -48,7 +55,25 @@ const IN = {
   density_slugft3: { toSI: (s, x) => x * K.slugft3_kgm3, fromSI: (s, x) => x / K.slugft3_kgm3 },   // unregistered unit: same text in both systems
   energy: { toSI: (s, x) => s === 'metric' ? x : x * K.ftlbf_J, fromSI: (s, x) => s === 'metric' ? x : x / K.ftlbf_J },    // ft-lb <-> J
   length: { toSI: (s, x) => s === 'metric' ? x / 1000 : x * K.in_m, fromSI: (s, x) => s === 'metric' ? x * 1000 : x / K.in_m },  // in <-> mm
-  cfm:    { toSI: (s, x) => s === 'metric' ? x / 60000 : x * K.cfm_m3s, fromSI: (s, x) => s === 'metric' ? x * 60000 : x / K.cfm_m3s }  // CFM <-> L/min
+  cfm:    { toSI: (s, x) => s === 'metric' ? x / 60000 : x * K.cfm_m3s, fromSI: (s, x) => s === 'metric' ? x * 60000 : x / K.cfm_m3s },  // CFM <-> L/min
+  /* --- item 1 kinds. Each states its SI base in the comment. --- */
+  miles:  { toSI: (s, x) => x, fromSI: (s, x) => x },                                                                                  // miles, base miles: the engine has no 'mi' unit, so the same text shows in both systems
+  litre:  { toSI: (s, x) => s === 'metric' ? x : x * K.gal_L, fromSI: (s, x) => s === 'metric' ? x : x / K.gal_L },                   // gal <-> L, base L
+  fueleco:{ toSI: (s, x) => s === 'metric' ? 100 / x : x * K.mi_km / K.gal_L, fromSI: (s, x) => s === 'metric' ? 100 / x : x * K.gal_L / K.mi_km },   // mpg <-> L/100 km (reciprocal), base km/L
+  price:  { toSI: (s, x) => s === 'metric' ? x : x / K.gal_L, fromSI: (s, x) => s === 'metric' ? x : x * K.gal_L },                   // $/gal <-> $/L, base $/L
+  torque: { toSI: (s, x) => s === 'metric' ? x : x * K.ftlbf_J, fromSI: (s, x) => s === 'metric' ? x : x / K.ftlbf_J },                // lb-ft <-> N.m, base N.m
+  springrate: { toSI: (s, x) => s === 'metric' ? x * 1000 : x * K.lbf_N / K.in_m, fromSI: (s, x) => s === 'metric' ? x / 1000 : x * K.in_m / K.lbf_N },   // lb/in <-> N/mm, base N/m
+  pressure: { toSI: (s, x) => s === 'metric' ? x * 1e5 : x * K.psi_Pa, fromSI: (s, x) => s === 'metric' ? x / 1e5 : x / K.psi_Pa },  // psi <-> bar, base Pa
+  sqin:   { toSI: (s, x) => s === 'metric' ? x * 1e-6 : x * K.in_m * K.in_m, fromSI: (s, x) => s === 'metric' ? x * 1e6 : x / (K.in_m * K.in_m) },   // sq in <-> mm^2, base m^2
+  inh2o:  { toSI: (s, x) => s === 'metric' ? x * 1000 : x * K.inH2O_Pa, fromSI: (s, x) => s === 'metric' ? x / 1000 : x / K.inH2O_Pa },  // inH2O <-> kPa, base Pa
+  feedrate: { toSI: (s, x) => s === 'metric' ? x / 1000 : x * K.in_m, fromSI: (s, x) => s === 'metric' ? x * 1000 : x / K.in_m },     // in/min <-> mm/min, base m/min
+  sfm:    { toSI: (s, x) => s === 'metric' ? x : x * K.ft_m, fromSI: (s, x) => s === 'metric' ? x : x / K.ft_m },                      // SFM (ft/min) <-> m/min, base m/min
+  power:  { toSI: (s, x) => s === 'metric' ? x * 1000 : x * K.hp_W, fromSI: (s, x) => s === 'metric' ? x / 1000 : x / K.hp_W },       // HP <-> kW, base W
+  bsfc:   { toSI: (s, x) => s === 'metric' ? x : x * K.lb_kg / (K.hp_W / 1000), fromSI: (s, x) => s === 'metric' ? x : x * (K.hp_W / 1000) / K.lb_kg },   // lb/hp-hr <-> kg/kW-hr, base kg/kW-hr
+  lbgal:  { toSI: (s, x) => x * K.lb_kg / K.gal_L, fromSI: (s, x) => x * K.gal_L / K.lb_kg },                                         // lb/gal: no engine unit, same text in both systems, base kg/L
+  ft:     { toSI: (s, x) => s === 'metric' ? x : x * K.ft_m, fromSI: (s, x) => s === 'metric' ? x : x / K.ft_m },                      // ft <-> m, base m
+  tempabs:{ toSI: (s, x) => s === 'metric' ? x + 273.15 : (x - 32) * 5 / 9 + 273.15, fromSI: (s, x) => s === 'metric' ? x - 273.15 : (x - 273.15) * 9 / 5 + 32 },   // degF <-> degC readings, base K
+  tempdiff: { toSI: (s, x) => s === 'metric' ? x : x * 5 / 9, fromSI: (s, x) => s === 'metric' ? x : x * 9 / 5 }                      // delta degF <-> delta degC, base K
 };
 /* output kinds: SI -> display, plus the unit text the page must show */
 const OUT = {
@@ -57,7 +82,23 @@ const OUT = {
   psf:    { fromSI: (s, x) => x / K.psf_Pa, unit: s => 'lb/sq ft' },                                    // unregistered unit: shown as lb/sq ft in both systems
   /* the engine labels an energy in ft-lb as N·m in Metric (its 'ft-lb' alias is the torque unit); 1 N·m = 1 J, so the number is right and only the symbol differs from the conventional J */
   energy: { fromSI: (s, x) => s === 'metric' ? x : x / K.ftlbf_J, unit: s => s === 'metric' ? 'N·m' : 'ft-lb' },
-  cfm:    { fromSI: (s, x) => s === 'metric' ? x * 60000 : x / K.cfm_m3s, unit: s => s === 'metric' ? 'L/min' : 'CFM' }
+  cfm:    { fromSI: (s, x) => s === 'metric' ? x * 60000 : x / K.cfm_m3s, unit: s => s === 'metric' ? 'L/min' : 'CFM' },
+  /* --- item 1 kinds: SI base -> display, and the unit text the page must show --- */
+  ft:     { fromSI: (s, x) => s === 'metric' ? x : x / K.ft_m, unit: s => s === 'metric' ? 'm' : 'ft' },                            // base m
+  miles:  { fromSI: (s, x) => x, unit: s => 'mi' },                                                                                  // base miles; the engine has no 'mi' unit, so a distance in miles is shown in miles in both systems
+  money:  { fromSI: (s, x) => x, unit: s => '$' },
+  torque: { fromSI: (s, x) => s === 'metric' ? x : x / K.ftlbf_J, unit: s => s === 'metric' ? 'N·m' : 'lb-ft' },                  // base N.m
+  springrate: { fromSI: (s, x) => s === 'metric' ? x / 1000 : x * K.in_m / K.lbf_N, unit: s => s === 'metric' ? 'N/mm' : 'lb/in' }, // base N/m
+  pressure: { fromSI: (s, x) => s === 'metric' ? x / 1e5 : x / K.psi_Pa, unit: s => s === 'metric' ? 'bar' : 'psi' },               // base Pa
+  ratio:  { fromSI: (s, x) => x, unit: s => '' },
+  feedrate: { fromSI: (s, x) => s === 'metric' ? x * 1000 : x / K.in_m, unit: s => s === 'metric' ? 'mm/min' : 'in/min' },          // base m/min
+  rpm:    { fromSI: (s, x) => x, unit: s => 'RPM' },
+  massflow: { fromSI: (s, x) => s === 'metric' ? x : x / K.lb_kg, unit: s => s === 'metric' ? 'kg/hr' : 'lb/hr' },                 // base kg/h
+  volflow:  { fromSI: (s, x) => s === 'metric' ? x : x / K.gal_L, unit: s => s === 'metric' ? 'L/h' : 'GPH' },                      // base L/h
+  btuhr:  { fromSI: (s, x) => x, unit: s => 'BTU/hr' },                                                                              // no engine unit for BTU/hr: same in both systems
+  hz:     { fromSI: (s, x) => x, unit: s => 'Hz' },
+  velocity: { fromSI: (s, x) => s === 'metric' ? x : x / K.ft_m, unit: s => s === 'metric' ? 'm/s' : 'ft/sec' },                    // base m/s
+  tempdiff: { fromSI: (s, x) => s === 'metric' ? x : x * 9 / 5, unit: s => s === 'metric' ? 'Δ°C' : 'Δ°F' }                        // base K (a difference)
 };
 
 /* ---- cases: fields = [id, input kind, SI edit value used for the re-entry steps]; compute(inSI) -> {label: [outKind, SI value]} ---- */
@@ -87,7 +128,50 @@ const CASES = [
     compute: v => { const pts = []; for (let i = 0; i < 9; i++) pts.push([v['flow_lift_' + i], v['flow_intake_' + i]]);
       const q = v.flow_query; let out = NaN;
       for (let i = 1; i < pts.length; i++) if (q <= pts[i][0]) { const f = (q - pts[i - 1][0]) / (pts[i][0] - pts[i - 1][0]); out = pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * f; break; }
-      return { 'Interpolated Intake CFM': ['cfm', out] }; } }
+      return { 'Interpolated Intake CFM': ['cfm', out] }; } },
+
+  /* --- reliability pass item 1 (GH-DEF-001): Free calculators that read their inputs through certValue(id, fallback) with no unit argument.
+     Representative families: towing, EV, chassis / suspension, structures, machining, fuel system, flow bench, thermal, intake, with single-unit
+     calculators and multi-unit ones (flow_coefficient has three differently-united fields, heat_transfer mixes an explicit-unit read with inferred ones,
+     fuel_pump_sizing mixes four unit families and two fields no unit table knows). Each case states the physics once, in SI, or in the calculator's own
+     documented Imperial rule with its inputs converted by the constants at the top of this file. --- */
+  { id: 'tow_stopping_distance', fields: [['tsd_v', 'speed', 24.5], ['tsd_a', 'none', 0.62]],
+    compute: v => ({ 'Stopping Distance': ['ft', Math.pow(v.tsd_v / K.mph_ms, 2) / (30 * v.tsd_a) * K.ft_m] }) },        // the calculator's stated rule d = v^2 / (30 a), v in mph, a in g, d in ft
+  { id: 'tow_range', fields: [['trng_f', 'litre', 90], ['trng_m', 'fueleco', 8.5]],
+    compute: v => ({ 'Towing Range': ['miles', v.trng_f * v.trng_m / K.mi_km] }) },                                          // litres x km per litre = km, / km per mile = miles
+  { id: 'tow_trip_fuel_cost', fields: [['ttfc_m', 'miles', 640], ['ttfc_g', 'fueleco', 6.5], ['ttfc_p', 'price', 0.95]],
+    compute: v => ({ 'Trip Fuel Cost': ['money', v.ttfc_m * K.mi_km / v.ttfc_g * v.ttfc_p] }) },                             // miles x km/mi = km; km / (km/L) = L; L x $/L
+  { id: 'tow_wheel_torque', fields: [['twt_t', 'torque', 600], ['twt_g', 'none', 10.5], ['twt_e', 'none', 0.9]],
+    compute: v => ({ 'Wheel Torque': ['torque', v.twt_t * v.twt_g * v.twt_e] }) },
+  { id: 'ev_wheel_torque', fields: [['ewt_t', 'torque', 420], ['ewt_r', 'none', 8.2], ['ewt_e', 'none', 0.93]],
+    compute: v => ({ 'Wheel Torque': ['torque', v.ewt_t * v.ewt_r * v.ewt_e] }) },
+  { id: 'spring_rate', fields: [['sr_f', 'force', 1200], ['sr_x', 'length', 0.012]],
+    compute: v => ({ 'Spring Rate': ['springrate', v.sr_f / v.sr_x] }) },
+  { id: 'natural_frequency', fields: [['nf_k', 'springrate', 90000], ['nf_m', 'force', 4200]],
+    compute: v => ({ 'Natural Frequency': ['hz', Math.sqrt(v.nf_k / (v.nf_m / K.g0)) / (2 * Math.PI)] }) },                  // f = sqrt(k / m) / 2 pi, the supported weight W gives m = W / g
+  { id: 'stress', fields: [['st_f', 'force', 52000], ['st_a', 'sqin', 0.0015]],
+    compute: v => ({ 'Normal Stress': ['pressure', v.st_f / v.st_a] }) },
+  { id: 'flow_coefficient', fields: [['fc_cfm', 'cfm', 310 * K.cfm_m3s], ['fc_dp', 'inh2o', 25 * K.inH2O_Pa], ['fc_a', 'sqin', 2.3 * K.in_m * K.in_m]],
+    compute: v => ({ 'Flow Coefficient': ['ratio', (v.fc_cfm / K.cfm_m3s) / ((v.fc_a / (K.in_m * K.in_m)) * Math.sqrt(v.fc_dp / K.inH2O_Pa))] }) },   // CFM / (area in sq in x sqrt(inH2O))
+  { id: 'feed_rate', fields: [['frt_r', 'none', 9000], ['frt_z', 'none', 3], ['frt_f', 'length', 0.00012]],
+    compute: v => ({ 'Feed Rate': ['feedrate', v.frt_r * v.frt_z * v.frt_f] }) },                                            // rpm x teeth x feed per tooth, base m per minute
+  { id: 'machining_rpm', fields: [['mrpm_v', 'sfm', 45.72], ['mrpm_d', 'length', 0.0127]],
+    compute: v => ({ 'Spindle RPM': ['rpm', v.mrpm_v / (Math.PI * v.mrpm_d)] }) },                                           // n = surface speed / (pi D), both in metres
+  { id: 'fuel_pump_sizing', fields: [['hp10', 'power', 300000], ['bsfc2', 'bsfc', 0.33], ['fuel_density', 'lbgal', 0.74], ['pump_margin', 'none', 1.3]],
+    compute: v => ({ 'Fuel Mass Flow': ['massflow', v.hp10 / 1000 * v.bsfc2],                                                 // kW x kg/kW-hr = kg/hr
+                     'Required Pump Delivery': ['volflow', v.hp10 / 1000 * v.bsfc2 / v.fuel_density * v.pump_margin] } ) },  // kg/hr / kg/L x margin = L/hr
+  { id: 'fmep_from_imep_bmep', fields: [['fmep_i', 'pressure', 1.1e6], ['fmep_b', 'pressure', 0.95e6]],
+    compute: v => ({ 'FMEP': ['pressure', v.fmep_i - v.fmep_b] }) },
+  { id: 'heat_transfer', fields: [['ht_h', 'none', 6.5], ['ht_a', 'sqft', 1.9], ['ht_d', 'tempdiff', 70]],
+    compute: v => ({ 'Heat Transfer Rate': ['btuhr', v.ht_h * (v.ht_a / K.sqft_m2) * (v.ht_d * 9 / 5)] }) },                // q = h A dT, h in BTU/hr.ft2.F (no unit table knows it), A in ft2, dT in F
+  { id: 'intercooler_temp_drop', fields: [['itd_i', 'tempabs', 400.15], ['itd_o', 'tempabs', 322.15]],
+    compute: v => ({ 'Temperature Drop': ['tempdiff', v.itd_i - v.itd_o] }) },                                              // two readings (offset scales) give a difference (no offset)
+  { id: 'yaw_moment', fields: [['ym_f', 'force', 3200], ['ym_l', 'ft', 1.2]],
+    compute: v => ({ 'Yaw Moment': ['torque', v.ym_f * v.ym_l] }) },
+  { id: 'intake_port_vel', fields: [['cfm4', 'cfm', 280 * K.cfm_m3s], ['pa', 'sqin', 2.4 * K.in_m * K.in_m]],
+    compute: v => ({ 'Port Velocity': ['velocity', v.cfm4 / v.pa] }) },
+  { id: 'tire_frequency', fields: [['tf_v', 'speed', 31], ['tf_c', 'length', 2.05]],
+    compute: v => ({ 'Tire Rotation Frequency': ['hz', v.tf_v / v.tf_c] }) }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

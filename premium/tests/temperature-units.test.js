@@ -20,11 +20,10 @@
    Independence rule: expected values come from the physical definitions written out below (NIST SP 811 / SI exact factors) and from
    each calculator's own documented formula, restated here in canonical units. The engine's unit tables are never consulted.
 
-   Cases marked clean:false are only checked from Imperial defaults to Metric. Their Δ fields are converted correctly, but they read
-   a unit-bearing sibling field (a length, area or weight) through certValue() without its unit, which is the separate, known
-   "Metric re-entry" defect class fixed for the six Free aero calculators in 6209d74 and still open for the rest of the Free catalogue.
-   Re-entry in Metric and the Metric -> Imperial toggle are therefore expected to be wrong for them until that class is fixed; when it is, flip
-   clean to true (the test then covers them fully).
+   Cases marked clean:false are only checked from Imperial defaults to Metric. There are none at present: five Free calculators (intercooler_temp_drop,
+   thermal_expansion, heat_transfer, radiator_heat_capacity, temperature_rise) were exempt because they read a unit-bearing field through certValue() without its
+   unit (the "Metric re-entry" class, GH-DEF-001), and were flipped to clean:true when that class was fixed in reliability pass item 1. Use clean:false again only
+   for a calculator with a registered, still-open defect.
 
    Run: node premium/tests/temperature-units.test.js   (CASE=id,id limits cases; VERBOSE=1 prints passes; GH_ENGINE=path tests another copy;
           SKIP_GUARD=1 skips the whole-catalogue label guard, GUARD_ONLY=1 runs only the guard; ALL_CLEAN=1 also runs the clean:false cases through the full re-entry sequence)
@@ -96,19 +95,19 @@ const CASES = [
   { id: 'diesel_turbo_pr', clean: true, fields: [['dt_boost', 'psi', 25], ['dt_amb', 'psi', 14], ['dt_in', 'tempAbs', C(30)], ['dt_charge', 'tempAbs', C(70)]],
     compute: v => ({ 'Pressure Ratio': ['plain:', (v.dt_boost + v.dt_amb) / v.dt_amb], 'Temperature Rise': ['tempDelta', v.dt_charge - v.dt_in] }) },
   /* --- Free calculators built on certValue() --- */
-  { id: 'intercooler_temp_drop', clean: false, fields: [['itd_i', 'tempAbs', C(120)], ['itd_o', 'tempAbs', C(40)]],
+  { id: 'intercooler_temp_drop', clean: true, fields: [['itd_i', 'tempAbs', C(120)], ['itd_o', 'tempAbs', C(40)]],
     compute: v => ({ 'Temperature Drop': ['tempDelta', v.itd_i - v.itd_o] }) },
-  { id: 'thermal_expansion', clean: false, fields: [['te_l', 'inch', 30], ['te_a', 'plain', 0.000012], ['te_d', 'tempDelta', 80]],
+  { id: 'thermal_expansion', clean: true, fields: [['te_l', 'inch', 30], ['te_a', 'plain', 0.000012], ['te_d', 'tempDelta', 80]],
     compute: v => ({ 'Length Change': ['inch', v.te_l * v.te_a * v.te_d * D.F_per_K] }) },
-  { id: 'heat_transfer', clean: false, fields: [['ht_h', 'plain', 6], ['ht_a', 'sqft', 18], ['ht_d', 'tempDelta', 70]],
+  { id: 'heat_transfer', clean: true, fields: [['ht_h', 'plain', 6], ['ht_a', 'sqft', 18], ['ht_d', 'tempDelta', 70]],
     compute: v => ({ 'Heat Transfer Rate': ['plain:BTU/hr', v.ht_h * v.ht_a * v.ht_d * D.F_per_K] }) },
   { id: 'coolant_flow', clean: true, fields: [['cf_q', 'plain', 60000], ['cf_c', 'plain', 0.9], ['cf_d', 'tempDelta', 12]],
     compute: v => ({ 'Required Coolant Flow': ['lbhr', v.cf_q / (v.cf_c * v.cf_d * D.F_per_K)] }) },
-  { id: 'radiator_heat_capacity', clean: false, fields: [['rhc_f', 'lbhr', 3500], ['rhc_c', 'plain', 0.9], ['rhc_d', 'tempDelta', 11]],
+  { id: 'radiator_heat_capacity', clean: true, fields: [['rhc_f', 'lbhr', 3500], ['rhc_c', 'plain', 0.9], ['rhc_d', 'tempDelta', 11]],
     compute: v => ({ 'Heat Rejection': ['plain:BTU/hr', v.rhc_f * v.rhc_c * v.rhc_d * D.F_per_K] }) },
   { id: 'hvac_cooling_load', clean: true, fields: [['hcl_v', 'plain', 120], ['hcl_ach', 'plain', 15], ['hcl_d', 'tempDelta', 25]],
     compute: v => ({ 'Approx. Cooling Load': ['plain:BTU/hr', v.hcl_v * v.hcl_ach * v.hcl_d * D.F_per_K * 0.018] }) },
-  { id: 'temperature_rise', clean: false, fields: [['tr_q', 'plain', 600], ['tr_m', 'weight_lb', 14], ['tr_c', 'plain', 0.11]],
+  { id: 'temperature_rise', clean: true, fields: [['tr_q', 'plain', 600], ['tr_m', 'weight_lb', 14], ['tr_c', 'plain', 0.11]],
     compute: v => ({ 'Temperature Rise': ['tempDelta', v.tr_q / (v.tr_m * v.tr_c) / D.F_per_K] }) },
   /* --- Premium calculators (declare every unit-bearing field to certValue(): complete in both systems) --- */
   { id: 'fan_cfm_requirement', clean: true, fields: [['fcr_q', 'plain', 50000], ['fcr_dt', 'tempDelta', 9]],
@@ -316,6 +315,6 @@ async function labelGuard(page) {
   console.log(log.filter(l => /FAIL/.test(l) || process.env.VERBOSE).join('\n'));
   if (pageErrors.length) { failures++; console.log('PAGE ERRORS:\n' + pageErrors.join('\n')); }
   const deferred = process.env.ALL_CLEAN ? [] : CASES.filter(c => !c.clean).map(c => c.id);
-  console.log(`\ntemperature-units tests: ${checks} result/unit checks, ${invariance} toggle-invariance checks, ${failures} failure(s); ${deferred.length} case(s) checked Imperial->Metric only (known Metric re-entry class): ${deferred.join(', ')}`);
+  console.log(`\ntemperature-units tests: ${checks} result/unit checks, ${invariance} toggle-invariance checks, ${failures} failure(s); ${deferred.length ? `${deferred.length} case(s) checked Imperial->Metric only (clean:false, registered open defect): ${deferred.join(', ')}` : 'every case ran the full re-entry / toggle sequence in both starting systems'}`);
   process.exit(failures ? 1 : 0);
 })();
