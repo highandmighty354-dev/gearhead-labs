@@ -18,7 +18,7 @@
      4. The converter calculators (the ones whose output rows name their own unit, checked by converters.test.js) are counted and left out of 1 and 2.
      5. Units that the unit table cannot resolve safely never appear as a declared unit: 'qt' (aliased to gal), 'L/min' and 'm/min' (duplicated keys), see unit-factors.test.js.
 
-   Run: node premium/tests/unit-census.test.js   (VERBOSE=1 prints counts per unit; GH_ENGINE=path tests another copy of the engine)
+   Run: node premium/tests/unit-census.test.js   (VERBOSE=1 prints counts per unit; LIST=1 prints every Imperial-only unit with the calculators that use it; GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 = at least one failed. */
 'use strict';
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
@@ -84,7 +84,7 @@ const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
   check('all 696 calculators scanned in both systems', ids.length === 696 && Object.keys(met).length === 696, `${ids.length} / ${Object.keys(met).length}`);
 
   const neutral = new Set(CENSUS.neutral), si = new Set(CENSUS.si), impOnly = CENSUS.imperial_only;
-  const count = { converted: 0, neutral: 0, si: 0, imperial_only: 0, converter: 0, unitless: 0 }, perUnit = {}, unknown = {}, pairsSeen = new Set();
+  const count = { converted: 0, neutral: 0, si: 0, imperial_only: 0, converter: 0, unitless: 0 }, perUnit = {}, unknown = {}, pairsSeen = new Set(), where = {};
   let numericChecked = 0;
   for (const id of ids) {
     const a = imp[id], b = met[id];
@@ -119,7 +119,7 @@ const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
       /* unchanged text */
       const cls = neutral.has(ua) ? 'neutral' : si.has(ua) ? 'si' : impOnly[ua] ? 'imperial_only' : null;
       if (!cls) { unknown[ua] = (unknown[ua] || []).concat(id); continue; }
-      count[cls]++;
+      count[cls]++; if (cls === 'imperial_only') (where[ua] = where[ua] || []).push(id);
       if (both && !LEDGER.has(id)) {
         numericChecked++;
         const tol = 0.5 * Math.pow(10, -Math.min(dec(ra.value), dec(rb.value))) + 1e-9 * Math.abs(va);
@@ -135,6 +135,7 @@ const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
   check('no converted unit is listed as unchanged', reg.length === 0, reg.join(', '));
 
   if (pageErrors.length) { failures++; lines.push('PAGE ERRORS:\n' + pageErrors.slice(0, 5).join('\n')); }
+  if (process.env.LIST) for (const [u, w] of Object.entries(where).sort((x, y) => y[1].length - x[1].length)) lines.push(`  ${u} (${impOnly[u].kind}${impOnly[u].of ? ' of ' + impOnly[u].of : ''}${impOnly[u].metric ? ' -> ' + impOnly[u].metric : ''}): ${w.length} rows in ${new Set(w).size} calculators: ${[...new Set(w)].join(', ')}`);
   if (process.env.VERBOSE) { lines.push('rows per Imperial unit text: ' + Object.entries(perUnit).sort((x, y) => y[1] - x[1]).map(([u, n]) => `${u}:${n}`).join('  ')); }
   const shown = lines.length > 40 ? lines.slice(0, 40).concat(`  ... ${lines.length - 40} more`) : lines;
   if (shown.length) console.log(shown.join('\n'));
