@@ -60,6 +60,7 @@ const U = {
   tempAbs: { toCanon: (s, x) => s === 'metric' ? x + D.K0 : (x - 32) / 1.8 + D.K0, fromCanon: (s, k) => s === 'metric' ? k - D.K0 : (k - D.K0) * 1.8 + 32, label: s => s === 'metric' ? '°C' : '°F', temp: true },
   tempDelta: { toCanon: (s, x) => s === 'metric' ? x : x / 1.8, fromCanon: (s, k) => s === 'metric' ? k : k * 1.8, label: s => s === 'metric' ? 'Δ°C' : 'Δ°F', temp: true },
   weight_lb: lin(D.lbf_N, 'lb', 'N'),
+  mass_lb: lin(D.lb_kg, 'lbs', 'kg'),        // a quantity of matter (rotor, tire, fuel mass): kg in Metric. Fixed in reliability pass 4b (GH-DEF-006); these boxes used to read newtons
   mph: lin(D.mph_kmh, 'mph', 'km/h'),
   sqft: lin(D.sqft_m2, 'sq ft', 'm²'),
   inch: lin(D.in_mm, 'in', 'mm'),
@@ -85,7 +86,7 @@ const sizing = (id, p, e) => ({
 const CASES = [
   /* --- declarative calculators (read every field through v()/vd(): complete in both systems) --- */
   ...['brake_rotor_temp', 'rotor_heat'].map(id => ({ id, clean: true,
-    fields: [['wt_rt', 'weight_lb', 3000], ['spd_rt', 'mph', 70], ['rm', 'weight_lb', 14], ['cp_rotor', 'plain', 0.12], ['absorb_rotor', 'plain', 80]],
+    fields: [['wt_rt', 'weight_lb', 3000], ['spd_rt', 'mph', 70], ['rm', 'mass_lb', 14], ['cp_rotor', 'plain', 0.12], ['absorb_rotor', 'plain', 80]],
     compute: v => { const E = 0.5 * (v.wt_rt * D.lb_kg) * Math.pow(v.spd_rt * D.mph_ms, 2) * (v.absorb_rotor / 100) / D.BTU_J;     // kinetic energy of the vehicle, in BTU
       return { 'Energy to Rotor': ['plain:BTU', E], 'Temperature Rise': ['tempDelta', E / (v.rm * v.cp_rotor) / D.F_per_K, 0.03] }; } })),    // 0.03 K: the calculator rounds the rise to 0.1 °F
   { id: 'dew_point', clean: true, fields: [['temp_dp', 'tempAbs', C(30)], ['rh_dp', 'plain', 50]],
@@ -107,7 +108,7 @@ const CASES = [
     compute: v => ({ 'Heat Rejection': ['plain:BTU/hr', v.rhc_f * v.rhc_c * v.rhc_d * D.F_per_K] }) },
   { id: 'hvac_cooling_load', clean: true, fields: [['hcl_v', 'plain', 120], ['hcl_ach', 'plain', 15], ['hcl_d', 'tempDelta', 25]],
     compute: v => ({ 'Approx. Cooling Load': ['plain:BTU/hr', v.hcl_v * v.hcl_ach * v.hcl_d * D.F_per_K * 0.018] }) },
-  { id: 'temperature_rise', clean: true, fields: [['tr_q', 'plain', 600], ['tr_m', 'weight_lb', 14], ['tr_c', 'plain', 0.11]],
+  { id: 'temperature_rise', clean: true, fields: [['tr_q', 'plain', 600], ['tr_m', 'mass_lb', 14], ['tr_c', 'plain', 0.11]],
     compute: v => ({ 'Temperature Rise': ['tempDelta', v.tr_q / (v.tr_m * v.tr_c) / D.F_per_K] }) },
   /* --- Premium calculators (declare every unit-bearing field to certValue(): complete in both systems) --- */
   { id: 'fan_cfm_requirement', clean: true, fields: [['fcr_q', 'plain', 50000], ['fcr_dt', 'tempDelta', 9]],
@@ -128,15 +129,15 @@ const CASES = [
     compute: v => ({ 'Boiling Margin': ['tempDelta', v.bfbm_bp - v.bfbm_t] }) },
   { id: 'brake_duct_cfm', clean: true, fields: [['bdc_q', 'plain', 30000], ['bdc_dt', 'tempDelta', 55]],
     compute: v => ({ 'Required Duct Airflow': ['cfm', v.bdc_q / (1.08 * v.bdc_dt * D.F_per_K)] }) },
-  { id: 'rotor_cooling_rate', clean: true, fields: [['rcr_t0', 'tempAbs', C(260)], ['rcr_tamb', 'tempAbs', C(25)], ['rcr_m', 'weight_lb', 14], ['rcr_cp', 'plain', 0.12], ['rcr_h', 'plain', 18], ['rcr_a', 'sqft', 2.2], ['rcr_time', 'plain', 40]],
+  { id: 'rotor_cooling_rate', clean: true, fields: [['rcr_t0', 'tempAbs', C(260)], ['rcr_tamb', 'tempAbs', C(25)], ['rcr_m', 'mass_lb', 14], ['rcr_cp', 'plain', 0.12], ['rcr_h', 'plain', 18], ['rcr_a', 'sqft', 2.2], ['rcr_time', 'plain', 40]],
     compute: v => { const tau = v.rcr_m * v.rcr_cp * 3600 / (v.rcr_h * v.rcr_a), after = v.rcr_tamb + (v.rcr_t0 - v.rcr_tamb) * Math.exp(-v.rcr_time / tau);     // Newton cooling, lumped capacitance
       return { 'Cooling Time Constant (τ)': ['plain:sec', tau], 'Rotor Temp. After Interval': ['tempAbs', after], 'Temp. Drop': ['tempDelta', v.rcr_t0 - after] }; } },
-  { id: 'brake_fade_prediction', clean: true, fields: [['bfp_e', 'ftlb', 220000], ['bfp_m', 'weight_lb', 14], ['bfp_cp', 'plain', 0.12], ['bfp_t0', 'tempAbs', C(40)], ['bfp_dt', 'plain', 25], ['bfp_tau', 'plain', 30], ['bfp_n', 'plain', 5], ['bfp_tamb', 'tempAbs', C(25)], ['bfp_thresh', 'tempAbs', C(260)]],
+  { id: 'brake_fade_prediction', clean: true, fields: [['bfp_e', 'ftlb', 220000], ['bfp_m', 'mass_lb', 14], ['bfp_cp', 'plain', 0.12], ['bfp_t0', 'tempAbs', C(40)], ['bfp_dt', 'plain', 25], ['bfp_tau', 'plain', 30], ['bfp_n', 'plain', 5], ['bfp_tamb', 'tempAbs', C(25)], ['bfp_thresh', 'tempAbs', C(260)]],
     compute: v => { const dT = (v.bfp_e * D.ftlbf_J / D.BTU_J) / (v.bfp_m * v.bfp_cp) / D.F_per_K;     // temperature gained per stop, in kelvin of difference
       let T = v.bfp_t0, peak = T; const n = Math.round(v.bfp_n);
       for (let i = 1; i <= n; i++) { T += dT; if (T > peak) peak = T; if (i < n) T = v.bfp_tamb + (T - v.bfp_tamb) * Math.exp(-v.bfp_dt / v.bfp_tau); }
       return { 'Peak Rotor Temperature': ['tempAbs', peak], 'Margin to Fade Threshold': ['tempDelta', v.bfp_thresh - peak] }; } },
-  { id: 'tire_heat_generation', clean: true, fields: [['thg_w', 'weight_lb', 900], ['thg_c', 'plain', 0.013], ['thg_v', 'mph', 70], ['thg_m', 'weight_lb', 21], ['thg_cp', 'plain', 0.5], ['thg_t', 'plain', 25]],
+  { id: 'tire_heat_generation', clean: true, fields: [['thg_w', 'weight_lb', 900], ['thg_c', 'plain', 0.013], ['thg_v', 'mph', 70], ['thg_m', 'mass_lb', 21], ['thg_cp', 'plain', 0.5], ['thg_t', 'plain', 25]],
     compute: v => { const P = (v.thg_w * D.lbf_N) * v.thg_c * (v.thg_v * D.mph_ms), E = P * v.thg_t * 60 / D.BTU_J;     // rolling-resistance power in watts, heat in BTU
       return { 'Heat Generation Rate': ['power', P / D.hp_W], 'Total Heat Energy': ['plain:BTU', E], 'Estimated Temp. Rise (adiabatic)': ['tempDelta', E / (v.thg_m * v.thg_cp) / D.F_per_K] }; } }
 ];
