@@ -214,7 +214,9 @@ async function converterChecks(page) {
   }
 }
 
-/* ---- 3b. a remembered value must survive a unit switch made while looking at a different calculator ---- */
+/* ---- 3b. a remembered value must survive a unit switch made while looking at a different calculator (GH-DEF-004; enforced since reliability pass item 3) ----
+   The complete navigation matrix (both directions, repeated toggles, edits, mixed-unit boxes, two calculators remembered in different systems, text that is not a number)
+   is premium/tests/remembered-values.test.js; these three are the examples recorded when the defect was found. */
 async function staleStateChecks(page) {
   const cases = [['drag_force', 'dynamic_pressure', 'df_v', 100, 160.9344], ['brake_rotor_temp', 'dew_point', 'spd_rt', 100, 160.9344], ['rotor_cooling_rate', 'brake_duct_cfm', 'rcr_a', 3, 0.2787]];
   for (const [A, B, field, typed, wantMetric] of cases) {
@@ -223,10 +225,11 @@ async function staleStateChecks(page) {
     await page.click('#' + field); await page.fill('#' + field, String(typed)); await page.waitForTimeout(30);
     await page.evaluate(id => renderCalc(id, false), B); await page.click('#btn-metric'); await page.evaluate(id => renderCalc(id, false), A);
     const shown = Number(await page.inputValue('#' + field)); await page.click('#btn-imperial');
+    const back = Number(await page.evaluate(([a, f]) => { renderCalc(a, false); const e = document.getElementById(f); return e ? e.value : ''; }, [A, field]));
     checks++;
-    if (Math.abs(shown - wantMetric) <= 1e-3 * wantMetric + 1e-3) fail(`remembered value ${A}`, 'now converts correctly after a unit switch made on another calculator: promote this check to enforced and drop the known-open entry');
-    else if (shown === typed) ok(`remembered value ${A}`, `still open (known): ${typed} typed in Imperial reappears as ${shown} in Metric`);
-    else fail(`remembered value ${A}`, `unexpected value ${shown} in Metric (known-open behaviour is the unconverted ${typed}; correct is ${wantMetric})`);
+    if (Math.abs(shown - wantMetric) > 1e-3 * wantMetric + 1e-3) fail(`remembered value ${A}`, `${typed} typed in Imperial reappears as ${shown} in Metric after the system was switched on another calculator (expected ${wantMetric})`);
+    else if (Math.abs(back - typed) > 1e-4 * typed + 1e-6) fail(`remembered value ${A}`, `${typed} typed in Imperial is ${back} after Metric and back to Imperial`);
+    else ok(`remembered value ${A}`, `${typed} -> ${shown} in Metric -> ${back} in Imperial`);
   }
 }
 

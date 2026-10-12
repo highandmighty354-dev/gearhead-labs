@@ -704,6 +704,36 @@ const CALC_PERSISTENT_STATE = {};
 const FIELD_UNIT_REGISTRY = {};
 function declaredFieldUnit(id){ const r=FIELD_UNIT_REGISTRY[currentCalc]; return (r&&r[id])||''; }
 
+/* Remembered-value records (reliability pass item 3, GH-DEF-004 / GH-ENG-005).
+   CALC_PERSISTENT_STATE keeps the TEXT of every box so a calculator is still filled when the person comes back to it. That text is in whichever unit system was on
+   screen when it was captured, and the system is global, so after it changed anywhere else the same text was shown again under the other system's label
+   (100 mph typed in Imperial came back as "100 km/h"). CALC_STATE_META[calculatorId][fieldId] = {calc, system, unit} records, for every numeric box captured,
+   which calculator's page it came from, the system its text was displayed in and the unit it was displayed in. adaptRemembered() uses it to convert the text
+   exactly once into the system now on screen. Text without a record (written by other code), text that is not a plain number, and boxes with no unit are left alone. */
+const CALC_STATE_META = {};
+let CONTAINER_CALC = null, CONTAINER_SYSTEM = null;   // which calculator's page #calc-container holds, and the system its text is displayed in
+function adaptRemembered(id,snap){
+  const meta=CALC_STATE_META[id]; if(!meta) return snap;
+  for(const fid of Object.keys(meta)){
+    const m=meta[fid];
+    if(!m||!m.unit||m.system===UNIT.system) continue;
+    if(!Object.prototype.hasOwnProperty.call(snap,fid)) continue;
+    if(UNIT_SWITCH_CANONICAL&&Object.prototype.hasOwnProperty.call(UNIT_SWITCH_CANONICAL,fid)) continue;   // a switch on this page: the exact pre-switch value is used instead
+    const t=String(snap[fid]).trim();
+    if(!/^[-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?$/i.test(t)) continue;                                       // "12abc", "3.", "-": keep as typed
+    const canonical=unitToCanonical(Number(t),m.unit,m.system);
+    if(Number.isFinite(canonical)) snap[fid]=fieldDisplayValue(canonical,m.unit);
+  }
+  return snap;
+}
+/* is there a usable remembered text for this box? Another calculator's text (a box id two calculators share) is refused when it was displayed in a different unit. */
+function snapshotHas(id,unit){
+  if(!CALC_FIELD_SNAPSHOT||!Object.prototype.hasOwnProperty.call(CALC_FIELD_SNAPSHOT,id)) return false;
+  const m=CALC_STATE_META[currentCalc]&&CALC_STATE_META[currentCalc][id];
+  if(m&&m.calc!==currentCalc&&canonicalUnit(m.unit)!==canonicalUnit(unit)) return false;
+  return true;
+}
+
 
 function captureVisibleCanonicalFields(system){
   const snapshot={};
@@ -1218,7 +1248,7 @@ function field(label, id, val, unit, type='number', step='any'){
   // convert a metric display value a second time.  Unit-system changes are
   // the one exception: UNIT_SWITCH_CANONICAL contains the pre-switch canonical
   // value and is deliberately converted exactly once for the new display system.
-  const hasSnapshot = CALC_FIELD_SNAPSHOT && Object.prototype.hasOwnProperty.call(CALC_FIELD_SNAPSHOT,id);
+  const hasSnapshot = snapshotHas(id, type==='number'?unit:undefined);
   if(hasSnapshot) val = CALC_FIELD_SNAPSHOT[id];
 
   const profileMatch = type==='number' ? matchProfileField(id) : null;
@@ -6673,15 +6703,22 @@ function renderCalc(id, scroll=true){
   // that temporarily disappear (e.g. Density Altitude's Solve For inputs).
   // This prevents a value from resetting when the user switches variables.
   const persistent = CALC_PERSISTENT_STATE[id] || (CALC_PERSISTENT_STATE[id] = {});
+  const rememberedMeta = CALC_STATE_META[id] || (CALC_STATE_META[id] = {});
   container.querySelectorAll('input, select, textarea').forEach(el=>{
     if(!el.id) return;
     if(el.type === 'radio' || el.type === 'checkbox') persistent[el.id] = el.checked;
     else persistent[el.id] = el.value;
+    /* the record of the text just captured: whose page, which system it is displayed in (the container still holds the page of the PREVIOUS render, and during a
+       unit switch it is in the OLD system although UNIT.system is already the new one), and the unit it is displayed in */
+    if(el.classList&&el.classList.contains('field-input')) rememberedMeta[el.id] = {calc:CONTAINER_CALC, system:CONTAINER_SYSTEM||UNIT.system, unit:el.dataset?.ghmUnit||''};
+    else delete rememberedMeta[el.id];
   });
-  CALC_FIELD_SNAPSHOT = {...persistent};
+  CALC_FIELD_SNAPSHOT = adaptRemembered(id,{...persistent});
 
   const active = document.activeElement;
-  const hadFocus = active && container.contains(active) && (active.tagName==='SELECT' || (active.tagName==='INPUT' && active.type!=='radio'));
+  /* focus and typed text are carried over only for a re-render of the page already on screen: a box of ANOTHER calculator that happens to have the same id
+     (the old page's g2 and the new page's g2) must not push its text into the new page when the person navigates with the box still focused */
+  const hadFocus = CONTAINER_CALC===id && active && container.contains(active) && (active.tagName==='SELECT' || (active.tagName==='INPUT' && active.type!=='radio'));
   const focusId = hadFocus ? active.id : null;
   const focusValue = hadFocus ? active.value : null;
   const selStart = hadFocus && active.tagName==='INPUT' ? active.selectionStart : null;
@@ -6689,6 +6726,7 @@ function renderCalc(id, scroll=true){
 
   if(fn){ container.innerHTML = fn(); }
   else { container.innerHTML = `${headerHTML(CALCS.find(c=>c.id===id)?.name||id,'')}<div class="calc-body" style="color:var(--muted);text-align:center;padding:40px">Calculator coming soon.</div>`; }
+  CONTAINER_CALC = id; CONTAINER_SYSTEM = UNIT.system;   // the page now on screen, and the system its text is displayed in
 
   // Snapshot has now been consumed by field(); restore the caller's prior
   // snapshot so nested rendering remains safe. Persistent calculator state
@@ -9888,7 +9926,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     // value from UNIT_SWITCH_CANONICAL for this render; do the same here. Only for unit-bearing fields (unit arg given): the
     // snapshot holds only finite values of fields declared with a unit, and callers that pass no unit are left untouched.
     if(unit&&UNIT_SWITCH_CANONICAL&&Object.prototype.hasOwnProperty.call(UNIT_SWITCH_CANONICAL,id)){const cv=UNIT_SWITCH_CANONICAL[id];if(typeof cv==='number'&&Number.isFinite(cv))return cv;}
-    const raw=CALC_FIELD_SNAPSHOT&&Object.prototype.hasOwnProperty.call(CALC_FIELD_SNAPSHOT,id)?CALC_FIELD_SNAPSHOT[id]:document.getElementById(id)?.value;
+    const raw=snapshotHas(id,unit)?CALC_FIELD_SNAPSHOT[id]:document.getElementById(id)?.value;
     if(raw===undefined) return fallback; const s=String(raw).trim(); if(!s||!/^[-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?$/i.test(s))return null;
     const n=Number(s);if(!Number.isFinite(n))return null;
     // Optional 3rd arg: the field's declared unit. A field rendered with a real unit
@@ -9913,6 +9951,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   window.GHM_STAGE_CORRECTED_FLOW = function(val){
     CALC_PERSISTENT_STATE['e01_turbo_compressor_map'] = CALC_PERSISTENT_STATE['e01_turbo_compressor_map'] || {};
     CALC_PERSISTENT_STATE['e01_turbo_compressor_map']['e01_q'] = String(val);
+    if(CALC_STATE_META['e01_turbo_compressor_map']) delete CALC_STATE_META['e01_turbo_compressor_map']['e01_q'];   // a staged value has no record of an earlier unit system: it is shown as staged
     showToast('Corrected flow staged — open Turbo Compressor Map Builder to see it');
   };
   function certFormulaRenderer(id){return ()=>{const s=GH_E1_FORMULAS[id],safe=id.replace(/[^a-zA-Z0-9_]/g,'_'),defaults=(Array.isArray(s.defaults)&&s.defaults.length===s.vars.length)?s.defaults:s.vars.map((_,i)=>i?1:10),fields=certFields(safe,s,defaults),values=s.vars.map((v,i)=>certValue(`${safe}_${v}`,defaults[i]));let value=NaN;
