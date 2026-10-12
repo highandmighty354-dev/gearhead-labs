@@ -14,12 +14,13 @@
 #   mass-force.test.js         every box / result row declared in a pound unit: masses read kg, forces and weights read N, typed kg gives the right physics (GH-DEF-006)
 #   unit-factors.test.js       every registered unit conversion factor and alias against the exact SI definitions (GH-ENG-002)
 #   unit-census.test.js        the unit text and number of every box / row of all 696 calculators, Imperial against Metric: converted pairs, classified unchanged units (GH-DEF-007)
+#   airflow-readers.test.js    the Airflow vs RPM graph and the Airflow -> Power staged curve read their boxes in the unit shown, against independent physics (GH-DEF-023)
 # Run with the Playwright module on NODE_PATH or installed globally. GH_ENGINE=path tests another copy of the engine.
 # Takes about 35 minutes on a 2-core machine. Exit code 0 only when every suite passes. (run-tests.sh is the separate backend/schema suite.)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 rc=0
-for t in engine-selftest.js browser-smoke.js unit-system.test.js temperature-units.test.js toggle-sweep.test.js nav-return.test.js converters.test.js label-consistency.test.js remembered-values.test.js dew-point.test.js formula-fingerprints.test.js mass-force.test.js unit-factors.test.js unit-census.test.js; do
+for t in engine-selftest.js browser-smoke.js unit-system.test.js temperature-units.test.js toggle-sweep.test.js nav-return.test.js converters.test.js label-consistency.test.js remembered-values.test.js dew-point.test.js formula-fingerprints.test.js mass-force.test.js unit-factors.test.js unit-census.test.js airflow-readers.test.js; do
   echo "=== $t"
   node "$HERE/$t" || { echo "FAILED: $t"; rc=1; }
 done
