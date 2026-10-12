@@ -372,7 +372,32 @@
     { id: 'combined_slip', name: 'Combined Slip',
       promo: 'Gearhead Labs Premium unlocks Combined Slip — the slip-kinematics analog of the Free Friction Circle, showing how simultaneous braking/accelerating and cornering slip reduce each other’s available tire force.' },
     { id: 'load_transfer_distribution', name: 'Load Transfer Distribution',
-      promo: 'Gearhead Labs Premium unlocks Load Transfer Distribution — combines the Free Longitudinal and Lateral Load Transfer formulas into all four corners at once for a real combined maneuver like trail-braking.' }
+      promo: 'Gearhead Labs Premium unlocks Load Transfer Distribution — combines the Free Longitudinal and Lateral Load Transfer formulas into all four corners at once for a real combined maneuver like trail-braking.' },
+
+    /* ---- Batch 10: Aerodynamics (9 calculators) ----
+       Reverse-solve siblings of the Free Aerodynamic Drag Force / Lift calculators (Drag Coefficient,
+       Lift Coefficient, CdA from Coast-Down Data), a frontal-area estimator, and the wing and underbody
+       geometry the Free aero tools do not cover (Wing Aspect Ratio, Wing Center of Pressure, Ground
+       Effect Estimate, Drag / Downforce Tradeoff, Diffuser Angle / Expansion). No free_companion on any
+       entry (see the Batch 6 note above on how the catalog classifies migrated vs expansion). */
+    { id: 'cda_from_coast_down', name: 'CdA from Coast-Down Data',
+      promo: 'Gearhead Labs Premium unlocks CdA from Coast-Down Data — turns a measured coast-down time between two speeds into your real drag area (CdA), the inverse of the Free Aerodynamic Drag Force calculator.' },
+    { id: 'frontal_area_from_dimensions', name: 'Frontal Area from Dimensions',
+      promo: 'Gearhead Labs Premium unlocks Frontal Area from Dimensions — a quick frontal-area estimate from width, height and an editable fill factor, ready to feed the drag and downforce calculators.' },
+    { id: 'lift_coefficient', name: 'Lift Coefficient',
+      promo: 'Gearhead Labs Premium unlocks Lift Coefficient — extracts CL from a measured lift or downforce force, the reverse of the Free Aerodynamic Lift calculator.' },
+    { id: 'drag_coefficient', name: 'Drag Coefficient',
+      promo: 'Gearhead Labs Premium unlocks Drag Coefficient — extracts Cd (and CdA) from a measured drag force, the reverse of the Free Aerodynamic Drag Force calculator.' },
+    { id: 'wing_aspect_ratio', name: 'Wing Aspect Ratio',
+      promo: 'Gearhead Labs Premium unlocks Wing Aspect Ratio — span, chord and planform area, plus the induced-drag coefficient that aspect ratio drives.' },
+    { id: 'wing_center_of_pressure', name: 'Wing Center of Pressure',
+      promo: 'Gearhead Labs Premium unlocks Wing Center of Pressure — where a wing’s resultant force acts along the chord, from the section’s CL and moment coefficient.' },
+    { id: 'ground_effect_estimate', name: 'Ground Effect Estimate',
+      promo: 'Gearhead Labs Premium unlocks Ground Effect Estimate — an idealized underbody-venturi downforce estimate from the inlet and throat gaps, clearly labeled as an upper bound.' },
+    { id: 'drag_downforce_tradeoff', name: 'Drag / Downforce Tradeoff',
+      promo: 'Gearhead Labs Premium unlocks Drag / Downforce Tradeoff — compares two aero setups for downforce gained, drag and horsepower paid, and the grip it could buy.' },
+    { id: 'diffuser_angle_expansion', name: 'Diffuser Angle / Expansion',
+      promo: 'Gearhead Labs Premium unlocks Diffuser Angle / Expansion — ramp angle, area expansion ratio and ideal pressure recovery for an underbody diffuser.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */
