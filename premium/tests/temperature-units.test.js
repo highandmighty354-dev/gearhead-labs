@@ -14,7 +14,8 @@
         applied, and the result shown on the page must match in both unit systems, after the toggle, after re-entering each field,
         and after repeated toggles; a toggle must also leave every field's physical (canonical) value unchanged;
      3. a label guard: no field or result that is named like a difference (rise, drop, spread, margin, difference, LMTD, ...) may be
-        declared with the reading unit '°F' anywhere in the catalogue.
+        declared with the reading unit '°F' anywhere in the catalogue;
+     4. the Temperature Converter: its four rows (°F, °C, K, °R) are the converter's own answer and must read the same in Imperial and Metric.
 
    Independence rule: expected values come from the physical definitions written out below (NIST SP 811 / SI exact factors) and from
    each calculator's own documented formula, restated here in canonical units. The engine's unit tables are never consulted.
@@ -220,6 +221,40 @@ async function unitFunctionChecks(page) {
     .forEach(([n, g, w]) => { checks++; if (g !== w) fail('unit functions', `${n}: got "${g}", expected "${w}"`); else log.push(`  ok   unit functions ${n} = ${g}`); });
 }
 
+/* ---- 4. Temperature Converter: known conversion points from the definitions (rows are rounded to 0.01 by the calculator) ---- */
+const CONVERTER_POINTS = [      // [from, input, {°F, °C, K, °R}]
+  ['F', 70, { F: 70, C: 21.1111, K: 294.2611, R: 529.67 }],
+  ['F', 212, { F: 212, C: 100, K: 373.15, R: 671.67 }],
+  ['F', -40, { F: -40, C: -40, K: 233.15, R: 419.67 }],
+  ['C', 0, { F: 32, C: 0, K: 273.15, R: 491.67 }],
+  ['C', 100, { F: 212, C: 100, K: 373.15, R: 671.67 }],
+  ['C', -17.7778, { F: 0, C: -17.7778, K: 255.3722, R: 459.67 }],
+  ['K', 300, { F: 80.33, C: 26.85, K: 300, R: 540 }],
+  ['K', 273.15, { F: 32, C: 0, K: 273.15, R: 491.67 }]
+];
+async function converterChecks(browser, url, newPage) {
+  for (const sys of ['imperial', 'metric']) {
+    const { ctx, page } = await newPage();
+    try {
+      await page.evaluate(() => { setUnit('imperial'); renderCalc('temp_converter', false); });
+      if (sys === 'metric') await page.click('#btn-metric');
+      for (const [from, input, want] of CONVERTER_POINTS) {
+        await page.selectOption('#t_from', from); await type(page, 't_in', input);
+        const res = await readResults(page); const label0 = `temp_converter [${sys}] ${input} from ${from}`;
+        for (const [sym, row] of [['F', '°F'], ['C', '°C'], ['K', 'K'], ['R', '°R']]) {
+          checks++; const r = res.find(x => x.label === row);
+          if (!r) { fail(label0, `no row "${row}"`); continue; }
+          const got = Number(r.text.replace(/,/g, ''));
+          if (!Number.isFinite(got) || Math.abs(got - want[sym]) > 0.011 + 1e-5 * Math.abs(want[sym])) fail(label0, `${row}: page ${r.text} ${r.unit}, expected ${want[sym]} ${row}`);
+          else if (r.unit !== row) fail(label0, `${row}: unit "${r.unit}" expected "${row}"`);
+          else log.push(`  ok   ${label0} ${row} ${r.text} ${r.unit}`);
+        }
+      }
+    } catch (e) { fail(`temp_converter [${sys}]`, 'test error: ' + String(e.message || e).split('\n')[0]); }
+    finally { await ctx.close(); }
+  }
+}
+
 /* ---- 3. label guard: a name that says "difference" must never carry the reading unit '°F' ---- */
 const DIFFERENCE_WORDS = /\b(rise|drop|spread|margin|differen\w*|delta|lmtd|swing|gain|change)\b|Δ/i;
 const ABSOLUTE_OK = new Set([]);                       // "calcId:label" of an audited reading whose name merely looks like a difference
@@ -275,6 +310,7 @@ async function labelGuard(page) {
       finally { if (ctx) await ctx.close(); }
     }
   }
+  if (!guardOnly && (!only || only.includes('temp_converter'))) await converterChecks(browser, url, fresh);
   if ((!only || guardOnly) && !process.env.SKIP_GUARD) { const { ctx, page } = await fresh(); try { await labelGuard(page); } catch (e) { fail('label guard', 'test error: ' + String(e.message || e).split('\n')[0]); } await ctx.close(); }
   await browser.close();
   console.log(log.filter(l => /FAIL/.test(l) || process.env.VERBOSE).join('\n'));

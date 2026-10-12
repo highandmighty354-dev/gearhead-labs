@@ -1324,7 +1324,10 @@ function resultHTML(label,value,unit,approx=false,precision=4){
 function multiResult(items,precision=4){
   return `<div class="multi-results">${items.map(i=>{
     const p=i.precision!==undefined?i.precision:precision;
-    return `<div class="mini-result"><div class="label">${i.label}</div><div class="value">${fmtUnitValue(i.value,i.unit||'',p)}<span class="unit"> ${metricUnit(i.unit||'')}</span></div></div>`;
+    /* i.raw: the value is ALREADY expressed in the unit printed beside it (a converter's own output row), so it must not go
+       through the Imperial -> Metric display layer a second time. Absent/false = unchanged behaviour for every other calculator. */
+    const shown=i.raw?fmtUnitValue(i.value,'',p):fmtUnitValue(i.value,i.unit||'',p), unit=i.raw?(i.unit||''):metricUnit(i.unit||'');
+    return `<div class="mini-result"><div class="label">${i.label}</div><div class="value">${shown}<span class="unit"> ${unit}</span></div></div>`;
   }).join('')}</div>`;
 }
 
@@ -2879,7 +2882,7 @@ const RENDERS = {
     <div class="calc-body">
       ${field('Temperature','t_in',70,'')}
       ${selectField('From','t_from',[{v:'F',l:'°F Fahrenheit'},{v:'C',l:'°C Celsius'},{v:'K',l:'K Kelvin'}],t_from)}
-      ${multiResult([{label:'°F',value:F,unit:'°F'},{label:'°C',value:C,unit:'°C'},{label:'K',value:K,unit:'K'},{label:'°R',value:R,unit:'°R'}])}
+      ${multiResult([{label:'°F',value:F,unit:'°F',raw:true},{label:'°C',value:C,unit:'°C',raw:true},{label:'K',value:K,unit:'K',raw:true},{label:'°R',value:R,unit:'°R',raw:true}])}
     </div>${calcFooter('Temp Converter')}`;
   },
 
