@@ -31,7 +31,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-004](#gh-def-004--remembered-values-reappear-unconverted-after-a-unit-switch-made-on-another-calculator-class-c) | Remembered values reappear unconverted after a unit switch made on another calculator (Class C) | FIXED — UNVERIFIED | Medium | P1 |
 | [GH-DEF-005](#gh-def-005--dewpoint-applies-a-celsius-rule-of-thumb-to-a-fahrenheit-input) | `dew_point` applies a Celsius rule of thumb to a Fahrenheit input | FIXED — UNVERIFIED | Medium | P1 |
 | [GH-DEF-006](#gh-def-006--mass-quantities-declared-in-lb-display-as-newtons-in-metric) | Mass quantities declared in `lb` display as newtons in Metric | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-007](#gh-def-007--unregistered-compound-units-stay-imperial-in-metric-mode) | Unregistered compound units stay Imperial in Metric mode | INVESTIGATING | Low | P2 |
+| [GH-DEF-007](#gh-def-007--unregistered-compound-units-stay-imperial-in-metric-mode) | Unregistered compound units stay Imperial in Metric mode | SUPERSEDED | Low | P2 |
 | [GH-DEF-008](#gh-def-008--eight-pre-existing-engine-self-test-failures) | Eight pre-existing engine self-test failures | DEFERRED | Low | Deferred |
 | [GH-DEF-010](#gh-def-010--free-aero-calculators-gave-wrong-results-after-editing-or-toggling-in-metric) | Free aero calculators gave wrong results after editing or toggling in Metric | FIXED — UNVERIFIED | Medium | P1 |
 | [GH-DEF-011](#gh-def-011--temperature-differences-were-converted-like-temperature-readings-in-metric) | Temperature differences were converted like temperature readings in Metric | FIXED — UNVERIFIED | Medium | P1 |
@@ -59,8 +59,10 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-IMP-011](#gh-imp-011--drag--downforce-tradeoff-grip-bound-ignores-tire-load-sensitivity) | Drag / Downforce Tradeoff grip bound ignores tire load sensitivity | DEFERRED | Low | P3 |
 | [GH-IMP-012](#gh-imp-012--cda-from-coast-down-uses-one-constant-crr) | CdA from Coast-Down uses one constant Crr | DEFERRED | Low | P2 |
 | [GH-IMP-013](#gh-imp-013--vehicle-trailer-and-part-weights-show-newtons-in-metric-should-they-show-kilograms) | Vehicle, trailer and part weights show newtons in Metric: should they show kilograms? | DEFERRED | Low | P3 |
+| [GH-IMP-014](#gh-imp-014--sixty-one-us-customary-units-are-not-registered-so-a-metric-page-shows-them-unconverted) | Sixty-one US-customary units are not registered, so a Metric page shows them unconverted | DEFERRED | Low | P2 |
+| [GH-IMP-015](#gh-imp-015--energy-rows-declared-ft-lb-read-nm-in-metric-instead-of-j) | Energy rows declared `ft-lb` read N·m in Metric instead of J | DEFERRED | Low | P3 |
 | [GH-ENG-001](#gh-eng-001--which-of-the-65-metric-named-unit-inventory-entries-are-real-defects) | Which of the 65 "metric-named unit" inventory entries are real defects? | INVESTIGATING | Medium | P1 |
-| [GH-ENG-002](#gh-eng-002--are-all-registered-unit-conversion-factors-correct) | Are all registered unit conversion factors correct? | INVESTIGATING | Medium | P1 |
+| [GH-ENG-002](#gh-eng-002--are-all-registered-unit-conversion-factors-correct) | Are all registered unit conversion factors correct? | VERIFIED CLOSED | Low | P1 |
 | [GH-ENG-003](#gh-eng-003--do-the-airflow-block-an-readers-have-the-head-flow-curve-defect) | Do the airflow-block `an()` readers have the Head Flow Curve defect? | INVESTIGATING | Medium | P1 |
 | [GH-ENG-004](#gh-eng-004--do-the-cross-calculator-stage-handoffs-write-values-in-the-right-unit-system) | Do the cross-calculator "stage" handoffs write values in the right unit system? | OPEN | Unknown | P2 |
 | [GH-ENG-005](#gh-eng-005--does-leaving-a-calculator-write-its-inputs-into-the-next-calculators-remembered-state) | Does leaving a calculator write its inputs into the next calculator's remembered state? | SUPERSEDED | Unknown | P2 |
@@ -202,21 +204,22 @@ This is the **single authoritative register** of known defects, deferred improve
   2026-10-12 — inventory made and fixed in `3b84b36`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `mass-force.test.js` fails 62 of 612 checks on the previous engine and 0 of 601 on the fix (the totals differ because the 11 mass rows move from the force group to the mass group); the 10 kg typed physics checks (temperature rise, air mass, tube and sheet mass against SI physics; the five multi-step thermal models against the Imperial page) all pass; `temperature-units.test.js` fails 166 checks on the previous engine with the corrected mass expectations and 0 on the fix. A before/after comparison of all 696 calculators (both systems, every numeric field retyped) changed 4 calculators in Imperial (the result unit text of `air_fuel_mass`, `diesel_injection_quantity`, `tube_weight`, `sheet_weight`) and exactly the 10 calculators named above in Metric. Regression at that commit: engine self-test 674 total / 666 passed / 8 failed (the 8 known baseline failures, no new one); browser smoke 19/19; unit-system 559 checks, 0 failures; temperature-units 1,108 + 990 checks, 0 failures; toggle-sweep 735 checks, 0 failures; nav-return, label-consistency, converters (2,064), remembered-values (371), dew-point (688) and formula-fingerprints 0 failures; run-tests.sh catalog / register / frontend 55/55 / schema 26/26 all passing.
 
 ### GH-DEF-007 — Unregistered compound units stay Imperial in Metric mode
-- **Status:** INVESTIGATING
+- **Status:** SUPERSEDED
 - **Severity:** Low
-- **Priority:** P2 (authorized investigation; Item 4)
+- **Priority:** P2 (investigated in reliability pass Item 4c; superseded by GH-IMP-014)
 - **Description:** Units the engine does not register (`BTU/hr`, `lb/sq ft`, `slug/ft³`, `BTU/hr·ft²·°F`, `psi·ft/min`, `lb-in/rad`-style compounds) pass through unconverted, so a Metric page can show Imperial compound units beside converted ones (for example `rod_bearing_pv` shows 116 bar and 1,005 m/min beside "PV Value 5,543,987 psi·ft/min"). The number and label agree, so this is not a wrong answer; whether any mapping is actually wrong, or the presentation is only inconsistent, is what Item 4 decides.
-- **Evidence:** Observed in `rod_bearing_pv`, `dynamic_pressure` ("lb/sq ft"), the Batch 10 density field; `UNIT_DEFS` read.
-- **Affected:** Not yet inventoried; `rod_bearing_pv`, `dynamic_pressure`, `drag_force`-family density fields, heat-transfer coefficients.
-- **Impact:** Inconsistent presentation in Metric; no wrong number found so far.
-- **Decision:** If the audit finds an incorrect factor or a label that does not match its number, fix it in a separate commit; if it finds only unconverted-but-correct units, reclassify to a deferred improvement (a new IMP entry, recorded here in History) because registering new units changes displays across many calculators.
+- **Evidence:** `premium/tests/unit-census.test.js` renders all 696 calculators in both systems and pairs up the 2,762 input boxes and result rows that have a unit. 1,469 are converted by the exact factor of one of 44 Imperial → Metric unit pairs; 131 are converter rows (GH-DEF-003) set aside; 1,162 read the same unit text in both systems: 820 neutral (ratios, angles, time, money, counts, electrical, engine speed), 134 metric units declared in Imperial calculators (GH-ENG-001 / GH-DEF-020) and **208 rows in 122 calculators in 61 US-customary units the engine does not register** (`BTU/hr`, `lb/min`, `psia`, `gal/hr`, `mi`, `in²`, `in³`, `lb/hp·hr`, `BTU/hr·ft²·°F`, `lb-in/rad`, `psi·ft/min`, `slug/ft³`, `lb/sq ft` and others; the full list is in `premium/tests/data/unit-census.json`). In every one of the 1,162 unchanged rows outside the 29 ledger calculators the number is the same in both systems, so no label disagrees with its number. The examples named when the entry was created (`rod_bearing_pv`, `dynamic_pressure` "lb/sq ft") are in the 61.
+- **Affected:** None wrong. The population is the 208 rows above; `diesel_injection_quantity` (flow box in `lb/min`, result in kg after GH-DEF-006) is the clearest mixed page.
+- **Impact:** Presentation only: a Metric page shows an Imperial compound unit beside converted ones. No wrong number.
+- **Decision:** Every compound unit that appears in a field or result is now classified (converted, neutral, metric-declared, Imperial-only). None is mapped wrongly and none is labelled wrongly, so there is no defect to fix. Under the rule written when this entry was created, unconverted-but-correct units are a deferred improvement: **superseded by GH-IMP-014**. No engine change.
 - **Dependencies:** GH-ENG-002 (unit-table factor audit).
-- **Revisit:** Reliability pass Item 4.
-- **Commits:** None yet.
-- **Tests:** None yet.
+- **Revisit:** None (superseded); see GH-IMP-014.
+- **Commits:** `e9af30f` (tests only).
+- **Tests:** `premium/tests/unit-census.test.js` (2,535 checks, 0 failures) with `premium/tests/data/unit-census.json`.
 - **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 4.
-- **Verification:** Every compound unit that appears in a field or result is classified (mapped correctly / unregistered but labelled correctly / wrong); any wrong one fixed with an independent test.
+- **Verification:** Every compound unit that appears in a field or result is classified (mapped correctly / unregistered but labelled correctly / wrong); any wrong one fixed with an independent test. Met: all classified, none wrong; the test fails on an unclassified unit.
 - **History:** 2026-10-12 — entry created.
+  2026-10-12 — superseded by GH-IMP-014: the census (`e9af30f`) found 0 wrongly mapped or mislabelled units among 2,762 unit-bearing rows; the 208 Imperial-only rows are unconverted but correct, which this entry's own Decision reclassifies as a deferred improvement. Kept for history; nothing deleted.
 
 ### GH-DEF-008 — Eight pre-existing engine self-test failures
 - **Status:** DEFERRED
@@ -678,13 +681,47 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Affected:** 30 calculators: `brake_bias`, `brake_energy`, `brake_rotor_temp`, `cda_from_coast_down`, `damping_coefficient_from_ratio`, `drag_downforce_tradeoff`, `load_transfer_distribution`, `load_transfer_lateral`, `load_transfer_longitudinal`, `natural_frequency`, `recovery_point_rating`, `ride_frequency`, `rotor_heat`, `tire_rolling_resistance`, `tow_actual_combined`, `tow_axle_load`, `tow_brake_energy`, `tow_gcwr_margin`, `tow_grade_power`, `tow_grade_speed`, `tow_gvwr_margin`, `tow_hitch_margin`, `tow_payload_remaining`, `tow_rolling_resistance`, `tow_tongue_percent`, `tow_trailer_capacity`, `weight_transfer_accel`, `weight_transfer_braking`, `winch_line_pull`, `yaw_inertia_estimate`.
 - **Impact:** Presentation only: a Metric user sees newtons for a quantity they think of in kilograms; a box labelled N is not mistaken for a mass in the way a box labelled kg that reads newtons is (GH-DEF-006).
 - **Decision:** Left as is. Changing it is a convention decision for the whole product (weights as mass in kg, forces in N), not a defect fix: it would touch more than 40 calculators, change a convention an existing test pins, and needs a rule for results that are forces computed from weights (load transfer, drag) so that a kg box is not combined with an N result. If decided, the mechanical change is one declaration per row (`lb` / `lbf` → `lbs`), after which `mass-force.test.js` and the JSON are updated in the same commit.
-- **Dependencies:** GH-DEF-006.
+- **Dependencies:** GH-DEF-006. Related instance found in Item 4c: cornering stiffness is a force per degree but is declared `lbs/deg` (mass per degree), so `understeer_gradient` reads kg/deg in Metric (the number is the force expressed in kilograms-force); `cornering_stiffness` prints `lb/deg` unconverted (GH-IMP-014). Decide both with the weight convention.
 - **Revisit:** On an owner decision about the weight convention, or when the Metric audience is prioritised.
 - **Commits:** None.
 - **Tests:** `premium/tests/mass-force.test.js` pins the current convention for every weight row.
 - **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
 - **Verification:** The decided rows show kg in Metric with 0.45359237, force results keep N, and the pinned list is updated.
 - **History:** 2026-10-12 — created from the Item 4b classification (47 weight rows).
+
+### GH-IMP-014 — Sixty-one US-customary units are not registered, so a Metric page shows them unconverted
+- **Status:** DEFERRED
+- **Severity:** Low
+- **Priority:** P2 (presentation completeness; no wrong number)
+- **Description:** 208 input boxes and result rows in 122 calculators use a US-customary unit that the engine does not register (`UNIT_ALIASES` / `UNIT_DEFS`), so they read the same unit and the same number in Metric (supersedes GH-DEF-007, which asked whether any of them is wrong; none is). Twelve of the 61 units are spellings of a unit that is registered, so one alias line each would convert them: `lb/min` → `lbs/min` (21 rows, 13 calculators), `mi` → `miles` (13 rows, 11), `gal/hr` → `GPH` (10, 8), `psia` → `psi` (10, 6), `in²` → `sq in` (8, 6), `lb/hp·hr` → `lb/hp-hr` (7, 7), `in³` → `ci` (6, 5), `MPG` → `mpg` (4, 3), `gpm` → `GPM` (2, 2), `psig` → `psi` (1, 1), `lb/HP` → `lbs/HP` (1, 1), `lb/deg` → `lbs/deg` (1, 1): 84 rows in 59 calculators. The other 49 need a new `UNIT_DEFS` entry (`BTU/hr`, `BTU`, `BTU/lb`, `BTU/lb·°F`, `BTU/hr·ft²·°F`, `BTU/hr·ft·°F`, `lb/gal`, `lb/in³`, `slug/ft³`, `lb/sq ft`, `in/s`, `in/sec`, `lb-in`, `in-lb`, `lb-in/rad`, `lb·s/in`, `lb·in²`, `slug-ft2`, `in⁴`, `psi·ft/min`, `oz`, `mi/kWh`, `kWh/100 mi`, `$/mi`, `gal/mi`, `gal/ton`, `$/ton`, `ton`, `acre`, `gal/acre`, `$/acre`, `gal/cycle`, `units/gal`, `in³/rev`, `in³/min`, `in/tooth`, `cu ft`, `gr/lb`, `micro-reyn`, `sq in·s`, `lb/hr per HP`, `lb/min per V`, `°/in`, `HP-equiv`, `lbs·in/°`) or have no common Metric counterpart (`°R`, `TPI`).
+- **Evidence:** `premium/tests/unit-census.test.js` and `premium/tests/data/unit-census.json` (every unit with its kind, `variant` or `new`, and the Metric unit it would read). Examples: `rod_bearing_pv` shows 116 bar and 1,005 m/min beside "PV Value 5,543,987 psi·ft/min"; `diesel_injection_quantity` shows its flow box in `lb/min` beside a result in kg.
+- **Affected:** 122 calculators; `LIST=1 node premium/tests/unit-census.test.js` prints every Imperial-only unit with the calculators that use it (not copied here, so the register does not carry a second list that can drift).
+- **Impact:** A Metric user sees an Imperial compound unit beside converted ones. The number and the label agree, so nothing is wrong; it is incomplete. The 12 spellings are the cheap first tranche, but each changes the Metric display and the Metric re-entry of 59 calculators, which needs the same before/after evidence as GH-DEF-006 (all 696 calculators compared), so it was not folded into a reliability fix.
+- **Decision:** Deferred. Registering units (or aliasing the 12 spellings) is a presentation improvement that touches more than 50 calculators, not a defect repair. `unit-census.test.js` makes the state visible and stops it growing silently: a new unit text that is not classified fails the test, so Batch 11 (which adds torque, inertia and stress units) classifies each new unit when it introduces it.
+- **Dependencies:** GH-ENG-002 (factors audited), GH-IMP-013 (weight / force convention: `lb/deg`, `lbs/deg`), GH-DEF-020 (the 134 metric-declared rows are a different population).
+- **Revisit:** When the Metric audience is prioritised, or when Batch 11 is authorised (decide whether its new units should be registered as they are added), whichever comes first.
+- **Commits:** None (test and data only, `e9af30f`).
+- **Tests:** `premium/tests/unit-census.test.js` pins the classification of every unit.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** For each unit decided: the Metric page shows the Metric unit with the exact factor (the pair is added to `PAIRS` in the census test with its independent factor), the Imperial page is byte-identical, and all 696 calculators are compared before and after.
+- **History:** 2026-10-12 — created from the Item 4c census; replaces GH-DEF-007.
+
+### GH-IMP-015 — Energy rows declared `ft-lb` read N·m in Metric instead of J
+- **Status:** DEFERRED
+- **Severity:** Low
+- **Priority:** P3 (label only; the number is right)
+- **Description:** `UNIT_ALIASES` maps `ft-lb` to `lb-ft` (the torque unit, Metric N·m), so the energy rows declared `ft-lb` read newton-metres in Metric. An N·m and a joule are the same unit and the number is correct (1 ft·lbf = 1.355817948 N·m = 1.355817948 J), but an energy is conventionally printed in joules. `UNIT_DEFS` already holds an `ft-lb` → J entry, reachable only through the alias `J`.
+- **Evidence:** Census scan: 5 rows in 4 calculators: `brake_energy` (Kinetic Energy), `brake_fade_energy` (the `bfe_e` box and Energy per Stop), `brake_fade_prediction` (the `bfp_e` box), `tow_brake_energy` (Kinetic Energy). Every `ft-lb` use in the engine is an energy. Found while auditing the alias table (GH-ENG-002).
+- **Affected:** The four calculators above; shared: `UNIT_ALIASES['ft-lb']`.
+- **Impact:** Cosmetic. A change would also rename the unit printed by anything else declared `ft-lb`, and `unit-system.test.js` pins the Brake Energy display, so it is a deliberate change with its own evidence, not a side fix.
+- **Decision:** Left as is. If decided: point the alias at the J definition (`'ft-lb':'ft-lb'`), update the pinned expectations, and compare all 696 calculators before and after.
+- **Dependencies:** GH-ENG-002.
+- **Revisit:** With GH-IMP-014, or if a torque is ever declared `ft-lb`.
+- **Commits:** None.
+- **Tests:** `unit-census.test.js` pairs `ft-lb` → `N·m` today; it would fail on the change and be updated with it.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** The five rows read J with the same numbers; torque rows (`ft-lbs`, `lb-ft`) are unchanged.
+- **History:** 2026-10-12 — created from the GH-ENG-002 alias audit.
 
 ---
 
@@ -722,21 +759,22 @@ This is the **single authoritative register** of known defects, deferred improve
   2026-10-12 — Item 2 audit complete: all 65 entries classified (table above). Confirmed ones are in section A (GH-DEF-002, -003, -012 fixed; GH-DEF-020 open). The question is answered; the entry is closed with the final regression of this pass.
 
 ### GH-ENG-002 — Are all registered unit conversion factors correct?
-- **Status:** INVESTIGATING
-- **Severity:** Medium (unknown until audited)
-- **Priority:** P1 (authorized; Item 4)
+- **Status:** VERIFIED CLOSED
+- **Severity:** Low (audited: no wrong factor found)
+- **Priority:** P1 (done; reliability pass Item 4c)
 - **Description:** `UNIT_DEFS` / `UNIT_ALIASES` have never been audited as a whole against a trusted reference (NIST SP 811). Individual units used by the expansion were checked as they were used.
-- **Evidence:** None of a wrong factor so far.
-- **Affected:** Shared: `UNIT_DEFS`, `UNIT_ALIASES`.
-- **Impact:** A wrong factor would be wrong everywhere the unit is used.
-- **Decision:** Item 4 audits every registered unit pair against NIST factors.
+- **Evidence:** `premium/tests/unit-factors.test.js` (`TABLE=1` prints the table) rebuilds the factor of every one of the 42 canonical units of `UNIT_DEFS` from the exact definitions (1 lb = 0.45359237 kg, 1 in = 0.0254 m, 1 ft = 0.3048 m, 1 mi = 1609.344 m, 1 US gal = 3.785411784 L, g = 9.80665 m/s², 1 hp = 550 ft·lbf/s, short ton = 2000 lb, circular mil = π/4 (0.001 in)², conventional inch of mercury 3.386389 kPa, conventional inch of water = 25.4 mm × 9.80665 Pa) and compares it with the engine. **All 42 agree within 1.63e-9 relative.** Only two are above 1e-9: `lb/in` 1.41e-9 and `lb/ft³` 1.63e-9, both because the engine writes its constant to 9 or 10 significant digits (0.175126835 against 0.1751268352; 16.0184634 against 16.01846337); the next largest is `HP/ton` / `HP/klb` 6.1e-10. Every other factor is exact or within 6e-10, `fromMetric(toMetric(x))` returns x within 1e-12, the four reference temperatures, the temperature-difference rule (× 5/9, no offset) and the mpg ↔ L/100 km reciprocal are exact. `inHg` is the SP 811 conventional value 3.386389 kPa (published to 7 digits; the 13595.1 kg/m³ definition gives 3.38638864, 1.06e-7 lower); the display shows 2 to 4 digits. `HP/ton` assumes the 2000 lb short ton. `UNIT_ALIASES` (87 entries): every alias resolves to a convertible canonical unit (two canonical units, `in-lb` and `°R`, deliberately have no conversion) and every alias that is not its own unit is the Metric label of that unit or a listed spelling. Findings that are not wrong factors: (1) five keys are written twice in the alias literal (`L/min`, `m/min`, `mm²`, `m/s`, `ft/s`); the last wins, and for four of them both targets convert identically, but for `L/min` the shadowed `cc/min` (÷1000) and the winner `CFM` (×28.3168) do not; harmless today because no calculator declares `L/min` (`unit-census.test.js` checks); (2) `qt` is aliased to `gal` although a quart is a quarter gallon; harmless today because every row that prints `qt` is a converter row printed raw (GH-DEF-003); (3) `ft-lb` is aliased to `lb-ft`, so the five energy rows declared `ft-lb` read N·m instead of J in Metric (same number, GH-IMP-015). None of the three changes a number, so none was changed.
+- **Affected:** Shared: `UNIT_DEFS`, `UNIT_ALIASES` (read, not changed).
+- **Impact:** No wrong factor exists, so no display in either system is off because of the unit table. The three findings above are latent or cosmetic.
+- **Decision:** No engine change. The question is answered by the test; the three findings are recorded here and in GH-IMP-015 instead of changing aliases that other tests and converter rows depend on. `unit-factors.test.js` fails if a factor, a Metric label, an alias target or the set of duplicated keys changes, so a new unit has to be added to its exact-factor table.
 - **Dependencies:** none.
-- **Revisit:** Reliability pass Item 4.
-- **Commits:** None yet.
-- **Tests:** None yet.
-- **Docs:** None.
-- **Verification:** Table of every registered unit with its factor, the NIST value and the difference; any difference above 1e-9 relative explained or fixed.
+- **Revisit:** When a unit is added to `UNIT_DEFS` or `UNIT_ALIASES` (the test asks for its exact factor), or if a calculator ever declares `L/min` or `qt`.
+- **Commits:** `e9af30f` (tests only; the engine is unchanged).
+- **Tests:** `premium/tests/unit-factors.test.js` (515 checks, 0 failures; 4 failures with a planted wrong psi factor); `premium/tests/unit-census.test.js` (declared-unit guard).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** Table of every registered unit with its factor, the NIST value and the difference (printed by `TABLE=1 node premium/tests/unit-factors.test.js`); any difference above 1e-9 relative explained or fixed (two are explained above).
 - **History:** 2026-10-12 — entry created.
+  2026-10-12 — closed: audited in `e9af30f`; `unit-factors.test.js` 515 checks, 0 failures on the engine at that commit; largest relative difference 1.63e-9 (`lb/ft³`); no factor wrong, no change to the unit tables. Findings (duplicate alias keys, `qt`, `ft-lb`) recorded above. Re-run in the closing regression of this pass.
 
 ### GH-ENG-003 — Do the airflow-block `an()` readers have the Head Flow Curve defect?
 - **Status:** INVESTIGATING
