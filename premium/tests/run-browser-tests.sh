@@ -12,12 +12,14 @@
 #   dew-point.test.js          Dew Point & Humidity against the rule in degrees Celsius and the Magnus formula, both systems (GH-DEF-005)
 #   formula-fingerprints.test.js every registry formula's fingerprint against the production seed, apart from the recorded corrections (GH-ENG-014)
 #   mass-force.test.js         every box / result row declared in a pound unit: masses read kg, forces and weights read N, typed kg gives the right physics (GH-DEF-006)
+#   unit-factors.test.js       every registered unit conversion factor and alias against the exact SI definitions (GH-ENG-002)
+#   unit-census.test.js        the unit text and number of every box / row of all 696 calculators, Imperial against Metric: converted pairs, classified unchanged units (GH-DEF-007)
 # Run with the Playwright module on NODE_PATH or installed globally. GH_ENGINE=path tests another copy of the engine.
 # Takes about 35 minutes on a 2-core machine. Exit code 0 only when every suite passes. (run-tests.sh is the separate backend/schema suite.)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 rc=0
-for t in engine-selftest.js browser-smoke.js unit-system.test.js temperature-units.test.js toggle-sweep.test.js nav-return.test.js converters.test.js label-consistency.test.js remembered-values.test.js dew-point.test.js formula-fingerprints.test.js mass-force.test.js; do
+for t in engine-selftest.js browser-smoke.js unit-system.test.js temperature-units.test.js toggle-sweep.test.js nav-return.test.js converters.test.js label-consistency.test.js remembered-values.test.js dew-point.test.js formula-fingerprints.test.js mass-force.test.js unit-factors.test.js unit-census.test.js; do
   echo "=== $t"
   node "$HERE/$t" || { echo "FAILED: $t"; rc=1; }
 done
