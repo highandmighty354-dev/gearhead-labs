@@ -9862,6 +9862,11 @@ document.addEventListener("DOMContentLoaded",()=>{
     // first, certValue reads that live DOM value directly -- so without converting it
     // back here, a metric-displayed number gets used as if it were still canonical
     // Imperial. convertFromDisplay is the same canonical-ize step v()/vd() already use
+    // Unit-system switch: the DOM still holds the PRE-switch display strings while UNIT.system is already the NEW system,
+    // so converting them (below) would treat e.g. '3200' lb as 3200 N. v()/vd() already read the exact pre-switch canonical
+    // value from UNIT_SWITCH_CANONICAL for this render; do the same here. Only for unit-bearing fields (unit arg given): the
+    // snapshot holds only finite values of fields declared with a unit, and callers that pass no unit are left untouched.
+    if(unit&&UNIT_SWITCH_CANONICAL&&Object.prototype.hasOwnProperty.call(UNIT_SWITCH_CANONICAL,id)){const cv=UNIT_SWITCH_CANONICAL[id];if(typeof cv==='number'&&Number.isFinite(cv))return cv;}
     // for every pre-existing calculator; omitting `unit` (as all GH_E1_FORMULAS/
     // certFormulaRenderer calculators do, which never declare a real unit to field()
     // in the first place) keeps the exact previous passthrough behavior.
