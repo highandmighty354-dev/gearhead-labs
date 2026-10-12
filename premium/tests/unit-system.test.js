@@ -33,7 +33,11 @@ const K = {
   slugft3_kgm3: 515.378818393,     // kg/m^3 per slug/ft^3
   psf_Pa: 47.88025898,             // Pa per lbf/ft^2
   rho_ISA: 1.2250,                 // kg/m^3, ISA sea level, 15 C
-  rho_engine_slugft3: 0.0023769    // the Imperial default the Free aero calculators ship (1.22499... kg/m^3, ISA)
+  rho_engine_slugft3: 0.0023769,   // the Imperial default the Free aero calculators ship (1.22499... kg/m^3, ISA)
+  ftlbf_J: 1.3558179483314004,     // J per ft.lbf (0.3048 m x 4.4482216152605 N)
+  g0: 9.80665,                     // m/s^2, standard gravity (exact)
+  in_m: 0.0254,                    // m per inch (exact)
+  cfm_m3s: 4.719474432e-4          // m^3/s per CFM (0.3048^3 / 60, exact)
 };
 /* input kinds: display (in system sys) -> SI, and SI -> display */
 const IN = {
@@ -41,13 +45,19 @@ const IN = {
   sqft:   { toSI: (s, x) => s === 'metric' ? x : x * K.sqft_m2, fromSI: (s, x) => s === 'metric' ? x : x / K.sqft_m2 },
   speed:  { toSI: (s, x) => s === 'metric' ? x / 3.6 : x * K.mph_ms, fromSI: (s, x) => s === 'metric' ? x * 3.6 : x / K.mph_ms },
   force:  { toSI: (s, x) => s === 'metric' ? x : x * K.lbf_N, fromSI: (s, x) => s === 'metric' ? x : x / K.lbf_N },
-  density_slugft3: { toSI: (s, x) => x * K.slugft3_kgm3, fromSI: (s, x) => x / K.slugft3_kgm3 }   // unregistered unit: same text in both systems
+  density_slugft3: { toSI: (s, x) => x * K.slugft3_kgm3, fromSI: (s, x) => x / K.slugft3_kgm3 },   // unregistered unit: same text in both systems
+  energy: { toSI: (s, x) => s === 'metric' ? x : x * K.ftlbf_J, fromSI: (s, x) => s === 'metric' ? x : x / K.ftlbf_J },    // ft-lb <-> J
+  length: { toSI: (s, x) => s === 'metric' ? x / 1000 : x * K.in_m, fromSI: (s, x) => s === 'metric' ? x * 1000 : x / K.in_m },  // in <-> mm
+  cfm:    { toSI: (s, x) => s === 'metric' ? x / 60000 : x * K.cfm_m3s, fromSI: (s, x) => s === 'metric' ? x * 60000 : x / K.cfm_m3s }  // CFM <-> L/min
 };
 /* output kinds: SI -> display, plus the unit text the page must show */
 const OUT = {
   force:  { fromSI: (s, x) => s === 'metric' ? x : x / K.lbf_N, unit: s => s === 'metric' ? 'N' : 'lb' },
   power:  { fromSI: (s, x) => s === 'metric' ? x / 1000 : x / K.hp_W, unit: s => s === 'metric' ? 'kW' : 'HP' },
-  psf:    { fromSI: (s, x) => x / K.psf_Pa, unit: s => 'lb/sq ft' }                                     // unregistered unit: shown as lb/sq ft in both systems
+  psf:    { fromSI: (s, x) => x / K.psf_Pa, unit: s => 'lb/sq ft' },                                    // unregistered unit: shown as lb/sq ft in both systems
+  /* the engine labels an energy in ft-lb as N·m in Metric (its 'ft-lb' alias is the torque unit); 1 N·m = 1 J, so the number is right and only the symbol differs from the conventional J */
+  energy: { fromSI: (s, x) => s === 'metric' ? x : x / K.ftlbf_J, unit: s => s === 'metric' ? 'N·m' : 'ft-lb' },
+  cfm:    { fromSI: (s, x) => s === 'metric' ? x * 60000 : x / K.cfm_m3s, unit: s => s === 'metric' ? 'L/min' : 'CFM' }
 };
 
 /* ---- cases: fields = [id, input kind, SI edit value used for the re-entry steps]; compute(inSI) -> {label: [outKind, SI value]} ---- */
@@ -63,7 +73,21 @@ const CASES = [
   { id: 'dynamic_pressure', fields: [['dp_rho', 'density_slugft3', 1.18], ['dp_v', 'speed', 40.0]],
     compute: v => ({ 'Dynamic Pressure': ['psf', 0.5 * v.dp_rho * v.dp_v * v.dp_v] }) },
   { id: 'aero_hp', fields: [['ahp_f', 'force', 520.0], ['ahp_v', 'speed', 33.0]],
-    compute: v => ({ 'Aerodynamic Power': ['power', v.ahp_f * v.ahp_v] }) }
+    compute: v => ({ 'Aerodynamic Power': ['power', v.ahp_f * v.ahp_v] }) },
+  /* --- reliability pass item 3: the three calculators reported by the sweep after Batch 10 --- */
+  { id: 'brake_energy', fields: [['wt_be', 'force', 15600], ['v_be', 'speed', 29.0]],                 // "Vehicle Weight" is a weight force (lbf <-> N)
+    compute: v => ({ 'Kinetic Energy': ['energy', 0.5 * (v.wt_be / K.g0) * v.v_be * v.v_be] }) },       // KE = 1/2 m v^2, m = W / g
+  { id: 'brake_fade_energy', fields: [['bfe_e', 'energy', 2400000], ['bfe_n', 'none', 10]],
+    compute: v => ({ 'Energy per Stop': ['energy', v.bfe_e / v.bfe_n] }) },
+  /* a measured flow table: 9 lift points (in <-> mm) with 9 intake flows (CFM <-> L/min) and a query lift; the result is plain linear interpolation */
+  { id: 'head_flow_curve',
+    fields: [...[0.0510, 0.1020, 0.2040, 0.3060, 0.4080, 0.5100, 0.6120, 0.7140, 0.8160].map((x, i) => ['flow_lift_' + i, 'length', x * K.in_m]),
+             ...[84, 152, 220, 262, 299, 320, 331, 336, 338].map((x, i) => ['flow_intake_' + i, 'cfm', x * K.cfm_m3s]),
+             ['flow_query', 'length', 0.37 * K.in_m]],
+    compute: v => { const pts = []; for (let i = 0; i < 9; i++) pts.push([v['flow_lift_' + i], v['flow_intake_' + i]]);
+      const q = v.flow_query; let out = NaN;
+      for (let i = 1; i < pts.length; i++) if (q <= pts[i][0]) { const f = (q - pts[i - 1][0]) / (pts[i][0] - pts[i - 1][0]); out = pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * f; break; }
+      return { 'Interpolated Intake CFM': ['cfm', out] }; } }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;
