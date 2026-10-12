@@ -29,7 +29,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-002](#gh-def-002--evregenpower-labels-an-already-converted-kw-figure-kw-and-the-display-layer-converts-it-again) | `ev_regen_power` labels an already-converted kW figure "kW" and the display layer converts it again | FIXED — UNVERIFIED | Medium | P1 |
 | [GH-DEF-003](#gh-def-003--seven-converter-calculators-convert-their-result-rows-a-second-time-in-metric) | Seven converter calculators convert their result rows a second time in Metric | FIXED — UNVERIFIED | Medium | P1 |
 | [GH-DEF-004](#gh-def-004--remembered-values-reappear-unconverted-after-a-unit-switch-made-on-another-calculator-class-c) | Remembered values reappear unconverted after a unit switch made on another calculator (Class C) | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-005](#gh-def-005--dewpoint-applies-a-celsius-rule-of-thumb-to-a-fahrenheit-input) | `dew_point` applies a Celsius rule of thumb to a Fahrenheit input | OPEN | Medium | P1 |
+| [GH-DEF-005](#gh-def-005--dewpoint-applies-a-celsius-rule-of-thumb-to-a-fahrenheit-input) | `dew_point` applies a Celsius rule of thumb to a Fahrenheit input | FIXED — UNVERIFIED | Medium | P1 |
 | [GH-DEF-006](#gh-def-006--mass-quantities-declared-in-lb-display-as-newtons-in-metric) | Mass quantities declared in `lb` display as newtons in Metric | INVESTIGATING | Medium | P1 |
 | [GH-DEF-007](#gh-def-007--unregistered-compound-units-stay-imperial-in-metric-mode) | Unregistered compound units stay Imperial in Metric mode | INVESTIGATING | Low | P2 |
 | [GH-DEF-008](#gh-def-008--eight-pre-existing-engine-self-test-failures) | Eight pre-existing engine self-test failures | DEFERRED | Low | Deferred |
@@ -71,6 +71,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-ENG-011](#gh-eng-011--wind-et-calculator-ignores-its-wind-direction-input-task-4-audit-item) | Wind-ET calculator ignores its wind-direction input (Task 4 audit item) | OPEN | Unknown | P2 |
 | [GH-ENG-012](#gh-eng-012--max-safe-rpm-heuristic-assumptions-task-4-audit-item) | Max-safe-RPM heuristic assumptions (Task 4 audit item) | OPEN | Unknown | P3 |
 | [GH-ENG-013](#gh-eng-013--trailer-sway-and-brake-controller-heuristic-labelling-task-4-audit-item) | Trailer-sway and brake-controller heuristic labelling (Task 4 audit item) | OPEN | Unknown | P3 |
+| [GH-ENG-014](#gh-eng-014--dewpoint-has-a-new-formula-fingerprint-the-production-formulaversions-table-has-no-row-for-it) | `dew_point` has a new formula fingerprint: the production `formula_versions` table has no row for it | OPEN | Medium | P2 |
 | [GH-FUT-001](#gh-fut-001--batch-11-structural--mechanical--machining--nvh-37-calculators) | Batch 11: Structural / Mechanical / Machining + NVH (37 calculators) | AWAITING AUTHORIZATION | n/a | P1 once authorized |
 | [GH-FUT-002](#gh-fut-002--batch-13-two-stroke-4-calculators) | Batch 13: Two-Stroke (4 calculators) | APPROVED | n/a | P2 |
 | [GH-FUT-003](#gh-fut-003--batch-14-ev--hybrid-6-calculators) | Batch 14: EV / Hybrid (6 calculators) | APPROVED | n/a | P2 |
@@ -164,21 +165,22 @@ This is the **single authoritative register** of known defects, deferred improve
   2026-10-12 — fixed in `def921c`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `remembered-values.test.js` fails 152 of 308 checks on the previous engine (30 Metric-elsewhere, 60 switch-on-the-same-calculator, 30 Metric-typed, 22 edit-after-switch, 5 two-calculators, the anchor and others) and 0 of 309 on the fix; anchor: 100 mph typed in Imperial reads 160.934 km/h after Metric is chosen on another calculator and 100 mph after Imperial is chosen again; the three `toggle-sweep` examples (`drag_force`, `brake_rotor_temp`, `rotor_cooling_rate`) were failing and are enforced; a before/after comparison of all 696 calculators in both systems (default render plus a 1.25 x edit of each of up to 8 fields, real typing) changed 0 in Imperial and 0 in Metric. Not covered: the result panel of a calculator that reads its boxes through `v()`/`vd()` after navigating (GH-DEF-018, next commit).
 
 ### GH-DEF-005 — `dew_point` applies a Celsius rule of thumb to a Fahrenheit input
-- **Status:** OPEN
+- **Status:** FIXED — UNVERIFIED
 - **Severity:** Medium
-- **Priority:** P1 (authorized; Item 4)
-- **Description:** The calculator computes `Dew Point = Temp − (100 − RH) / 5` on the temperature in °F. That rule of thumb (Lawrence 2005, accurate to about 1 °C for RH above 50%) is defined for °C; in °F the subtraction is too small by a factor of 1.8.
+- **Priority:** P1 (done; reliability pass Item 4a)
+- **Description:** The calculator computes `Dew Point = Temp − (100 − RH) / 5` on the temperature in °F. That rule of thumb (Lawrence 2005) is defined for °C; in °F the subtraction is too small by a factor of 1.8. (The rule's accuracy was first recorded here as "about 1 °C for RH above 50%"; measured in Item 4a it is within 1.24 °C of the Magnus formula for RH 60–100% from 0 to 40 °C and 2.4 °C off at 40 °C / 50% — see History.)
 - **Evidence:** Source read at `RENDERS`-table entry `dew_point` (`const dp = +(temp_dp-((100-rh_dp)/5)).toFixed(1)`). Hand calculation, default 75 °F / 60% RH: engine 67.0 °F; the rule in °C gives 23.89 − 8 = 15.89 °C = 60.6 °F; the Magnus formula gives about 60.6 °F. Browser reproduction and the independent Magnus check are made in Item 4.
 - **Affected:** `dew_point` (Free), results "Dew Point" and "Temp/Dew Spread".
 - **Impact:** Dew point reported several °F too high in the default case, growing as humidity drops; affects the "dry air = more power" guidance the page gives.
-- **Decision:** Authorized (Item 4) once confirmed; the fix keeps the calculator's stated rule of thumb but evaluates it in °C.
-- **Dependencies:** none.
+- **Decision:** Fixed in Item 4a. The calculator's stated rule of thumb is kept and evaluated in °C: the drop below the air temperature is 1.8 × (100 − RH)/5 in °F. Four places carried the same formula and are corrected together so they cannot disagree: the calculator, the formula registry entry the page displays (`GH_LEGACY_FORMULAS.dew_point`), the explainer example (75 °F at 60% now reads about 61 °F, a 14 °F spread, not 67 °F / 8 °F) and the engine self-test expectation, which had encoded the same mistake (`75-(40/5)`). The registry entry is part of the formula's fingerprint, so this fix gives `dew_point` a new fingerprint (`fv1-260e7f34` → `fv1-73ddeaf4`); what that means for the production database is GH-ENG-014. The Magnus formula itself was not adopted (that would be a different calculator); the rule's own error band is documented in the test.
+- **Dependencies:** GH-ENG-014 (new formula fingerprint; deployment prerequisite for saving dew point calculations).
 - **Revisit:** Reliability pass Item 4.
-- **Commits:** None yet.
-- **Tests:** None yet (independent Magnus-formula test to be added).
+- **Commits:** `4bfbb48` (calculator, registry entry, explainer example, self-test expectation, catalog hash, tests).
+- **Tests:** `premium/tests/dew-point.test.js` (688 checks: the stated rule in °C and the Magnus formula, both systems, plus a switch with values typed); `premium/tests/formula-fingerprints.test.js` (GH-ENG-014); the engine self-test case `dew_point` now expects the rule in °C; `temperature-units.test.js` and `toggle-sweep.test.js` already cover the spread identity and the unit toggle.
 - **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 4.
-- **Verification:** Results agree with the Magnus-Tetens dew point within the rule's stated accuracy across a grid of temperature and RH ≥ 50%, in Imperial and Metric; spread consistent; test fails on the unfixed engine.
+- **Verification:** Results agree with the Magnus-Tetens dew point within the rule's stated accuracy across a grid of temperature and RH ≥ 60% (0–40 °C), in Imperial and Metric, and with the stated rule evaluated in °C at every grid point including RH below 60% (criterion corrected from "RH ≥ 50%": the rule drifts below 60%, see History); spread consistent; test fails on the unfixed engine.
 - **History:** 2026-10-12 — entry created from the earlier finding; confirmed by reading the source and hand calculation.
+  2026-10-12 — fixed in `4bfbb48`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `dew-point.test.js` fails 301 of 688 checks on the previous engine (for example 75 °F at 60% reads 67 °F, the rule in °C gives 60.6 °F, Magnus 60.2 °F) and 0 of 688 on the fix; a before/after comparison of all 696 calculators in both systems changed exactly one calculator in each system, `dew_point` (Imperial 67 °F / 8 °F spread → 60.6 °F / 14.4 °F; Metric 19.4444 °C → 15.8889 °C = 23.8889 °C − 8 °C), with 0 page errors; engine self-test 674 total / 666 passed / 8 failed (the 8 known baseline failures, 0 new). Accuracy of the rule, measured: against Magnus (Alduchov–Eskridge constants) the rule is within 1.24 °C for RH 60–100% between 0 and 40 °C, worst at 40 °C / 60%; below 60% it drifts (2.4 °C at 40 °C / 50%), so the test compares RH below 60% with the stated rule only.
 
 ### GH-DEF-006 — Mass quantities declared in `lb` display as newtons in Metric
 - **Status:** INVESTIGATING
@@ -904,6 +906,24 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Docs:** `V1.1.0_TASK4_AUDIT_STATUS.md`.
 - **Verification:** Help text states the heuristic basis and limits.
 - **History:** 2026-10-12 — entered from the older audit note.
+
+### GH-ENG-014 — `dew_point` has a new formula fingerprint: the production `formula_versions` table has no row for it
+- **Status:** OPEN
+- **Severity:** Medium (only once the branch is deployed: no calculation made with the corrected formula can be stored until a row exists; nothing in the current front end stores one)
+- **Priority:** P2 (decision needed before the branch is merged or deployed; no production change was made)
+- **Description:** Every registry formula has a fingerprint (`fv1-` plus an FNV-1a hash of its expressions, units and options). The production table `formula_versions` holds one row per calculator with the fingerprint exported from the engine (`supabase/migrations/0005_reference_seed.sql`, frozen), and `calculation_records` points at it with the foreign key `calc_formula_version_fk`; rows are never altered or deleted (`df_never_changed`). Correcting the `dew_point` formula (GH-DEF-005) changed its fingerprint from `fv1-260e7f34` to `fv1-73ddeaf4`, so a calculation stored with the corrected formula would have no row to point at. Until this branch the engine and the seed agreed for all 577 formulas.
+- **Evidence:** Engine fingerprints compared with the seed: 577 of 577 identical on the engine before the fix, 576 of 577 after (only `dew_point` differs). Guard: `premium/tests/formula-fingerprints.test.js` (passes on the fixed engine with `dew_point` recorded as corrected; fails if a second formula changes without a record, if the recorded fingerprint changes again, or if the record goes stale). Search of the non-test code in this repository for `GH_ENGINE.calculate` / `GH_ENGINE.describe`: no front-end code stores calculations through the formula engine today. The formula-engine output for the defaults is 60.6 °F, equal to the calculator page.
+- **Affected:** `dew_point` only. Rows written under the old fingerprint (if any exist in production; this session has no access to production) keep the old result by design: formula versions are history.
+- **Impact:** None while no calculation is stored through the engine. Once saving is wired to the engine, a `dew_point` save would be refused by the foreign key until the row below is added.
+- **Decision:** NOT decided here and NOT applied. Production was not touched, no migration file was added (the repository has no precedent for a correction after the seed export, and numbering, `engine_version` and `first_release` are owner decisions). Proposed row for a new, reviewed migration, for the owner to confirm:
+  `INSERT INTO public.formula_versions (calculator_id, formula_version, engine_version, formula_registry, first_release) VALUES ('dew_point', 'fv1-73ddeaf4', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4') ON CONFLICT (calculator_id, formula_version) DO NOTHING;` (the old row stays). Open questions for the owner: (1) migration number and wording; (2) whether the catalog tooling should read the latest version per calculator instead of the 0005 seed alone (`catalog/check-catalog.js` currently pins each fingerprint to 0005 and still passes, because the catalog describes production as provisioned); (3) whether any `dew_point` records exist in production.
+- **Dependencies:** GH-DEF-005.
+- **Revisit:** Before this branch is merged or deployed, or before any calculation is stored through the formula engine, whichever is first. Any later correction of a registry formula raises the same question; the guard test fails until it is recorded.
+- **Commits:** `4bfbb48` (guard test and the fingerprint change).
+- **Tests:** `premium/tests/formula-fingerprints.test.js`; run by `premium/tests/run-browser-tests.sh`.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** The owner has decided and recorded the migration (or the decision not to version the correction); the guard test's `VERSIONED` list then points at the migration; a throwaway-database run shows the new row inserts and a `calculation_records` row can reference it.
+- **History:** 2026-10-12 — found while fixing GH-DEF-005 (the formula registry entry had to change with the calculator); entry created.
 
 ---
 
