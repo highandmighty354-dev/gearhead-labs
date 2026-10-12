@@ -28,7 +28,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-001](#gh-def-001--free-calculators-read-a-unit-bearing-field-without-its-unit-class-a) | Free calculators read a unit-bearing field without its unit (Class A) | FIXED — UNVERIFIED | Medium | P1 |
 | [GH-DEF-002](#gh-def-002--evregenpower-labels-an-already-converted-kw-figure-kw-and-the-display-layer-converts-it-again) | `ev_regen_power` labels an already-converted kW figure "kW" and the display layer converts it again | FIXED — UNVERIFIED | Medium | P1 |
 | [GH-DEF-003](#gh-def-003--seven-converter-calculators-convert-their-result-rows-a-second-time-in-metric) | Seven converter calculators convert their result rows a second time in Metric | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-004](#gh-def-004--remembered-values-reappear-unconverted-after-a-unit-switch-made-on-another-calculator-class-c) | Remembered values reappear unconverted after a unit switch made on another calculator (Class C) | OPEN | Medium | P1 |
+| [GH-DEF-004](#gh-def-004--remembered-values-reappear-unconverted-after-a-unit-switch-made-on-another-calculator-class-c) | Remembered values reappear unconverted after a unit switch made on another calculator (Class C) | FIXED — UNVERIFIED | Medium | P1 |
 | [GH-DEF-005](#gh-def-005--dewpoint-applies-a-celsius-rule-of-thumb-to-a-fahrenheit-input) | `dew_point` applies a Celsius rule of thumb to a Fahrenheit input | OPEN | Medium | P1 |
 | [GH-DEF-006](#gh-def-006--mass-quantities-declared-in-lb-display-as-newtons-in-metric) | Mass quantities declared in `lb` display as newtons in Metric | INVESTIGATING | Medium | P1 |
 | [GH-DEF-007](#gh-def-007--unregistered-compound-units-stay-imperial-in-metric-mode) | Unregistered compound units stay Imperial in Metric mode | INVESTIGATING | Low | P2 |
@@ -42,6 +42,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-016](#gh-def-016--hpfromspecs-produced-a-physically-impossible-result-missing-air-density-conversion) | `hp_from_specs` produced a physically impossible result (missing air-density conversion) | FIXED — UNVERIFIED | High | P1 |
 | [GH-DEF-017](#gh-def-017--rcbrakebiasrc-bug-recorded-open-in-older-notes) | `rc_brake_bias_rc` bug recorded OPEN in older notes | FIXED — UNVERIFIED | Low | P3 |
 | [GH-DEF-018](#gh-def-018--result-panel-is-computed-from-the-shipped-defaults-after-navigating-away-and-returning-class-d) | Result panel is computed from the shipped defaults after navigating away and returning (Class D) | OPEN | High | P1 |
+| [GH-DEF-021](#gh-def-021--a-box-id-shared-by-two-calculators-lets-one-calculators-remembered-text-appear-in-the-other-even-when-the-units-differ) | A box id shared by two calculators lets one calculator's remembered text appear in the other, even when the units differ | FIXED — UNVERIFIED | Low | P1 |
 | [GH-DEF-019](#gh-def-019--distanceconverter-turns-yards-into-kilometres-with-0000914-instead-of-00009144) | `distance_converter` turns yards into kilometres with 0.000914 instead of 0.0009144 | OPEN | Low | P3 |
 | [GH-DEF-020](#gh-def-020--29-free-calculators-declare-a-metric-named-unit-on-a-value-the-engine-treats-as-imperial-so-metric-shows-and-reads-the-wrong-number) | 29 Free calculators declare a Metric-named unit on a value the engine treats as Imperial, so Metric shows and reads the wrong number | OPEN | High | P1 candidate |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | DEFERRED | Low | P3 |
@@ -60,7 +61,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-ENG-002](#gh-eng-002--are-all-registered-unit-conversion-factors-correct) | Are all registered unit conversion factors correct? | INVESTIGATING | Medium | P1 |
 | [GH-ENG-003](#gh-eng-003--do-the-airflow-block-an-readers-have-the-head-flow-curve-defect) | Do the airflow-block `an()` readers have the Head Flow Curve defect? | INVESTIGATING | Medium | P1 |
 | [GH-ENG-004](#gh-eng-004--do-the-cross-calculator-stage-handoffs-write-values-in-the-right-unit-system) | Do the cross-calculator "stage" handoffs write values in the right unit system? | OPEN | Unknown | P2 |
-| [GH-ENG-005](#gh-eng-005--does-leaving-a-calculator-write-its-inputs-into-the-next-calculators-remembered-state) | Does leaving a calculator write its inputs into the next calculator's remembered state? | OPEN | Unknown | P2 |
+| [GH-ENG-005](#gh-eng-005--does-leaving-a-calculator-write-its-inputs-into-the-next-calculators-remembered-state) | Does leaving a calculator write its inputs into the next calculator's remembered state? | SUPERSEDED | Unknown | P2 |
 | [GH-ENG-006](#gh-eng-006--is-the-vehicle-profile-editor-covered-by-the-unit-handling-fixes) | Is the vehicle-profile editor covered by the unit-handling fixes? | OPEN | Unknown | P2 |
 | [GH-ENG-007](#gh-eng-007--bmep--torque-model-and-units-task-4-audit-item) | BMEP / torque model and units (Task 4 audit item) | OPEN | Unknown | P2 |
 | [GH-ENG-008](#gh-eng-008--valve-lash-pushrod-length-input-wiring-task-4-audit-item) | Valve-lash pushrod-length input wiring (Task 4 audit item) | OPEN | Unknown | P2 |
@@ -144,21 +145,22 @@ This is the **single authoritative register** of known defects, deferred improve
   2026-10-12 — fixed in `df3764b`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `converters.test.js` fails 708 of 2,064 checks on the previous engine (133 distance, 20 fraction, 57 power, 159 pressure, 48 sheet gauge, 132 speed, 159 volume; none in the 27 single-purpose converters) and 0 on the fix; examples on the previous engine: speed converter in Metric showed the MPH row as "96.56 km/h" and 60 mph as 155.4 km/h, power converter showed 316.92 kW as 236.3 kW; the sweep converter section is identical in both systems for all eight converters; before/after comparison of 696 calculators: 0 changed in Imperial, exactly 8 in Metric.
 
 ### GH-DEF-004 — Remembered values reappear unconverted after a unit switch made on another calculator (Class C)
-- **Status:** OPEN
+- **Status:** FIXED — UNVERIFIED
 - **Severity:** Medium
-- **Priority:** P1 (authorized; Item 3)
-- **Description:** Each calculator remembers its inputs as display strings (`CALC_PERSISTENT_STATE`) with no record of the unit system they were typed in. If the unit system is switched while another calculator is open, the remembered string is shown again unchanged under the new unit label: 100 mph reappears as 100 km/h (about 62 mph).
+- **Priority:** P1 (done; reliability pass Item 3)
+- **Description:** Each calculator remembers its inputs as display strings (`CALC_PERSISTENT_STATE`) with no record of the unit system they were typed in. If the unit system is switched while another calculator is open, the remembered string is shown again unchanged under the new unit label: 100 mph reappears as 100 km/h (about 62 mph). The same happened after switching on the same calculator, leaving it and coming back (the text captured during the switch was still in the old system).
 - **Evidence:** `toggle-sweep.test.js` "remembered value" checks reproduce it on `drag_force` (speed 100 mph → box shows 100 km/h, correct 160.9344), `brake_rotor_temp` (100 → 160.9344), `rotor_cooling_rate` (3 sq ft → shows 3 m², correct 0.2787). Reproduction: Imperial, type 100 in Drag Force speed, open Dynamic Pressure, click Metric, reopen Drag Force. Mechanism read in the code: `renderCalc` seeds `CALC_FIELD_SNAPSHOT` from the stored strings and `field()` displays a snapshot string as-is.
 - **Affected:** Shared: `renderCalc`, `field()`, `CALC_PERSISTENT_STATE`, `setUnit`. Every calculator with a unit-bearing field.
 - **Impact:** A user can silently get a calculation from a value that means something different from what they typed.
-- **Decision:** Authorized (Item 3): convert so the physical meaning is preserved; where safe conversion is impossible keep the original value rather than show a misleading number.
+- **Decision:** Authorized (Item 3): convert so the physical meaning is preserved; where safe conversion is impossible keep the original value. Done: `CALC_STATE_META[calculator][box] = {calc, system, unit}` is recorded with every numeric box `renderCalc` captures (whose page it came from, the system its text was displayed in, and its unit); `adaptRemembered()` converts the remembered text once into the system now on screen, through canonical units with the functions the live toggle uses. The stored text is never rewritten, so repeated switches elsewhere convert from the original typed text and cannot drift. Kept as typed: text that is not a plain number, boxes with no unit, values with no record (the engine-lab staging hand-off drops its record), and boxes of a unit switch in progress (the exact pre-switch value is used there, as before). Not done: keeping an exact canonical value per box (GH-IMP-004 stays deferred): a box edited in Metric and switched back shows its display rounding, within 2e-5 relative.
 - **Dependencies:** Interacts with GH-DEF-001 (unit inference for the first render after returning); GH-ENG-004 (staging handoffs write into the same store); GH-ENG-005.
 - **Revisit:** Reliability pass Item 3.
-- **Commits:** None yet.
-- **Tests:** `premium/tests/toggle-sweep.test.js` (stale-state section, currently recording the defect); a full navigation matrix to be added.
+- **Commits:** `def921c`
+- **Tests:** `premium/tests/remembered-values.test.js` (new matrix: 11 calculators × 8 scenarios + anchor, kept-as-typed, no-record, unit-less, drop-down, shared-id hand-off); `premium/tests/toggle-sweep.test.js` (the three recorded examples are now enforced).
 - **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 3.
 - **Verification:** 100 mph → about 160.9 km/h and back to 100 mph; Imperial→Metric, Metric→Imperial, repeated toggles, editing after switching, navigating away and returning, switching on a different calculator before returning, calculators with differently-unit fields; one calculator's unit switch never relabels another's stored value; round-trip within display rounding; non-numeric remembered text left alone.
 - **History:** 2026-10-12 — entry created; mechanism confirmed in the code.
+  2026-10-12 — fixed in `def921c`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `remembered-values.test.js` fails 152 of 308 checks on the previous engine (30 Metric-elsewhere, 60 switch-on-the-same-calculator, 30 Metric-typed, 22 edit-after-switch, 5 two-calculators, the anchor and others) and 0 of 309 on the fix; anchor: 100 mph typed in Imperial reads 160.934 km/h after Metric is chosen on another calculator and 100 mph after Imperial is chosen again; the three `toggle-sweep` examples (`drag_force`, `brake_rotor_temp`, `rotor_cooling_rate`) were failing and are enforced; a before/after comparison of all 696 calculators in both systems (default render plus a 1.25 x edit of each of up to 8 fields, real typing) changed 0 in Imperial and 0 in Metric. Not covered: the result panel of a calculator that reads its boxes through `v()`/`vd()` after navigating (GH-DEF-018, next commit).
 
 ### GH-DEF-005 — `dew_point` applies a Celsius rule of thumb to a Fahrenheit input
 - **Status:** OPEN
@@ -386,6 +388,23 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" (summary added at the end of the pass).
 - **Verification:** The ledger emptied (or each remaining calculator reclassified here with a reason), `nav-return.test.js` passing on all 696 calculators with an empty ledger, the Item 3 navigation matrix passing, and no change in the other suites (engine self-test baseline, unit-system, temperature, toggle-sweep).
 - **History:** 2026-10-12 — found by the navigation probe while preparing Item 3; mechanism confirmed in the code; the 404 / 696 count measured on the engine at `2c89397`.
+
+### GH-DEF-021 — A box id shared by two calculators lets one calculator's remembered text appear in the other, even when the units differ
+- **Status:** FIXED — UNVERIFIED
+- **Severity:** Low (4 box ids; wrong value shown in a box on direct navigation)
+- **Priority:** P1 (done; reliability pass Item 3)
+- **Description:** `renderCalc(id)` captures every input of the page on screen into the remembered state of the calculator being opened, and restores the focused box's text into the new page. When two calculators use the same box id, the first calculator's text appeared in the second. For 57 of the 61 shared ids the units agree (sibling calculators) and the hand-off is harmless; for four the units differ, so a value of one unit became a value of another: a g-value typed in `weight_transfer` (`g2`) became the gear ratio of `gear_shift_rpm_drag`; `epc_p`, `eir_i` and `dds_t` likewise (inH2O / unit-less, CFM / A, hr / lb-ft).
+- **Evidence:** Collision list and reproduction in GH-ENG-005 (superseded by this entry): `g2` 0.9 typed in Weight Transfer showed 0.9 as the gear ratio of Gear Shift RPM / Drag. Two paths were reproduced: the capture into the new calculator's remembered state, and the focus restore (navigating with the box still focused, for example through the browser history).
+- **Affected:** Shared: `renderCalc`, `field()`, `certValue()`. Box ids `g2`, `epc_p`, `eir_i`, `dds_t` and the calculators named above.
+- **Impact:** A wrong value in one box of a rarely used calculator pair.
+- **Decision:** Fixed with the remembered-value records of GH-DEF-004: another calculator's text for a shared id is refused when it was displayed in a different unit (`snapshotHas()`), and a focused box's text is carried over only for a re-render of the same page. The capture rule itself is not changed: the hand-off between sibling calculators with the same unit is kept (tested with the cam-lift pair).
+- **Dependencies:** GH-DEF-004.
+- **Revisit:** Closure after the final full regression of this pass.
+- **Commits:** `def921c`
+- **Tests:** `premium/tests/remembered-values.test.js` (hand-off, same unit: kept; different units: refused; navigation with focus kept: refused).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** The four ids no longer carry a value across calculators with different units; the same-unit hand-off still works; no other calculator changes (before/after comparison of all 696).
+- **History:** 2026-10-12 — hypothesis GH-ENG-005 reproduced with `g2` during Item 3; registered here and fixed in `def921c`; the g2 checks fail on the previous engine (2 of 308 failures) and pass on the fix.
 
 ### GH-DEF-019 — `distance_converter` turns yards into kilometres with 0.000914 instead of 0.0009144
 - **Status:** OPEN
@@ -714,21 +733,22 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-10-12 — entry created.
 
 ### GH-ENG-005 — Does leaving a calculator write its inputs into the next calculator's remembered state?
-- **Status:** OPEN
+- **Status:** SUPERSEDED
 - **Severity:** Unknown
 - **Priority:** P2
 - **Description:** `renderCalc(id)` sets the current calculator and captures every input in the container into `CALC_PERSISTENT_STATE[id]` before rendering. On navigation the container still holds the previous calculator's inputs, so they are filed under the new id. Harmless while field ids are unique across calculators; a shared id would let one calculator's value appear in another.
-- **Evidence:** Code read; a catalogue-wide field-id collision check has not been run.
+- **Evidence:** Code read, then a catalogue-wide field-id collision check (2026-10-12, all 696 calculators rendered): 1,959 distinct box ids, 61 used by more than one calculator (45 calculators involved); 57 of the 61 have the same unit and default in every calculator that uses them (sibling calculators, for example `rocker_valve_lift` / `valve_lift_rocker` cam lift); 4 differ in unit: `g2` (`weight_transfer` g vs `gear_shift_rpm_drag` ratio), `epc_p` (`exhaust_port_cfm` inH2O vs `ev_pack_configuration` unit-less), `eir_i` (`exhaust_intake_flow_ratio` CFM vs `ev_internal_resistance` A), `dds_t` (`diesel_dpf_soot` hr vs `driveshaft_diameter_sizing` lb-ft). Reproduced for `g2`: 0.9 typed in Weight Transfer appears as the gear ratio in Gear Shift RPM / Drag.
 - **Affected:** Shared: `renderCalc`.
 - **Impact:** Unknown.
-- **Decision:** Item 3 checks for id collisions and for the effect on stored units; it does not change the capture rule unless a defect is shown.
+- **Decision:** Answered by Item 3: reproduced and moved to section A as GH-DEF-021 (see its entry); this entry is kept as the record of the question.
 - **Dependencies:** GH-DEF-004.
 - **Revisit:** Item 3.
-- **Commits:** None.
-- **Tests:** None.
+- **Commits:** `def921c` (via GH-DEF-021)
+- **Tests:** `premium/tests/remembered-values.test.js` (shared-id hand-off group).
 - **Docs:** None.
 - **Verification:** Collision list produced (empty or explained); behaviour on navigation tested.
 - **History:** 2026-10-12 — entry created.
+  2026-10-12 — answered: the question is "yes" for shared ids. Reproduced with `g2`; moved to section A as GH-DEF-021 (Rule 4) and fixed in `def921c`. This entry is SUPERSEDED by GH-DEF-021 so the issue has one record.
 
 ### GH-ENG-006 — Is the vehicle-profile editor covered by the unit-handling fixes?
 - **Status:** OPEN
