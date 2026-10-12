@@ -712,6 +712,7 @@ function declaredFieldUnit(id){ const r=FIELD_UNIT_REGISTRY[currentCalc]; return
    exactly once into the system now on screen. Text without a record (written by other code), text that is not a plain number, and boxes with no unit are left alone. */
 const CALC_STATE_META = {};
 let CONTAINER_CALC = null, CONTAINER_SYSTEM = null;   // which calculator's page #calc-container holds, and the system its text is displayed in
+window.GH_RENDER_REPEAT = false;   // true only while renderCalc() runs its display-only repeat pass (GH-DEF-018)
 function adaptRemembered(id,snap){
   const meta=CALC_STATE_META[id]; if(!meta) return snap;
   for(const fid of Object.keys(meta)){
@@ -6714,6 +6715,7 @@ function renderCalc(id, scroll=true){
     else delete rememberedMeta[el.id];
   });
   CALC_FIELD_SNAPSHOT = adaptRemembered(id,{...persistent});
+  const boxIdsBefore = new Set([...container.querySelectorAll('input[id], select[id], textarea[id]')].map(el=>el.id));   // the boxes on screen before this render
 
   const active = document.activeElement;
   /* focus and typed text are carried over only for a re-render of the page already on screen: a box of ANOTHER calculator that happens to have the same id
@@ -6726,6 +6728,18 @@ function renderCalc(id, scroll=true){
 
   if(fn){ container.innerHTML = fn(); }
   else { container.innerHTML = `${headerHTML(CALCS.find(c=>c.id===id)?.name||id,'')}<div class="calc-body" style="color:var(--muted);text-align:center;padding:40px">Calculator coming soon.</div>`; }
+  /* GH-DEF-018. A calculator function that reads its boxes through v() / vd() / sv() reads the page ON SCREEN, and while it ran just now the page on screen was the
+     previous one: this calculator's boxes were not there yet, so it computed its result from the shipped defaults while the boxes (filled from the remembered text)
+     showed something else. When the page has boxes that were not on screen before (opening a calculator, as opposed to editing the one already open) AND at least one
+     of them is filled from remembered text, run the function once more with the new boxes in place, exactly what a keystroke in one of them does. A re-render of the
+     open page has no new boxes, and a calculator opened with nothing remembered shows its shipped defaults in the boxes and in the result, so both are unchanged
+     (in Metric the box text is a rounded conversion of the default, so a repeat there would only move the result by display rounding). */
+  if(fn && [...container.querySelectorAll('input[id], select[id], textarea[id]')].some(el=>!boxIdsBefore.has(el.id) && Object.prototype.hasOwnProperty.call(CALC_FIELD_SNAPSHOT, el.id))){
+    /* The repeat is a display-only pass: the airflow-config calculators save what they read from their boxes (syncAirflowStateFromDOM), and in Metric the boxes hold
+       rounded converted text, so letting this pass save would rewrite the stored cam / flow-bench config with round-trip noise just because the calculator was opened. */
+    window.GH_RENDER_REPEAT = true;
+    try { container.innerHTML = fn(); } finally { window.GH_RENDER_REPEAT = false; }
+  }
   CONTAINER_CALC = id; CONTAINER_SYSTEM = UNIT.system;   // the page now on screen, and the system its text is displayed in
 
   // Snapshot has now been consumed by field(); restore the caller's prior
@@ -7119,7 +7133,7 @@ function syncAirflowStateFromDOM(state){
     if(ii){var inn=v('flow_intake_'+i); if(isFinite(inn)){flow.intake[i]=inn;changed=true;}}
     if(ee){var exn=v('flow_exhaust_'+i); flow.exhaust[i]=isFinite(exn)?exn:null; changed=true;}
   }
-  if(changed) asave(state);
+  if(changed && !window.GH_RENDER_REPEAT) asave(state);   // GH-DEF-018: renderCalc()'s repeat pass reads the boxes but must not persist them
   return state;
 }
 function ast(){

@@ -33,7 +33,12 @@ const CHROMIUM = process.env.GH_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chr
 const { K, IN, OUT, CASES } = require('./unit-system.test.js');
 
 /* the representative calculators (ids of unit-system.test.js CASES) */
-const PICK = ['drag_force', 'tow_range', 'spring_rate', 'natural_frequency', 'fuel_pump_sizing', 'intercooler_temp_drop', 'heat_transfer', 'stress', 'tire_frequency', 'feed_rate'];   // calculators that read their boxes through certValue(); the v()/vd() family joins with GH-DEF-018
+const PICK = ['drag_force', 'tow_range', 'spring_rate', 'natural_frequency', 'fuel_pump_sizing', 'intercooler_temp_drop', 'heat_transfer', 'stress', 'tire_frequency', 'feed_rate',
+              'ev_regen_power'];                                     // the last one reads its boxes through vd() (the family of GH-DEF-018); the others through certValue()
+/* v()/vd() calculators that unit-system.test.js has no case for: Horsepower = torque x angular speed, in SI (P = T w, w = 2 pi RPM / 60) */
+const LOCAL_CASES = [
+  { id: 'hp_from_torque', fields: [['torq', 'torque', 600], ['rpm_t', 'none', 5200]], compute: v => ({ 'Horsepower': ['power', v.torq * v.rpm_t * 2 * Math.PI / 60] }) }
+];
 const OTHER1 = 'beam_deflection', OTHER2 = 'chip_load', OTHER3 = 'machining_rpm';       // calculators used only to switch the system "somewhere else"
 const REL = 2e-5;                                                                      // display text keeps 6 significant digits; two conversions
 
@@ -95,7 +100,7 @@ const typeAll = async (page, c, vals, sys) => { for (const [fid, kind] of c.fiel
   await page.goto(url, { waitUntil: 'load', timeout: 60000 });
   const only = process.env.CASE ? process.env.CASE.split(',') : null;
 
-  for (const c of CASES.filter(x => PICK.includes(x.id) && (!only || only.includes(x.id)))) {
+  for (const c of [...CASES.filter(x => PICK.includes(x.id)), ...LOCAL_CASES].filter(x => !only || only.includes(x.id))) {
     const vals = Object.fromEntries(c.fields.map(f => [f[0], f[2]])), L = s => `${c.id} ${s}`;
     try {
       /* N1: away and back, nothing else changes */
