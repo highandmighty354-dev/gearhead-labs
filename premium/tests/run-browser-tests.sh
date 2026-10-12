@@ -9,12 +9,14 @@
 #   label-consistency.test.js  every calculator: same unit text must mean the same number in both systems (known-open ledger, GH-DEF-020)
 #   remembered-values.test.js  remembered boxes across calculators and unit systems: converted once, never relabelled (GH-DEF-004, GH-DEF-021)
 #   converters.test.js         the 7 repaired converters and the 27 single-purpose converters against exact SI factors, both systems (GH-DEF-003)
+#   dew-point.test.js          Dew Point & Humidity against the rule in degrees Celsius and the Magnus formula, both systems (GH-DEF-005)
+#   formula-fingerprints.test.js every registry formula's fingerprint against the production seed, apart from the recorded corrections (GH-ENG-014)
 # Run with the Playwright module on NODE_PATH or installed globally. GH_ENGINE=path tests another copy of the engine.
 # Takes about 35 minutes on a 2-core machine. Exit code 0 only when every suite passes. (run-tests.sh is the separate backend/schema suite.)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 rc=0
-for t in engine-selftest.js browser-smoke.js unit-system.test.js temperature-units.test.js toggle-sweep.test.js nav-return.test.js converters.test.js label-consistency.test.js remembered-values.test.js; do
+for t in engine-selftest.js browser-smoke.js unit-system.test.js temperature-units.test.js toggle-sweep.test.js nav-return.test.js converters.test.js label-consistency.test.js remembered-values.test.js dew-point.test.js formula-fingerprints.test.js; do
   echo "=== $t"
   node "$HERE/$t" || { echo "FAILED: $t"; rc=1; }
 done
