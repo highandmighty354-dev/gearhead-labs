@@ -73,7 +73,9 @@ const IN = {
   lbgal:  { toSI: (s, x) => x * K.lb_kg / K.gal_L, fromSI: (s, x) => x * K.gal_L / K.lb_kg },                                         // lb/gal: no engine unit, same text in both systems, base kg/L
   ft:     { toSI: (s, x) => s === 'metric' ? x : x * K.ft_m, fromSI: (s, x) => s === 'metric' ? x : x / K.ft_m },                      // ft <-> m, base m
   tempabs:{ toSI: (s, x) => s === 'metric' ? x + 273.15 : (x - 32) * 5 / 9 + 273.15, fromSI: (s, x) => s === 'metric' ? x - 273.15 : (x - 273.15) * 9 / 5 + 32 },   // degF <-> degC readings, base K
-  tempdiff: { toSI: (s, x) => s === 'metric' ? x : x * 5 / 9, fromSI: (s, x) => s === 'metric' ? x : x * 9 / 5 }                      // delta degF <-> delta degC, base K
+  tempdiff: { toSI: (s, x) => s === 'metric' ? x : x * 5 / 9, fromSI: (s, x) => s === 'metric' ? x : x * 9 / 5 },                     // delta degF <-> delta degC, base K
+  /* --- item 2 kind --- */
+  mass:   { toSI: (s, x) => s === 'metric' ? x : x * K.lb_kg, fromSI: (s, x) => s === 'metric' ? x : x / K.lb_kg }                      // lb (vehicle weight as mass) <-> kg, base kg
 };
 /* output kinds: SI -> display, plus the unit text the page must show */
 const OUT = {
@@ -98,7 +100,9 @@ const OUT = {
   btuhr:  { fromSI: (s, x) => x, unit: s => 'BTU/hr' },                                                                              // no engine unit for BTU/hr: same in both systems
   hz:     { fromSI: (s, x) => x, unit: s => 'Hz' },
   velocity: { fromSI: (s, x) => s === 'metric' ? x : x / K.ft_m, unit: s => s === 'metric' ? 'm/s' : 'ft/sec' },                    // base m/s
-  tempdiff: { fromSI: (s, x) => s === 'metric' ? x : x * 9 / 5, unit: s => s === 'metric' ? 'Δ°C' : 'Δ°F' }                        // base K (a difference)
+  tempdiff: { fromSI: (s, x) => s === 'metric' ? x : x * 9 / 5, unit: s => s === 'metric' ? 'Δ°C' : 'Δ°F' },                       // base K (a difference)
+  /* --- item 2 kind --- */
+  kw:     { fromSI: (s, x) => x, unit: s => 'kW' }                                                                                    // base kW; a calculator that computes in kW and prints kW shows the same number and symbol in both systems
 };
 
 /* ---- cases: fields = [id, input kind, SI edit value used for the re-entry steps]; compute(inSI) -> {label: [outKind, SI value]} ---- */
@@ -171,7 +175,11 @@ const CASES = [
   { id: 'intake_port_vel', fields: [['cfm4', 'cfm', 280 * K.cfm_m3s], ['pa', 'sqin', 2.4 * K.in_m * K.in_m]],
     compute: v => ({ 'Port Velocity': ['velocity', v.cfm4 / v.pa] }) },
   { id: 'tire_frequency', fields: [['tf_v', 'speed', 31], ['tf_c', 'length', 2.05]],
-    compute: v => ({ 'Tire Rotation Frequency': ['hz', v.tf_v / v.tf_c] }) }
+    compute: v => ({ 'Tire Rotation Frequency': ['hz', v.tf_v / v.tf_c] }) },
+  /* item 2 (GH-DEF-002): the calculator works in kW already and prints kW, so Metric must not convert it again. P = m a v x efficiency, entirely in SI:
+     m kg x (g-fraction x 9.80665 m/s^2) x v m/s = W; x efficiency/100; /1000 = kW. The fields are vehicle weight (mass), deceleration (in g), speed, efficiency (%). */
+  { id: 'ev_regen_power', fields: [['ev_rwt', 'mass', 1900], ['ev_rg', 'none', 0.45], ['ev_rmph', 'speed', 29], ['ev_reff', 'none', 70]],
+    compute: v => ({ 'Estimated Recovered Power': ['kw', v.ev_rwt * v.ev_rg * K.g0 * v.ev_rmph * (v.ev_reff / 100) / 1000] }) }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

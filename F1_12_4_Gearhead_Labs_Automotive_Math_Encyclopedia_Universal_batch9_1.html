@@ -1322,10 +1322,12 @@ function quickConvert(value, unit){
   try { return fn(value); } catch(e){ return null; }
 }
 
-function resultHTML(label,value,unit,approx=false,precision=4){
-  const disp=fmtUnitValue(value,unit,precision);
+function resultHTML(label,value,unit,approx=false,precision=4,raw=false){
+  /* raw: the value is ALREADY expressed in the unit printed beside it (the calculator did the conversion itself), so it must not go
+     through the Imperial -> Metric display layer a second time (same meaning as multiResult's per-item raw). Default false = unchanged. */
+  const disp=raw?fmtUnitValue(value,'',precision):fmtUnitValue(value,unit,precision), shownUnit=raw?unit:metricUnit(unit);
   return `<div class="result-box"><div class="result-label">${label}</div>
-  <div class="result-value">${approx&&disp!=='—'?'<span class="result-tilde">~</span>':''}${disp}<span class="result-unit">${metricUnit(unit)}</span></div></div>`;
+  <div class="result-value">${approx&&disp!=='—'?'<span class="result-tilde">~</span>':''}${disp}<span class="result-unit">${shownUnit}</span></div></div>`;
 }
 
 function multiResult(items,precision=4){
@@ -2857,7 +2859,7 @@ const RENDERS = {
     <div class="calc-body">
       ${field('Speed','s_in',60,'')}
       ${selectField('From Unit','s_from',[{v:'mph',l:'mph'},{v:'kph',l:'km/h'},{v:'mps',l:'m/s'},{v:'fps',l:'ft/s'}],s_from)}
-      ${multiResult([{label:'MPH',value:mph,unit:'mph'},{label:'KM/H',value:kph,unit:'km/h'},{label:'M/S',value:mps,unit:'m/s'},{label:'FT/S',value:fps,unit:'ft/s'}])}
+      ${multiResult([{label:'MPH',value:mph,unit:'mph',raw:true},{label:'KM/H',value:kph,unit:'km/h',raw:true},{label:'M/S',value:mps,unit:'m/s',raw:true},{label:'FT/S',value:fps,unit:'ft/s',raw:true}])}
     </div>${calcFooter('Speed Converter')}`;
   },
 
@@ -2871,10 +2873,10 @@ const RENDERS = {
       ${field('Distance','d_in',1,'')}
       ${selectField('From Unit','d_from',[{v:'mi',l:'Miles'},{v:'km',l:'Kilometers'},{v:'ft',l:'Feet'},{v:'m',l:'Meters'},{v:'yd',l:'Yards'}],d_from)}
       ${multiResult([
-        {label:'Miles',value:+(d_in*c[0]).toFixed(4),unit:'mi'},
-        {label:'Kilometers',value:+(d_in*c[1]).toFixed(4),unit:'km'},
-        {label:'Feet',value:+(d_in*c[2]).toFixed(2),unit:'ft'},
-        {label:'Meters',value:+(d_in*c[3]).toFixed(3),unit:'m'}
+        {label:'Miles',value:+(d_in*c[0]).toFixed(4),unit:'mi',raw:true},
+        {label:'Kilometers',value:+(d_in*c[1]).toFixed(4),unit:'km',raw:true},
+        {label:'Feet',value:+(d_in*c[2]).toFixed(2),unit:'ft',raw:true},
+        {label:'Meters',value:+(d_in*c[3]).toFixed(3),unit:'m',raw:true}
       ])}
     </div>${calcFooter('Distance')}`;
   },
@@ -2902,10 +2904,10 @@ const RENDERS = {
       ${field('Volume','vol3',1,'')}
       ${selectField('From','vf',[{v:'gal',l:'Gallons'},{v:'qt',l:'Quarts'},{v:'pt',l:'Pints'},{v:'oz',l:'Fluid oz'},{v:'L',l:'Liters'},{v:'mL',l:'Milliliters'}],vf)}
       ${multiResult([
-        {label:'Gallons',value:+(gals).toFixed(4),unit:'gal'},
-        {label:'Liters',value:+(gals*3.78541).toFixed(4),unit:'L'},
-        {label:'Quarts',value:+(gals*4).toFixed(3),unit:'qt'},
-        {label:'Fluid oz',value:+(gals*128).toFixed(2),unit:'oz'}
+        {label:'Gallons',value:+(gals).toFixed(4),unit:'gal',raw:true},
+        {label:'Liters',value:+(gals*3.78541).toFixed(4),unit:'L',raw:true},
+        {label:'Quarts',value:+(gals*4).toFixed(3),unit:'qt',raw:true},
+        {label:'Fluid oz',value:+(gals*128).toFixed(2),unit:'oz',raw:true}
       ])}
     </div>${calcFooter('Volume')}`;
   },
@@ -4350,10 +4352,10 @@ const RENDERS = {
       ${field('Pressure','pres_in',14.7,'')}
       ${selectField('From','pres_from',[{v:'psi',l:'PSI'},{v:'bar',l:'bar'},{v:'kpa',l:'kPa'},{v:'atm',l:'atm'},{v:'mmhg',l:'mmHg'},{v:'inhg',l:'in Hg'}],pres_from)}
       ${multiResult([
-        {label:'PSI',value:+(psi_val).toFixed(4),unit:'psi'},
-        {label:'bar',value:+(psi_val/14.5038).toFixed(4),unit:'bar'},
-        {label:'kPa',value:+(psi_val/0.145038).toFixed(3),unit:'kPa'},
-        {label:'atm',value:+(psi_val/14.6959).toFixed(5),unit:'atm'}
+        {label:'PSI',value:+(psi_val).toFixed(4),unit:'psi',raw:true},
+        {label:'bar',value:+(psi_val/14.5038).toFixed(4),unit:'bar',raw:true},
+        {label:'kPa',value:+(psi_val/0.145038).toFixed(3),unit:'kPa',raw:true},
+        {label:'atm',value:+(psi_val/14.6959).toFixed(5),unit:'atm',raw:true}
       ])}
     </div>${calcFooter('Pressure Converter')}`;
   },
@@ -4369,9 +4371,9 @@ const RENDERS = {
       ${field('Power','pow_in',425,'')}
       ${selectField('From','pow_from',[{v:'hp',l:'HP (SAE)'},{v:'kw',l:'kW'},{v:'ps',l:'PS / CV (metric)'},{v:'watts',l:'Watts'}],pow_from)}
       ${multiResult([
-        {label:'HP (SAE)',value:hp_val,unit:'hp'},
-        {label:'kW',value:+(kw_val).toFixed(2),unit:'kW'},
-        {label:'PS / CV',value:ps_val,unit:'PS'}
+        {label:'HP (SAE)',value:hp_val,unit:'hp',raw:true},
+        {label:'kW',value:+(kw_val).toFixed(2),unit:'kW',raw:true},
+        {label:'PS / CV',value:ps_val,unit:'PS',raw:true}
       ])}
     </div>${calcFooter('Power Converter')}`;
   },
@@ -5682,8 +5684,8 @@ const RENDERS = {
       ${field('Gauge Number','gauge_sg',18,'ga')}
       ${selectField('Material','material_sg',[{v:'steel',l:'Steel (MSG)'},{v:'aluminum',l:'Aluminum (B&S/AWG)'},{v:'stainless',l:'Stainless Steel'}],material_sg)}
       ${multiResult([
-        {label:'Thickness',value:thickness_in,unit:'in'},
-        {label:'Thickness (mm)',value:thickness_mm,unit:'mm'}
+        {label:'Thickness',value:thickness_in,unit:'in',raw:true},
+        {label:'Thickness (mm)',value:thickness_mm,unit:'mm',raw:true}
       ])}
     </div>${calcFooter('Sheet Gauge')}`;
   },
@@ -6276,7 +6278,7 @@ const RENDERS = {
     const wt=vd('ev_rwt',4200), g=vd('ev_rg',0.30), mph=vd('ev_rmph',60), eff=vd('ev_reff',75);
     const force=wt*g, powerKw=+(force*(mph*1.46667)/550*0.745699*(eff/100)).toFixed(1);
     return `${headerHTML('Regenerative Braking Power','Estimates recoverable electrical power during a steady deceleration. Actual regenerative power is limited by motor, inverter, battery state of charge and temperature.')}
-    <div class="calc-body">${field('Vehicle Weight','ev_rwt',4200,getU('weight'))}${field('Deceleration','ev_rg',0.30,'g')}${field('Vehicle Speed','ev_rmph',60,getU('speed'))}${field('Recovery Efficiency','ev_reff',75,'%')}${resultHTML('Estimated Recovered Power',powerKw,'kW',true)}</div>${calcFooter('Regenerative Braking Power')}`;
+    <div class="calc-body">${field('Vehicle Weight','ev_rwt',4200,getU('weight'))}${field('Deceleration','ev_rg',0.30,'g')}${field('Vehicle Speed','ev_rmph',60,getU('speed'))}${field('Recovery Efficiency','ev_reff',75,'%')}${resultHTML('Estimated Recovered Power',powerKw,'kW',true,4,true)}</div>${calcFooter('Regenerative Braking Power')}`;
   },
   ev_battery_current(){
     const kw=vd('ev_bkw',200), volts=vd('ev_bv',400), eff=vd('ev_beff',95);
@@ -10321,7 +10323,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     const n=certValue('f2d_n',3),d=certValue('f2d_d',8);
     const dec=n===null||d===null||d===0?NaN:n/d;
     const mm=Number.isFinite(dec)?dec*25.4:NaN;
-    return `${headerHTML('Fractional Inch to Decimal and Metric','Decimal = Numerator \u00f7 Denominator. Millimeters = Decimal \u00d7 25.4. Enter a shop fraction (like 3/8) and get both its decimal-inch equivalent and its exact metric size together \u2014 useful for cross-referencing a fractional fastener or drill size against both a decimal caliper reading and a metric socket or drill bit.')}<div class="calc-body">${field('Numerator','f2d_n',3,'')}${field('Denominator','f2d_d',8,'')}${Number.isFinite(mm)?multiResult([{label:'Decimal Equivalent',value:dec,unit:'in',precision:4},{label:'Millimeters',value:mm,unit:'mm',precision:3}]):certError('Denominator must not be zero.')}</div>${calcFooter('Fraction to Decimal + Metric')}`;
+    return `${headerHTML('Fractional Inch to Decimal and Metric','Decimal = Numerator \u00f7 Denominator. Millimeters = Decimal \u00d7 25.4. Enter a shop fraction (like 3/8) and get both its decimal-inch equivalent and its exact metric size together \u2014 useful for cross-referencing a fractional fastener or drill size against both a decimal caliper reading and a metric socket or drill bit.')}<div class="calc-body">${field('Numerator','f2d_n',3,'')}${field('Denominator','f2d_d',8,'')}${Number.isFinite(mm)?multiResult([{label:'Decimal Equivalent',value:dec,unit:'in',precision:4,raw:true},{label:'Millimeters',value:mm,unit:'mm',precision:3,raw:true}]):certError('Denominator must not be zero.')}</div>${calcFooter('Fraction to Decimal + Metric')}`;
   };
   RENDERS.machining_rpm=()=>{const v=certValue('mrpm_v',100),d=certValue('mrpm_d',0.5);const rpm=v===null||d===null||d<=0?NaN:v*12/(Math.PI*d);return `${headerHTML('Machining Spindle RPM','Spindle RPM = (Cutting Speed \u00d7 12) \u00f7 (\u03c0 \u00d7 Tool Diameter). The spindle speed needed to achieve a target surface speed for a given tool diameter \u2014 the basic starting point for setting up almost any milling or turning operation.')}<div class="calc-body">${field('Cutting Speed','mrpm_v',100,'SFM')}${field('Tool Diameter','mrpm_d',0.5,'in')}${Number.isFinite(rpm)?resultHTML('Spindle RPM',rpm,'RPM',false,0):certError('Tool diameter must be a positive number.')}</div>${calcFooter('Machining RPM')}`;};
   RENDERS.surface_speed=()=>{const r=certValue('ssp_r',764),d=certValue('ssp_d',0.5);const sfm=[r,d].every(Number.isFinite)?Math.PI*d*r/12:NaN;return `${headerHTML('Machining Surface Speed','Surface Speed = \u03c0 \u00d7 Tool Diameter \u00d7 RPM \u00f7 12. The actual cutting speed at the tool\u2019s edge for a given spindle RPM and diameter \u2014 the reverse of the Machining RPM calculation, useful for checking whether a chosen RPM keeps a tool within its material\u2019s recommended surface speed range.')}<div class="calc-body">${field('Spindle RPM','ssp_r',764,'RPM')}${field('Tool Diameter','ssp_d',0.5,'in')}${Number.isFinite(sfm)?resultHTML('Surface Speed',sfm,'SFM',false,1):certError('Enter valid numeric values.')}</div>${calcFooter('Surface Speed')}`;};

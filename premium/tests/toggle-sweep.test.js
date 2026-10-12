@@ -35,20 +35,21 @@ const CHROMIUM = process.env.GH_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chr
    calculator declared for the field in field(); the 84 ids are listed in docs/DEFERRED-WORK-REGISTER.md under GH-DEF-001 and all of them are swept as ordinary
    calculators below, with the independent-physics cases in unit-system.test.js. The ledger is empty on purpose: anything that breaks again is a failure. */
 const CLASS_A = [];
-/* Class B (explicit Metric-named unit on a value already in that unit): ev_regen_power returns a figure it has already converted to kW and then
-   labels it 'kW', which the display layer reads as horsepower, so Metric shows 112.7 kW as 84.1 kW. A catalogue inventory finds 65 calculators that
-   print a Metric unit name beside an Imperial-canonical value (static_compression 'cc', tire_size 'mm', the ev_* kW fields, ...); the pure converters
-   are tracked in CONVERTERS_OPEN below. Not fixed: needs a decision on the convention (see docs). */
-const CLASS_B = ['ev_regen_power'];
+/* Class B (explicit Metric-named unit on a value already in that unit): ev_regen_power used to return a figure it had already converted to kW and label it
+   'kW', which the display layer reads as horsepower, so Metric showed 112.7 kW as 84.1 kW. FIXED in reliability pass item 2 (GH-DEF-002): the result is marked raw,
+   so it is printed as computed. The ledger is empty on purpose. The wider inventory (65 calculators printing a Metric unit name beside an Imperial-canonical value)
+   is audited in docs/DEFERRED-WORK-REGISTER.md GH-ENG-001; the calculators still showing different numbers for the same inputs are tracked by label-consistency.test.js. */
+const CLASS_B = [];
 /* Rounding artefacts, not unit defects: live re-entry re-reads inputs rounded to 6 significant digits, which moves a result that sits on a rounding boundary.
    drivetrain_loss: 425 HP x 0.82 = 348.5 exactly, Math.round() gives 349 from 425 but 348 from the 424.99996 HP that the 316.922 kW box holds.
    density_altitude: the altitude is rounded to whole feet and the default conditions land on a half-foot (130 ft vs 129 ft). */
 const EXPECTED_ROUNDING = ['density_altitude', 'drivetrain_loss'];
 const KNOWN_DEFERRED = new Set([...CLASS_A, ...CLASS_B, ...EXPECTED_ROUNDING]);
-/* Class B — converter-style calculators whose output rows already name their unit but are passed through the display layer a second time,
-   so Metric shows different numbers from Imperial. temp_converter was fixed in 5d469cd; the rest are open. */
-const CONVERTERS_FIXED = ['temp_converter'];
-const CONVERTERS_OPEN = ['speed_converter', 'distance_converter', 'volume_converter', 'pressure_converter', 'power_converter', 'sheet_gauge', 'fraction_to_decimal_mm'];
+/* Class B — converter-style calculators whose output rows already name their unit but used to be passed through the display layer a second time,
+   so Metric showed different numbers from Imperial. temp_converter was fixed in 5d469cd; the other seven in reliability pass item 2 (GH-DEF-003; independent
+   factors in converters.test.js). Every one of them is swept below and must read the same in both systems. */
+const CONVERTERS_FIXED = ['temp_converter', 'speed_converter', 'distance_converter', 'volume_converter', 'pressure_converter', 'power_converter', 'sheet_gauge', 'fraction_to_decimal_mm'];
+const CONVERTERS_OPEN = [];
 
 /* ---- harness ---- */
 let failures = 0, checks = 0; const log = [];
