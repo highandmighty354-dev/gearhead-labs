@@ -12,21 +12,25 @@
    The classes (premium/tests/data/force-unit-rows.json pins one row per entry; MASS_ROWS below pins the earlier materials / thermal masses):
      mass-rated  a vehicle / trailer / component weight or a rating stated as mass. Declared "lbs", kg in Metric.                       (GH-IMP-013, 50 rows in 30 calculators)
      force       a calculated or specified force. Declared "lb" / "lbf", newtons in Metric.                                             (GH-DEF-025 moved 12 rows from lbs to lbf)
-     load        a load transfer or corner / axle load: a force by physics, shown by the Free calculators as scale kilograms. Declared "lb",
-                 newtons for now. An open owner decision (D1 in GH-IMP-013); a one-line change per row either way.
+     load        a load transfer, corner / axle load or per-tire vertical load: a force by physics, but the number a corner-weight scale or a tire load index
+                 gives. Read and shown as the MASS-EQUIVALENT scale reading, declared "lbs", kilograms in Metric (owner decisions D1 and D2, approved 2026-10-13:
+                 11 outputs and 5 per-tire inputs). The forces that follow from such a load (available tire force, rolling-resistance force) stay newtons.
      converter   a converter's own result row, named for its own unit, identical in both systems.
-   The test fails if a row declared lb / lbf appears that is not listed, if a listed force / load / converter row stops being one, or if a mass row is not declared lbs.
+   The test fails if a row declared lb / lbf appears that is not listed, if a listed force / converter row stops being one, or if a mass-rated or load row is not declared lbs.
 
-   Five groups of checks, with a real Chromium page, real typing and the real Metric toggle:
+   Six groups of checks, with a real Chromium page, real typing and the real Metric toggle:
      1. Inventory: every row of every calculator declared lb / lbf (Imperial page) equals the pinned list exactly; mass rows are declared lbs.
      2. Factors: Metric / Imperial of every pinned force / load row is 4.448221615 (unit N); of every mass row 0.45359237 (unit kg) - factors written here from the exact
         definitions (1 lb = 0.45359237 kg, 1 lbf = 0.45359237 x 9.80665 N), never read from the engine's tables.
      3. Typed masses: 10 kg typed in Metric gives the same physical result as 22.0462 lb typed in Imperial, with the answer checked against SI physics where the formula is a
         single product (temperature rise, air mass, tube and sheet mass) and against the Imperial page for the multi-step thermal models.
-     4. Typed weights (GH-IMP-013): in every one of the 30 calculators, a value typed in the kg boxes of the Metric page gives the same result, row by row, as the same mass typed in
-        pounds on the Imperial page (every output converted with factors written here from definitions). That catches a box that is read as newtons, and a value converted twice.
-        Closed-form SI checks of the towing chain, load transfer, frequencies and brake energy are in unit-system.test.js.
+     4. Typed weights (GH-IMP-013, D2): in every calculator with a kg box (the 30 calculators plus the five per-tire load boxes), a value typed in the kg boxes of the Metric page
+        gives the same result, row by row, as the same mass typed in pounds on the Imperial page (every output converted with factors written here from definitions). That catches
+        a box that is read as newtons, and a value converted twice. Closed-form SI checks of the towing chain, load transfer, tire loads, frequencies and brake energy are in
+        unit-system.test.js.
      5. Forces untouched: the force rows the audit looked at hardest (pedal force, clamp load) still read newtons.
+     6. Typed forces (GH-DEF-025): in the calculators whose boxes are forces (bearing load and rating, valve-spring seat pressure), newtons typed in Metric give the same result, row by
+        row, as the same force typed in pound-force on the Imperial page.
 
    Run: node premium/tests/mass-force.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 = at least one failed. */
@@ -50,10 +54,11 @@ const MASS_ROWS = [
 ];
 const key = (c, k, x) => `${c}|${k}|${x}`;
 const INV = JSON.parse(fs.readFileSync(INVENTORY, 'utf8'));
-const RATED = INV.rows.filter(r => r.cls === 'mass-rated');                        // the GH-IMP-013 rows: vehicle / trailer / component weights and mass-stated ratings
+const RATED = INV.rows.filter(r => r.cls === 'mass-rated' || r.cls === 'load');   // the GH-IMP-013 rows: weights, mass-stated ratings, and the mass-equivalent loads of D1 / D2 (all declared lbs, kg in Metric)
+const isMassy = cls => cls === 'mass-rated' || cls === 'load';
 const massKeys = new Set(MASS_ROWS.map(r => key(...r)).concat(RATED.map(r => key(r.calc, r.kind, r.key))));
 /* Metric unit and exact factor for every Imperial result unit the 30 calculators print (written from definitions); a unit with the same text in both systems has factor 1 */
-const CONV = { lbs: ['kg', LB_KG], lb: ['N', LBF_N], lbf: ['N', LBF_N], 'ft-lb': ['J', 0.3048 * LBF_N], HP: ['kW', 0.7456998715822702], 'lb/in': ['N/mm', LBF_N / 25.4], mph: ['km/h', 1.609344], in: ['mm', 25.4], ft: ['m', 0.3048], 'sq ft': ['m²', 0.09290304] };
+const CONV = { lbs: ['kg', LB_KG], lb: ['N', LBF_N], lbf: ['N', LBF_N], 'ft-lb': ['J', 0.3048 * LBF_N], HP: ['kW', 0.7456998715822702], 'lb/in': ['N/mm', LBF_N / 25.4], mph: ['km/h', 1.609344], in: ['mm', 25.4], ft: ['m', 0.3048], 'sq ft': ['m²', 0.09290304], 'sq in': ['mm²', 645.16], 'lbs/in': ['N/mm', LBF_N / 25.4] };
 
 const num = s => { const t = String(s).replace(/,/g, '').replace(/[−–]/g, '-').trim(); const n = Number(t); return t !== '' && Number.isFinite(n) ? n : NaN; };
 const dec = s => { const m = String(s).replace(/,/g, '').match(/\.(\d+)/); return m ? m[1].length : 0; };
@@ -84,7 +89,7 @@ const tolFor = (a, b, f = 1) => 2 * Math.max(f * 0.5 * Math.pow(10, -dec(a)), 0.
   const force = scan.filter(r => r.unit !== 'lbs'), pounds = scan.filter(r => r.unit === 'lbs');
   for (const r of force) check(`inventory ${key(r.calc, r.kind, r.key)}`, pinned.has(key(r.calc, r.kind, r.key)) && !massKeys.has(key(r.calc, r.kind, r.key)), massKeys.has(key(r.calc, r.kind, r.key)) ? `"${r.label}" is a quantity of matter but is declared ${r.unit} (shows newtons in Metric)` : `"${r.label}" is declared ${r.unit} and is not in force-unit-rows.json — classify it (mass, force or weight)`);
   const forceKeys = new Set(force.map(r => key(r.calc, r.kind, r.key)));
-  for (const [k, r] of pinned) if (r.cls !== 'mass-rated') check(`inventory pinned ${k}`, forceKeys.has(k), `pinned as ${r.cls} but it is no longer declared lb / lbf (now ${(scan.find(x => key(x.calc, x.kind, x.key) === k) || {}).unit || 'not a pound row'}) — a calculated force must read newtons; update force-unit-rows.json only if the classification changed`);
+  for (const [k, r] of pinned) if (!isMassy(r.cls)) check(`inventory pinned ${k}`, forceKeys.has(k), `pinned as ${r.cls} but it is no longer declared lb / lbf (now ${(scan.find(x => key(x.calc, x.kind, x.key) === k) || {}).unit || 'not a pound row'}) — a calculated force must read newtons; update force-unit-rows.json only if the classification changed`);
   for (const [c, kd, x] of MASS_ROWS.concat(RATED.map(r => [r.calc, r.kind, r.key]))) { const s = pounds.find(r => key(r.calc, r.kind, r.key) === key(c, kd, x)); check(`mass declared lbs ${key(c, kd, x)}`, !!s, `not declared "lbs" (the mass unit) on the Imperial page — a vehicle / trailer weight or a mass-stated rating reads in kilograms in Metric`); }
 
   /* ---------- 2. factors, both systems, on the page ---------- */
@@ -194,6 +199,30 @@ const tolFor = (a, b, f = 1) => 2 * Math.max(f * 0.5 * Math.pow(10, -dec(a)), 0.
   for (const [id, f, v] of [['master_cylinder', 'mc_pedal', 100], ['clutch_torque_capacity', 'ct_clamp', 2500], ['bearing_life', 'load_br', 2000], ['valve_spring_rate', 'seat_load', 130]]) {
     await open(id, 'metric'); const r = await grab(), b = r['IN|' + f] || {};
     check(`force in newtons: ${id} ${f}`, b.unit === 'N' && Math.abs(num(b.val) - v * LBF_N) <= tolFor(b.val, b.val), `Metric box shows ${b.val} ${b.unit}, expected ${(v * LBF_N).toFixed(2)} N`);
+  }
+
+  /* ---------- 6. typed forces (GH-DEF-025): newtons typed in Metric = the same force typed in pound-force in Imperial, every output row ---------- */
+  for (const [id, boxes] of [['bearing_life', ['load_br', 'rated_load']], ['valve_spring_rate', ['seat_load']]]) {
+    try {
+      await open(id, 'imperial'); const I0 = await grab();
+      const lbfVal = {}; for (const f of boxes) lbfVal[f] = +(num((I0['IN|' + f] || {}).val) * 1.1).toPrecision(6);
+      for (const f of boxes) await type(f, lbfVal[f]);
+      const I = await grab();
+      await open(id, 'metric');
+      for (const f of boxes) await type(f, +(lbfVal[f] * LBF_N).toPrecision(8));
+      const M = await grab();
+      for (const f of boxes) check(`typed N: ${id} ${f} box unit`, (M['IN|' + f] || {}).unit === 'N', `box unit "${(M['IN|' + f] || {}).unit}", expected N`);
+      for (const k of Object.keys(I).filter(k => k.startsWith('OUT|'))) {
+        const a = I[k], m = M[k], lab = `typed N: ${id} ${k.slice(4)}`;
+        if (!m) { check(lab, false, 'row missing in Metric'); continue; }
+        const x = num(a.val), y = num(m.val); if (Number.isNaN(x) || Number.isNaN(y)) { check(lab, !(Number.isNaN(x) !== Number.isNaN(y)), `Imperial "${a.val}" but Metric "${m.val}"`); continue; }
+        let want, mu;
+        if (CONV[a.unit] && CONV[a.unit][0] === m.unit) { want = x * CONV[a.unit][1]; mu = m.unit; } else if (a.unit === m.unit) { want = x; mu = m.unit; }
+        else { check(lab, false, `unit ${a.unit} -> ${m.unit} has no conversion in this test; add it to CONV from its definition`); continue; }
+        const f = want === x ? 1 : CONV[a.unit][1];
+        check(lab, m.unit === mu && Math.abs(y - want) <= 2 * tolFor(a.val, m.val, f) + 0.06, `Imperial ${a.val} ${a.unit} (box values ${boxes.map(b => lbfVal[b]).join(' / ')} lbf) should read ${want.toPrecision(7)} ${mu} for the same force typed in newtons, the page shows ${m.val} ${m.unit}`);
+      }
+    } catch (e) { check(`typed N: ${id}`, false, String(e.message || e).split('\n')[0]); }
   }
 
   await browser.close();

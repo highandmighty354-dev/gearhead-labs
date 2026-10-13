@@ -59,7 +59,7 @@ const U = {
   plain: plain(null),
   tempAbs: { toCanon: (s, x) => s === 'metric' ? x + D.K0 : (x - 32) / 1.8 + D.K0, fromCanon: (s, k) => s === 'metric' ? k - D.K0 : (k - D.K0) * 1.8 + 32, label: s => s === 'metric' ? '°C' : '°F', temp: true },
   tempDelta: { toCanon: (s, x) => s === 'metric' ? x : x / 1.8, fromCanon: (s, k) => s === 'metric' ? k : k * 1.8, label: s => s === 'metric' ? 'Δ°C' : 'Δ°F', temp: true },
-  weight_lb: lin(D.lbf_N, 'lb', 'N'),
+  weight_lb: lin(D.lbf_N, 'lb', 'N'),        // a pound-force box that reads newtons in Metric. No row uses it since GH-IMP-013 D1/D2 (2026-10-13): the last one, the tire vertical load thg_w, is now a mass-equivalent scale reading
   mass_lb: lin(D.lb_kg, 'lbs', 'kg'),        // a quantity of matter (rotor, tire, fuel mass): kg in Metric. Fixed in reliability pass 4b (GH-DEF-006); these boxes used to read newtons
   mph: lin(D.mph_kmh, 'mph', 'km/h'),
   sqft: lin(D.sqft_m2, 'sq ft', 'm²'),
@@ -137,8 +137,8 @@ const CASES = [
       let T = v.bfp_t0, peak = T; const n = Math.round(v.bfp_n);
       for (let i = 1; i <= n; i++) { T += dT; if (T > peak) peak = T; if (i < n) T = v.bfp_tamb + (T - v.bfp_tamb) * Math.exp(-v.bfp_dt / v.bfp_tau); }
       return { 'Peak Rotor Temperature': ['tempAbs', peak], 'Margin to Fade Threshold': ['tempDelta', v.bfp_thresh - peak] }; } },
-  { id: 'tire_heat_generation', clean: true, fields: [['thg_w', 'weight_lb', 900], ['thg_c', 'plain', 0.013], ['thg_v', 'mph', 70], ['thg_m', 'mass_lb', 21], ['thg_cp', 'plain', 0.5], ['thg_t', 'plain', 25]],
-    compute: v => { const P = (v.thg_w * D.lbf_N) * v.thg_c * (v.thg_v * D.mph_ms), E = P * v.thg_t * 60 / D.BTU_J;     // rolling-resistance power in watts, heat in BTU
+  { id: 'tire_heat_generation', clean: true, fields: [['thg_w', 'mass_lb', 900], ['thg_c', 'plain', 0.013], ['thg_v', 'mph', 70], ['thg_m', 'mass_lb', 21], ['thg_cp', 'plain', 0.5], ['thg_t', 'plain', 25]],
+    compute: v => { const P = (v.thg_w * D.lbf_N) * v.thg_c * (v.thg_v * D.mph_ms), E = P * v.thg_t * 60 / D.BTU_J;     // rolling-resistance power in watts, heat in BTU. thg_w is the tire load as a scale reads it (kg in Metric, owner decision D2): the stored pound weighs the same number of pound-force, so the factor stays lbf_N
       return { 'Heat Generation Rate': ['power', P / D.hp_W], 'Total Heat Energy': ['plain:BTU', E], 'Estimated Temp. Rise (adiabatic)': ['tempDelta', E / (v.thg_m * v.thg_cp) / D.F_per_K] }; } }
 ];
 if (typeof module !== 'undefined') module.exports = { D, U, CASES };

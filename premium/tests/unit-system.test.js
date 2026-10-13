@@ -43,7 +43,8 @@ const K = {
   lb_kg: 0.45359237,               // kg per pound mass (exact)
   gal_L: 3.785411784,              // litres per US gallon (exact: 231 cubic inches)
   mi_km: 1.609344,                 // km per statute mile (exact)
-  inH2O_Pa: 249.082                // Pa per inch of water at 39.2 F (NIST SP 811 table 8); the engine's own factor is 249.089, 3e-5 higher
+  inH2O_Pa: 249.082,               // Pa per inch of water at 39.2 F (NIST SP 811 table 8); the engine's own factor is 249.089, 3e-5 higher
+  BTU_J: 1055.05585262             // J per British thermal unit (International Table; 1 hp = 2544.43 BTU/hr follows from it)
 };
 K.psi_Pa = K.lbf_N / (K.in_m * K.in_m);          // 6894.757... Pa per psi: derived from the two exact constants above, not quoted
 /* input kinds: display (in system sys) -> SI, and SI -> display */
@@ -111,7 +112,12 @@ const OUT = {
   speed:  { fromSI: (s, x) => s === 'metric' ? x * 3.6 : x / K.mph_ms, unit: s => s === 'metric' ? 'km/h' : 'mph' },                       // base m/s
   pct:    { fromSI: (s, x) => x, unit: s => '%' },
   gee:    { fromSI: (s, x) => x, unit: s => 'g' },
-  springratelbs: { fromSI: (s, x) => s === 'metric' ? x / 1000 : x * K.in_m / K.lbf_N, unit: s => s === 'metric' ? 'N/mm' : 'lbs/in' }       // base N/m; this calculator prints its rate as "lbs/in"
+  springratelbs: { fromSI: (s, x) => s === 'metric' ? x / 1000 : x * K.in_m / K.lbf_N, unit: s => s === 'metric' ? 'N/mm' : 'lbs/in' },      // base N/m; this calculator prints its rate as "lbs/in"
+  /* --- D1 / D2 (GH-IMP-013, approved 2026-10-13): a load transfer or corner load is read as the mass-equivalent scale reading, so it uses the 'mass' kind above (base kg = force / g0);
+     the tire calculators also print an area, a length and a heat energy --- */
+  length: { fromSI: (s, x) => s === 'metric' ? x * 1000 : x / K.in_m, unit: s => s === 'metric' ? 'mm' : 'in' },                          // base m
+  sqin:   { fromSI: (s, x) => s === 'metric' ? x * 1e6 : x / (K.in_m * K.in_m), unit: s => s === 'metric' ? 'mm²' : 'sq in' },           // base m^2
+  btu:    { fromSI: (s, x) => x / K.BTU_J, unit: s => 'BTU' }                                                                             // base J; BTU is unregistered, so the same text and number in both systems
 };
 
 /* ---- cases: fields = [id, input kind, SI edit value used for the re-entry steps]; compute(inSI) -> {label: [outKind, SI value]} ---- */
@@ -218,13 +224,13 @@ const CASES = [
   { id: 'tow_brake_energy', fields: [['tbe_w', 'mass', 6800], ['tbe_v', 'speed', 24.5]],
     compute: v => ({ 'Kinetic Energy': ['energy', 0.5 * v.tbe_w * v.tbe_v * v.tbe_v] }) },
   { id: 'load_transfer_longitudinal', fields: [['ltl_w', 'mass', 1600], ['ltl_h', 'length', 0.5], ['ltl_l', 'length', 2.75], ['ltl_a', 'none', 0.6]],
-    compute: v => ({ 'Longitudinal Load Transfer': ['force', v.ltl_w * K.g0 * v.ltl_a * v.ltl_h / v.ltl_l] }) },               // dF = m g0 a h / L
+    compute: v => ({ 'Longitudinal Load Transfer': ['mass', v.ltl_w * v.ltl_a * v.ltl_h / v.ltl_l] }) },                         // dF = m g0 a h / L; shown as the scale reading dF / g0 = m a h / L, kg (D1)
   { id: 'load_transfer_lateral', fields: [['ltla_w', 'mass', 1600], ['ltla_h', 'length', 0.5], ['ltla_t', 'length', 1.55], ['ltla_a', 'none', 0.9]],
-    compute: v => ({ 'Lateral Load Transfer': ['force', v.ltla_w * K.g0 * v.ltla_a * v.ltla_h / v.ltla_t] }) },
+    compute: v => ({ 'Lateral Load Transfer': ['mass', v.ltla_w * v.ltla_a * v.ltla_h / v.ltla_t] }) },
   { id: 'weight_transfer_braking', fields: [['wtb_w', 'mass', 1600], ['wtb_h', 'length', 0.5], ['wtb_l', 'length', 2.75], ['wtb_g', 'none', 1.0]],
-    compute: v => ({ 'Front Load Transfer': ['force', v.wtb_w * K.g0 * v.wtb_g * v.wtb_h / v.wtb_l] }) },
+    compute: v => ({ 'Front Load Transfer': ['mass', v.wtb_w * v.wtb_g * v.wtb_h / v.wtb_l] }) },
   { id: 'weight_transfer_accel', fields: [['wta_w', 'mass', 1600], ['wta_h', 'length', 0.5], ['wta_l', 'length', 2.75], ['wta_g', 'none', 0.5]],
-    compute: v => ({ 'Rear Load Transfer': ['force', v.wta_w * K.g0 * v.wta_g * v.wta_h / v.wta_l] }) },
+    compute: v => ({ 'Rear Load Transfer': ['mass', v.wta_w * v.wta_g * v.wta_h / v.wta_l] }) },
   { id: 'ride_frequency', fields: [['rf_k', 'springrate', 32000], ['rf_m', 'mass', 360]],
     compute: v => ({ 'Ride Frequency': ['hz', Math.sqrt(v.rf_k / v.rf_m) / (2 * Math.PI)] }) },
   { id: 'tire_rolling_resistance', fields: [['tirerr_w', 'mass', 1600], ['tirerr_c', 'none', 0.011], ['tirerr_v', 'speed', 27.0]],
@@ -250,7 +256,33 @@ const CASES = [
       return { 'Spring Rate': ['springratelbs', k], 'Open Pressure': ['forcelbf', v.seat_load + k * v.lift_vs] }; }, rel: 6e-3 },       // open pressure = seat pressure + rate x lift, all newtons
   { id: 'bolt_stretch', fields: [['bolt_len', 'length', 0.0508], ['bolt_dia', 'length', 0.009525], ['target_stretch_pct', 'none', 0.05]],
     compute: v => { const A_in2 = 0.7854 * Math.pow(v.bolt_dia / K.in_m - 0.9743 / 16, 2);                              // stress area, in^2 (the calculator's stated rule)
-      return { 'Estimated Clamp Load': ['forcelbf', 29e6 * K.psi_Pa * (v.target_stretch_pct / 100) * A_in2 * K.in_m * K.in_m] }; }, rel: 6e-3 }   // F = E x strain x A
+      return { 'Estimated Clamp Load': ['forcelbf', 29e6 * K.psi_Pa * (v.target_stretch_pct / 100) * A_in2 * K.in_m * K.in_m] }; }, rel: 6e-3 },   // F = E x strain x A
+
+  /* ---- D1 (approved 2026-10-13): load-transfer and corner-load results are read as the mass-equivalent scale reading, kg in Metric (the force divided by g0). ---- */
+  { id: 'brake_bias', fields: [['wt_bb', 'mass', 1600], ['wb_bb', 'length', 2.75], ['cg_bb', 'length', 0.46], ['fpct_bb', 'none', 52], ['dec_bb', 'none', 1.0]],
+    compute: v => { const T = v.wt_bb * v.cg_bb * v.dec_bb / v.wb_bb, Wf = v.wt_bb * v.fpct_bb / 100;                       // transfer = m h a / L; static front = m x front share
+      return { 'Weight Transfer to Front': ['mass', T], 'Dynamic Front Load': ['mass', Wf + T], 'Dynamic Rear Load': ['mass', v.wt_bb - Wf - T], 'Ideal Front Bias': ['pct', (Wf + T) / v.wt_bb * 100] }; }, rel: 2e-3 },
+  { id: 'load_transfer_distribution', fields: [['ltd_w', 'mass', 1600], ['ltd_h', 'length', 0.5], ['ltd_wb', 'length', 2.75], ['ltd_t', 'length', 1.55], ['ltd_fpct', 'none', 50],
+                                              ['ltd_ax', 'none', 0.5], ['ltd_ay', 'none', 0.8], ['ltd_rsf', 'none', 324000], ['ltd_rsr', 'none', 269120]],
+    compute: v => { const Wf = v.ltd_w * v.ltd_fpct / 100, Wr = v.ltd_w - Wf, dLong = v.ltd_w * v.ltd_h * v.ltd_ax / v.ltd_wb, dLat = v.ltd_w * v.ltd_h * v.ltd_ay / v.ltd_t;
+      const fF = v.ltd_rsf / (v.ltd_rsf + v.ltd_rsr), latF = dLat * fF, latR = dLat * (1 - fF);                          // lateral transfer split front / rear by roll stiffness
+      return { 'Front-Left': ['mass', (Wf + dLong) / 2 + latF], 'Front-Right': ['mass', (Wf + dLong) / 2 - latF], 'Rear-Left': ['mass', (Wr - dLong) / 2 + latR], 'Rear-Right': ['mass', (Wr - dLong) / 2 - latR] }; }, rel: 2e-3 },
+
+  /* ---- D2 (approved 2026-10-13): a per-tire vertical load is typed as the scale or load-index mass (kg in Metric); F = m g0 inside. The forces and pressures that follow stay N / bar. ---- */
+  { id: 'tire_contact_patch', fields: [['tcp_w', 'mass', 400], ['tcp_p', 'pressure', 220000], ['tcp_sw', 'length', 0.23]],
+    compute: v => { const A = v.tcp_w * K.g0 / v.tcp_p; return { 'Contact Patch Area': ['sqin', A], 'Approx. Footprint Length': ['length', A / v.tcp_sw] }; } },   // area = F / p, length = area / section width
+  { id: 'tire_deflection', fields: [['tfd_w', 'mass', 400], ['tfd_k', 'springrate', 245000]],
+    compute: v => ({ 'Tire Deflection': ['length', v.tfd_w * K.g0 / v.tfd_k] }) },                                                     // deflection = F / k
+  { id: 'tire_vertical_stiffness', fields: [['tvs_w', 'mass', 400], ['tvs_d', 'length', 0.0152]],
+    compute: v => ({ 'Tire Vertical Stiffness': ['springrate', v.tvs_w * K.g0 / v.tvs_d] }), rel: 2e-3 },                               // k = F / deflection
+  { id: 'tire_heat_generation', fields: [['thg_w', 'mass', 400], ['thg_c', 'none', 0.012], ['thg_v', 'speed', 27.0], ['thg_m', 'mass', 10], ['thg_cp', 'none', 0.45], ['thg_t', 'none', 20]],
+    compute: v => { const P = v.thg_w * K.g0 * v.thg_c * v.thg_v, E = P * v.thg_t * 60;                                               // P = Crr F v; E = P t
+      const cpSI = v.thg_cp * K.BTU_J / (K.lb_kg * 5 / 9);                                                                            // BTU/lb-F -> J/kg-K
+      return { 'Heat Generation Rate': ['power', P], 'Total Heat Energy': ['btu', E], 'Estimated Temp. Rise (adiabatic)': ['tempdiff', E / (v.thg_m * cpSI)] }; }, rel: 2e-3 },
+  { id: 'combined_slip', fields: [['cmbs_w', 'mass', 400], ['cmbs_mu', 'none', 1.0], ['cmbs_sr', 'none', 8], ['cmbs_srpk', 'none', 12], ['cmbs_sa', 'none', 5], ['cmbs_sapk', 'none', 8]],
+    compute: v => { const F = v.cmbs_mu * v.cmbs_w * K.g0, lonF = Math.min(1, Math.abs(v.cmbs_sr) / v.cmbs_srpk), latF = Math.min(1, Math.abs(v.cmbs_sa) / v.cmbs_sapk);
+      return { 'Available Longitudinal Force': ['forcelbf', F * Math.sqrt(Math.max(0, 1 - latF * latF))], 'Available Lateral Force': ['forcelbf', F * Math.sqrt(Math.max(0, 1 - lonF * lonF))],
+               'Longitudinal Reduction (from lateral demand)': ['pct', (1 - Math.sqrt(Math.max(0, 1 - latF * latF))) * 100], 'Lateral Reduction (from longitudinal demand)': ['pct', (1 - Math.sqrt(Math.max(0, 1 - lonF * lonF))) * 100] }; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;
