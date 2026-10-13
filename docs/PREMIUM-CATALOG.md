@@ -703,7 +703,7 @@ A row is classified from its formula, never from the word "weight". A declaratio
 | `eafebb2` | GH-IMP-013 | **Test table only.** The full regression found one stale pin: `temperature-units.test.js` read the Brake Rotor Temp vehicle weight as newtons. Corrected to the mass kind | 62 failures on the engine of `22dd022` with the corrected pin, 0 on the current engine |
 | the commit that carries this section | register, plan, ENG-014 review | Documents only | register check OK |
 
-**Classification result (69 pound-force rows in 30 calculators, plus the 12 forces found while checking).** 50 are masses or mass-stated ratings (now kg); 8 are forces and stay N (rolling-resistance force in `tire_rolling_resistance` and `tow_rolling_resistance`, aerodynamic downforce and drag in `drag_downforce_tradeoff`); 11 are load-transfer and corner-load results that are forces by physics but that the 9 Free load-transfer calculators print in kg (owner decision **D1**); the 12 forces above were labelled kg and are corrected. Open: **D1** (11 load-transfer / corner-load results, recommendation: kg, as a corner-weight scale reads), **D2** (5 per-tire vertical-load inputs kept N, decide with D1), **D3** (force per degree and force per power units, with GH-IMP-014 step 12). The winch and recovery ratings reverse an earlier test pin that expected newtons; they are rated as a mass-equivalent in kg or tonnes (manufacturer sources in the register), and if the owner prefers newtons they return by changing one declaration per row.
+**Classification result (69 pound-force rows in 30 calculators, plus the 12 forces found while checking).** 50 are masses or mass-stated ratings (now kg); 8 are forces and stay N (rolling-resistance force in `tire_rolling_resistance` and `tow_rolling_resistance`, aerodynamic downforce and drag in `drag_downforce_tradeoff`); 11 are load-transfer and corner-load results that are forces by physics but that the 9 Free load-transfer calculators print in kg (owner decision **D1**); the 12 forces above were labelled kg and are corrected. Decided afterwards (owner, 2026-10-13; see "Closeout of 2026-10-13" below): **D1** (the 11 load-transfer / corner-load results) and **D2** (the 5 per-tire vertical-load inputs) are kg, as a corner-weight scale reads, applied in `c0241f8`; **D3** (force per degree and force per power units) is deferred to GH-IMP-014 step 12. The winch and recovery ratings reverse an earlier test pin that expected newtons; they are rated as a mass-equivalent in kg or tonnes (manufacturer sources in the register), and if the owner prefers newtons they return by changing one declaration per row.
 
 **New register entries.** GH-DEF-025 (the reverse error: forces labelled kg; VERIFIED CLOSED). GH-IMP-018 (Premium validation messages in 17 calculators quote Imperial limits when the page is in Metric; OPEN, display only, no wrong number is produced).
 
@@ -740,6 +740,8 @@ Run suite by suite, never concurrently, on the final engine (sha256 `550ae2b9…
 
 #### Register status at the end of this phase
 
+*Superseded by the register status in "Closeout of 2026-10-13" below (70 entries); kept as the record of this stage.*
+
 | Category | Entries | Status |
 |---|---|---|
 | Defects (`GH-DEF`) | 24 | 23 VERIFIED CLOSED (GH-DEF-025 new), 1 SUPERSEDED |
@@ -749,6 +751,65 @@ Run suite by suite, never concurrently, on the final engine (sha256 `550ae2b9…
 | Expected behaviour (`GH-EXP`) | 3 | 3 EXPECTED BEHAVIOR |
 
 **Decisions the owner needs to make** (none blocks the others): GH-IMP-013 D1-D3 (load-transfer results in kg or N; per-tire loads; force-per-angle and force-per-power units; D1 and D2 should be settled before Batch 11); GH-ENG-014 (approve the two rows; apply before the merge; the catalogue tooling change); GH-IMP-014 (which units to register and when); GH-IMP-016 (Pressure Altitude convention); GH-IMP-018 (validation messages in Metric); and authorization to start Batch 11 (GH-FUT-001).
+
+#### Closeout of 2026-10-13: unit philosophy, IMP-013 D1/D2, power-unit audit, ENG-014 decision brief
+
+Same change control and branch; `main` and production untouched, nothing merged, deployed or applied, **Batch 11 not started and not authorized.** Findings stay in [DEFERRED-WORK-REGISTER.md](DEFERRED-WORK-REGISTER.md) (GH-IMP-013, GH-IMP-019, GH-DEF-026, GH-ENG-014); no second register or plan document was created.
+
+**Unit philosophy (locked by the owner).** Use the units that automotive enthusiasts, technicians, racers, builders and related trades actually use; scientific correctness stays mandatory; no unfamiliar unit is introduced merely for theoretical consistency.
+
+| Area | Rule |
+|---|---|
+| Mass and loads | Metric vehicle mass, corner weights, component mass, payloads and towing ratings read kg (tonnes where appropriate); Imperial stays in Imperial mode. Corner-weight and load-transfer results are mass-equivalent scale readings in kg in Metric. No newton-based weight display in ordinary weight or corner-weight screens. Genuine forces stay N and are never relabelled as mass or converted twice. |
+| Other quantities | Torque, pressure, spring rates and the like keep the established automotive unit for their application. |
+| Engine and EV performance | Gasoline / diesel engine power defaults to hp and engine torque to lb-ft, also when the general system is Metric. EV motor and electric-powertrain output defaults to kW; EV motor torque defaults to lb-ft (current convention). kW and N·m may be offered as optional alternatives. Combustion hp is not converted to kW because Metric is selected. The general measurement setting and the performance-unit setting are separate settings. |
+| Scope | Inputs, outputs, labels, comparisons, saved configurations and reports; each calculator is judged by the physical quantity it shows. |
+
+Implemented and verified: the mass and load half (below). Inventoried and planned, **not implemented**: the performance half (GH-IMP-019).
+
+| Commit | Register | What changed | Evidence |
+|---|---|---|---|
+| `c0241f8` | GH-IMP-013 D1 / D2 | **16 rows** (11 load-transfer / corner-load results in 6 calculators and 5 per-tire vertical-load inputs in 5 calculators) declared as the mass unit: Metric reads kg (the former newton figure ÷ 9.80665) instead of N; 21 declarations, no formula, unit table or registry entry changed; forces that follow from a load stay N / bar | tests first: `unit-system` 371 failures and `mass-force` 78 failures on `f2d8fb4`, 0 now; the corrected `temperature-units` pin of the tire load fails 45 checks on `f2d8fb4`, 0 now; 7 new closed-form SI cases and the 4 load-transfer cases changed to kg (`m·a·h/L`, `m·g0/p`, `m·g0/k`, `P = m·g0·Crr·v`, elliptical available force) |
+
+**IMP-013 re-verification (committed work `caf4942`, `422f858`, `eafebb2`, `f2d8fb4`, and `premium/tests/data/force-unit-rows.json`).** From the page at the final engine: the 50 mass / mass-stated-rating rows read `lbs` in Imperial and `kg` in Metric; the 80 force rows (including the 12 corrected by GH-DEF-025) read `lb` or `lbf` and `N`; the 2 converter rows are unchanged. Imperial numbers: 0 changed in either comparison (`22dd022` against `f2d8fb4`, re-run in this closeout from the stored page dumps, and `f2d8fb4` against the final engine; 6,366 rows compared in both systems each time; the only differences are unit text and the Metric rows that were meant to change). The two Metric differences of 4 and 54 parts per million (`brake_energy` Kinetic Energy, `tire_rolling_resistance` Rolling Resistance Force) are understood: the Metric default weight box now shows 1587.57 kg, rounded, and the result is computed from that displayed text; the last digit of one result flips at a half-unit boundary (true value 186.8253 N). It is the display-rounding class of GH-EXP-003, limited to the Metric default text, and acceptable. The regression tests exercise behaviour, not declarations: kg typed in Metric equals the same mass in pounds on the Imperial page in every output of the 30 calculators; independent SI closed forms in `unit-system.test.js`; forces typed in newtons in `mass-force.test.js`; the same suites fail on the previous engine. Gap identified, not claimed: the before / after comparison tool lives in the session's scratch area only, so the comparison is recorded here and in the register but cannot be re-run from the repository.
+
+**Verified status (D1/D2 closeout).** All 19 browser suites run one at a time on the final engine (sha256 `9674a999…`, HEAD `c0241f8`); **the counts are separate suites and are not added together.** The first run found one stale test pin (`temperature-units.test.js` read the tire load `thg_w` as newtons, 54 failures; the page was right); corrected, 0.
+
+| Suite | Result |
+|---|---|
+| Engine self-test (`ghSelfTest`) | 679 total, 679 passed, 0 failed |
+| `browser-smoke.js` | 19/19 |
+| `unit-system.test.js` | 1,619 result checks, 0 failures (1,156 before; 7 new closed-form cases and the load-transfer cases now in kg) |
+| `temperature-units.test.js` | 1,108 result/unit checks and 990 toggle-invariance checks, 0 failures (after the corrected pin) |
+| `toggle-sweep.test.js`, `nav-return.test.js` | 696 swept, 735 checks, 0 failures; 696 checked, 0 inconsistent |
+| `converters.test.js`, `label-consistency.test.js` | 2,064 checks; 696 of 696 consistent |
+| `native-units.test.js`, `declared-metric-units.test.js` | 29 of 29; 0 unprotected declarations |
+| `remembered-values.test.js`, `dew-point.test.js` | 371 checks; 688 checks, 0 failures |
+| `formula-fingerprints.test.js` | 577 seed formulas: 575 identical, 2 recorded as corrected; D1/D2 moved none |
+| `mass-force.test.js` | 255 pound-unit rows (82 force / weight, 173 mass), 703 checks, 0 failures |
+| `unit-factors.test.js`, `unit-census.test.js` | 514 checks; 2,622 checks, 0 failures |
+| `airflow-readers.test.js`, `legacy-fixes.test.js`, `negative-zero.test.js` | 131; 61; 20 + 696 + 696, 0 failures |
+| `premium/tests/run-tests.sh` | catalog check OK; register check OK (70 entries); frontend adapter 55/55; schema contract 26/26 |
+| `eng014-throwaway-db.sh` | 17 of 17 checks on a private PostgreSQL 16, proposal exit codes 0/0 |
+| Before / after of all 696 calculators, engine of `f2d8fb4` against this one | 6,366 rows compared in both systems: the 16 D1/D2 rows changed as expected in both systems (Imperial: same number, text `lb` to `lbs`; Metric: N to kg, ÷ 9.80665), 6,333 rows identical, 1 row by rounding only (`tire_contact_patch` Contact Patch Area 17,137.09 to 17,137.1 mm², 0.6 parts per million), 0 unexpected, 0 page errors |
+
+**Power-unit audit (read-only; GH-IMP-019).** 199 power / torque rows in 114 calculators were classified against the convention (`premium/tests/data/power-torque-rows.json`). Today every engine power and torque row follows the Metric switch: **112 clear conflicts in 69 calculators** (80 engine-power rows in 58 calculators show kW in Metric; 22 engine-torque rows in 10 calculators show N·m; 3 EV calculators show hp in Imperial where the convention is kW; 6 EV-torque rows in 4 calculators show N·m), plus 18 rows in 13 calculators waiting for an owner answer (road-load power, driveline torque) and 28 ratio rows in 21 calculators (mainly the BSFC family) that need a decision. Component torque (fasteners, brakes, bearings, yaw moment), pump power, tire heat and the converters are retained as system-governed. Stored values are canonical (hp, lb-ft), so saved setups need no migration, but the obvious shortcut of declaring the rows "native" would break reloading of Metric-saved setups and "Save to vehicle", so the plan is a separate performance-unit setting read by tagged rows. **No calculator behaviour was changed**; the plan, the regression coverage and six owner questions are in GH-IMP-019. One related defect was found and recorded, not fixed: GH-DEF-026 (the dashboard's vehicle summary line prints "275.909 HP · 1,152.4453 lb-ft · 3,401.9428 lbs" in Metric).
+
+**Remaining exceptions and open decisions (none changed).** GH-IMP-013 D3 (N/deg, N/kW) deferred to GH-IMP-014 step 12; Q1 tonnes not displayed anywhere; Q2 Metric spring-rate unit (N/mm today; a spring maker states its metric rates in kg/mm); Q3 winch / recovery ratings kg (one declaration per row if newtons are preferred); GH-IMP-018 validation messages quote pounds; GH-IMP-019 performance units not implemented; GH-DEF-026.
+
+**GH-ENG-014 final decision brief.** Section 10 of [the proposal](ENG-014-FORMULA-VERSION-MIGRATION-PROPOSAL.md): SQL and schema / immutability review, migration and rollback behaviour, the latest-fingerprint catalogue tooling, what remains to be committed and verified before a merge, and the exact wording of the two separate authorizations needed (A: prepare the package on the branch; B: apply to production through the gated workflow). **Not applied; the entry stays OPEN; this closeout is not an authorization.**
+
+**Register status at the end of the closeout.** 70 entries.
+
+| Category | Entries | Status |
+|---|---|---|
+| Defects (`GH-DEF`) | 25 | 23 VERIFIED CLOSED, 1 SUPERSEDED, 1 OPEN (GH-DEF-026, new) |
+| Improvements (`GH-IMP`) | 18 | 1 VERIFIED CLOSED, 13 DEFERRED, 1 IN PROGRESS (GH-IMP-013: D3 and Q1-Q3), 2 OPEN (GH-IMP-018, GH-IMP-019 new), 1 SUPERSEDED |
+| Engineering questions (`GH-ENG`) | 14 | 3 VERIFIED CLOSED, 2 SUPERSEDED, 9 OPEN (GH-ENG-014 awaiting the owner) |
+| Future work (`GH-FUT`) | 10 | 1 AWAITING AUTHORIZATION (GH-FUT-001, Batch 11), 3 APPROVED, 5 DEFERRED, 1 OPEN |
+| Expected behaviour (`GH-EXP`) | 3 | 3 EXPECTED BEHAVIOR |
+
+**Decisions the owner needs to make:** GH-ENG-014 (approve the two rows; sequencing; the catalogue tooling; then the separate authorizations A and B); GH-IMP-019 (approve the plan and answer O1-O6); GH-IMP-013 Q1-Q3; GH-DEF-026 (which label fix); GH-IMP-014; GH-IMP-016; GH-IMP-018; and authorization to start Batch 11.
 
 ## Premium-only tools (Engineering Lab)
 

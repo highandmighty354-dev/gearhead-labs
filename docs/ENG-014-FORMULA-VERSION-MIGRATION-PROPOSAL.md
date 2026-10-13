@@ -151,3 +151,44 @@ FROM public.calculation_records;
 **Catalog tooling (D3).** `catalog/build-catalog.js` reads only `0005_reference_seed.sql` (`SEED`, line 31) and `catalog/check-catalog.js` compares every catalog fingerprint with the same file (lines 118–133), so today the catalog says `fv1-260e7f34` / `fv1-36d27af2`, which is what production holds and what the 575 other calculators still use. Recommended behaviour, in the same change that adds `0408`: the builder reads **every** `formula_versions` insert in `supabase/migrations` in file-name order and keeps the **latest row per calculator**; the checker verifies that (a) the catalog fingerprint equals the latest migrated row, (b) that row equals what the engine computes (already the job of `formula-fingerprints.test.js`, whose `VERSIONED` list would then point at the migration instead of the seed), and (c) the earlier rows still exist (history is never dropped). Effects: *reproducibility*: the catalog stays a pure function of files in the repository (migration order is the file-name order), no database call; *historical records*: unaffected, a record carries its own fingerprint and the old rows stay in the table; *build validation*: it gains one invariant (catalog = latest migrated row = engine) and loses a hidden one (catalog = seed), so a formula corrected without a migration, or a migration without the engine change, fails the build. It must ship with the migration, not before: a catalog that names `fv1-73ddeaf4` while production lacks the row would describe a save that the foreign key refuses. Not implemented: with no `0408` in `supabase/migrations/` the change would be a no-op.
 
 **Status after this review.** ENG-014 stays OPEN and awaiting the owner. D1 (approve the two rows, number and wording): recommended approve as written. D2: answered, 0 and 0. D3: recommended, to ship with the migration. D4: no new table. Applying to production needs separate explicit authorization; this review is not it.
+
+## 10. Final decision brief (closeout of 2026-10-13)
+
+Written for the owner. Nothing here has been applied, nothing under `supabase/` or `.github/` has been touched, and nothing has been deployed. This brief is not an authorization.
+
+**What is being decided.** Whether to add two rows to the production table that lists formula versions, so that a saved Dew Point or Distance Converter result can carry the corrected formula's name. The rows are bookkeeping: no calculation, no user data and no existing row changes. Production holds 0 saved results for either calculator (read-only count, Section 9), so nobody is affected today; the rows only matter from the day saving is wired to the engine.
+
+**1. The SQL and the schema review.** Re-checked against the files in this commit: `supabase/`, `premium-foundation/`, `.github/` and `premium/tests/eng014-throwaway-db.sh` are byte-identical to the commit that produced the 17-of-17 run (`git diff 6f057cc..HEAD` on those paths is empty), and the SQL block in Section 2 is unchanged. The throwaway-database script was re-run on this text (a private PostgreSQL, never a Supabase project): 17 run, 17 passed, 0 failed, proposal exit codes 0/0.
+
+| What the statement does | Review result |
+|---|---|
+| One transaction; one `INSERT` of exactly two rows (`dew_point` `fv1-73ddeaf4`, `distance_converter` `fv1-4001b424`, `1.1.0`, `GH_LEGACY_FORMULAS`, `F1.12.4`) | Fits every column and constraint of `formula_versions`: primary key (`calculator_id`, `formula_version`), format check `^fv1-[0-9a-f]{8}$`, foreign key to `calculators` (both exist), the three other columns `NOT NULL` and supplied |
+| `ON CONFLICT … DO NOTHING` | Re-running changes nothing; a duplicate is impossible |
+| Post-conditions inside the transaction | If either new row is missing or has other metadata, or either old row is gone, the whole transaction aborts (`PF_0408_POSTCONDITION`) and nothing is written |
+| Immutability triggers (`df_never_changed`, `df_no_truncate`) | Block update, delete and truncate only; an insert is allowed. They also make the new rows permanent |
+| `calculation_records` foreign key (`calc_formula_version_fk`, `ON DELETE RESTRICT`) | Resolves to the new rows; old records keep resolving to the old rows |
+| Row-level security | Forced; no client role can insert, so only the migration role can add a version (intended) |
+| What it cannot do | Touch any other table, change or delete any row, change a fingerprint |
+
+**2. Migration and rollback behaviour.** Safe to repeat. Not reversible by SQL, by design: a formula-version row cannot be deleted, so applying the migration is a one-way door and a wrong value (`engine_version`, `first_release`) would also be permanent. That is why the values are on the checklist below. "Rolling back" means reverting the engine commit; the two rows then sit unused, which is harmless. One consequence for the test suite: the `0407`-alone rollback scenario of `pf.test.js` compares the full fingerprint (reference rows included) of a fully provisioned database after rolling `0407` back with a database built to `0406`; the two new rows cannot be rolled back, so that comparison has to be built to stop at `0407` (a test change, not a product change; `0408` gets no rollback file and the test says why). The schema-only comparison of the 0401–0407 rollback does not include rows and is unaffected.
+
+**3. Latest-fingerprint catalogue tooling (recommended to ship with the migration).** `catalog/build-catalog.js` reads the latest `formula_versions` insert per calculator across `supabase/migrations` in file-name order instead of only `0005`; `catalog/check-catalog.js` then checks catalogue = latest migrated row = what the engine computes, and that every earlier row still exists. No database call is needed, the catalogue stays a pure function of repository files, and a formula corrected without a migration (or a migration without the engine change) fails the build. Detail and effects: Section 9.
+
+**4. What remains to be committed and verified before a merge** (none of it started; each step is on the branch only):
+
+1. `supabase/migrations/0408_formula_versions_corrected_formulas.sql`, byte-equal to the Section 2 block (the throwaway-database script already extracts that block; a test must compare it with the file).
+2. `premium-foundation/tests/pf.test.js`: add the file to `EXPECTED_MIGRATIONS`, `577` formula versions → `579`, an assertion that exactly the two new rows exist, the `0407`-alone rollback comparison built to stop at `0407` (paragraph 2 above), a note that 0408 has no rollback by design.
+3. Catalogue tooling and its tests (Section 3); `formula-fingerprints.test.js` `VERSIONED` list pointed at the migration instead of the seed.
+4. Re-run on the final text: `sh premium/tests/eng014-throwaway-db.sh` (17 of 17), `bash premium-foundation/tests/run-tests.sh`, `bash premium/tests/run-tests.sh`, `node catalog/check-catalog.js`. No engine change is expected, so no browser regression is needed unless the engine changes.
+5. One commit with items 1–4 (call its hash **A**). After **A** no file of the package may change, because the workflow verifies each file's sha256.
+6. A second commit that changes only the workflow and its documentation: `PINNED_SHA` = **A**, an 18th manifest line for `0408`, the stale "exact 16 file names" header comment corrected to 18, and `supabase/PROVISIONING.md`.
+7. A production **dry run** through the existing workflow (it changes nothing and must report that the pending list is exactly `0408`).
+
+**5. Your decisions, and the exact authorizations.**
+
+Decisions (recommendation first): approve the two rows as written, migration number `0408`, `engine_version` `1.1.0`, `first_release` `F1.12.4` (recommended: yes); ship the catalogue tooling with the migration (recommended: yes); apply **before** the branch is merged, from the pinned branch commit (recommended; Section 9 explains why); no new correction-ledger table (recommended: none).
+
+Two separate authorizations are needed, and neither exists today:
+
+- **A. Prepare (repository only, no production effect).** *"I approve the two formula-version rows exactly as written in Section 2 of the ENG-014 proposal (migration 0408, engine_version 1.1.0, first_release F1.12.4). Prepare steps 1–6 on premium/full-calculator-expansion. Do not apply anything."*
+- **B. Apply to production (given only after A is finished and I have reported commit A and the dry-run result).** *"I authorize applying migration 0408 to the production Supabase project from pinned commit <the full commit hash I was given>. I will run the Provision Supabase workflow myself: target production, dry-run first, then apply with the project ref confirmed and APPLY typed, and I will approve the production gate."* It is run from the GitHub Actions page in the browser; no command line, SQL or password is involved on your side.
