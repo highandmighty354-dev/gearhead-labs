@@ -104,7 +104,7 @@ const OUT = {
   tempdiff: { fromSI: (s, x) => s === 'metric' ? x : x * 9 / 5, unit: s => s === 'metric' ? 'Δ°C' : 'Δ°F' },                       // base K (a difference)
   /* --- item 2 kind --- */
   kw:     { fromSI: (s, x) => x, unit: s => 'kW' },                                                                                   // base kW; a calculator that computes in kW and prints kW shows the same number and symbol in both systems
-  /* --- metric-convention pass (GH-IMP-013): a vehicle / trailer weight or manufacturer rating is read and shown as a MASS (lbs <-> kg, base kg);
+  /* --- metric-convention pass (GH-IMP-013, GH-DEF-025): a vehicle / trailer weight or manufacturer rating is read and shown as a MASS (lbs <-> kg, base kg);
      a calculated or specified force declared in pound-force shows lbf <-> N (base N). The 'force' kind above keeps the older "lb" text some force rows still use. --- */
   mass:   { fromSI: (s, x) => s === 'metric' ? x : x / K.lb_kg, unit: s => s === 'metric' ? 'kg' : 'lbs' },                                // base kg
   forcelbf: { fromSI: (s, x) => s === 'metric' ? x : x / K.lbf_N, unit: s => s === 'metric' ? 'N' : 'lbf' },                              // base N, a force declared lbf
@@ -190,7 +190,7 @@ const CASES = [
   { id: 'ev_regen_power', fields: [['ev_rwt', 'mass', 1900], ['ev_rg', 'none', 0.45], ['ev_rmph', 'speed', 29], ['ev_reff', 'none', 70]],
     compute: v => ({ 'Estimated Recovered Power': ['kw', v.ev_rwt * v.ev_rg * K.g0 * v.ev_rmph * (v.ev_reff / 100) / 1000] }) },
 
-  /* ---- metric-convention pass (GH-IMP-013). Each case states the physics once, in SI. ----
+  /* ---- metric-convention pass (GH-IMP-013 / GH-DEF-025). Each case states the physics once, in SI. ----
      Vehicle / trailer weights and manufacturer ratings (GVWR, GCWR, payload, tongue weight, hitch rating, winch and recovery ratings) are MASSES in kg:
      a person types 2950 for a 2950 kg vehicle. A force that is CALCULATED from a mass (load transfer, rolling resistance) is a force in newtons, F = m g0 x ... */
   { id: 'tow_payload_remaining', fields: [['tpr_p', 'mass', 1000], ['tpr_c', 'mass', 200], ['tpr_t', 'mass', 410]],
@@ -234,7 +234,23 @@ const CASES = [
   { id: 'winch_line_pull', fields: [['wlp_gvwr', 'mass', 2800], ['wlp_mult', 'none', 1.75], ['wlp_rated', 'mass', 5440], ['wlp_blocks', 'none', 1]],
     compute: v => ({ 'Recommended Minimum Line Pull': ['mass', v.wlp_gvwr * v.wlp_mult], 'Effective Pull With Blocks': ['mass', v.wlp_rated * Math.pow(2, Math.round(v.wlp_blocks))] }), rel: 3e-3 },
   { id: 'recovery_point_rating', fields: [['rpr_w', 'mass', 2800], ['rpr_mult', 'none', 2.5], ['rpr_pts', 'none', 2]],
-    compute: v => ({ 'Required Minimum Working Load per Point': ['mass', v.rpr_w * v.rpr_mult / v.rpr_pts] }), rel: 3e-3 }
+    compute: v => ({ 'Required Minimum Working Load per Point': ['mass', v.rpr_w * v.rpr_mult / v.rpr_pts] }), rel: 3e-3 },
+
+  /* ---- GH-DEF-025: calculated or specified FORCES that were declared "lbs" and so read in kilograms. They are newtons. The calculators round to a whole pound-force,
+     hence the looser relative tolerance (3e-3, a factor 3 below the 9.8 of the kg/N mix-up). ---- */
+  { id: 'lateral_accel', fields: [['spd_la', 'speed', 26.8], ['r_la', 'ft', 60.0], ['wt_la', 'mass', 1550]],
+    compute: v => ({ 'Lateral G': ['gee', v.spd_la * v.spd_la / (v.r_la * K.g0)], 'Lateral Force': ['forcelbf', v.wt_la * v.spd_la * v.spd_la / v.r_la] }), rel: 3e-3 },   // a = v^2 / r; F = m a
+  { id: 'rc_downforce', fields: [['cl_rc', 'none', 1.4], ['area_rc', 'sqft', 0.9], ['spd_rc', 'speed', 45.0], ['cd_rc', 'none', 0.35]],
+    compute: v => ({ 'Downforce at Speed': ['forcelbf', 0.5 * K.rho_ISA * v.cl_rc * v.area_rc * v.spd_rc * v.spd_rc],
+                     'Downforce @ 150 mph': ['forcelbf', 0.5 * K.rho_ISA * v.cl_rc * v.area_rc * Math.pow(150 * K.mph_ms, 2)],
+                     'Downforce @ 200 mph': ['forcelbf', 0.5 * K.rho_ISA * v.cl_rc * v.area_rc * Math.pow(200 * K.mph_ms, 2)],
+                     'Estimated Drag': ['forcelbf', 0.5 * K.rho_ISA * v.cd_rc * v.area_rc * v.spd_rc * v.spd_rc] }), rel: 6e-3 },
+  { id: 'valve_spring_rate', fields: [['d_vs', 'length', 0.0038], ['n_vs', 'none', 7], ['D_vs', 'length', 0.0229], ['seat_load', 'force', 580], ['lift_vs', 'length', 0.014]],
+    compute: v => { const k = 11.5e6 * K.psi_Pa * Math.pow(v.d_vs, 4) / (8 * v.n_vs * Math.pow(v.D_vs, 3));              // k = G d^4 / (8 n D^3), G = 11.5e6 psi steel
+      return { 'Spring Rate': ['springratelbs', k], 'Open Pressure': ['forcelbf', v.seat_load + k * v.lift_vs] }; }, rel: 6e-3 },       // open pressure = seat pressure + rate x lift, all newtons
+  { id: 'bolt_stretch', fields: [['bolt_len', 'length', 0.0508], ['bolt_dia', 'length', 0.009525], ['target_stretch_pct', 'none', 0.05]],
+    compute: v => { const A_in2 = 0.7854 * Math.pow(v.bolt_dia / K.in_m - 0.9743 / 16, 2);                              // stress area, in^2 (the calculator's stated rule)
+      return { 'Estimated Clamp Load': ['forcelbf', 29e6 * K.psi_Pa * (v.target_stretch_pct / 100) * A_in2 * K.in_m * K.in_m] }; }, rel: 6e-3 }   // F = E x strain x A
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

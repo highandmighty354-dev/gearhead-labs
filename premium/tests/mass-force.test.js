@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Gearhead Labs — mass versus force in the unit display (GH-DEF-006 in the reliability pass, extended by the metric-convention pass: GH-IMP-013).
+/* Gearhead Labs — mass versus force in the unit display (GH-DEF-006 in the reliability pass, extended by the metric-convention pass: GH-IMP-013, GH-DEF-025).
 
    The unit table has two pound units: "lbs" is a MASS (Metric kg, 0.45359237 kg per lb) and "lb" / "lbf" is a FORCE (Metric N, 4.448221615 N per lbf). A box or result
    row therefore reads in kilograms or in newtons according to the pound unit it is declared in. The declaration does not change the stored number (pounds) or any formula: a
@@ -11,7 +11,7 @@
 
    The classes (premium/tests/data/force-unit-rows.json pins one row per entry; MASS_ROWS below pins the earlier materials / thermal masses):
      mass-rated  a vehicle / trailer / component weight or a rating stated as mass. Declared "lbs", kg in Metric.                       (GH-IMP-013, 50 rows in 30 calculators)
-     force       a calculated or specified force. Declared "lb" / "lbf", newtons in Metric.                                             
+     force       a calculated or specified force. Declared "lb" / "lbf", newtons in Metric.                                             (GH-DEF-025 moved 12 rows from lbs to lbf)
      load        a load transfer or corner / axle load: a force by physics, shown by the Free calculators as scale kilograms. Declared "lb",
                  newtons for now. An open owner decision (D1 in GH-IMP-013); a one-line change per row either way.
      converter   a converter's own result row, named for its own unit, identical in both systems.
@@ -191,7 +191,7 @@ const tolFor = (a, b, f = 1) => 2 * Math.max(f * 0.5 * Math.pow(10, -dec(a)), 0.
   }
 
   /* ---------- 5. forces untouched ---------- */
-  for (const [id, f, v] of [['master_cylinder', 'mc_pedal', 100], ['clutch_torque_capacity', 'ct_clamp', 2500]]) {
+  for (const [id, f, v] of [['master_cylinder', 'mc_pedal', 100], ['clutch_torque_capacity', 'ct_clamp', 2500], ['bearing_life', 'load_br', 2000], ['valve_spring_rate', 'seat_load', 130]]) {
     await open(id, 'metric'); const r = await grab(), b = r['IN|' + f] || {};
     check(`force in newtons: ${id} ${f}`, b.unit === 'N' && Math.abs(num(b.val) - v * LBF_N) <= tolFor(b.val, b.val), `Metric box shows ${b.val} ${b.unit}, expected ${(v * LBF_N).toFixed(2)} N`);
   }

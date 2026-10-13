@@ -3899,9 +3899,9 @@ const RENDERS = {
       ${field('Wire Diameter','d_vs',0.148,'in')}
       ${field('Active Coils','n_vs',8,'')}
       ${field('Mean Coil Diameter','D_vs',0.9,'in')}
-      ${field('Seat Pressure (installed)','seat_load',130,'lbs')}
+      ${field('Seat Pressure (installed)','seat_load',130,'lbf')}
       ${field('Valve Lift','lift_vs',0.550,'in')}
-      ${valid?multiResult([{label:'Spring Rate',value:rate,unit:'lbs/in'},{label:'Open Pressure',value:open,unit:'lbs'},{label:'Spring Index',value:index,unit:':1'}]):`<div class="result-box"><div class="result-value">Invalid spring geometry</div><div class="help-note">Require D &gt; wire diameter and positive active-coil count.</div></div>`}
+      ${valid?multiResult([{label:'Spring Rate',value:rate,unit:'lbs/in'},{label:'Open Pressure',value:open,unit:'lbf'},{label:'Spring Index',value:index,unit:':1'}]):`<div class="result-box"><div class="result-value">Invalid spring geometry</div><div class="help-note">Require D &gt; wire diameter and positive active-coil count.</div></div>`}
     </div>${calcFooter('Valve Spring Rate')}`;
   },
 
@@ -4196,7 +4196,7 @@ const RENDERS = {
       ${field('Vehicle Weight','wt_la',3420,'lbs')}
       ${multiResult([
         {label:'Lateral G',value:g_la,unit:'g'},
-        {label:'Lateral Force',value:lateral_force,unit:'lbs'}
+        {label:'Lateral Force',value:lateral_force,unit:'lbf'}
       ])}
     </div>${calcFooter('Lateral Accel')}`;
   },
@@ -4866,8 +4866,8 @@ const RENDERS = {
       ${field('Wing / Splitter Area','area_rc',8,'sq ft')}
       ${field('Speed','spd_rc',100,'mph')}
       ${field('Drag Coefficient (Cd)','cd_rc',0.30,'')}
-      ${valid?resultHTML('Downforce at Speed',downforce,'lbs'):`<div class="result-box"><div class="result-value">Invalid aero inputs</div></div>`}
-      ${multiResult([{label:'Downforce @ 150 mph',value:df150,unit:'lbs'},{label:'Downforce @ 200 mph',value:df200,unit:'lbs'},{label:'Estimated Drag',value:drag,unit:'lbs'}])}
+      ${valid?resultHTML('Downforce at Speed',downforce,'lbf'):`<div class="result-box"><div class="result-value">Invalid aero inputs</div></div>`}
+      ${multiResult([{label:'Downforce @ 150 mph',value:df150,unit:'lbf'},{label:'Downforce @ 200 mph',value:df200,unit:'lbf'},{label:'Estimated Drag',value:drag,unit:'lbf'}])}
     </div>${calcFooter('Wing Downforce')}`;
   },
 
@@ -5580,7 +5580,7 @@ const RENDERS = {
       ${selectField('Condition','lube_bt',[{v:'dry',l:'Dry / Zinc Plated'},{v:'lubricated',l:'Lubricated / Anti-Seize'}],lube_bt)}
       ${multiResult([
         {label:'Recommended Torque',value:torque_ftlb,unit:'ft-lbs'},
-        {label:'Target Clamp Load',value:clamp_load,unit:'lbs'}
+        {label:'Target Clamp Load',value:clamp_load,unit:'lbf'}
       ])}
       <div style="font-size:12px;color:var(--muted);margin-top:8px">Always verify against manufacturer specs for critical/safety fasteners (head bolts, suspension, etc).</div>
     </div>${calcFooter('Bolt Torque')}`;
@@ -5706,7 +5706,7 @@ const RENDERS = {
         <div class="result-value">${fmtUnitValue(target_stretch,'thou (.001\")',4)}<span class="result-unit"> ${metricUnit('thou (.001\")')}</span></div>
       </div>
       ${multiResult([
-        {label:'Estimated Clamp Load',value:load_lbs,unit:'lbs'},
+        {label:'Estimated Clamp Load',value:load_lbs,unit:'lbf'},
         {label:'Bolt Stress',value:stress_at_stretch,unit:'psi'}
       ])}
       <div style="font-size:12px;color:var(--muted);margin-top:8px">Always follow manufacturer-specified stretch values for rod bolts and head studs — this is an estimate only.</div>
@@ -6112,8 +6112,8 @@ const RENDERS = {
     const days=valid?hours/24:0;
     return `${headerHTML('Bearing Life (L10)','Basic ISO 281 rating life: L10 = (C/P)^p million revolutions; p=3 for ball bearings and 10/3 for roller bearings. Hours = L10×10⁶/(60×RPM). This is nominal L10 life, not a guarantee.')}
     <div class="calc-body">
-      ${field('Equivalent Dynamic Load','load_br',2000,'lbs')}
-      ${field('Bearing Dynamic Load Rating','rated_load',5000,'lbs')}
+      ${field('Equivalent Dynamic Load','load_br',2000,'lbf')}
+      ${field('Bearing Dynamic Load Rating','rated_load',5000,'lbf')}
       ${field('Operating Speed','rpm_br',3000,'RPM')}
       ${selectField('Bearing Type','life_exp',[{v:'3',l:'Ball Bearing (p=3)'},{v:'3.33',l:'Roller Bearing (p=10/3)'}],life_exp)}
       ${valid?multiResult([{label:'L10 Life',value:+l10.toFixed(1),unit:'M revolutions'},{label:'L10 Life (hours)',value:Math.round(hours),unit:'hrs'},{label:'L10 Life (days @ 24hr)',value:Math.round(days),unit:'days'}]):`<div class="result-box"><div class="result-value">Invalid bearing inputs</div><div class="help-note">Load, dynamic rating, and RPM must all be greater than zero.</div></div>`}
@@ -10140,7 +10140,7 @@ document.addEventListener("DOMContentLoaded",()=>{
         <div class="result-value">${fmtUnitValue(target_stretch,'thou (.001")',4)}<span class="result-unit"> ${metricUnit('thou (.001")')}</span></div>
       </div>
       ${multiResult([
-        {label:'Estimated Clamp Load',value:load_lbs,unit:'lbs'},
+        {label:'Estimated Clamp Load',value:load_lbs,unit:'lbf'},
         {label:'Bolt Stress',value:stress_at_stretch,unit:'psi'}
       ])}
       <div style="font-size:12px;color:var(--muted);margin-top:8px">Always follow manufacturer-specified stretch values for rod bolts and head studs \u2014 this is an estimate only.</div>
