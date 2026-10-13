@@ -85,8 +85,8 @@ const sizing = (id, p, e) => ({
 });
 const CASES = [
   /* --- declarative calculators (read every field through v()/vd(): complete in both systems) --- */
-  ...['brake_rotor_temp', 'rotor_heat'].map(id => ({ id, clean: true,
-    fields: [['wt_rt', 'weight_lb', 3000], ['spd_rt', 'mph', 70], ['rm', 'mass_lb', 14], ['cp_rotor', 'plain', 0.12], ['absorb_rotor', 'plain', 80]],
+  ...['brake_rotor_temp', 'rotor_heat'].map(id => ({ id, clean: true,     // wt_rt is the vehicle's mass: kg in Metric (GH-IMP-013, 2026-10-13; it read newtons before)
+    fields: [['wt_rt', 'mass_lb', 3000], ['spd_rt', 'mph', 70], ['rm', 'mass_lb', 14], ['cp_rotor', 'plain', 0.12], ['absorb_rotor', 'plain', 80]],
     compute: v => { const E = 0.5 * (v.wt_rt * D.lb_kg) * Math.pow(v.spd_rt * D.mph_ms, 2) * (v.absorb_rotor / 100) / D.BTU_J;     // kinetic energy of the vehicle, in BTU
       return { 'Energy to Rotor': ['plain:BTU', E], 'Temperature Rise': ['tempDelta', E / (v.rm * v.cp_rotor) / D.F_per_K, 0.03] }; } })),    // 0.03 K: the calculator rounds the rise to 0.1 °F
   { id: 'dew_point', clean: true, fields: [['temp_dp', 'tempAbs', C(30)], ['rh_dp', 'plain', 50]],
