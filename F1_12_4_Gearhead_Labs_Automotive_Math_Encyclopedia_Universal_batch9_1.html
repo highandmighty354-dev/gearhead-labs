@@ -6970,6 +6970,29 @@ function switchCurveMode(nextMode){
   UNIT_SWITCH_CANONICAL=converted;
   try{ renderCalc('sim_curve_editor',false); } finally { UNIT_SWITCH_CANONICAL=null; }
 }
+/* GH-DEF-030. The simulators have no curve boxes of their own: simCurvePoints() used to read the twelve curve_rpm_i / curve_y_i boxes from the page on screen, and those exist only on the
+   Curve Editor page. The first draw of a simulator still saw them (the editor's page had not been replaced yet); any later draw (an edit in a simulator, a visit through another page, a Metric /
+   Imperial press, a Power / Torque preference change) found no such box and fell back to the shipped default curve, while the editor still showed the typed one. The editor's typed text is already
+   kept for the session in CALC_PERSISTENT_STATE.sim_curve_editor, with what each box showed in CALC_STATE_META.sim_curve_editor (the system on screen and the declared unit or Power / Torque
+   token), so a box that is not on the page is read from there and converted exactly as v() would have converted it on the editor page. Nothing new is stored, and nothing changes when the box is
+   on the page, when the Curve Editor itself is drawing (it builds its twelve rows from simCurvePoints()), or when nothing was ever typed (the default curve). A remembered power curve is never
+   read as torque (or the reverse): if the boxes declare the other mode than the one in force, the default is used, as before. */
+function simRememberedCurveBox(id,mode){
+  const st=CALC_PERSISTENT_STATE.sim_curve_editor, meta=CALC_STATE_META.sim_curve_editor, m=meta && meta[id];
+  if(!st || !m || m.calc!=='sim_curve_editor' || !Object.prototype.hasOwnProperty.call(st,id)) return NaN;
+  const t=String(st[id]).trim();
+  if(!/^[-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?$/i.test(t)) return NaN;          // blank or not a number: unknown, as v() reads it
+  if(id.indexOf('curve_y_')===0){
+    const u=m.unit||'', declaredPower=isPerfToken(u) ? perfParse(u).declared==='HP' : u==='HP';
+    if(declaredPower!==(mode==='power')) return NaN;
+  }
+  return unitToCanonical(Number(t),m.unit||'',m.system);                          // hp / lb-ft / rpm, whatever the box showed when it was typed
+}
+function simCurveBox(id,fallback,mode){
+  if(document.getElementById(id) || (UNIT_SWITCH_CANONICAL && Object.prototype.hasOwnProperty.call(UNIT_SWITCH_CANONICAL,id))) return simNum(id,fallback);
+  if(currentCalc!=='sim_curve_editor'){ const r=simRememberedCurveBox(id,mode); if(Number.isFinite(r)) return r; }
+  return fallback;
+}
 function simCurvePoints(){
   const mode=window._ghmCurveMode || document.getElementById('curve_mode')?.value || 'torque';
   if(window._ghmSimulatorCurveSource==='airflow'){
@@ -6979,8 +7002,8 @@ function simCurvePoints(){
   const d=simDefaultCurve().map(p=>mode==='power' ? {rpm:p.rpm,y:p.y*p.rpm/5252} : p);
   const pts=[];
   for(let i=0;i<d.length;i++){
-    const rpm=simNum('curve_rpm_'+i,d[i].rpm);
-    const y=simNum('curve_y_'+i,d[i].y);
+    const rpm=simCurveBox('curve_rpm_'+i,d[i].rpm,mode);
+    const y=simCurveBox('curve_y_'+i,d[i].y,mode);
     if(rpm>0 && y>0) pts.push({rpm,y});
   }
   pts.sort((a,b)=>a.rpm-b.rpm);
