@@ -10,9 +10,9 @@
      2. the 27 single-purpose converters (inch fraction to mm ... TPI to thread pitch) that the audit found already correct: typed values against exact factors.
    Independence rule: expected values come from the exact SI / NIST SP 811 factors written below, never from the engine's tables or from a calculator's own formulas.
 
-   KNOWN_DEVIATIONS lists the one place where a converter is off by more than the tolerance: distance_converter turns yards into kilometres with 0.000914
-   (exact 0.0009144, 0.044 % low). It is registered (GH-DEF-019) and not fixed in item 2; the test passes while the deviation is that size and FAILS if it changes
-   (fixed: remove the entry; worse: investigate).
+   KNOWN_DEVIATIONS is EMPTY. It held one entry until 2026-10-13: distance_converter turned yards into kilometres with 0.000914 (exact 0.0009144, 0.044 % low,
+   GH-DEF-019). The constant was corrected (1 yd = 36 in = 0.9144 m exactly, NIST: 1 in = 25.4 mm exactly) and the 123,456.789 yd check now has to match 112.8889 km.
+   The mechanism stays: an entry says where a converter is known to be off, the test then fails if the deviation changes or disappears, and every entry needs a register id.
 
    Run: node premium/tests/converters.test.js   (ONLY=id,id limits calculators; VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 = at least one failed. */
@@ -42,7 +42,7 @@ const MULTI = [
     from: { hp: 745.69987158227, kw: 1000, ps: 735.49875, watts: 1 },
     rows: { 'HP (SAE)': ['hp', 745.69987158227], 'kW': ['kW', 1000], 'PS / CV': ['PS', 735.49875] } }
 ];
-const KNOWN_DEVIATIONS = [{ id: 'distance_converter', from: 'yd', row: 'Kilometers', min: 3e-4, max: 6e-4, register: 'GH-DEF-019' }];
+const KNOWN_DEVIATIONS = [];   // none (GH-DEF-019 fixed); an entry is { id, from, row, min, max, register } and needs a register id
 
 /* ---- group 1b: sheet gauge (published gauge charts, inches) and fraction + metric ---- */
 const GAUGE = {          // Manufacturers' Standard Gauge (steel), Brown & Sharpe / AWG (aluminium), stainless steel chart: thickness in inches
