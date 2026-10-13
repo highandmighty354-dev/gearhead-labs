@@ -17,7 +17,7 @@
 #   airflow-readers.test.js    the Airflow vs RPM graph and the Airflow -> Power staged curve read their boxes in the unit shown and follow every box typed, against independent physics (GH-DEF-023, GH-DEF-024)
 #   legacy-fixes.test.js       HP from CID / RPM / VE / BSFC / AFR and Road Course Brake Bias against independent physics, both systems (GH-DEF-016, GH-DEF-017)
 # Run with the Playwright module on NODE_PATH or installed globally. GH_ENGINE=path tests another copy of the engine.
-# Takes about 35 minutes on a 2-core machine. Exit code 0 only when every suite passes. (run-tests.sh is the separate backend/schema suite.)
+# Takes about 30 minutes on a 2-core machine. Exit code 0 only when every suite passes. (run-tests.sh is the separate backend/schema suite.)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 rc=0
