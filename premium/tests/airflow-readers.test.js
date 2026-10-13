@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Gearhead Labs — the Airflow vs RPM graph and the Airflow → Power staging against independent physics (reliability pass Item 4d: GH-DEF-023, GH-ENG-003).
+/* Gearhead Labs — the Airflow vs RPM graph and the Airflow → Power staging against independent physics (reliability pass Item 4d: GH-DEF-023, GH-DEF-024, GH-ENG-003).
 
    WHAT WENT WRONG. The airflow extension (GHM_AIRFLOW_V28_EXTENSION) has a private reader an(id, default) that is a bare parseFloat of the text box. Every other
    calculator reads its boxes through vd()/v(), which convert what is on screen back to the canonical Imperial unit the formulas use (centimetres cubed -> cubic inches,
@@ -16,9 +16,16 @@
    Staged curve: 10 points, rpm = 1000 + (peak - 1000) i / 9 (rounded to whole rpm), y = HP rounded to 0.1 (the Simulator's power curve is canonical HP in both systems).
    Graph: 61 points, rpm = 1000 + (peak - 1000) i / 60. The peak RPM and displacement defaults come from the active engine profile (a data input, not a formula).
 
+   A SECOND DEFECT in the same two functions (GH-DEF-024): the staging button took the displacement from the active profile instead of the Displacement box, read BSFC from
+   a box that does not exist (ap_bsfc; the box is ap_bs), and GHM_AIRFLOW_POWER read three other ids that do not exist (ap_disp, ap_rpm, ap_bsfc). Whatever was typed
+   into the calculator, the Simulator received the profile engine at 0.5 lb/hp-hr.
+
    Checked with a real Chromium page, real typing, in Imperial and in Metric:
      A  Engine Airflow Estimation graph (GHM_ENGINE_AIR_GRAPH): all 61 points, axis labels, for the default boxes and for edited displacement / VE / 2-stroke
      B  Airflow -> Power Estimate: the 10-point staged curve and GHM_AIRFLOW_POWER(), default boxes and an edited air density, against the physics above
+     C  the same, after editing displacement, BSFC, and all of RPM / displacement / VE / density / AFR / BSFC together; GHM_AIRFLOW_POWER() at the box RPM equals the
+        independent physics AND the Estimated Horsepower row on the page. (The RPM sweep of the staged curve is the profile's 1,000 to peak RPM by design; the RPM box
+        sets the operating point of GHM_AIRFLOW_POWER only.)
 
    Run: node premium/tests/airflow-readers.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 = at least one failed. */
@@ -110,37 +117,63 @@ const STAGE_ABS = 0.051, STAGE_REL = 1e-4;       // the staged curve is rounded 
     }
   }
 
-  /* ---- B: Airflow -> Power Estimate, staged curve and GHM_AIRFLOW_POWER() ------------------------------------------------------------------------------- */
-  const B_SCENARIOS = [{ name: 'default boxes', rho_lb: null }, { name: 'air density edited to ~0.0700 lb/ft³', rho_lb: 0.07 }];
+  /* ---- B and C: Airflow -> Power Estimate, staged curve and GHM_AIRFLOW_POWER() ------------------------------------------------------------------------- */
+  const HP_W = 550 * FT * LB * 9.80665;                                      // one mechanical horsepower in watts
+  const KG_KWH_PER_LB_HPH = LB / (HP_W / 1000);                              // 1 lb/hp-hr in kg/kW-hr
+  const PROFILE_DEFAULTS = { d: prof.d, rpm: prof.peak, ve: 0.9, rho: 0.0765, afr: 14.7, bsfc: 0.5 };
+  /* each edit is the physical value (Imperial); it is typed in the unit the box shows */
+  const STAGE_SCENARIOS = [
+    { g: 'B', name: 'default boxes', edit: {} },
+    { g: 'B', name: 'air density edited to ~0.0700 lb/ft³', edit: { rho: 0.07 } },
+    { g: 'C', name: 'displacement edited to ~400 ci', edit: { d: 400 } },
+    { g: 'C', name: 'BSFC edited to ~0.45 lb/hp-hr', edit: { bsfc: 0.45 } },
+    { g: 'C', name: 'RPM 4800, ~305 ci, VE 0.85, ~0.0700 lb/ft³, AFR 12.5, ~0.42 lb/hp-hr', edit: { rpm: 4800, d: 305, ve: 0.85, rho: 0.07, afr: 12.5, bsfc: 0.42 } }
+  ];
+  const rowHp = async sys => {                                              // the Estimated Horsepower row, converted back to horsepower
+    const r = await page.evaluate(() => { let t = null; document.querySelectorAll('#calc-container .mini-result').forEach(b => { const l = b.querySelector('.label'); if (l && l.textContent.trim() === 'Estimated Horsepower') { const u = b.querySelector('.unit'), v = b.querySelector('.value'); t = { v: v.textContent.replace(u ? u.textContent : '', '').trim(), u: u ? u.textContent.trim() : '' }; } }); return t; });
+    if (!r) return null;
+    const n = Number(r.v.replace(/,/g, ''));
+    return { hp: r.u === 'kW' ? n * 1000 / HP_W : n, unit: r.u };
+  };
   for (const sys of ['imperial', 'metric']) {
     const U = UNITS[sys], metric = sys === 'metric';
-    for (const sc of B_SCENARIOS) {
-      const tag = `B ${sys}: ${sc.name}`;
+    for (const sc of STAGE_SCENARIOS) {
+      const tag = `${sc.g} ${sys}: ${sc.name}`;
       await open('airflow_power_estimate', sys);
       check(tag + ' density unit', (await unitText('ap_rho')) === U.rho, `ap_rho unit label "${await unitText('ap_rho')}", expected ${U.rho}`);
       const r0 = parseFloat(await page.inputValue('#ap_rho')), r0want = 0.0765 / (metric ? LBFT3_PER_KGM3 : 1);
       check(tag + ' starts from the shipped default', close(r0, r0want, 1e-4), `ap_rho box holds ${r0} ${U.rho}, the shipped default is ${r0want.toFixed(5)}`);
-      let rho = 0.0765;
-      if (sc.rho_lb != null) { const typed = metric ? +(sc.rho_lb / LBFT3_PER_KGM3).toFixed(3) : sc.rho_lb; await type('ap_rho', typed); rho = metric ? typed * LBFT3_PER_KGM3 : typed; }
+      /* type what the person would type, then take the physical values back from what was typed (so the reference never depends on rounding of the typed text) */
+      const phys = Object.assign({}, PROFILE_DEFAULTS);
+      if (sc.edit.d != null) { const t = metric ? +(sc.edit.d * CC_PER_CI).toFixed(3) : sc.edit.d; await type('ap_d', t); phys.d = metric ? t / CC_PER_CI : t; }
+      if (sc.edit.rpm != null) { await type('ap_r', sc.edit.rpm); phys.rpm = sc.edit.rpm; }
+      if (sc.edit.ve != null) { await type('ap_ve', sc.edit.ve); phys.ve = sc.edit.ve; }
+      if (sc.edit.rho != null) { const t = metric ? +(sc.edit.rho / LBFT3_PER_KGM3).toFixed(4) : sc.edit.rho; await type('ap_rho', t); phys.rho = metric ? t * LBFT3_PER_KGM3 : t; }
+      if (sc.edit.afr != null) { await type('ap_afr', sc.edit.afr); phys.afr = sc.edit.afr; }
+      if (sc.edit.bsfc != null) { const t = metric ? +(sc.edit.bsfc * KG_KWH_PER_LB_HPH).toFixed(5) : sc.edit.bsfc; await type('ap_bs', t); phys.bsfc = metric ? t / KG_KWH_PER_LB_HPH : t; }
+      /* when nothing was typed into a box, the box still holds the shipped default in this system's unit; the physics for it is the profile / shipped default */
       await page.click('text=Stage Estimate');
       const curve = await page.evaluate(() => JSON.parse(JSON.stringify(window._ghmAirflowTorqueCurve || null)));
       if (!curve || curve.length !== 10) { check(tag + ' staged curve', false, 'no 10-point curve was staged: ' + JSON.stringify(curve)); continue; }
       let bad = 0, first = null;
       for (let i = 0; i < 10; i++) {
-        const rpm = 1000 + (prof.peak - 1000) * i / 9, want = powerHp(prof.d, rpm, 0.9, rho, 14.7, 0.5);
+        const rpm = 1000 + (prof.peak - 1000) * i / 9, want = powerHp(phys.d, rpm, phys.ve, phys.rho, phys.afr, phys.bsfc);
         points++;
         const ok = curve[i].rpm === Math.round(rpm) && close(curve[i].y, want, STAGE_REL, STAGE_ABS);
         if (!ok) { bad++; if (!first) first = `${curve[i].rpm} rpm stages ${curve[i].y} HP, physics gives ${want.toFixed(2)} HP (ratio ${(curve[i].y / want).toFixed(3)})`; }
       }
       check(tag + ' staged curve', bad === 0, `${bad} of 10 points wrong; first: ${first}`);
-      /* the programmatic estimate used by other pages */
+      /* the programmatic estimate used by other pages: physics at the RPM in the box, and the same number the page shows */
       const z = await page.evaluate(() => JSON.parse(JSON.stringify(GHM_AIRFLOW_POWER())));
-      const cfm = flowCfm(prof.d, prof.peak, 0.9, 4), mass = cfm * rho, hp = powerHp(prof.d, prof.peak, 0.9, rho, 14.7, 0.5), tq = hp * 5252 / Math.max(800, prof.peak);
+      const cfm = flowCfm(phys.d, phys.rpm, phys.ve, 4), mass = cfm * phys.rho, hp = powerHp(phys.d, phys.rpm, phys.ve, phys.rho, phys.afr, phys.bsfc), tq = hp * 5252 / Math.max(800, phys.rpm);
       points += 4;
       check(tag + ' GHM_AIRFLOW_POWER cfm', close(z.cfm, cfm, REL), `cfm ${z.cfm}, physics ${cfm}`);
       check(tag + ' GHM_AIRFLOW_POWER mass', close(z.mass, mass, STAGE_REL), `air mass ${z.mass} lb/min, physics ${mass}`);
       check(tag + ' GHM_AIRFLOW_POWER hp', close(z.hp, hp, STAGE_REL), `hp ${z.hp}, physics ${hp} (ratio ${(z.hp / hp).toFixed(3)})`);
       check(tag + ' GHM_AIRFLOW_POWER torque', close(z.torque, tq, STAGE_REL), `torque ${z.torque}, physics ${tq}`);
+      const shown = await rowHp(sys);
+      check(tag + ' Estimated Horsepower row', !!shown && shown.unit === (metric ? 'kW' : 'HP'), `row ${JSON.stringify(shown)}`);
+      if (shown) check(tag + ' GHM_AIRFLOW_POWER equals the page', close(z.hp, shown.hp, 1e-4), `GHM_AIRFLOW_POWER().hp ${z.hp} HP, the page shows ${shown.hp.toFixed(4)} HP`);
     }
   }
 
