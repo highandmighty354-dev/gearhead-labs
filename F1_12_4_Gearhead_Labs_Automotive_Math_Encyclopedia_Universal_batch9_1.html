@@ -1124,9 +1124,10 @@ function captureProfileEditorCanonical(system){
 function setUnit(s){
   if(s!== 'imperial' && s!== 'metric') return;
   const oldSystem=UNIT.system;
+  /* GH-DEF-031: the app shell replaces these two buttons with its own UNITS menu, so either may be absent. */
   if(oldSystem===s){
-    document.getElementById('btn-imperial').classList.toggle('active', s==='imperial');
-    document.getElementById('btn-metric').classList.toggle('active', s==='metric');
+    document.getElementById('btn-imperial')?.classList.toggle('active', s==='imperial');
+    document.getElementById('btn-metric')?.classList.toggle('active', s==='metric');
     return;
   }
 
@@ -1137,8 +1138,8 @@ function setUnit(s){
 
   UNIT.system = s;
   GHM_STORAGE.set('ghm_unit', s);
-  document.getElementById('btn-imperial').classList.toggle('active', s==='imperial');
-  document.getElementById('btn-metric').classList.toggle('active', s==='metric');
+  document.getElementById('btn-imperial')?.classList.toggle('active', s==='imperial');
+  document.getElementById('btn-metric')?.classList.toggle('active', s==='metric');
 
   renderCalc(currentCalc);
   UNIT_SWITCH_CANONICAL = null;
