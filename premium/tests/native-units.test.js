@@ -94,9 +94,15 @@ const dec = s => { const m = String(s).replace(/,/g, '').match(/\.(\d+)/); retur
     return out;
   });
   const open = async (id, system) => {
-    await page.evaluate(() => { renderCalc('dashboard', false); });          // leave the previous calculator so its boxes are not remembered into this one
-    await page.waitForTimeout(150);
-    await page.evaluate(([i, s]) => { try { delete CALC_PERSISTENT_STATE[i]; } catch (e) {} if (UNIT.system !== s) setUnit(s); renderCalc(i, false); }, [id, system]);
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if ((await page.evaluate(() => UNIT.system)) !== system) { await page.click('#btn-' + system); await page.waitForTimeout(100); }
+      await page.evaluate(() => { renderCalc('dashboard', false); });         // leave the previous calculator so its boxes are not remembered into this one
+      await page.waitForTimeout(200);                                          // the dashboard's own timers
+      await page.evaluate(i => { try { delete CALC_PERSISTENT_STATE[i]; } catch (e) {} renderCalc(i, false); }, id);
+      await page.waitForTimeout(100);
+      if (await page.evaluate(() => document.querySelectorAll('#calc-container .field-input').length > 0)) return;
+    }
+    throw new Error('could not open ' + id);
   };
   const type = async (fields, sys) => { for (const [f, txt] of Object.entries(fields)) { await page.click('#' + f); await page.fill('#' + f, txt[sys]); await page.waitForTimeout(25); } };
   const check = async (c, sys, stage) => {
