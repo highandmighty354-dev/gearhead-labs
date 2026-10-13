@@ -10911,9 +10911,13 @@ RENDERS.diffuser_angle_expansion=()=>{const h1=certValue('dae_h1',3,'in'),h2=cer
     host.style.display = "none";
     document.body.appendChild(host);
     host.innerHTML = RENDERS[id]();
+    /* GH-DEF-008: a field id that is not on the page used to be skipped silently, so a test with a wrong id passed on the calculator's defaults. The ids that were
+       not found are kept in renderPairs.missing and T() fails the test when there are any. */
+    renderPairs.missing = [];
     for (const k in (fields||{})) {
       const el = document.getElementById(k);
       if (el) el.value = String(fields[k]);
+      else renderPairs.missing.push(k);
     }
     host.innerHTML = RENDERS[id]();
     const pairs = {};
@@ -10973,6 +10977,11 @@ RENDERS.diffuser_angle_expansion=()=>{const h1=certValue('dae_h1',3,'in'),h2=cer
       let pairs;
       try { pairs = renderPairs(id, fields); }
       catch (e) { record(false, { group:"renderer", label:label, note:note, detail:"threw: "+e.message }); return; }
+      if (renderPairs.missing.length) {
+        record(false, { group:"renderer", label:label, note:note,
+                        detail:"field id(s) not on the page: "+renderPairs.missing.join(", ")+" (the test would have run on the defaults)" });
+        return;
+      }
       const got = pickResult(pairs, resultKey);
       if (!isFinite(got)) {
         record(false, { group:"renderer", label:label, note:note,
