@@ -867,7 +867,7 @@ Same branch and change control, now with the owner's explicit authorization for 
 
 **Found and recorded, not fixed.** (GH-DEF-028 and GH-DEF-029 were fixed afterwards, in the defect pass below.) GH-DEF-028 (range warnings are matched on the first letters of a box id and compare the converted number with Imperial limits), GH-DEF-029 (Curve Editor: choosing "Power vs RPM" relabels the points without converting them, and the simulators always read the curve as torque), GH-IMP-020 (the policy questions that remain: BSFC, power-to-weight ratio units, EV motor torque, component torque, the browser-local scope, text outside the row inventory, the shell's compact units menu).
 
-**How to run.** `bash premium/tests/run-browser-tests.sh` now runs 26 Chromium suites (79 minutes measured on a 2-core machine on 2026-10-13 for the first 23; the two added by the defect pass, `curve-editor-mode` and `range-warnings`, take about 4 minutes each, and `curve-persistence`, added by the GH-DEF-030 fix, about 1 minute); `QUICK=1 node premium/tests/performance-census.test.js` checks only the 128 classified calculators. `bash premium/tests/run-tests.sh` runs the catalogue, register, frontend and schema suites. After any engine edit run `node catalog/build-catalog.js` so the catalogue records the page's new hash (the catalogue check fails on a stale hash). Every new power or torque row needs an entry in the engine's `PERF_ROWS`; the census fails on a row without one.
+**How to run.** `bash premium/tests/run-browser-tests.sh` now runs 28 Chromium suites (79 minutes measured on a 2-core machine on 2026-10-13 for the first 23; the two added by the defect pass, `curve-editor-mode` and `range-warnings`, take about 4 minutes each, `curve-persistence`, added by the GH-DEF-030 fix, about 1 minute, and `acceleration-target` and `simulator-first-draw`, added by the GH-DEF-033 and GH-DEF-032 fixes, about 10 seconds each); `QUICK=1 node premium/tests/performance-census.test.js` checks only the 128 classified calculators. `bash premium/tests/run-tests.sh` runs the catalogue, register, frontend and schema suites. After any engine edit run `node catalog/build-catalog.js` so the catalogue records the page's new hash (the catalogue check fails on a stale hash). Every new power or torque row needs an entry in the engine's `PERF_ROWS`; the census fails on a row without one.
 
 **Register status after this step.** 74 entries.
 
@@ -911,7 +911,23 @@ Branch `premium/full-calculator-expansion`, from `f72a718`; engine, test and run
 |---|---|---|
 | Defects (`GH-DEF`) | 32 | 27 VERIFIED CLOSED (GH-DEF-030 closed in this fix), 1 SUPERSEDED (GH-DEF-007 by GH-IMP-014), 4 OPEN (GH-DEF-026, Low; GH-DEF-031; GH-DEF-032 and GH-DEF-033, new) |
 
-The other four categories are unchanged. New in the open list for the owner: GH-DEF-032 and GH-DEF-033 (both simulator results on first open; whether to fix them before the Premium simulators are promoted).
+The other four categories are unchanged. New in the open list for the owner: GH-DEF-032 and GH-DEF-033 (both fixed afterwards, below).
+
+### Final simulator pass: GH-DEF-033 and GH-DEF-032 (2026-10-13)
+
+Branch `premium/full-calculator-expansion`, from `caa45c8`; engine and tests in `9e4877b` (GH-DEF-033) and `c8756ce` (GH-DEF-032). No merge, no deployment, no database migration, no change to the unit-policy table.
+
+- **GH-DEF-033 (Acceleration target versus distance marks), fixed.** The target speed (mph) and the distance marks (feet) were stored in one object under the bare number, so the default 60 mph target was "reached" at the 60-ft mark and the page showed the 60-foot time (4.15 s, 23.7 mph, 60 ft). The speed event now has its own variable; the default page shows 10.270 s, 60.0 mph, 456 ft. `premium/tests/acceleration-target.test.js`: 39 checks, 18 fail on `caa45c8`, 0 on the fix; 4 of 5 injected faults caught, the fifth equivalent.
+- **GH-DEF-032 (first-draw drivetrain efficiency), fixed.** The fallback for the percentage box was 0.85 where the box holds 85, so a simulator's first draw ran at the 50 % floor (Dragstrip 23.46 s, then 18.23 s with nothing changed). The fallback is now 85. `premium/tests/simulator-first-draw.test.js`: 59 checks, 27 fail on `caa45c8`, 0 on the fix; 4 of 4 injected faults caught; closed-form checks hold the applied efficiency.
+- **Verified:** the two new tests; `curve-persistence` 262/262 (the GH-DEF-030 regression, now also holding first draws); `curve-editor-mode` 107/107 (the GH-DEF-029 regression); `airflow-readers` 131; `performance-units` 95; `performance-census` (quick) 15; `nav-return` and `toggle-sweep` for the eight simulator pages; `bash premium/tests/run-tests.sh` (catalogue OK, register OK, frontend 55/55, schema 26/26). **Not run:** the other browser suites and the full 28-suite run (about 83 minutes).
+
+**Register status after the final simulator pass.** 78 entries.
+
+| Category | Entries | Status |
+|---|---|---|
+| Defects (`GH-DEF`) | 32 | 29 VERIFIED CLOSED (GH-DEF-032 and GH-DEF-033 closed in this pass), 1 SUPERSEDED (GH-DEF-007 by GH-IMP-014), 2 OPEN (GH-DEF-026, Low; GH-DEF-031) |
+
+The other four categories are unchanged. Open for the owner among the defects: GH-DEF-031 (check the production shell's unit control by eye before release) and GH-DEF-026 (Low).
 
 **Decisions the owner needs to make:** GH-ENG-014 (approve the two rows; sequencing; the catalogue tooling; then the separate authorizations A and B, still required before any merge or deployment); GH-IMP-020 (U1 to U9); GH-DEF-026 (timing, now low priority), GH-DEF-028 and GH-DEF-029; GH-IMP-013 Q1-Q3; GH-IMP-014; GH-IMP-016; GH-IMP-018; and authorization to start Batch 11 (every new power or torque row will need a table entry; the census fails on a row without one). **Nothing was merged, deployed or migrated and Batch 11 is not started.**
 
