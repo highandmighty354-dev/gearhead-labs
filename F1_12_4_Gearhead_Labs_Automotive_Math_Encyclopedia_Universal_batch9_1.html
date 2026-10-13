@@ -1781,7 +1781,7 @@ const RENDERS = {
           <div>
             <div class="eyebrow">ACTIVE VEHICLE / ENGINEERING CONTEXT</div>
             <h2>${escapeHtml(vehicleName)}</h2>
-            <p>${p ? `${fmtUnitValue(p.hp,"HP")} HP · ${fmtUnitValue(p.torque,"lb-ft")} lb-ft · ${fmtUnitValue(p.weight,"lbs")} lbs · ${fmtUnitValue(p.displacement,"ci",1)} ${metricUnit("ci")}` : 'Create a vehicle profile to unlock saved engineering context.'}</p>
+            <p>${p ? `${fmtUnitValue(p.hp,"HP")} ${metricUnit("HP")} · ${fmtUnitValue(p.torque,"lb-ft")} ${metricUnit("lb-ft")} · ${fmtUnitValue(p.weight,"lbs")} ${metricUnit("lbs")} · ${fmtUnitValue(p.displacement,"ci",1)} ${metricUnit("ci")}` : 'Create a vehicle profile to unlock saved engineering context.'}</p>
             <div class="gh-command-row"><span class="gh-vehicle-chip"><i></i> LOCAL VEHICLE INTELLIGENCE</span></div>
           </div>
           <button class="gh-primary-action" onclick="showProfiles()">Manage Vehicle</button>
