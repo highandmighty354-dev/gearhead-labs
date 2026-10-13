@@ -491,8 +491,8 @@ async function runSuite(enginePath, quick) {
       await open('sim_curve_editor'); let s = await snap(); let st = s.stats.find(x => x.label === 'Peak Torque');
       const wantT = labelFor('T_ENG', pw, tq);
       check(`curve editor, Torque=${tq}: the peak torque cell shows 320 lb-ft in ${wantT} and the 12 curve boxes are ${wantT}`, st && st.unit === wantT && approx(toLbft(num(st.value), st.unit), 320, 3e-3) && Object.keys(s.inputs).filter(k => /^curve_y_/.test(k)).every(k => s.inputs[k].unit === wantT), JSON.stringify(st));
-      /* GH-DEF-029 (open, not part of this release): choosing "Power vs RPM" relabels the boxes but does not convert the numbers in them. So the power curve is typed in here, point by point, in the unit
-         the box shows, and the checks are on how the typed power is displayed and summarised. */
+      /* GH-DEF-029 (fixed; the mode switch itself is tested in curve-editor-mode.test.js): the power curve is still typed in here, point by point, in the unit the box shows, so that these checks are on
+         how a typed power is displayed and summarised and do not depend on the mode switch. */
       await page.selectOption('#curve_mode', 'power'); await page.waitForTimeout(100);
       const wantP = labelFor('P_ENG', pw, tq);
       const RPMS = [1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500], TQS = [150, 190, 230, 270, 300, 315, 320, 315, 305, 295, 280, 250];

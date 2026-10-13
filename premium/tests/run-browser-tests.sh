@@ -23,12 +23,14 @@
 #   profile-shortcut.test.js   the "use vehicle value" shortcut: offered only in a box of the same quantity and converted to the unit the box shows (hybrid power split, GH-DEF-027); 9 mutants
 #   performance-units.test.js  the independent Power (Auto / hp / kW) and Torque (Auto / lb-ft / N·m) preferences with real clicks: application defaults, explicit override, Metric/Imperial never overwrite them, saved / remembered / profile / simulator paths, 20 mutants (GH-IMP-019)
 #   performance-census.test.js every power / torque row of all 696 calculators in every Power x Torque x system state against the classification table: no unclassified row, retained categories unchanged (GH-IMP-019); QUICK=1 for the 128 classified calculators
+#   curve-editor-mode.test.js  Curve Editor: Torque vs RPM <-> Power vs RPM converts each point at its own RPM, both systems, five Power x Torque pairs, repeated switching, the simulators' view; 8 mutants (GH-DEF-029)
+#   range-warnings.test.js     the soft "Unusual ..." range warnings: the 140 boxes that hold the quantity keep their warning (typed values, Imperial / Metric / kW), the 21 accidental id matches never warn, no warning moves on a unit switch, all 696 calculators (GH-DEF-028)
 # Run with the Playwright module on NODE_PATH or installed globally. GH_ENGINE=path tests another copy of the engine.
-# Takes about 80 minutes on a 2-core machine (79 minutes measured on 2026-10-13 with 23 suites). Exit code 0 only when every suite passes. (run-tests.sh is the separate backend/schema suite.)
+# Takes about 90 minutes on a 2-core machine (79 minutes measured on 2026-10-13 with the first 23 suites; curve-editor-mode and range-warnings add about 10 more). Exit code 0 only when every suite passes. (run-tests.sh is the separate backend/schema suite.)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 rc=0
-for t in engine-selftest.js browser-smoke.js unit-system.test.js temperature-units.test.js toggle-sweep.test.js nav-return.test.js converters.test.js label-consistency.test.js native-units.test.js declared-metric-units.test.js remembered-values.test.js dew-point.test.js formula-fingerprints.test.js mass-force.test.js unit-factors.test.js unit-census.test.js airflow-readers.test.js legacy-fixes.test.js negative-zero.test.js profile-shortcut.test.js dashboard-summary.test.js performance-units.test.js performance-census.test.js; do
+for t in engine-selftest.js browser-smoke.js unit-system.test.js temperature-units.test.js toggle-sweep.test.js nav-return.test.js converters.test.js label-consistency.test.js native-units.test.js declared-metric-units.test.js remembered-values.test.js dew-point.test.js formula-fingerprints.test.js mass-force.test.js unit-factors.test.js unit-census.test.js airflow-readers.test.js legacy-fixes.test.js negative-zero.test.js profile-shortcut.test.js dashboard-summary.test.js performance-units.test.js performance-census.test.js curve-editor-mode.test.js range-warnings.test.js; do
   echo "=== $t"
   node "$HERE/$t" || { echo "FAILED: $t"; rc=1; }
 done

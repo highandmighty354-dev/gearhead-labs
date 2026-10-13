@@ -1558,20 +1558,59 @@ function useProfileValue(fieldId){
   }
 }
 
-// Auto-detected sanity ranges for common field patterns — soft warnings, not hard blocks
+/* Sanity ranges for the quantities a person is likely to mistype — soft warnings, not hard blocks (GH-DEF-028).
+   Each range belongs to an explicit list of boxes, written 'calculator.box-id', that HOLD that quantity.  It used to be picked by the first letters of a box id (/^bore/, /^wt|weight/, /^hp_/ ...), which
+   reached 21 boxes that are something else (Timing Mark's balancer diameter "bore5", the weight-transfer geometry "wt_wb", "hp_to_kw_x" ...).  A box that is not listed has no range and never warns; a new
+   box that should be checked is added to its list.  The limits are in the Imperial unit (in, rpm, ratio, lb, hp, :1) and are compared with the box's canonical value, whatever it shows (see field()).
+   The compression-ratio range has no box today (the only id that matched it was a pulley ratio, supercharger_speed.cr3); it is kept for the next box that holds one.  Boxes listed: 140. */
 const FIELD_RANGE_RULES = [
-  { pattern: /^bore/i, min: 1.5, max: 6.5, label: 'bore' },
-  { pattern: /^(str|stroke)/i, min: 1.5, max: 6.0, label: 'stroke' },
-  { pattern: /^rpm|_rpm|rpm_/i, min: 300, max: 12000, label: 'RPM' },
-  { pattern: /^ve\d?$|^ve_|volumetric/i, min: 0.3, max: 1.4, label: 'VE' },
-  { pattern: /^wt|weight/i, min: 200, max: 12000, label: 'weight' },
-  { pattern: /^hp\d?$|^hp_/i, min: 20, max: 5000, label: 'HP' },
-  { pattern: /^cr\d?$|compression/i, min: 6, max: 20, label: 'compression ratio' },
-  { pattern: /^afr/i, min: 8, max: 20, label: 'AFR' }
+  { label: 'bore', min: 1.5, max: 6.5, boxes: (
+    'bore_stroke_ratio.bore_bs engine_displacement.bore_d head_gasket_vol.bore_hg milling_heads.bore3 ring_gap.bore_rg ring_gap_bore.bore_rg ' +
+    'squish_velocity.bore_sq static_compression.bore2'
+  ).split(' ') },
+  { label: 'stroke', min: 1.5, max: 6.0, boxes: (
+    'bore_stroke_ratio.str_bs crank_journal_overlap.str_cj deck_height.str_dh dynamic_compression.str3 engine_displacement.str_d max_rpm.str_mr ' +
+    'mean_piston_speed.str4 piston_position.str6 rod_stroke_ratio.str5 squish_velocity.str_sq static_compression.str2'
+  ).split(' ') },
+  { label: 'RPM', min: 300, max: 12000, boxes: (
+    'alternator_rpm.eng_rpm2 bearing_life.rpm_br bearing_surface_speed.bss_rpm cam_area_time_area.cata_rpm cam_motion_profile.cmp_rpm carb_sizing.rpm10 ' +
+    'converter_slip.rpm_eng converter_slip.rpm_out diesel_airflow.da_rpm diesel_bmep.d_rpm diesel_injector_flow.dif_rpm diesel_torque_from_power.dtfp_rpm ' +
+    'driveshaft_order.rpm_dso driveshaft_speed.rpm7 engine_airflow.rpm9 engine_order.rpm_eo exhaust_header.rpm12 final_drive_selector.fds_rpm ' +
+    'gear_ratio_speed.rpm5 gear_shift_rpm_drag.peak_hp_rpm gear_shift_rpm_drag.shift_rpm_g hp_from_specs.rpm_s hp_from_torque.rpm_t ' +
+    'hydraulic_pump_flow.hpf_rpm imep_from_power.imep_rpm intake_runner.rpm11 main_bearing_load.mbl_rpm mean_piston_speed.rpm3 optimal_shift.ph_rpm ' +
+    'optimal_shift.pt_rpm piston_acceleration.pa_rpm piston_inertial_force.pif_rpm primary_secondary_balance_force.psbf_rpm rod_bearing_pv.rbpv_rpm ' +
+    'rotating_weight.rw_rpm1 rotating_weight.rw_rpm2 rpm_drop_shift.rpm_shift rpm_frequency.rpm_rf sim_curve_editor.curve_rpm_0 ' +
+    'sim_curve_editor.curve_rpm_1 sim_curve_editor.curve_rpm_10 sim_curve_editor.curve_rpm_11 sim_curve_editor.curve_rpm_2 sim_curve_editor.curve_rpm_3 ' +
+    'sim_curve_editor.curve_rpm_4 sim_curve_editor.curve_rpm_5 sim_curve_editor.curve_rpm_6 sim_curve_editor.curve_rpm_7 sim_curve_editor.curve_rpm_8 ' +
+    'sim_curve_editor.curve_rpm_9 sim_gear_rpm.gr_rpm squish_velocity.rpm_sq supercharger_speed.rpm8 throttle_body.tb_rpm tire_slip_ratio.tsr_rpm ' +
+    'torque_from_hp.rpm2 total_timing_helper.tth_rpm valve_acceleration.vac_rpm valve_motion_velocity.vmv_rpm velocity_stack.rpm_vs'
+  ).split(' ') },
+  { label: 'VE', min: 0.3, max: 1.4, boxes: (
+    'carb_sizing.ve2 engine_airflow.ve hp_from_specs.ve4'
+  ).split(' ') },
+  { label: 'weight', min: 200, max: 12000, boxes: (
+    'advanced_et.wt4 brake_bias.wt_bb brake_energy.wt_be brake_rotor_temp.wt_rt climb_rate.wt6 cog_height.wt8 ct_panhard_roll.wt_ph ct_track_bar_adj.wt_tb ' +
+    'et_mph_prediction.wt_p et_weight_change.wt_new et_weight_change.wt_old hp_from_0_60.wt5 hp_quarter_mile.wt hp_trap_speed.wt2 lateral_accel.wt_la ' +
+    'lateral_acceleration.wt_la power_to_weight.wt_p2 rotor_heat.wt_rt sim_acceleration.sim_weight sim_braking.sim_weight sim_cornering.sim_weight ' +
+    'sim_dragstrip.sim_weight sim_top_speed.sim_weight sim_weight_transfer.sim_weight top_speed.wt_ts tractive_force.wt_tf trap_speed_hp_check.wt_check ' +
+    'unsprung_weight.wt_uw weight_reduction.wt3 weight_transfer.wt7 weight_transfer_accel.wta_w weight_transfer_braking.wtb_w'
+  ).split(' ') },
+  { label: 'HP', min: 20, max: 5000, boxes: (
+    'advanced_et.hp4 boost_for_hp.hp_na boost_for_hp.hp_target bsfc.hp_bsfc climb_rate.hp6 dyno_correction.hp_raw et_hp_change.hp_new et_hp_change.hp_old ' +
+    'et_mph_prediction.hp_p exhaust_diameter.hp_ex hp_cr_change.hp_cr hp_from_boost.hp8 injector_duty.hp_id injector_duty_cycle.hp_id injector_sizing.hp9 ' +
+    'insurance_estimator.hp_ins power_to_weight.hp_p2 top_speed.hp_ts torque_from_hp.hp2 tractive_force.hp_tf turbo_sizing.hp7 weight_reduction.hp3 ' +
+    'wmi_flow.hp_wmi'
+  ).split(' ') },
+  { label: 'compression ratio', min: 6, max: 20, boxes: [] },
+  { label: 'AFR', min: 8, max: 20, boxes: (
+    'afr_lambda.afr_in hp_from_specs.afr_s turbo_sizing.afr_t'
+  ).split(' ') }
 ];
+const FIELD_RANGE_BY_BOX = {};
+FIELD_RANGE_RULES.forEach(r=>r.boxes.forEach(key=>{ FIELD_RANGE_BY_BOX[key]=r; }));
 
-function checkFieldRange(fieldId, value){
-  const rule = FIELD_RANGE_RULES.find(r=>r.pattern.test(fieldId));
+function checkFieldRange(fieldId, value, calcId){
+  const rule = FIELD_RANGE_BY_BOX[calcId+'.'+fieldId];
   if(!rule || isNaN(value) || value===0) return null;
   if(value < rule.min || value > rule.max) return `Unusual ${rule.label} — typical range is ${rule.min}–${rule.max}`;
   return null;
@@ -1599,7 +1638,11 @@ function field(label, id, val, unit, type='number', step='any', native=false){
   /* the sanity ranges are written in the Imperial canonical unit (hp, lb-ft): a power / torque box is checked in that unit whatever it shows */
   let rangeVal = numericVal;
   if(perfTok){ const pp = perfParse(perfTok); rangeVal = perfConv(numericVal, hasSnapshot ? pp.shownBase : pp.src, pp.src === 'kW' || pp.src === 'hp' ? 'hp' : 'lbft'); }
-  const warning = type==='number' ? checkFieldRange(id, rangeVal) : null;
+  else if(type==='number' && conv){   /* GH-DEF-028: every other box is compared in its canonical unit too (the limits are in in / lb), not the millimetres / kilograms it may show */
+    if(UNIT_SWITCH_CANONICAL && Object.prototype.hasOwnProperty.call(UNIT_SWITCH_CANONICAL,id)) rangeVal = +UNIT_SWITCH_CANONICAL[id];
+    else if(hasSnapshot) rangeVal = convertFromDisplay(numericVal, conv);
+  }
+  const warning = type==='number' ? checkFieldRange(id, rangeVal, currentCalc) : null;
   const isNumeric=type==='number';
   if(isNumeric&&currentCalc){ const reg=FIELD_UNIT_REGISTRY[currentCalc]||(FIELD_UNIT_REGISTRY[currentCalc]={}); if(conv) reg[id]=conv; else delete reg[id]; }
   const inputType=isNumeric?'text':type;
@@ -6901,33 +6944,39 @@ function simDefaultCurve(){
   ];
 }
 function switchCurveMode(nextMode){
-  const current=document.getElementById('curve_mode')?.value || 'torque';
-  if(current===nextMode){ renderCalc('sim_curve_editor',false); return; }
-  // Capture the currently displayed curve values before the re-render. Convert each point
-  // at its own RPM so switching modes never leaves horsepower and torque numerically mixed.
-  const points=[];
+  /* GH-DEF-029. Choosing the other mode converts each point at its own RPM (power = torque x RPM / 5252) and shows it in the unit the Power or Torque preference gives.
+     Two things used to stop that: the mode being left was read from the select, which already shows the new choice when this runs, so nothing was ever converted; and
+     the redraw refilled the boxes from their own text. The mode being left is read from the boxes (a power box declares an HP token, a torque box lb-ft), and the converted
+     values go through UNIT_SWITCH_CANONICAL, the same path a Power / Torque preference change uses, so each box is drawn in its new unit and the page is computed from the
+     exact values. A staged airflow curve fixes the mode (unchanged); a point that is not usable (blank, zero or negative value or RPM) is left as typed. */
+  if(window._ghmSimulatorCurveSource==='airflow'){ renderCalc('sim_curve_editor',false); return; }
+  const boxes=[];
   for(let i=0;i<12;i++){
     const rpmEl=document.getElementById('curve_rpm_'+i), yEl=document.getElementById('curve_y_'+i);
-    if(!rpmEl || !yEl) continue;
-    const rpm=parseFloat(rpmEl.value), y=parseFloat(yEl.value);
-    if(isFinite(rpm)&&isFinite(y)&&rpm>0&&y>0) points.push({rpm,y});
+    if(rpmEl && yEl) boxes.push({i,rpmEl,yEl});
   }
+  const shown=boxes.length ? (boxes[0].yEl.dataset.ghmUnit||'') : '';
+  const fromPower=isPerfToken(shown) ? perfParse(shown).declared==='HP' : shown==='HP';
+  const toPower=nextMode==='power';
+  if(!boxes.length || fromPower===toPower){ renderCalc('sim_curve_editor',false); return; }
   const converted={};
-  points.forEach((p,i)=>{
-    converted['curve_rpm_'+i]=p.rpm;
-    converted['curve_y_'+i]=current==='torque' ? p.y*p.rpm/5252 : p.y*5252/p.rpm;
+  boxes.forEach(({i,rpmEl,yEl})=>{
+    const rpm=parseFloat(rpmEl.value), y=parseFloat(yEl.value);
+    if(!(isFinite(rpm)&&isFinite(y)&&rpm>0&&y>0)) return;
+    const canonical=convertFromDisplay(y,yEl.dataset.ghmUnit||'');   // hp or lb-ft, whichever the box shows
+    if(Number.isFinite(canonical)) converted['curve_y_'+i]=toPower ? canonical*rpm/5252 : canonical*5252/rpm;
   });
-  CALC_FIELD_SNAPSHOT=converted;
   window._ghmCurveMode=nextMode;
-  renderCalc('sim_curve_editor',false);
-  CALC_FIELD_SNAPSHOT=null;
+  UNIT_SWITCH_CANONICAL=converted;
+  try{ renderCalc('sim_curve_editor',false); } finally { UNIT_SWITCH_CANONICAL=null; }
 }
 function simCurvePoints(){
   const mode=window._ghmCurveMode || document.getElementById('curve_mode')?.value || 'torque';
   if(window._ghmSimulatorCurveSource==='airflow'){
     try{const z=JSON.parse(GHM_STORAGE.get('ghm_airflow_sim_curve')||'null');if(Array.isArray(z)&&z.length>1)return z.map(p=>({rpm:+p.rpm,y:+p.y})).filter(p=>p.rpm>0&&p.y>0)}catch(e){}
   }
-  const d=simDefaultCurve();
+  /* the shipped default is a torque curve: read in power mode (GH-DEF-029) it is the same engine's power, not torque numbers taken for horsepower */
+  const d=simDefaultCurve().map(p=>mode==='power' ? {rpm:p.rpm,y:p.y*p.rpm/5252} : p);
   const pts=[];
   for(let i=0;i<d.length;i++){
     const rpm=simNum('curve_rpm_'+i,d[i].rpm);
