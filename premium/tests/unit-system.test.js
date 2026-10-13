@@ -82,8 +82,9 @@ const OUT = {
   force:  { fromSI: (s, x) => s === 'metric' ? x : x / K.lbf_N, unit: s => s === 'metric' ? 'N' : 'lb' },
   power:  { fromSI: (s, x) => s === 'metric' ? x / 1000 : x / K.hp_W, unit: s => s === 'metric' ? 'kW' : 'HP' },
   psf:    { fromSI: (s, x) => x / K.psf_Pa, unit: s => 'lb/sq ft' },                                    // unregistered unit: shown as lb/sq ft in both systems
-  /* the engine labels an energy in ft-lb as N·m in Metric (its 'ft-lb' alias is the torque unit); 1 N·m = 1 J, so the number is right and only the symbol differs from the conventional J */
-  energy: { fromSI: (s, x) => s === 'metric' ? x : x / K.ftlbf_J, unit: s => s === 'metric' ? 'N·m' : 'ft-lb' },
+  /* an energy in ft-lb is shown in joules in Metric (GH-IMP-001: its 'ft-lb' alias used to be the torque unit, so the row read "N·m"; the number never changed, 1 N·m = 1 J).
+     A torque keeps N·m (the 'torque' kind below). */
+  energy: { fromSI: (s, x) => s === 'metric' ? x : x / K.ftlbf_J, unit: s => s === 'metric' ? 'J' : 'ft-lb' },
   cfm:    { fromSI: (s, x) => s === 'metric' ? x * 60000 : x / K.cfm_m3s, unit: s => s === 'metric' ? 'L/min' : 'CFM' },
   /* --- item 1 kinds: SI base -> display, and the unit text the page must show --- */
   ft:     { fromSI: (s, x) => s === 'metric' ? x : x / K.ft_m, unit: s => s === 'metric' ? 'm' : 'ft' },                            // base m

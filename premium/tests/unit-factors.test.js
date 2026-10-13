@@ -84,7 +84,7 @@ const SPECIAL = ['°F', 'Δ°F', 'mpg'];                                        
 
 /* aliases that are not the canonical unit and not its Metric label: spellings of the same unit */
 const SPELLINGS = {
-  'lbf': 'lb', 'ft-lb': 'lb-ft', 'ft-lbs': 'lb-ft', 'ft-lbf': 'lb-ft', 'N-m': 'lb-ft', 'lbs/in': 'lb/in', 'gallons': 'gal', 'in Hg': 'inHg', 'ft/s': 'ft/sec', 'inH₂O': 'inH2O'
+  'lbf': 'lb', 'ft-lbs': 'lb-ft', 'ft-lbf': 'lb-ft', 'N-m': 'lb-ft', 'lbs/in': 'lb/in', 'gallons': 'gal', 'in Hg': 'inHg', 'ft/s': 'ft/sec', 'inH₂O': 'inH2O'
 };
 /* aliases that are WRONG for a unit declared under that name: recorded, not hidden */
 const SPELLING_ERRORS = { 'qt': { target: 'gal', why: 'a quart is 1/4 gallon; harmless while no non-raw field or row declares it (unit-census.test.js)' } };

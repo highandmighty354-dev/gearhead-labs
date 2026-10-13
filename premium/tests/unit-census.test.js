@@ -39,7 +39,7 @@ const LBF = LB * G0, HP = 550 * FT * LBF / 1000;                                
 const PAIRS = {
   'in': ['mm', IN * 1000], 'lbs': ['kg', LB], 'HP': ['kW', HP], 'WHP': ['kW', HP], 'lb': ['N', LBF], 'lbf': ['N', LBF], 'psi': ['bar', LBF / (IN * IN) / 1e5],
   'mph': ['km/h', MI / 1000], '°F': ['°C', 'T'], 'Δ°F': ['Δ°C', 'D'], 'CFM': ['L/min', FT ** 3 * 1000], 'CFM/cyl': ['L/min/cyl', FT ** 3 * 1000],
-  'lb-ft': ['N·m', LBF * FT], 'ft-lb': ['N·m', LBF * FT], 'ft-lbs': ['N·m', LBF * FT], 'sq ft': ['m²', FT * FT], 'ft': ['m', FT], 'gal': ['L', GAL], 'gallons': ['L', GAL],
+  'lb-ft': ['N·m', LBF * FT], 'ft-lb': ['J', LBF * FT], 'ft-lbs': ['N·m', LBF * FT], 'sq ft': ['m²', FT * FT], 'ft': ['m', FT], 'gal': ['L', GAL], 'gallons': ['L', GAL],
   'sq in': ['mm²', IN * IN * 1e6], 'lb/ft³': ['kg/m³', LB / FT ** 3], 'lbs/in': ['N/mm', LBF / IN / 1000], 'lb/in': ['N/mm', LBF / IN / 1000], 'ft/sec': ['m/s', FT],
   'ft/s': ['m/s', FT], 'lb/hr': ['kg/hr', LB], 'ci': ['cc', IN ** 3 * 1e6], '$/gal': ['$/L', 1 / GAL], 'lb/hp-hr': ['kg/kW-hr', LB / HP], 'mpg': ['L/100km', 'R'],
   'inH2O': ['kPa', G0 * 25.4 / 1000], 'miles': ['km', MI / 1000], 'in/min': ['mm/min', IN * 1000], 'in Hg': ['kPa', 3.386389], 'ft/min': ['m/min', FT], 'GPM': ['L/min', GAL],
