@@ -42,15 +42,17 @@ add('ev_coolant_flow', { ecf_dt: ['10', '10'] }, [R('Coolant Mass Flow', 'kg/s',
 add('ev_hvac_energy', { ehe_p: ['6', '6'] }, [R('HVAC Energy', 'kWh', 6 * 1)]);
 add('ev_inverter_loss', { eil_i: ['180', '180'], eil_o: ['175', '175'] }, [R('Inverter Loss', 'kW', 5)]);
 add('ev_motor_efficiency', { eme_o: ['120', '120'], eme_i: ['150', '150'] }, [R('Motor Efficiency', '%', 80)]);
+/* GH-IMP-019 (2026-10-13): EV motor torque shows lb-ft in both systems under the default Torque preference (it was N·m in Metric), so the first box is typed as 500 in both; the kW row is
+   EV motor power (kW in both systems) and the HP companion row keeps its old behaviour (HP in Imperial, kW in Metric: it does not follow the Power preference). */
 { const hp = 500 * 6000 / 5252, kw = hp * HP_KW;
-  add('ev_motor_power', { ev_mtq: ['500', t(500 * LBFT)] }, [R('Motor Power', 'HP', hp, 'kW', kw), R('Motor Power', 'kW', kw)]); }
+  add('ev_motor_power', { ev_mtq: ['500', '500'] }, [R('Motor Power', 'HP', hp, 'kW', kw), R('Motor Power', 'kW', kw)]); }
 { const tq = 250 * 1000 * 0.737562 / (2 * Math.PI * 6000 / 60);
-  add('ev_motor_torque', { ev_mkw: ['250', '250'] }, [R('Motor Torque', 'lb-ft', tq, 'N·m', tq * LBFT)]); }
+  add('ev_motor_torque', { ev_mkw: ['250', '250'] }, [R('Motor Torque', 'lb-ft', tq)]); }   // GH-IMP-019: EV motor torque is lb-ft in both systems under Auto (it was N·m in Metric)
 add('ev_peak_power', { epp_v: ['400', '400'], epp_i: ['500', '500'] }, [R('Peak Electrical Power', 'kW', 400 * 500 / 1000)]);
 add('ev_power_conversion', { epcv_p: ['200', '200'] }, [R('AC Output Power', 'kW', 200 * 0.98)]);
 add('fuel_cell_efficiency', { fce_o: ['50', '50'], fce_i: ['100', '100'] }, [R('Fuel Cell Efficiency', '%', 50)]);
 add('fuel_cell_power', { fcp_m: ['0.003', '0.003'] }, [R('Fuel Cell Power', 'kW', 0.003 * 120000 * 0.55)]);
-add('hybrid_power_split', { hps_p: ['200', '200'], hps_f: ['0.6', '0.6'] }, [R('Engine Power', 'kW', 120), R('Electric Motor Power', 'kW', 80)]);
+add('hybrid_power_split', { hps_p: ['200', '200'], hps_f: ['0.6', '0.6'] }, [R('Engine Power', 'HP', 120 / HP_KW), R('Electric Motor Power', 'kW', 80)]);   // GH-IMP-019: the engine share is combustion-engine power (hp in both systems under Auto); the system power box and the motor share stay kW
 add('hybrid_regen_energy', { hre_p: ['50', '50'] }, [R('Recovered Energy', 'kWh', 50 * 0.65 * 0.1)]);
 add('heat_input_per_cycle', { hipc_m: ['0.00005', '0.00005'] }, [R('Heat Input per Cycle', 'J', 0.00005 * 44000000)]);
 // --- fractions, fuel economy, distance ---

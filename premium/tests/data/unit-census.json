@@ -112,6 +112,7 @@
   "mm³/ms",
   "°C"
  ],
+ "performance": ["HP", "WHP", "lb-ft"],
  "imperial_only": {
   "$/acre": {
    "kind": "new",

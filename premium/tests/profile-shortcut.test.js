@@ -91,7 +91,9 @@ async function runSuite(enginePath, label, quick) {
     await open('hybrid_power_split');
     const tag = `hybrid ${sys}`;
     const start = await results();
-    check(`${tag}: opens at system 120 kW, engine 78 kW, motor 42 kW`, num(start['Engine Power']) === 78 && num(start['Electric Motor Power']) === 42, JSON.stringify(start));
+    /* GH-IMP-019 (2026-10-13): the engine share is combustion-engine power, hp in both systems under the default Power preference; the motor share and the system power stay kW.
+       78 kW of engine power is 78 / 0.745699872 = 104.60 hp. */
+    check(`${tag}: opens at system 120 kW, engine 78 kW (104.60 hp), motor 42 kW`, /HP$/.test(start['Engine Power']) && approx(num(start['Engine Power']), 78 / KW_PER_HP, 1e-3) && num(start['Electric Motor Power']) === 42 && /kW$/.test(start['Electric Motor Power']), JSON.stringify(start));
     const fChip = await chipOf('hps_f');
     check(`${tag}: the engine-fraction box offers no vehicle shortcut`, fChip === null, JSON.stringify(fChip));
     const pChip = await chipOf('hps_p');
@@ -105,15 +107,16 @@ async function runSuite(enginePath, label, quick) {
       const sysKW = 370 * KW_PER_HP;
       check(`${tag}: clicking puts 275.909 kW in the system-power box`, after && approx(num(after.value), sysKW, 1e-5), JSON.stringify(after));
       check(`${tag}: the fraction is still 0.65`, fAfter && num(fAfter.value) === 0.65, JSON.stringify(fAfter));
-      check(`${tag}: engine share is 275.909 x 0.65 = 179.341 kW`, approx(num(r['Engine Power']), sysKW * 0.65, 1e-3), JSON.stringify(r));
-      check(`${tag}: motor share is 275.909 x 0.35 = 96.568 kW`, approx(num(r['Electric Motor Power']), sysKW * 0.35, 1e-3), JSON.stringify(r));
-      check(`${tag}: engine + motor = system power`, approx(num(r['Engine Power']) + num(r['Electric Motor Power']), sysKW, 1e-3), JSON.stringify(r));
-      check(`${tag}: neither the 240.5 / 129.5 of the old kW shortcut nor the 44,400 of the fraction shortcut appears`, !/240\.5|129\.5|44,400|-44,280/.test(JSON.stringify(r)), JSON.stringify(r));
+      check(`${tag}: engine share is 275.909 x 0.65 = 179.341 kW = 240.5 hp, shown in hp`, /HP$/.test(r['Engine Power']) && approx(num(r['Engine Power']), sysKW * 0.65 / KW_PER_HP, 1e-3), JSON.stringify(r));
+      check(`${tag}: motor share is 275.909 x 0.35 = 96.568 kW, shown in kW`, /kW$/.test(r['Electric Motor Power']) && approx(num(r['Electric Motor Power']), sysKW * 0.35, 1e-3), JSON.stringify(r));
+      check(`${tag}: engine (hp, converted) + motor (kW) = system power`, approx(num(r['Engine Power']) * KW_PER_HP + num(r['Electric Motor Power']), sysKW, 1e-3), JSON.stringify(r));
+      /* the old kW shortcut gave an engine of 240.5 kW and a motor of 129.5 kW: the engine figure is now correctly 240.5 hp, so the motor share (96.6, not 129.5) and the unit tell them apart */
+      check(`${tag}: neither the 129.5 kW motor share of the old kW shortcut nor the 44,400 of the fraction shortcut appears, and 240.5 is hp`, !/129\.5|44,400|-44,280/.test(JSON.stringify(r)) && /^240\.5 HP$/.test(r['Engine Power']), JSON.stringify(r));
       check(`${tag}: the vehicle still has 370 hp`, prof.hp === 370, JSON.stringify(prof));
       /* the box does not move when the measurement system changes: it is kW in both */
       await setSystem(sys === 'imperial' ? 'metric' : 'imperial');
       const other = await boxOf('hps_p'), r2 = await results();
-      check(`${tag}: switching Metric / Imperial leaves the kW box and the split unchanged`, other && approx(num(other.value), sysKW, 1e-5) && approx(num(r2['Engine Power']), sysKW * 0.65, 1e-3), JSON.stringify([other, r2]));
+      check(`${tag}: switching Metric / Imperial leaves the kW box and the split unchanged`, other && approx(num(other.value), sysKW, 1e-5) && approx(num(r2['Engine Power']), sysKW * 0.65 / KW_PER_HP, 1e-3) && /HP$/.test(r2['Engine Power']), JSON.stringify([other, r2]));
       await setSystem(sys);
     }
     /* another vehicle: 425 hp = 316.922 kW */
@@ -157,11 +160,23 @@ async function runSuite(enginePath, label, quick) {
       check(`save-to-vehicle ${sys}: ${calc} (${why}) writes only its pound box, ${want} lbs`, approx(q.weight, want, 1e-5), JSON.stringify(q));
     }
     /* the boxes that ARE the property still save, in the unit the vehicle stores: hp_from_torque saves torque and rpm; the torque box typed in N·m (Metric) is stored in lb-ft */
-    await profile({ hp: 400, torque: 850, weight: 7500 }); await open('hp_from_torque');
+    /* GH-IMP-019 (2026-10-13): engine torque shows lb-ft in Metric too (Torque = Auto), so the N·m case is made explicit: Torque = N·m, whichever system is on screen */
+    await profile({ hp: 400, torque: 850, weight: 7500 });
+    if (sys === 'metric') { await page.evaluate(() => setPerf('torque', 'N·m')); await page.waitForTimeout(40); }
+    await open('hp_from_torque');
     await page.evaluate(() => { const t = document.getElementById('torq'); t.value = UNIT.system === 'metric' ? '678.0' : '500'; renderCalc('hp_from_torque', false); });
     await page.evaluate(() => ghmSaveCurrentToVehicle());
     const q2 = await profile({});
-    check(`save-to-vehicle ${sys}: a torque box typed as ${sys === 'metric' ? '678.0 N·m' : '500 lb-ft'} is saved as lb-ft`, approx(q2.torque, sys === 'metric' ? 678.0 / NM_PER_LBFT : 500, 1e-5), JSON.stringify(q2));
+    check(`save-to-vehicle ${sys}: a torque box typed as ${sys === 'metric' ? '678.0 N·m (Torque = N·m)' : '500 lb-ft'} is saved as lb-ft`, approx(q2.torque, sys === 'metric' ? 678.0 / NM_PER_LBFT : 500, 1e-5), JSON.stringify(q2));
+    if (sys === 'metric') { await page.evaluate(() => setPerf('torque', 'auto')); await page.waitForTimeout(40); }
+    /* and under the default (Auto) a Metric torque box is lb-ft: 678.0 typed there is saved as 678.0 lb-ft */
+    if (sys === 'metric') {
+      await profile({ hp: 400, torque: 850, weight: 7500 }); await open('hp_from_torque');
+      await page.evaluate(() => { const t = document.getElementById('torq'); t.value = '678.0'; renderCalc('hp_from_torque', false); });
+      await page.evaluate(() => ghmSaveCurrentToVehicle());
+      const q3 = await profile({});
+      check('save-to-vehicle metric (Torque = Auto): a torque box typed as 678.0 lb-ft is saved as 678.0 lb-ft, not converted', approx(q3.torque, 678.0, 1e-9), JSON.stringify(q3));
+    }
     await profile({ hp: 370, torque: 850, weight: 7500 });
   }
 

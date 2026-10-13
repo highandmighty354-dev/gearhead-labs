@@ -172,7 +172,7 @@ const STAGE_ABS = 0.051, STAGE_REL = 1e-4;       // the staged curve is rounded 
       check(tag + ' GHM_AIRFLOW_POWER hp', close(z.hp, hp, STAGE_REL), `hp ${z.hp}, physics ${hp} (ratio ${(z.hp / hp).toFixed(3)})`);
       check(tag + ' GHM_AIRFLOW_POWER torque', close(z.torque, tq, STAGE_REL), `torque ${z.torque}, physics ${tq}`);
       const shown = await rowHp(sys);
-      check(tag + ' Estimated Horsepower row', !!shown && shown.unit === (metric ? 'kW' : 'HP'), `row ${JSON.stringify(shown)}`);
+      check(tag + ' Estimated Horsepower row', !!shown && shown.unit === 'HP', `row ${JSON.stringify(shown)}`);   // GH-IMP-019 (2026-10-13): engine power reads HP in both systems under the default Power preference (it read kW in Metric); rowHp converts a kW row back, so the comparison with the physics is unchanged
       if (shown) check(tag + ' GHM_AIRFLOW_POWER equals the page', close(z.hp, shown.hp, 1e-4), `GHM_AIRFLOW_POWER().hp ${z.hp} HP, the page shows ${shown.hp.toFixed(4)} HP`);
     }
   }

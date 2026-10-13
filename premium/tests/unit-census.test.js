@@ -12,9 +12,10 @@
         (written here from the definitions of the pound, inch, foot, mile, gallon and horsepower, never read from the engine), within the display rounding of both numbers.
         Temperatures use the affine rule, temperature differences x 5/9, mpg the reciprocal rule.
      2. UNCHANGED, classified in premium/tests/data/unit-census.json: `neutral` (ratios, angles, time, money, counts, electrical, engine speed), `si` (a metric unit text declared in an
-        Imperial calculator: the GH-ENG-001 / GH-DEF-020 territory) or `imperial_only` (a US-customary unit the engine does not register: GH-IMP-014). The number must not change
+        Imperial calculator: the GH-ENG-001 / GH-DEF-020 territory), `performance` (HP, WHP and lb-ft: since GH-IMP-019 the Power and Torque preferences, not the measurement system, decide them, so
+        a row in a performance category reads the same in both systems under the default Auto setting; premium/tests/performance-census.test.js proves every such row) or `imperial_only` (a US-customary unit the engine does not register: GH-IMP-014). The number must not change
         between the systems (an unconverted unit with a changed number would be a wrong label), except in the 29 calculators of the known-open ledger of label-consistency.test.js.
-     3. An unchanged unit that is in none of the three lists fails: a new unit has to be classified when it is introduced.
+     3. An unchanged unit that is in none of the four lists fails: a new unit has to be classified when it is introduced.
      4. The converter calculators (the ones whose output rows name their own unit, checked by converters.test.js) are counted and left out of 1 and 2.
      5. Units that the unit table cannot resolve safely never appear as a declared unit: 'qt' (aliased to gal), 'L/min' and 'm/min' (duplicated keys), see unit-factors.test.js.
 
@@ -83,8 +84,8 @@ const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
   const ids = Object.keys(imp);
   check('all 696 calculators scanned in both systems', ids.length === 696 && Object.keys(met).length === 696, `${ids.length} / ${Object.keys(met).length}`);
 
-  const neutral = new Set(CENSUS.neutral), si = new Set(CENSUS.si), impOnly = CENSUS.imperial_only;
-  const count = { converted: 0, neutral: 0, si: 0, imperial_only: 0, converter: 0, unitless: 0 }, perUnit = {}, unknown = {}, pairsSeen = new Set(), where = {};
+  const neutral = new Set(CENSUS.neutral), si = new Set(CENSUS.si), impOnly = CENSUS.imperial_only, perf = new Set(CENSUS.performance || []);   // performance: HP, WHP, lb-ft read the same in both systems under the default Power / Torque preferences (GH-IMP-019)
+  const count = { converted: 0, neutral: 0, si: 0, imperial_only: 0, performance: 0, converter: 0, unitless: 0 }, perUnit = {}, unknown = {}, pairsSeen = new Set(), where = {};
   let numericChecked = 0;
   for (const id of ids) {
     const a = imp[id], b = met[id];
@@ -117,7 +118,7 @@ const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
         continue;
       }
       /* unchanged text */
-      const cls = neutral.has(ua) ? 'neutral' : si.has(ua) ? 'si' : impOnly[ua] ? 'imperial_only' : null;
+      const cls = neutral.has(ua) ? 'neutral' : si.has(ua) ? 'si' : perf.has(ua) ? 'performance' : impOnly[ua] ? 'imperial_only' : null;
       if (!cls) { unknown[ua] = (unknown[ua] || []).concat(id); continue; }
       count[cls]++; if (cls === 'imperial_only') (where[ua] = where[ua] || []).push(id);
       if (both && !LEDGER.has(id)) {
@@ -129,7 +130,7 @@ const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
   }
   for (const [u, who] of Object.entries(unknown)) check(`unit "${u}" is classified`, false, `appears unchanged in ${[...new Set(who)].slice(0, 4).join(', ')}${new Set(who).size > 4 ? ' ...' : ''}: add it to premium/tests/data/unit-census.json (neutral / si / imperial_only)`);
   /* the lists themselves: no unit in two classes */
-  const all = [...CENSUS.neutral, ...CENSUS.si, ...Object.keys(impOnly)];
+  const all = [...CENSUS.neutral, ...CENSUS.si, ...(CENSUS.performance || []), ...Object.keys(impOnly)];
   check('no unit is in two classes', new Set(all).size === all.length, all.filter((x, i) => all.indexOf(x) !== i).join(', '));
   const reg = [...CENSUS.neutral, ...CENSUS.si].filter(u => PAIRS[u]);
   check('no converted unit is listed as unchanged', reg.length === 0, reg.join(', '));
@@ -140,8 +141,8 @@ const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
   const CAP = process.env.LIST ? Infinity : 40;                                         // LIST=1 prints every unit; the normal run keeps the failure report short
   const shown = lines.length > CAP ? lines.slice(0, CAP).concat(`  ... ${lines.length - CAP} more`) : lines;
   if (shown.length) console.log(shown.join('\n'));
-  const rowsTotal = count.converted + count.neutral + count.si + count.imperial_only + count.converter;
-  console.log(`\nunit-census tests: 696 calculators, ${rowsTotal} rows with a unit: ${count.converted} converted (${pairsSeen.size} unit pairs), ${count.neutral} neutral, ${count.si} metric-declared, ` +
+  const rowsTotal = count.converted + count.neutral + count.si + count.imperial_only + count.performance + count.converter;
+  console.log(`\nunit-census tests: 696 calculators, ${rowsTotal} rows with a unit: ${count.converted} converted (${pairsSeen.size} unit pairs), ${count.neutral} neutral, ${count.si} metric-declared, ${count.performance} performance-preference, ` +
     `${count.imperial_only} imperial-only (${Object.keys(impOnly).length} units, ${Object.values(impOnly).filter(v => v.kind === 'variant').length} of them spellings of a registered unit), ${count.converter} converter rows set aside; ${numericChecked} numbers compared; ${checks} checks, ${failures} failure(s)`);
   process.exit(failures ? 1 : 0);
 })();

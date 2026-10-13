@@ -41,9 +41,11 @@ const CLASS_A = [];
    is audited in docs/DEFERRED-WORK-REGISTER.md GH-ENG-001; the calculators still showing different numbers for the same inputs are tracked by label-consistency.test.js. */
 const CLASS_B = [];
 /* Rounding artefacts, not unit defects: live re-entry re-reads inputs rounded to 6 significant digits, which moves a result that sits on a rounding boundary.
-   drivetrain_loss: 425 HP x 0.82 = 348.5 exactly, Math.round() gives 349 from 425 but 348 from the 424.99996 HP that the 316.922 kW box holds.
-   density_altitude: the altitude is rounded to whole feet and the default conditions land on a half-foot (130 ft vs 129 ft). */
-const EXPECTED_ROUNDING = ['density_altitude', 'drivetrain_loss'];
+   density_altitude: the altitude is rounded to whole feet and the default conditions land on a half-foot (130 ft vs 129 ft).
+   drivetrain_loss was in this list (425 HP x 0.82 = 348.5 exactly, Math.round() gives 349 from 425 but 348 from the 424.99996 HP that the 316.922 kW box held in Metric). Since GH-IMP-019
+   (2026-10-13) engine power shows hp in both systems under the default Power preference, the box holds 425 and the sweep, which runs under Auto, no longer meets the boundary: the entry was
+   removed when the sweep reported it as stale. It can still be met with Power = kW (the box then holds a rounded kW text): see GH-EXP-001. */
+const EXPECTED_ROUNDING = ['density_altitude'];
 const KNOWN_DEFERRED = new Set([...CLASS_A, ...CLASS_B, ...EXPECTED_ROUNDING]);
 /* Class B — converter-style calculators whose output rows already name their unit but used to be passed through the display layer a second time,
    so Metric showed different numbers from Imperial. temp_converter was fixed in 5d469cd; the other seven in reliability pass item 2 (GH-DEF-003; independent
@@ -164,17 +166,20 @@ async function inferenceContract(page) {
   } finally {
     await page.evaluate(() => { delete RENDERS.__inf_a; delete RENDERS.__inf_b; delete CALC_PERSISTENT_STATE.__inf_a; delete CALC_PERSISTENT_STATE.__inf_b; UNIT_SWITCH_CANONICAL = null; if (UNIT.system !== 'imperial') setUnit('imperial'); renderCalc('dashboard', false); });
   }
-  /* a real Class A calculator: tow_wheel_torque declares lb-ft (Engine Torque, a convertible unit), ':1' (Overall Gear Ratio, a ratio no table knows) and '' (Efficiency) */
+  /* a real Class A calculator: tow_wheel_torque declares lb-ft (Engine Torque, a convertible unit), ':1' (Overall Gear Ratio, a ratio no table knows) and '' (Efficiency).
+     GH-IMP-019 (2026-10-13): engine torque now shows lb-ft in Metric under the default Torque preference (Auto), so the box would not be a Metric-named box; the test selects Torque = N·m,
+     which makes the declared lb-ft box show N·m in either system and keeps this case about what it was written for: a number typed in the unit the box shows is read through the unit the calculator declared. */
   await page.evaluate(() => setUnit('metric')); await page.waitForTimeout(30);                  // the dashboard re-render defers its landing page by a tick: let it land before opening the calculator
+  await page.evaluate(() => setPerf('torque', 'N·m')); await page.waitForTimeout(30);                  // setPerf re-renders the dashboard, which defers its landing page by a tick as well
   await page.evaluate(() => renderCalc('tow_wheel_torque', false));
   await page.click('#twt_t'); await page.fill('#twt_t', '610.118'); await page.waitForTimeout(30);
   await page.click('#twt_g'); await page.fill('#twt_g', '14'); await page.waitForTimeout(30);
   await page.click('#twt_e'); await page.fill('#twt_e', '0.9'); await page.waitForTimeout(30);
   const real = await page.evaluate(() => ({ t: GH_CERT_VALUE('twt_t', 450), g: GH_CERT_VALUE('twt_g', 12), e: GH_CERT_VALUE('twt_e', 0.88), units: ['twt_t', 'twt_g', 'twt_e'].map(i => document.getElementById(i).dataset.ghmUnit).join('|') }));
-  check('real calculator tow_wheel_torque: 610.118 N·m typed in a lb-ft field is read as 450 lb-ft', real.t, 450);
+  check('real calculator tow_wheel_torque (Torque = N·m): 610.118 N·m typed in a lb-ft field is read as 450 lb-ft', real.t, 450);
   check('real calculator tow_wheel_torque: a ratio declared ":1" is read as typed', real.g, 14);
   check('real calculator tow_wheel_torque: a field declared with no unit is read as typed', real.e, 0.9);
-  await page.evaluate(() => { setUnit('imperial'); renderCalc('dashboard', false); }); await page.waitForTimeout(30);
+  await page.evaluate(() => { setPerf('torque', 'auto'); setUnit('imperial'); renderCalc('dashboard', false); }); await page.waitForTimeout(30);
 }
 
 /* ---- 2. sweep ---- */

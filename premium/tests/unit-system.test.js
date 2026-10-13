@@ -70,6 +70,10 @@ const IN = {
   feedrate: { toSI: (s, x) => s === 'metric' ? x / 1000 : x * K.in_m, fromSI: (s, x) => s === 'metric' ? x * 1000 : x / K.in_m },     // in/min <-> mm/min, base m/min
   sfm:    { toSI: (s, x) => s === 'metric' ? x : x * K.ft_m, fromSI: (s, x) => s === 'metric' ? x : x / K.ft_m },                      // SFM (ft/min) <-> m/min, base m/min
   power:  { toSI: (s, x) => s === 'metric' ? x * 1000 : x * K.hp_W, fromSI: (s, x) => s === 'metric' ? x / 1000 : x / K.hp_W },       // HP <-> kW, base W
+  /* GH-IMP-019 (2026-10-13): a row in a performance category shows the same unit in both systems under the default Power / Torque preferences (Auto): combustion-engine, wheel and road-load
+     power in HP, engine, wheel and driveline torque in lb-ft. 'hpfix' and 'lbftfix' state that: the typed number is HP / lb-ft whatever the measurement system. */
+  hpfix:  { toSI: (s, x) => x * K.hp_W, fromSI: (s, x) => x / K.hp_W },                                                            // HP in both systems, base W
+  lbftfix:{ toSI: (s, x) => x * K.ftlbf_J, fromSI: (s, x) => x / K.ftlbf_J },                                                       // lb-ft in both systems, base N.m
   bsfc:   { toSI: (s, x) => s === 'metric' ? x : x * K.lb_kg / (K.hp_W / 1000), fromSI: (s, x) => s === 'metric' ? x : x * (K.hp_W / 1000) / K.lb_kg },   // lb/hp-hr <-> kg/kW-hr, base kg/kW-hr
   lbgal:  { toSI: (s, x) => x * K.lb_kg / K.gal_L, fromSI: (s, x) => x * K.gal_L / K.lb_kg },                                         // lb/gal: no engine unit, same text in both systems, base kg/L
   ft:     { toSI: (s, x) => s === 'metric' ? x : x * K.ft_m, fromSI: (s, x) => s === 'metric' ? x : x / K.ft_m },                      // ft <-> m, base m
@@ -82,6 +86,8 @@ const IN = {
 const OUT = {
   force:  { fromSI: (s, x) => s === 'metric' ? x : x / K.lbf_N, unit: s => s === 'metric' ? 'N' : 'lb' },
   power:  { fromSI: (s, x) => s === 'metric' ? x / 1000 : x / K.hp_W, unit: s => s === 'metric' ? 'kW' : 'HP' },
+  hpfix:  { fromSI: (s, x) => x / K.hp_W, unit: s => 'HP' },                                                                          // GH-IMP-019: HP in both systems under Auto
+  lbftfix:{ fromSI: (s, x) => x / K.ftlbf_J, unit: s => 'lb-ft' },                                                                   // GH-IMP-019: lb-ft in both systems under Auto
   psf:    { fromSI: (s, x) => x / K.psf_Pa, unit: s => 'lb/sq ft' },                                    // unregistered unit: shown as lb/sq ft in both systems
   /* an energy in ft-lb is shown in joules in Metric (GH-IMP-001: its 'ft-lb' alias used to be the torque unit, so the row read "N·m"; the number never changed, 1 N·m = 1 J).
      A torque keeps N·m (the 'torque' kind below). */
@@ -133,7 +139,7 @@ const CASES = [
   { id: 'dynamic_pressure', fields: [['dp_rho', 'density_slugft3', 1.18], ['dp_v', 'speed', 40.0]],
     compute: v => ({ 'Dynamic Pressure': ['psf', 0.5 * v.dp_rho * v.dp_v * v.dp_v] }) },
   { id: 'aero_hp', fields: [['ahp_f', 'force', 520.0], ['ahp_v', 'speed', 33.0]],
-    compute: v => ({ 'Aerodynamic Power': ['power', v.ahp_f * v.ahp_v] }) },
+    compute: v => ({ 'Aerodynamic Power': ['hpfix', v.ahp_f * v.ahp_v] }) },   // road-load power: HP in both systems (GH-IMP-019)
   /* --- reliability pass item 3: the three calculators reported by the sweep after Batch 10 --- */
   { id: 'brake_energy', fields: [['wt_be', 'mass', 1600], ['v_be', 'speed', 29.0]],                    // "Vehicle Weight" is a vehicle weight as people state it: a mass (lbs <-> kg), GH-IMP-013
     compute: v => ({ 'Kinetic Energy': ['energy', 0.5 * v.wt_be * v.v_be * v.v_be] }) },                // KE = 1/2 m v^2
@@ -160,10 +166,10 @@ const CASES = [
     compute: v => ({ 'Towing Range': ['miles', v.trng_f * v.trng_m / K.mi_km] }) },                                          // litres x km per litre = km, / km per mile = miles
   { id: 'tow_trip_fuel_cost', fields: [['ttfc_m', 'miles', 640], ['ttfc_g', 'fueleco', 6.5], ['ttfc_p', 'price', 0.95]],
     compute: v => ({ 'Trip Fuel Cost': ['money', v.ttfc_m * K.mi_km / v.ttfc_g * v.ttfc_p] }) },                             // miles x km/mi = km; km / (km/L) = L; L x $/L
-  { id: 'tow_wheel_torque', fields: [['twt_t', 'torque', 600], ['twt_g', 'none', 10.5], ['twt_e', 'none', 0.9]],
-    compute: v => ({ 'Wheel Torque': ['torque', v.twt_t * v.twt_g * v.twt_e] }) },
-  { id: 'ev_wheel_torque', fields: [['ewt_t', 'torque', 420], ['ewt_r', 'none', 8.2], ['ewt_e', 'none', 0.93]],
-    compute: v => ({ 'Wheel Torque': ['torque', v.ewt_t * v.ewt_r * v.ewt_e] }) },
+  { id: 'tow_wheel_torque', fields: [['twt_t', 'lbftfix', 600], ['twt_g', 'none', 10.5], ['twt_e', 'none', 0.9]],                // engine torque in, wheel torque out: lb-ft in both systems (GH-IMP-019)
+    compute: v => ({ 'Wheel Torque': ['lbftfix', v.twt_t * v.twt_g * v.twt_e] }) },
+  { id: 'ev_wheel_torque', fields: [['ewt_t', 'lbftfix', 420], ['ewt_r', 'none', 8.2], ['ewt_e', 'none', 0.93]],                // motor torque in, wheel torque out: lb-ft in both systems (GH-IMP-019)
+    compute: v => ({ 'Wheel Torque': ['lbftfix', v.ewt_t * v.ewt_r * v.ewt_e] }) },
   { id: 'spring_rate', fields: [['sr_f', 'force', 1200], ['sr_x', 'length', 0.012]],
     compute: v => ({ 'Spring Rate': ['springrate', v.sr_f / v.sr_x] }) },
   { id: 'natural_frequency', fields: [['nf_k', 'springrate', 90000], ['nf_m', 'mass', 430]],
@@ -176,7 +182,7 @@ const CASES = [
     compute: v => ({ 'Feed Rate': ['feedrate', v.frt_r * v.frt_z * v.frt_f] }) },                                            // rpm x teeth x feed per tooth, base m per minute
   { id: 'machining_rpm', fields: [['mrpm_v', 'sfm', 45.72], ['mrpm_d', 'length', 0.0127]],
     compute: v => ({ 'Spindle RPM': ['rpm', v.mrpm_v / (Math.PI * v.mrpm_d)] }) },                                           // n = surface speed / (pi D), both in metres
-  { id: 'fuel_pump_sizing', fields: [['hp10', 'power', 300000], ['bsfc2', 'bsfc', 0.33], ['fuel_density', 'lbgal', 0.74], ['pump_margin', 'none', 1.3]],
+  { id: 'fuel_pump_sizing', fields: [['hp10', 'hpfix', 300000], ['bsfc2', 'bsfc', 0.33], ['fuel_density', 'lbgal', 0.74], ['pump_margin', 'none', 1.3]],
     compute: v => ({ 'Fuel Mass Flow': ['massflow', v.hp10 / 1000 * v.bsfc2],                                                 // kW x kg/kW-hr = kg/hr
                      'Required Pump Delivery': ['volflow', v.hp10 / 1000 * v.bsfc2 / v.fuel_density * v.pump_margin] } ) },  // kg/hr / kg/L x margin = L/hr
   { id: 'fmep_from_imep_bmep', fields: [['fmep_i', 'pressure', 1.1e6], ['fmep_b', 'pressure', 0.95e6]],
@@ -216,8 +222,8 @@ const CASES = [
   { id: 'tow_hitch_margin', fields: [['thm_h', 'mass', 450], ['thm_t', 'mass', 390]],
     compute: v => ({ 'Hitch Capacity Margin': ['mass', v.thm_h - v.thm_t] }) },
   { id: 'tow_grade_power', fields: [['tgp_w', 'mass', 6800], ['tgp_g', 'none', 0.05], ['tgp_s', 'speed', 24.5]],
-    compute: v => ({ 'Grade Power': ['power', v.tgp_w * K.g0 * v.tgp_g * v.tgp_s] }) },                                      // P = F v, F = m g0 x grade (the calculator's stated rule)
-  { id: 'tow_grade_speed', fields: [['tgs_hp', 'power', 60000], ['tgs_w', 'mass', 6800], ['tgs_g', 'none', 0.05]],
+    compute: v => ({ 'Grade Power': ['hpfix', v.tgp_w * K.g0 * v.tgp_g * v.tgp_s] }) },                                      // P = F v, F = m g0 x grade (the calculator's stated rule)
+  { id: 'tow_grade_speed', fields: [['tgs_hp', 'hpfix', 60000], ['tgs_w', 'mass', 6800], ['tgs_g', 'none', 0.05]],
     compute: v => ({ 'Grade Speed': ['speed', v.tgs_hp / (v.tgs_w * K.g0 * v.tgs_g)] }) },                                   // v = P / (m g0 x grade)
   { id: 'tow_rolling_resistance', fields: [['trr_w', 'mass', 6800], ['trr_c', 'none', 0.012]],
     compute: v => ({ 'Rolling Resistance Force': ['force', v.trr_w * K.g0 * v.trr_c] }) },                                   // a FORCE: newtons
@@ -235,7 +241,7 @@ const CASES = [
     compute: v => ({ 'Ride Frequency': ['hz', Math.sqrt(v.rf_k / v.rf_m) / (2 * Math.PI)] }) },
   { id: 'tire_rolling_resistance', fields: [['tirerr_w', 'mass', 1600], ['tirerr_c', 'none', 0.011], ['tirerr_v', 'speed', 27.0]],
     compute: v => ({ 'Rolling Resistance Force': ['force', v.tirerr_w * K.g0 * v.tirerr_c],
-                     'Power Loss': ['power', v.tirerr_w * K.g0 * v.tirerr_c * v.tirerr_v] }) },                               // F = m g0 Crr; P = F v
+                     'Power Loss': ['hpfix', v.tirerr_w * K.g0 * v.tirerr_c * v.tirerr_v] }) },                               // F = m g0 Crr; P = F v
   /* a winch / recovery rating is a mass-equivalent rating ("12,000 lb (5,440 kg)"), the recommendation is vehicle mass x multiplier and is compared with that rating */
   { id: 'winch_line_pull', fields: [['wlp_gvwr', 'mass', 2800], ['wlp_mult', 'none', 1.75], ['wlp_rated', 'mass', 5440], ['wlp_blocks', 'none', 1]],
     compute: v => ({ 'Recommended Minimum Line Pull': ['mass', v.wlp_gvwr * v.wlp_mult], 'Effective Pull With Blocks': ['mass', v.wlp_rated * Math.pow(2, Math.round(v.wlp_blocks))] }), rel: 3e-3 },

@@ -320,6 +320,7 @@ header.gh-premium-header{height:78px!important;padding:0 24px!important;backgrou
 .gh-header-divider{width:1px;height:34px;background:linear-gradient(180deg,transparent,var(--gh-gold-dim),transparent)}
 .gh-header-context{display:flex;flex-direction:column;gap:4px;min-width:0}.gh-eyebrow{font-size:9px;font-weight:800;letter-spacing:.19em;color:var(--gh-gold-hi);white-space:nowrap}.gh-header-context strong{font-size:11px;letter-spacing:.20em;color:#b8bec6;font-weight:600;white-space:nowrap}
 .gh-header-right{gap:10px}.gh-system-status{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--gh-line);border-radius:999px;background:rgba(255,255,255,.025);font-size:9px;font-weight:800;letter-spacing:.11em;color:#8e969f;white-space:nowrap}.gh-system-status span{width:6px;height:6px;border-radius:50%;background:var(--gh-green);box-shadow:0 0 10px rgba(126,226,177,.6)}
+.gh-perf-prefs{display:flex;align-items:center;gap:6px}.gh-perf-pref{display:flex;align-items:center;gap:5px;font-size:9px;font-weight:800;letter-spacing:.11em;color:#8e969f;text-transform:uppercase;white-space:nowrap}.gh-perf-pref select{appearance:auto;background:#0b0d10;color:#d8dde3;border:1px solid var(--gh-line-strong);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.02em;padding:5px 6px;min-height:30px;cursor:pointer;text-transform:none}.gh-perf-pref select:focus-visible{outline:2px solid var(--gh-gold);outline-offset:1px}
 .gh-unit-toggle{background:#0b0d10!important;border-color:var(--gh-line-strong)!important}.gh-unit-toggle .unit-btn.active{background:linear-gradient(180deg,var(--gh-gold-hi),var(--gh-gold))!important;color:#17120a!important}.gh-profile-btn{border-color:var(--gh-line-strong)!important;background:#0c0f12!important}.gh-profile-btn:hover{border-color:var(--gh-gold)!important;color:var(--gh-gold-hi)!important}
 .layout{height:calc(100vh - 78px - env(safe-area-inset-top))!important;height:calc(100dvh - 78px - env(safe-area-inset-top))!important}
 .sidebar{width:300px!important;background:linear-gradient(180deg,#0a0c0f,#090b0d)!important;border-right:1px solid rgba(255,255,255,.07)!important;box-shadow:14px 0 35px rgba(0,0,0,.16)}.sidebar:before{content:"GEARHEAD LABS  /  ENGINEERING";display:block;padding:18px 15px 8px;font-size:9px;font-weight:900;letter-spacing:.17em;color:#737b84}
@@ -423,6 +424,12 @@ details.gh-js-impl code{display:block;background:var(--input-bg);border:1px soli
   .gh-header-right{flex-shrink:0;gap:6px}
   .gh-unit-toggle .unit-btn{font-size:10.5px;padding:0 7px;min-height:32px;line-height:1}
 }
+/* Power / Torque drop-downs (GH-IMP-019): on a phone they stack, so the header row stays one line high, and their labels shrink to PWR / TRQ */
+@media(max-width:640px){
+  .gh-perf-prefs{flex-direction:column;align-items:stretch;gap:2px}.gh-perf-pref{gap:3px}
+  .gh-perf-pref span{font-size:0;width:22px}.gh-perf-pref span::before{content:attr(data-s);font-size:7.5px;letter-spacing:.06em}
+  .gh-perf-pref select{font-size:10px;min-height:26px;padding:2px 3px;width:54px}
+}
 </style>
 </head>
 <body>
@@ -459,6 +466,10 @@ details.gh-js-impl code{display:block;background:var(--input-bg);border:1px soli
   </div>
   <div class="gh-header-right">
     <div class="gh-system-status"><span></span> Calculators run in your browser</div>
+    <div class="gh-perf-prefs" role="group" aria-label="Power and torque units">
+      <label class="gh-perf-pref"><span data-s="PWR">Power</span><select id="sel-power" aria-label="Power unit" title="Power unit: Auto uses each calculator's own default (hp for engines, kW for EVs and hybrid system power)" onchange="setPerf('power',this.value)"><option value="auto">Auto</option><option value="hp">hp</option><option value="kW">kW</option></select></label>
+      <label class="gh-perf-pref"><span data-s="TRQ">Torque</span><select id="sel-torque" aria-label="Torque unit" title="Torque unit: Auto uses lb-ft" onchange="setPerf('torque',this.value)"><option value="auto">Auto</option><option value="lb-ft">lb-ft</option><option value="N·m">N·m</option></select></label>
+    </div>
     <div class="unit-toggle gh-unit-toggle">
       <button class="unit-btn active" id="btn-imperial" onclick="setUnit('imperial')">Imperial</button>
       <button class="unit-btn" id="btn-metric" onclick="setUnit('metric')">Metric</button>
@@ -692,7 +703,253 @@ const UNIT_DEFS = {
   'CM':{metric:'mm²',toMetric:v=>v*0.000506707479,fromMetric:v=>v/0.000506707479},
   'inHg':{metric:'kPa',toMetric:v=>v*3.386389,fromMetric:v=>v/3.386389}
 };
-function canonicalUnit(unit){ return UNIT_ALIASES[(unit||'').trim()] || unit || ''; }
+function canonicalUnit(unit){ if(isPerfToken(unit)) return PERF_SRC_CANON[perfParse(unit).src]; return UNIT_ALIASES[(unit||'').trim()] || unit || ''; }
+/* =====================================================================================================================================================================
+   GH-IMP-019 -- PERFORMANCE UNITS (power and torque).  Policy approved 2026-10-13; the rows are listed in premium/tests/data/power-torque-rows.json.
+
+   Power and torque are NOT governed by the Imperial / Metric switch. Two independent preferences, kept in this browser only (ghm_perf_power, ghm_perf_torque):
+        Power   Auto | hp | kW          Torque   Auto | lb-ft | N·m
+   "Auto" is the default of the calculator's APPLICATION, never of the selected vehicle (PERF_CATS below):
+        combustion-engine power ....... hp      combustion-engine torque ..... lb-ft      EV / electric-motor power ..... kW        EV motor torque ........ lb-ft
+        road-load power ............... hp      wheel and driveline torque ... lb-ft      wheel power and power loss .... hp        hybrid system power .... kW
+   An explicit choice overrides Auto everywhere it applies (EV rows included). Metric / Imperial never changes either preference and never changes a power or torque row.
+   Rows that keep their established convention (BSFC, power-to-weight, converters, component torque, accessory power, ratios) are named RETAIN-* / PTW_RATIO and are not touched.
+
+   HOW A ROW IS CONVERTED. Every row that shows a power or a torque is listed in PERF_ROWS under a category, by hand: PERF_ROWS[calculator]['IN|<box id>|<unit>'] for a box,
+   ['OUT|<result label>|<unit>'] for a result, the unit being the one the calculator passes to field() / resultHTML() / multiResult(). Nothing is inferred from a label.
+   field(), resultHTML(), multiResult() and the simulator cells look their row up (perfTokenFor); a listed preference-following row gets a unit TOKEN
+        perf|<src>|<shown>|<CATEGORY>|<declared unit>
+   in place of its unit. <src> is the unit the calculator's own arithmetic uses (hp, kW, lbft, Nm: the canonical value of the box; a native kW box is kW), <shown> the text printed
+   beside the box. unitToCanonical / canonicalToUnit / metricUnit / canonicalUnit understand a token and ignore UNIT.system for it, so v(), vd(), certValue(), the remembered text,
+   saved setups, "Save to vehicle" and the profile editor all keep reading the canonical value, once, whatever is on screen. A listed row that keeps its convention gets no token and
+   behaves exactly as before. A power / torque unit that is NOT in the table is recorded in PERF_UNCLASSIFIED and shows what it always showed (premium/tests/performance-census.test.js
+   fails on it): nothing receives a unit by default.
+   ===================================================================================================================================================================== */
+const PERF_CATS = {
+  ENGINE_POWER:{fam:'power',auto:'hp'}, WHEEL_POWER:{fam:'power',auto:'hp'}, ROAD_LOAD_POWER:{fam:'power',auto:'hp'}, EV_POWER:{fam:'power',auto:'kW'}, HYBRID_SYSTEM_POWER:{fam:'power',auto:'kW'},
+  ENGINE_TORQUE:{fam:'torque',auto:'lb-ft'}, EV_TORQUE:{fam:'torque',auto:'lb-ft'}, WHEEL_TORQUE:{fam:'torque',auto:'lb-ft'}, DRIVELINE_TORQUE:{fam:'torque',auto:'lb-ft'},
+  /* the rows that keep the convention they had: no preference applies (BSFC, converters, component torque, accessory power, ratios, emissions, the hp companion row, power-to-weight) */
+  'RETAIN-BSFC':{fam:null}, 'RETAIN-CONVERTER':{fam:null}, 'RETAIN-COMPONENT':{fam:null}, 'RETAIN-ACCESSORY':{fam:null}, 'RETAIN-RATIO':{fam:null}, 'RETAIN-EMISSIONS':{fam:null}, 'RETAIN-ALT':{fam:null}, PTW_RATIO:{fam:null}
+};
+/* PERF_ROWS: [calculator] -> { 'IN|<box id>|<declared unit>' | 'OUT|<result label>|<declared unit>' : category }. 'Engine curve peak' and the twelve curve_y_*|HP boxes are the rows the simulators draw
+   as literal text / in Power-vs-RPM mode (beyond the 220-row inventory). */
+const PERF_ROWS = {
+  advanced_et:{'IN|hp4|HP':'ENGINE_POWER'},
+  aero_hp:{'OUT|Aerodynamic Power|HP':'ROAD_LOAD_POWER'},
+  airflow_power_estimate:{'IN|ap_bs|lb/hp-hr':'RETAIN-BSFC', 'OUT|Estimated Horsepower|HP':'ENGINE_POWER', 'OUT|Estimated Torque|lb-ft':'ENGINE_TORQUE'},
+  axle_shaft_torque_capacity:{'OUT|Yield Torque Capacity|lb-ft':'DRIVELINE_TORQUE', 'OUT|Safe Working Torque Capacity|lb-ft':'DRIVELINE_TORQUE'},
+  bearing_preload:{'OUT|Required Installation Torque|lb-ft':'RETAIN-COMPONENT'},
+  bending_stress:{'IN|bs_m|lb-in':'RETAIN-COMPONENT'},
+  bmep:{'IN|torq_b|lb-ft':'ENGINE_TORQUE'},
+  bmep_from_torque:{'IN|torq_b|lb-ft':'ENGINE_TORQUE'},
+  bolt_torque_spec:{'OUT|Recommended Torque|ft-lbs':'RETAIN-COMPONENT'},
+  boost_for_hp:{'IN|hp_na|HP':'ENGINE_POWER', 'IN|hp_target|HP':'ENGINE_POWER'},
+  brake_rotor_sizing:{'IN|brs_t|lb-ft':'RETAIN-COMPONENT'},
+  brake_torque:{'OUT|Brake Torque|lb-ft':'RETAIN-COMPONENT'},
+  bsfc:{'IN|hp_bsfc|HP':'ENGINE_POWER', 'OUT|BSFC|lb/hp-hr':'RETAIN-BSFC'},
+  btu_hr_to_kw:{'OUT|kW|kW':'RETAIN-CONVERTER'},
+  clamp_load:{'IN|cml_t|in-lb':'RETAIN-COMPONENT'},
+  climb_rate:{'IN|hp6|HP':'ENGINE_POWER'},
+  clutch_torque_capacity:{'OUT|Estimated Torque Capacity|lb-ft':'DRIVELINE_TORQUE'},
+  diesel_bmep:{'IN|d_hp|HP':'ENGINE_POWER', 'OUT|Calculated Torque|lb-ft':'ENGINE_TORQUE'},
+  diesel_bsfc:{'IN|bs_hp|HP':'ENGINE_POWER', 'OUT|BSFC|lb/hp·hr':'RETAIN-BSFC'},
+  diesel_fuel_flow:{'IN|df_hp|HP':'ENGINE_POWER', 'IN|df_bsfc|lb/hp·hr':'RETAIN-BSFC'},
+  diesel_load_factor:{'IN|dlf_rated|HP':'ENGINE_POWER', 'IN|dlf_actual|HP':'ENGINE_POWER', 'OUT|Unused Rated Power|HP':'ENGINE_POWER'},
+  diesel_power_economy:{'IN|dpe_basehp|HP':'ENGINE_POWER', 'IN|dpe_modhp|HP':'ENGINE_POWER', 'OUT|Power Change|HP':'ENGINE_POWER'},
+  diesel_power_from_fuel:{'IN|dpf_bsfc|lb/hp·hr':'RETAIN-BSFC', 'OUT|Estimated Brake Power|HP':'ENGINE_POWER'},
+  diesel_power_to_weight:{'IN|dpw_hp|HP':'ENGINE_POWER', 'OUT|HP / 1000 lb|HP/1000 lb':'PTW_RATIO', 'OUT|lb / HP|lb/HP':'PTW_RATIO'},
+  diesel_scr_efficiency:{'IN|dse_i|g/kWh':'RETAIN-EMISSIONS', 'IN|dse_o|g/kWh':'RETAIN-EMISSIONS'},
+  diesel_torque_from_power:{'IN|dtfp_hp|HP':'ENGINE_POWER', 'OUT|Torque|lb-ft':'ENGINE_TORQUE'},
+  diesel_turbo_efficiency:{'IN|dte_a|W':'RETAIN-ACCESSORY', 'IN|dte_i|W':'RETAIN-ACCESSORY'},
+  drag_downforce_tradeoff:{'OUT|Added Aero Power (B − A)|HP':'ROAD_LOAD_POWER', 'OUT|Downforce per Added HP|lb/HP':'RETAIN-RATIO'},
+  driveshaft_diameter_sizing:{'IN|dds_t|lb-ft':'DRIVELINE_TORQUE'},
+  driveshaft_torque_capacity:{'OUT|Maximum Torque Capacity|lb-ft':'DRIVELINE_TORQUE'},
+  drivetrain_loss:{'IN|fwhp|HP':'ENGINE_POWER', 'OUT|Wheel HP|WHP':'WHEEL_POWER', 'OUT|Drivetrain Loss|HP':'WHEEL_POWER'},
+  dyno_correction:{'IN|hp_raw|HP':'ENGINE_POWER', 'OUT|Estimated Corrected HP|HP':'ENGINE_POWER'},
+  electrical_power:{'OUT|Electrical Power|W':'RETAIN-ACCESSORY'},
+  et_hp_change:{'IN|hp_old|HP':'ENGINE_POWER', 'IN|hp_new|HP':'ENGINE_POWER'},
+  et_mph_prediction:{'IN|hp_p|HP':'ENGINE_POWER'},
+  ev_acceleration:{'IN|ev_ahp|HP':'EV_POWER'},
+  ev_battery_current:{'IN|ev_bkw|kW':'EV_POWER'},
+  ev_battery_heat:{'OUT|Battery Heat|W':'RETAIN-ACCESSORY'},
+  ev_charge_added:{'IN|eca_p|kW':'EV_POWER'},
+  ev_charge_time:{'IN|ev_charger|kW':'EV_POWER'},
+  ev_coolant_flow:{'IN|ecf_q|W':'RETAIN-ACCESSORY'},
+  ev_hvac_energy:{'IN|ehe_p|kW':'EV_POWER'},
+  ev_inverter_loss:{'IN|eil_i|kW':'EV_POWER', 'IN|eil_o|kW':'EV_POWER', 'OUT|Inverter Loss|kW':'EV_POWER'},
+  ev_motor_efficiency:{'IN|eme_o|kW':'EV_POWER', 'IN|eme_i|kW':'EV_POWER'},
+  ev_motor_power:{'IN|ev_mtq|lb-ft':'EV_TORQUE', 'OUT|Motor Power|kW':'EV_POWER', 'OUT|Motor Power|HP':'RETAIN-ALT'},
+  ev_motor_torque:{'IN|ev_mkw|kW':'EV_POWER', 'OUT|Motor Torque|lb-ft':'EV_TORQUE'},
+  ev_peak_power:{'OUT|Peak Electrical Power|kW':'EV_POWER'},
+  ev_power_conversion:{'IN|epcv_p|kW':'EV_POWER', 'OUT|AC Output Power|kW':'EV_POWER'},
+  ev_quarter_mile:{'IN|evq_hp|HP':'EV_POWER', 'OUT|Effective Power|HP':'EV_POWER'},
+  ev_regen_power:{'OUT|Estimated Recovered Power|kW':'EV_POWER'},
+  ev_tire_wear:{'IN|etw_t|lb-ft':'WHEEL_TORQUE', 'IN|etw_rt|lb-ft':'WHEEL_TORQUE'},
+  ev_top_speed:{'IN|ev_tshp|HP':'EV_POWER'},
+  ev_wheel_torque:{'IN|ewt_t|lb-ft':'EV_TORQUE', 'OUT|Wheel Torque|lb-ft':'WHEEL_TORQUE'},
+  exhaust_diameter:{'IN|hp_ex|HP':'ENGINE_POWER'},
+  fuel_cell_efficiency:{'IN|fce_o|kW':'EV_POWER', 'IN|fce_i|kW':'EV_POWER'},
+  fuel_cell_power:{'OUT|Fuel Cell Power|kW':'EV_POWER'},
+  fuel_flow_from_hp:{'IN|ffh_hp|HP':'ENGINE_POWER', 'IN|ffh_bsfc|lb/hp·hr':'RETAIN-BSFC'},
+  fuel_pump_capacity:{'IN|fpc_hp|HP':'ENGINE_POWER', 'IN|fpc_bsfc|lb/hp·hr':'RETAIN-BSFC'},
+  fuel_pump_sizing:{'IN|hp10|HP':'ENGINE_POWER', 'IN|bsfc2|lb/hp-hr':'RETAIN-BSFC'},
+  fuel_system_hp:{'IN|fsh_b|lb/hp·hr':'RETAIN-BSFC', 'OUT|Fuel System HP Capacity|HP':'ENGINE_POWER'},
+  gearbox_efficiency:{'IN|input_hp|HP':'ENGINE_POWER', 'OUT|Output HP|HP':'ENGINE_POWER', 'OUT|Power Lost|HP':'ENGINE_POWER'},
+  gearbox_efficiency_by_gear:{'IN|geg_hp|HP':'ENGINE_POWER', 'OUT|Gear 1 Output|HP':'ENGINE_POWER', 'OUT|Gear 2 Output|HP':'ENGINE_POWER', 'OUT|Gear 3 Output|HP':'ENGINE_POWER', 'OUT|Gear 4 Output|HP':'ENGINE_POWER'},
+  hp_aero_drag:{'OUT|HP Required|HP':'ROAD_LOAD_POWER'},
+  hp_cr_change:{'IN|hp_cr|HP':'ENGINE_POWER', 'OUT|Idealized HP Change|HP':'ENGINE_POWER', 'OUT|Idealized New HP|HP':'ENGINE_POWER'},
+  hp_from_0_60:{'OUT|Estimated HP|HP':'ENGINE_POWER'},
+  hp_from_airflow:{'OUT|Estimated HP Potential|HP':'ENGINE_POWER'},
+  hp_from_boost:{'IN|hp8|HP':'ENGINE_POWER', 'OUT|Idealized HP Gain|HP':'ENGINE_POWER', 'OUT|Idealized Total HP|HP':'ENGINE_POWER'},
+  hp_from_specs:{'IN|bsfc_s|lb/hp-hr':'RETAIN-BSFC', 'OUT|Estimated HP|HP':'ENGINE_POWER'},
+  hp_from_torque:{'IN|torq|lb-ft':'ENGINE_TORQUE', 'OUT|Horsepower|HP':'ENGINE_POWER'},
+  hp_quarter_mile:{'OUT|Estimated Flywheel Horsepower|HP':'ENGINE_POWER'},
+  hp_to_kw:{'OUT|kW|kW':'RETAIN-CONVERTER'},
+  hp_to_ps:{'OUT|PS|PS':'RETAIN-CONVERTER'},
+  hp_trap_speed:{'OUT|Estimated Flywheel HP|HP':'ENGINE_POWER'},
+  hybrid_power_split:{'IN|hps_p|kW':'HYBRID_SYSTEM_POWER', 'OUT|Engine Power|kW':'ENGINE_POWER', 'OUT|Electric Motor Power|kW':'EV_POWER'},
+  hybrid_regen_energy:{'IN|hre_p|kW':'EV_POWER'},
+  imep_from_power:{'IN|imep_hp|HP':'ENGINE_POWER'},
+  injector_duty:{'IN|hp_id|HP':'ENGINE_POWER', 'IN|bsfc_id|lb/hp-hr':'RETAIN-BSFC'},
+  injector_duty_cycle:{'IN|hp_id|HP':'ENGINE_POWER', 'IN|bsfc_id|lb/hp-hr':'RETAIN-BSFC'},
+  injector_size:{'IN|is_hp|HP':'ENGINE_POWER', 'IN|is_bsfc|lb/hp·hr':'RETAIN-BSFC'},
+  injector_sizing:{'IN|hp9|HP':'ENGINE_POWER', 'IN|bsfc9|lb/hp-hr':'RETAIN-BSFC'},
+  insurance_estimator:{'IN|hp_ins|HP':'ENGINE_POWER'},
+  kw_to_hp:{'OUT|Horsepower|HP':'RETAIN-CONVERTER'},
+  lbft_to_lbin:{'OUT|lb-in|lb-in':'RETAIN-CONVERTER'},
+  lbft_to_nm:{'OUT|N·m|N·m':'RETAIN-CONVERTER'},
+  lbin_to_lbft:{'OUT|lb-ft|lb-ft':'RETAIN-CONVERTER'},
+  lbin_to_nm:{'OUT|N·m|N·m':'RETAIN-CONVERTER'},
+  lsd_bias_lock_effect:{'IN|lsd_t|lb-ft':'DRIVELINE_TORQUE', 'OUT|Low-Traction Wheel Torque|lb-ft':'DRIVELINE_TORQUE', 'OUT|High-Traction Wheel Torque|lb-ft':'DRIVELINE_TORQUE'},
+  nitrous_jet:{'IN|nj_hp|HP':'ENGINE_POWER'},
+  nm_to_lbft:{'OUT|lb-ft|lb-ft':'RETAIN-CONVERTER'},
+  nmm_to_lbft:{'OUT|Torque|lb-in':'RETAIN-CONVERTER'},
+  ohms_law:{'OUT|Power|W':'RETAIN-ACCESSORY'},
+  oil_pump_hp:{'OUT|Oil Pump HP Draw|HP':'ENGINE_POWER'},
+  optimal_shift:{'IN|tq_peak|lb-ft':'ENGINE_TORQUE', 'IN|hp_tq|lb-ft':'ENGINE_TORQUE'},
+  port_area_hp_estimator:{'IN|pahe_bsfc|lb/hp-hr':'RETAIN-BSFC', 'OUT|Estimated Horsepower Ceiling|HP':'ENGINE_POWER'},
+  power_converter:{'OUT|HP (SAE)|hp':'RETAIN-CONVERTER', 'OUT|kW|kW':'RETAIN-CONVERTER', 'OUT|PS / CV|PS':'RETAIN-CONVERTER'},
+  power_to_weight:{'IN|hp_p2|HP':'ENGINE_POWER', 'OUT|HP per Ton|HP/ton':'PTW_RATIO', 'OUT|Lbs per HP|lbs/HP':'PTW_RATIO', 'OUT|HP per 1000 lbs|HP/klb':'PTW_RATIO'},
+  ps_to_hp:{'OUT|Horsepower|HP':'RETAIN-CONVERTER'},
+  pump_power_requirement:{'OUT|Required Pump Power|HP':'RETAIN-ACCESSORY'},
+  rotating_weight:{'OUT|Equivalent Inertia Torque|lb-ft':'ENGINE_TORQUE', 'OUT|Average Power to Accelerate|HP':'ENGINE_POWER'},
+  shaft_angular_deflection:{'IN|sad_t|lb-ft':'DRIVELINE_TORQUE'},
+  sim_acceleration:{'IN|sim_hp|HP':'ENGINE_POWER', 'OUT|Peak Wheel Torque|lb-ft':'WHEEL_TORQUE', 'OUT|Engine curve peak|lb-ft':'ENGINE_TORQUE', 'OUT|Engine curve peak|HP':'ENGINE_POWER'},
+  sim_braking:{'IN|sim_hp|HP':'ENGINE_POWER'},
+  sim_cornering:{'IN|sim_hp|HP':'ENGINE_POWER'},
+  sim_curve_editor:{'IN|curve_y_0|lb-ft':'ENGINE_TORQUE', 'IN|curve_y_1|lb-ft':'ENGINE_TORQUE', 'IN|curve_y_2|lb-ft':'ENGINE_TORQUE', 'IN|curve_y_3|lb-ft':'ENGINE_TORQUE', 'IN|curve_y_4|lb-ft':'ENGINE_TORQUE', 'IN|curve_y_5|lb-ft':'ENGINE_TORQUE', 'IN|curve_y_6|lb-ft':'ENGINE_TORQUE', 'IN|curve_y_7|lb-ft':'ENGINE_TORQUE', 'IN|curve_y_8|lb-ft':'ENGINE_TORQUE', 'IN|curve_y_9|lb-ft':'ENGINE_TORQUE', 'IN|curve_y_10|lb-ft':'ENGINE_TORQUE', 'IN|curve_y_11|lb-ft':'ENGINE_TORQUE', 'OUT|Peak Torque|lb-ft':'ENGINE_TORQUE', 'OUT|Peak Power|HP':'ENGINE_POWER', 'IN|curve_y_0|HP':'ENGINE_POWER', 'IN|curve_y_1|HP':'ENGINE_POWER', 'IN|curve_y_2|HP':'ENGINE_POWER', 'IN|curve_y_3|HP':'ENGINE_POWER', 'IN|curve_y_4|HP':'ENGINE_POWER', 'IN|curve_y_5|HP':'ENGINE_POWER', 'IN|curve_y_6|HP':'ENGINE_POWER', 'IN|curve_y_7|HP':'ENGINE_POWER', 'IN|curve_y_8|HP':'ENGINE_POWER', 'IN|curve_y_9|HP':'ENGINE_POWER', 'IN|curve_y_10|HP':'ENGINE_POWER', 'IN|curve_y_11|HP':'ENGINE_POWER'},
+  sim_dragstrip:{'IN|sim_hp|HP':'ENGINE_POWER', 'OUT|Peak Wheel Torque|lb-ft':'WHEEL_TORQUE', 'OUT|Engine curve peak|lb-ft':'ENGINE_TORQUE', 'OUT|Engine curve peak|HP':'ENGINE_POWER'},
+  sim_top_speed:{'IN|sim_hp|HP':'ENGINE_POWER', 'OUT|Wheel Power|HP':'WHEEL_POWER', 'OUT|Engine curve peak|lb-ft':'ENGINE_TORQUE', 'OUT|Engine curve peak|HP':'ENGINE_POWER'},
+  sim_weight_transfer:{'IN|sim_hp|HP':'ENGINE_POWER'},
+  starter_current:{'IN|sc_p|W':'RETAIN-ACCESSORY'},
+  supercharger_parasitic:{'IN|sp_p|HP':'ENGINE_POWER', 'OUT|Parasitic Power|HP':'ENGINE_POWER'},
+  thermal_efficiency:{'IN|the_p|HP':'ENGINE_POWER', 'IN|the_q|HP-equiv':'ENGINE_POWER'},
+  tire_heat_generation:{'OUT|Heat Generation Rate|HP':'RETAIN-ACCESSORY'},
+  tire_rolling_resistance:{'OUT|Power Loss|HP':'ROAD_LOAD_POWER'},
+  top_speed:{'IN|hp_ts|HP':'ENGINE_POWER'},
+  torque_converter:{'IN|tc_tq|lb-ft':'ENGINE_TORQUE', 'OUT|Theoretical Wheel Torque|lb-ft':'WHEEL_TORQUE'},
+  torque_from_hp:{'IN|hp2|HP':'ENGINE_POWER', 'OUT|Torque|lb-ft':'ENGINE_TORQUE'},
+  torque_wrench_ext:{'IN|tw_set|ft-lbs':'RETAIN-COMPONENT', 'OUT|Set Wrench To|ft-lbs':'RETAIN-COMPONENT'},
+  torsional_stress:{'IN|ts_t|lb-in':'RETAIN-COMPONENT'},
+  tow_grade_power:{'OUT|Grade Power|HP':'ROAD_LOAD_POWER'},
+  tow_grade_speed:{'IN|tgs_hp|HP':'ENGINE_POWER'},
+  tow_wheel_torque:{'IN|twt_t|lb-ft':'ENGINE_TORQUE', 'OUT|Wheel Torque|lb-ft':'WHEEL_TORQUE'},
+  tractive_force:{'IN|hp_tf|HP':'ENGINE_POWER'},
+  trap_speed_hp_check:{'IN|claimed_hp|HP':'ENGINE_POWER', 'OUT|Implied HP from Trap|HP':'ENGINE_POWER'},
+  turbo_power_requirement:{'OUT|Compressor Power|W':'RETAIN-ACCESSORY'},
+  turbo_sizing:{'IN|hp7|HP':'ENGINE_POWER', 'IN|bsfc|lb/hp-hr':'RETAIN-BSFC'},
+  weight_reduction:{'IN|hp3|HP':'ENGINE_POWER', 'OUT|Equivalent HP Gain|HP':'ENGINE_POWER'},
+  wire_current_capacity:{'IN|wcc_p|W':'RETAIN-ACCESSORY'},
+  wmi_flow:{'IN|hp_wmi|HP':'ENGINE_POWER', 'IN|ratio_wmi|lb/hr per HP':'RETAIN-RATIO'},
+  yaw_moment:{'OUT|Yaw Moment|lb-ft':'RETAIN-COMPONENT'},
+};
+const PERF_PROFILE_ROWS = { profile_hp:['ENGINE_POWER','HP'], profile_torque:['ENGINE_TORQUE','lb-ft'] };   // the vehicle-profile editor and list: engine power / engine torque, stored as hp / lb-ft
+const PERF_CHOICES = { power:['auto','hp','kW'], torque:['auto','lb-ft','N·m'] };
+const PERF_PREF = { power:'auto', torque:'auto' };
+(function(){ Object.keys(PERF_CHOICES).forEach(k=>{ let s=null; try{ s=GHM_STORAGE.get('ghm_perf_'+k,null); }catch(e){} PERF_PREF[k]=PERF_CHOICES[k].indexOf(s)>=0?s:'auto'; }); })();   // anything that is not one of the three choices is Auto
+/* the base unit family of every unit text a table row can declare or show */
+const PERF_BASE = { 'HP':'hp','WHP':'hp','HP-equiv':'hp','hp':'hp','kW':'kW','kW-equiv':'kW','lb-ft':'lbft','ft-lbs':'lbft','N·m':'Nm' };
+const PERF_SRC_CANON = { hp:'HP', kW:'kW', lbft:'lb-ft', Nm:'N·m' };
+const PERF_K = { kW_per_hp: UNIT_DEFS.HP.toMetric(1), Nm_per_lbft: UNIT_DEFS['lb-ft'].toMetric(1) };
+/* every unit text of the power / torque family: a row that declares one of these and is not in PERF_ROWS is recorded, never converted */
+const PERF_UNIT_SET = new Set(['HP','WHP','hp','HP-equiv','kW','W','PS','lb-ft','ft-lbs','N·m','lb-in','in-lb','HP/ton','HP/klb','HP/1000 lb','lb/HP','lbs/HP','lb/hp-hr','lb/hp·hr','lb/hr per HP','kg/kW-hr','kg/kW','kW/metric ton','kW/tonne','g/kWh']);
+const PERF_SEEN = new Set(), PERF_UNCLASSIFIED = new Set(), PERF_PROBLEMS = [];   // what the census (premium/tests/performance-census.test.js) reads
+const PERF_TOK_CACHE = new Map();
+function isPerfToken(u){ return typeof u==='string' && u.charCodeAt(0)===112 && u.indexOf('perf|')===0; }
+function perfParse(t){ let p=PERF_TOK_CACHE.get(t); if(!p){ const a=t.split('|'); p={src:a[1],shown:a[2],cat:a[3],declared:a[4],shownBase:PERF_BASE[a[2]]}; PERF_TOK_CACHE.set(t,p); } return p; }
+function perfConv(v,from,to){
+  if(!isFinite(v)||from===to) return v;
+  if(from==='hp'&&to==='kW') return v*PERF_K.kW_per_hp;
+  if(from==='kW'&&to==='hp') return v/PERF_K.kW_per_hp;
+  if(from==='lbft'&&to==='Nm') return v*PERF_K.Nm_per_lbft;
+  if(from==='Nm'&&to==='lbft') return v/PERF_K.Nm_per_lbft;
+  return NaN;
+}
+function perfToSrc(v,tok){ const p=perfParse(tok); return perfConv(v,p.shownBase,p.src); }
+function perfFromSrc(v,tok){ const p=perfParse(tok); return perfConv(v,p.src,p.shownBase); }
+/* the unit a category shows under the two preferences: Auto is the category's own default */
+function perfTarget(cat){ const c=PERF_CATS[cat]; if(!c||!c.fam) return null; const p=PERF_PREF[c.fam]; return p==='auto'?c.auto:p; }
+function perfShown(cat,declared){
+  const c=PERF_CATS[cat], t=perfTarget(cat);
+  if(c.fam==='power'){ if(t==='kW') return declared==='HP-equiv'?'kW-equiv':'kW'; return PERF_BASE[declared]==='hp'?declared:'HP'; }   // the row keeps its own spelling of the hp form (WHP, HP-equiv)
+  if(t==='N·m') return 'N·m'; return declared==='ft-lbs'?'ft-lbs':'lb-ft';
+}
+/* the token for a table row. asIs: the value the calculator hands over is already in the unit it declares (a native box, a raw result); otherwise a declared HP / lb-ft is the canonical
+   hp / lb-ft value. A kW or N·m declared WITHOUT asIs would be read by the display layer as the Metric label of hp / lb-ft: that is ambiguous, so it is recorded as a problem and left alone. */
+function perfMake(cat,declared,asIs){
+  const c=PERF_CATS[cat]; if(!c||!c.fam) return null;
+  const b=PERF_BASE[declared];
+  const famOk=c.fam==='power'?(b==='hp'||b==='kW'):(b==='lbft'||b==='Nm');
+  if(!famOk||((b==='kW'||b==='Nm')&&!asIs)){ PERF_PROBLEMS.push(`${currentCalc}|${cat}|${declared}|${asIs?'asIs':'canonical'}`); return null; }
+  return 'perf|'+b+'|'+perfShown(cat,declared)+'|'+cat+'|'+declared;
+}
+function perfRetoken(tok){ const p=perfParse(tok); return 'perf|'+p.src+'|'+perfShown(p.cat,p.declared)+'|'+p.cat+'|'+p.declared; }
+function perfSameDisplay(a,b){ const x=perfParse(a), y=perfParse(b); return x.src===y.src && x.shown===y.shown; }
+function perfRowFor(kind,key,unit){
+  const row=PERF_ROWS[currentCalc], k=kind+'|'+key+'|'+unit, cat=row&&row[k];
+  if(cat){ PERF_SEEN.add(currentCalc+'|'+k); return cat; }
+  if(PERF_UNIT_SET.has(unit)) PERF_UNCLASSIFIED.add(currentCalc+'|'+k);
+  return null;
+}
+function perfTokenFor(kind,key,unit,asIs){ const cat=perfRowFor(kind,String(key),unit||''); return cat?perfMake(cat,unit,asIs):null; }
+function perfProfileToken(id){ const r=PERF_PROFILE_ROWS[id]; return r?perfMake(r[0],r[1],false):null; }
+/* a simulator output cell [label, text, unit]: the value is in canonical hp / lb-ft; a listed row is converted and labelled, any other keeps the Imperial text */
+function simPerfCell(label,value,unit,digits){
+  const tok=perfTokenFor('OUT',label,unit,false);
+  if(!tok) return [label,Number(value).toFixed(digits),unit];
+  return [label,perfFromSrc(value,tok).toFixed(digits),perfParse(tok).shown];
+}
+/* the saved value of a box (a test setup, the vehicle's saved inputs) as text for the box that is on screen now (live token). d = {value, unit, canonical}.
+   Saved by this engine: unit is a token and canonical is in its src unit. Saved by the earlier engine: a convertible box has unit 'HP' / 'lb-ft' and canonical in hp / lb-ft; a native
+   kW box has no unit and its text is kW as typed. Returns null when there is nothing numeric to carry. */
+function perfSavedToText(d,live){
+  const lp=perfParse(live); let canon=null, base=null;
+  if(isPerfToken(d.unit)&&Number.isFinite(d.canonical)){ canon=d.canonical; base=perfParse(d.unit).src; }
+  else if(d.unit&&Number.isFinite(d.canonical)){ base=PERF_BASE[canonicalUnit(d.unit)]; canon=d.canonical; }
+  else if(!d.unit){ const t=String(d.value??'').trim(); if(/^[-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?$/i.test(t)){ canon=Number(t); base=PERF_BASE[lp.declared]; } }
+  if(canon===null||!base) return null;
+  const inSrc=perfConv(canon,base,lp.src);
+  return Number.isFinite(inSrc)?fieldDisplayValue(inSrc,live):null;
+}
+function perfSyncControls(){
+  Object.keys(PERF_CHOICES).forEach(k=>{ const el=document.getElementById('sel-'+(k==='power'?'power':'torque')); if(el&&el.value!==PERF_PREF[k]) el.value=PERF_PREF[k]; });
+}
+/* choose a preference. The value in every power / torque box on screen (and in the profile editor, when it is open) is carried through the change exactly once: captured in its calculator
+   unit before, shown in the new unit after. Boxes the change does not touch keep their text. Metric / Imperial is not involved. */
+function setPerf(kind,value){
+  if(!PERF_CHOICES[kind]||PERF_CHOICES[kind].indexOf(value)<0) return;
+  if(PERF_PREF[kind]===value){ perfSyncControls(); return; }
+  const cap=captureVisibleCanonicalFields(UNIT.system,'perf');
+  PROFILE_UNIT_SWITCH_CANONICAL=captureProfileEditorCanonical(UNIT.system);
+  PERF_PREF[kind]=value; GHM_STORAGE.set('ghm_perf_'+kind,value); perfSyncControls();
+  Object.keys(cap).forEach(id=>{ const el=document.getElementById(id), t=el&&el.dataset.ghmUnit; if(!isPerfToken(t)||perfRetoken(t)===t) delete cap[id]; });   // only the boxes whose unit really changed
+  UNIT_SWITCH_CANONICAL=cap;
+  { const a=document.activeElement, c=document.getElementById('calc-container'); if(a&&c&&c.contains(a)&&typeof a.blur==='function') a.blur(); }   // a box that still has focus would be given back the text it showed in the old unit
+  try{ renderCalc(currentCalc,false); } finally { UNIT_SWITCH_CANONICAL=null; }
+  if(!document.getElementById('profiles-overlay')?.classList.contains('hidden')) renderProfileManager();
+  PROFILE_UNIT_SWITCH_CANONICAL=null;
+}
+
 
 let UNIT_SWITCH_CANONICAL = null;
 let CALC_FIELD_SNAPSHOT = null;
@@ -702,7 +959,7 @@ const CALC_PERSISTENT_STATE = {};
    as mph (reliability pass item 1, GH-DEF-001). It is keyed by calculator so two calculators that reuse a field id cannot lend each other a unit, and
    it holds the declared unit, never one guessed from a label. A field declared with no unit is removed, which keeps the no-conversion behaviour. */
 const FIELD_UNIT_REGISTRY = {};
-function declaredFieldUnit(id){ const r=FIELD_UNIT_REGISTRY[currentCalc]; return (r&&r[id])||''; }
+function declaredFieldUnit(id){ const r=FIELD_UNIT_REGISTRY[currentCalc], u=(r&&r[id])||''; return isPerfToken(u)?perfRetoken(u):u; }   // a power / torque token is re-resolved with the preferences in force now
 
 /* Remembered-value records (reliability pass item 3, GH-DEF-004 / GH-ENG-005).
    CALC_PERSISTENT_STATE keeps the TEXT of every box so a calculator is still filled when the person comes back to it. That text is in whichever unit system was on
@@ -717,6 +974,18 @@ function adaptRemembered(id,snap){
   const meta=CALC_STATE_META[id]; if(!meta) return snap;
   for(const fid of Object.keys(meta)){
     const m=meta[fid];
+    if(m&&isPerfToken(m.unit)){
+      /* a power / torque box: its unit follows the Power / Torque preferences, never Metric / Imperial. The remembered text is converted once if the unit it is shown in now differs from
+         the unit it was captured in. */
+      if(!Object.prototype.hasOwnProperty.call(snap,fid)) continue;
+      const cur=perfRetoken(m.unit); if(cur===m.unit) continue;
+      if(UNIT_SWITCH_CANONICAL&&Object.prototype.hasOwnProperty.call(UNIT_SWITCH_CANONICAL,fid)) continue;
+      const tp=String(snap[fid]).trim();
+      if(!/^[-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?$/i.test(tp)) continue;
+      const cp=perfToSrc(Number(tp),m.unit);
+      if(Number.isFinite(cp)) snap[fid]=fieldDisplayValue(cp,cur);
+      continue;
+    }
     if(!m||!m.unit||m.system===UNIT.system) continue;
     if(!Object.prototype.hasOwnProperty.call(snap,fid)) continue;
     if(UNIT_SWITCH_CANONICAL&&Object.prototype.hasOwnProperty.call(UNIT_SWITCH_CANONICAL,fid)) continue;   // a switch on this page: the exact pre-switch value is used instead
@@ -731,17 +1000,24 @@ function adaptRemembered(id,snap){
 function snapshotHas(id,unit){
   if(!CALC_FIELD_SNAPSHOT||!Object.prototype.hasOwnProperty.call(CALC_FIELD_SNAPSHOT,id)) return false;
   const m=CALC_STATE_META[currentCalc]&&CALC_STATE_META[currentCalc][id];
-  if(m&&m.calc!==currentCalc&&canonicalUnit(m.unit)!==canonicalUnit(unit)) return false;
+  if(m&&m.calc!==currentCalc){
+    /* another calculator's text: refused unless it is shown in the same unit now (a power / torque box compares the unit it is shown in, the others their canonical unit) */
+    if(isPerfToken(m.unit)||isPerfToken(unit)){ if(!(isPerfToken(m.unit)&&isPerfToken(unit)&&perfSameDisplay(perfRetoken(m.unit),unit))) return false; }
+    else if(canonicalUnit(m.unit)!==canonicalUnit(unit)) return false;
+  }
   return true;
 }
 
 
-function captureVisibleCanonicalFields(system){
+function captureVisibleCanonicalFields(system,perfMode){
+  /* perfMode: 'skip' leaves the power / torque boxes out (Metric / Imperial does not change them), 'perf' captures only those (a Power / Torque preference changes only those) */
   const snapshot={};
   document.querySelectorAll('.field-input[data-ghm-unit]').forEach(el=>{
     const raw=parseFloat(el.value);
     const unit=el.dataset.ghmUnit||'';
     if(!isFinite(raw) || !unit) return;
+    if(perfMode==='skip' && isPerfToken(unit)) return;
+    if(perfMode==='perf' && !isPerfToken(unit)) return;
     snapshot[el.id]=unitToCanonical(raw,unit,system);
   });
   return snapshot;
@@ -759,17 +1035,20 @@ function captureVisibleCanonicalFields(system){
  */
 function unitToCanonical(value, unit, system){
   if(!isFinite(value)) return value;
+  if(isPerfToken(unit)) return perfToSrc(value,unit);
   const can=canonicalUnit(unit);
   if(system==='metric') return UNIT_DEFS[can]?.fromMetric ? UNIT_DEFS[can].fromMetric(value) : value;
   return value;
 }
 function canonicalToUnit(value, unit, system){
   if(!isFinite(value)) return value;
+  if(isPerfToken(unit)) return perfFromSrc(value,unit);
   const can=canonicalUnit(unit);
   if(system==='metric') return UNIT_DEFS[can]?.toMetric ? UNIT_DEFS[can].toMetric(value) : value;
   return value;
 }
 function metricUnit(unit){
+  if(isPerfToken(unit)) return perfParse(unit).shown;
   const can=canonicalUnit(unit);
   return UNIT.system==='metric' && UNIT_DEFS[can]?.metric ? UNIT_DEFS[can].metric : (unit||'');
 }
@@ -853,7 +1132,7 @@ function setUnit(s){
 
   // Capture exact canonical values BEFORE changing the system.  Do not round
   // these values: the displayed metric/Imperial value is presentation only.
-  UNIT_SWITCH_CANONICAL = captureVisibleCanonicalFields(oldSystem);
+  UNIT_SWITCH_CANONICAL = captureVisibleCanonicalFields(oldSystem,'skip');   // power / torque boxes are not changed by Metric / Imperial
   PROFILE_UNIT_SWITCH_CANONICAL = captureProfileEditorCanonical(oldSystem);
 
   UNIT.system = s;
@@ -1021,6 +1300,11 @@ function ghmApplyCalcState(fields){
   Object.entries(fields).forEach(([id,d])=>{
     const el=document.getElementById(id); if(!el) return;
     if(d.kind==='radio'||d.kind==='checkbox') el.checked=!!d.value;
+    else if(isPerfToken(el.dataset?.ghmUnit)){
+      /* a power / torque box: the saved value is carried into the unit this box shows NOW (the preferences may have changed since it was saved) */
+      const t=perfSavedToText(d,el.dataset.ghmUnit);
+      el.value=t!==null?t:(d.value ?? '');
+    }
     else if(d.unit && Number.isFinite(d.canonical)) el.value=fieldDisplayValue(d.canonical,d.unit);
     else el.value=d.value ?? '';
   });
@@ -1298,7 +1582,8 @@ function field(label, id, val, unit, type='number', step='any', native=false){
      degrees C by design). The box is then a plain number: it is not registered for conversion, carries no data-ghm-unit, and v()/vd()/certValue() read it
      as typed. Without this flag a Metric-named unit is known to the display layer only as the Metric label of an Imperial unit (kW of HP, mm of in, cc of ci), so
      Metric converted the number a second time and a labelled value typed in Metric was read as the other unit. Default false = unchanged for every other box. */
-  const conv = native ? '' : unit;
+  const perfTok = type==='number' ? perfTokenFor('IN', id, unit, native) : null;   // GH-IMP-019: a listed power / torque box declares a token, whatever the measurement system
+  const conv = perfTok || (native ? '' : unit);
   // Normal live re-renders preserve the exact DISPLAY STRING currently in the
   // DOM.  It must not pass through fieldDisplayValue(), because that would
   // convert a metric display value a second time.  Unit-system changes are
@@ -1309,8 +1594,12 @@ function field(label, id, val, unit, type='number', step='any', native=false){
 
   const profileMatch = type==='number' ? matchProfileField(id, conv) : null;
   const numericVal = hasSnapshot ? parseFloat(val) : +val;
-  const showLink = profileMatch && isFinite(numericVal) && (profileMatch.converted ? +fieldDisplayValue(profileMatch.boxValue, conv) : +profileMatch.value) !== numericVal;
-  const warning = type==='number' ? checkFieldRange(id, numericVal) : null;
+  const cmpVal = (perfTok && !hasSnapshot) ? +fieldDisplayValue(val, conv) : numericVal;   // the number the box shows (a default is held in the calculator's own unit)
+  const showLink = profileMatch && isFinite(numericVal) && ((profileMatch.converted || perfTok) ? +fieldDisplayValue(profileMatch.converted ? profileMatch.boxValue : profileMatch.value, conv) : +profileMatch.value) !== cmpVal;
+  /* the sanity ranges are written in the Imperial canonical unit (hp, lb-ft): a power / torque box is checked in that unit whatever it shows */
+  let rangeVal = numericVal;
+  if(perfTok){ const pp = perfParse(perfTok); rangeVal = perfConv(numericVal, hasSnapshot ? pp.shownBase : pp.src, pp.src === 'kW' || pp.src === 'hp' ? 'hp' : 'lbft'); }
+  const warning = type==='number' ? checkFieldRange(id, rangeVal) : null;
   const isNumeric=type==='number';
   if(isNumeric&&currentCalc){ const reg=FIELD_UNIT_REGISTRY[currentCalc]||(FIELD_UNIT_REGISTRY[currentCalc]={}); if(conv) reg[id]=conv; else delete reg[id]; }
   const inputType=isNumeric?'text':type;
@@ -1328,8 +1617,8 @@ function field(label, id, val, unit, type='number', step='any', native=false){
   } else {
     displayVal = val;
   }
-  const shownUnit=native?unit:metricUnit(unit);
-  return `<div class="field"><label class="field-label">${label}${showLink?`<span class="profile-link" onclick="useProfileValue('${id}')" title="Use ${profileMatch.label} from ${profileMatch.profileName}${profileMatch.converted?` (${fieldDisplayValue(profileMatch.value,'')} hp, as ${fieldDisplayValue(profileMatch.boxValue, conv)} ${profileMatch.boxUnit})`:''}">↓ use ${fieldDisplayValue(profileMatch.converted?profileMatch.boxValue:profileMatch.value, conv)}${profileMatch.converted?' '+profileMatch.boxUnit:''}</span>`:''}</label>
+  const shownUnit=perfTok?metricUnit(perfTok):(native?unit:metricUnit(unit));
+  return `<div class="field"><label class="field-label">${label}${showLink?`<span class="profile-link" onclick="useProfileValue('${id}')" title="Use ${profileMatch.label} from ${profileMatch.profileName}${profileMatch.converted?` (${fieldDisplayValue(profileMatch.value,'')} hp, as ${fieldDisplayValue(profileMatch.boxValue, conv)} ${perfTok?metricUnit(perfTok):profileMatch.boxUnit})`:''}">↓ use ${fieldDisplayValue(profileMatch.converted?profileMatch.boxValue:profileMatch.value, conv)}${profileMatch.converted?' '+(perfTok?metricUnit(perfTok):profileMatch.boxUnit):''}</span>`:''}</label>
     <div class="input-wrap"><input class="field-input${warning?' field-warning':''}" id="${id}" data-ghm-unit="${conv||''}" type="${inputType}"${inputMode} value="${displayVal}" oninput="renderCalc('${currentCalc}',false)">
     ${unit?`<span class="field-unit">${shownUnit}</span>`:''}</div>
     ${warning?`<div class="field-warning-text">⚠ ${warning}</div>`:''}
@@ -1412,7 +1701,8 @@ function quickConvert(value, unit){
 function resultHTML(label,value,unit,approx=false,precision=4,raw=false){
   /* raw: the value is ALREADY expressed in the unit printed beside it (the calculator did the conversion itself), so it must not go
      through the Imperial -> Metric display layer a second time (same meaning as multiResult's per-item raw). Default false = unchanged. */
-  const disp=raw?fmtUnitValue(value,'',precision):fmtUnitValue(value,unit,precision), shownUnit=raw?unit:metricUnit(unit);
+  const perfTok=perfTokenFor('OUT',label,unit,raw);   // GH-IMP-019: a listed power / torque result is shown in the unit the preferences call for, whatever the measurement system
+  const disp=perfTok?fmtUnitValue(value,perfTok,precision):(raw?fmtUnitValue(value,'',precision):fmtUnitValue(value,unit,precision)), shownUnit=perfTok?metricUnit(perfTok):(raw?unit:metricUnit(unit));
   return `<div class="result-box"><div class="result-label">${label}</div>
   <div class="result-value">${approx&&disp!=='—'?'<span class="result-tilde">~</span>':''}${disp}<span class="result-unit">${shownUnit}</span></div></div>`;
 }
@@ -1422,7 +1712,8 @@ function multiResult(items,precision=4){
     const p=i.precision!==undefined?i.precision:precision;
     /* i.raw: the value is ALREADY expressed in the unit printed beside it (a converter's own output row), so it must not go
        through the Imperial -> Metric display layer a second time. Absent/false = unchanged behaviour for every other calculator. */
-    const shown=i.raw?fmtUnitValue(i.value,'',p):fmtUnitValue(i.value,i.unit||'',p), unit=i.raw?(i.unit||''):metricUnit(i.unit||'');
+    const pt=perfTokenFor('OUT',i.label,i.unit||'',i.raw);   // GH-IMP-019
+    const shown=pt?fmtUnitValue(i.value,pt,p):(i.raw?fmtUnitValue(i.value,'',p):fmtUnitValue(i.value,i.unit||'',p)), unit=pt?metricUnit(pt):(i.raw?(i.unit||''):metricUnit(i.unit||''));
     return `<div class="mini-result"><div class="label">${i.label}</div><div class="value">${shown}<span class="unit"> ${unit}</span></div></div>`;
   }).join('')}</div>`;
 }
@@ -6476,7 +6767,7 @@ const RENDERS = {
       simInputBlock('Curve Type',`<div class="field"><label class="field-label">Input Curve</label><div class="input-wrap"><select class="field-select" id="curve_mode" onchange="switchCurveMode(this.value)"><option value="torque" ${mode==='torque'?'selected':''}>Torque vs RPM</option><option value="power" ${mode==='power'?'selected':''}>Power vs RPM</option></select></div></div>`)+
       `<div class="sim-curve-note">Use 6–10 points covering idle to redline. Mode switching converts each point at its own RPM so HP and lb-ft are never numerically mixed.</div>`+
       `<div class="sim-curve-grid">${rows}</div>`+
-      simOutputGrid([['Peak RPM',peak.rpm.toFixed(0),'RPM'],[mode==='power'?'Peak Power':'Peak Torque',peak.y.toFixed(1),mode==='power'?'HP':'lb-ft'],['Curve Points',pts.length,''],['Interpolation','Linear','']])+
+      simOutputGrid([['Peak RPM',peak.rpm.toFixed(0),'RPM'],simPerfCell(mode==='power'?'Peak Power':'Peak Torque',peak.y,mode==='power'?'HP':'lb-ft',1),['Curve Points',pts.length,''],['Interpolation','Linear','']])+
       (!valid?`<div class="field-warning-text">⚠ Curve requires at least two points with strictly increasing RPM.</div>`:'')+
       `<div class="sim-note">The curve is stored with the calculator inputs and reused by Acceleration, Dragstrip and Top Speed simulations.</div>`
     );
@@ -6491,7 +6782,7 @@ const RENDERS = {
       simInputBlock('Gearing',simGearFields())+
       simInputBlock('Engine Curve',simCurveInputSummary())+
       simInputBlock('Target',field('Target Speed','sim_target',safeTarget,'mph'))+
-      simOutputGrid([['Target Time',r.time.toFixed(3),'sec'],['Target Speed',r.mph.toFixed(1),'mph'],['Distance',r.distance.toFixed(0),'ft'],['Gear',r.gear,''],['Shifts',r.shiftCount,''],['Peak RPM',r.peakRPM.toFixed(0),'RPM'],['Peak Wheel Torque',r.peakWheelTorque.toFixed(0),'lb-ft'],['Peak Tire Force',r.peakTireForce.toFixed(0),'lbf'],['Max Accel',r.maxAccel.toFixed(2),'g']])+
+      simOutputGrid([['Target Time',r.time.toFixed(3),'sec'],['Target Speed',r.mph.toFixed(1),'mph'],['Distance',r.distance.toFixed(0),'ft'],['Gear',r.gear,''],['Shifts',r.shiftCount,''],['Peak RPM',r.peakRPM.toFixed(0),'RPM'],simPerfCell('Peak Wheel Torque',r.peakWheelTorque,'lb-ft',0),['Peak Tire Force',r.peakTireForce.toFixed(0),'lbf'],['Max Accel',r.maxAccel.toFixed(2),'g']])+
       `<div class="sim-note">The simulator applies drivetrain efficiency, gear ratio, final drive, tire radius, traction, aero drag and rolling resistance at each time step.</div>`);
   },
 
@@ -6541,14 +6832,14 @@ const RENDERS = {
     }
     return renderSimulatorShell('Simulator — Top Speed','Top-speed power balance using the actual entered engine curve, gearing, tire diameter, aero drag and rolling resistance.',
       simInputBlock('Vehicle',simVehicleFields())+simInputBlock('Gearing',simGearFields())+simInputBlock('Engine Curve',simCurveInputSummary())+
-      simOutputGrid([['Estimated Top Speed',best.toFixed(1),'mph'],['Top Gear RPM',bestRpm.toFixed(0),'RPM'],['Wheel Power',wheelPower.toFixed(0),'HP'],['Drag + Rolling',drag.toFixed(0),'lbf']])+
+      simOutputGrid([['Estimated Top Speed',best.toFixed(1),'mph'],['Top Gear RPM',bestRpm.toFixed(0),'RPM'],simPerfCell('Wheel Power',wheelPower,'HP',0),['Drag + Rolling',drag.toFixed(0),'lbf']])+
       `<div class="sim-note">Top speed is limited by available wheel power, redline and the 350 mph search ceiling.</div>`);
   },
   sim_dragstrip(){
     const r=simulateCurveAcceleration({target:1320,stopAtTarget:true,distanceFt:1320}); const c=r.crossed||{};
     return renderSimulatorShell('Simulator — Dragstrip','Quarter-mile time-step simulation using the same curve-driven acceleration engine. 60/330/660/1000/1320 ft markers are captured from the trajectory.',
       simInputBlock('Vehicle',simVehicleFields())+simInputBlock('Gearing',simGearFields())+simInputBlock('Engine Curve',simCurveInputSummary())+
-      simOutputGrid([['1/4 Mile ET',r.time.toFixed(3),'sec'],['Trap Speed',r.mph.toFixed(1),'mph'],['60 ft',(c[60]?.t||0).toFixed(3),'sec'],['330 ft',(c[330]?.t||0).toFixed(3),'sec'],['660 ft',(c[660]?.t||0).toFixed(3),'sec'],['1000 ft',(c[1000]?.t||0).toFixed(3),'sec'],['1320 ft',(c[1320]?.t||0).toFixed(3),'sec'],['Peak Wheel Torque',r.peakWheelTorque.toFixed(0),'lb-ft']])
+      simOutputGrid([['1/4 Mile ET',r.time.toFixed(3),'sec'],['Trap Speed',r.mph.toFixed(1),'mph'],['60 ft',(c[60]?.t||0).toFixed(3),'sec'],['330 ft',(c[330]?.t||0).toFixed(3),'sec'],['660 ft',(c[660]?.t||0).toFixed(3),'sec'],['1000 ft',(c[1000]?.t||0).toFixed(3),'sec'],['1320 ft',(c[1320]?.t||0).toFixed(3),'sec'],simPerfCell('Peak Wheel Torque',r.peakWheelTorque,'lb-ft',0)])
     );
   },
   sim_gear_rpm(){
@@ -6649,7 +6940,7 @@ function simCurvePoints(){
 function simCurveInputSummary(){
   const mode=window._ghmCurveMode || document.getElementById('curve_mode')?.value || 'torque';
   const pts=simCurvePoints(); const peak=pts.reduce((a,b)=>b.y>a.y?b:a,pts[0]);
-  return `<div class="sim-curve-summary"><strong>${mode==='power'?'Power':'Torque'} curve</strong><span>${pts.length} points · peak ${peak.y.toFixed(1)} ${mode==='power'?'HP':'lb-ft'} @ ${peak.rpm.toFixed(0)} RPM</span><button type="button" class="sim-edit-curve" onclick="renderCalc('sim_curve_editor')">Edit Curve</button></div>`;
+  return `<div class="sim-curve-summary"><strong>${mode==='power'?'Power':'Torque'} curve</strong><span>${pts.length} points · peak ${(c=>c[1]+' '+c[2])(simPerfCell('Engine curve peak',peak.y,mode==='power'?'HP':'lb-ft',1))} @ ${peak.rpm.toFixed(0)} RPM</span><button type="button" class="sim-edit-curve" onclick="renderCalc('sim_curve_editor')">Edit Curve</button></div>`;
 }
 function simEngineAtRPM(rpm){
   const mode=window._ghmCurveMode || document.getElementById('curve_mode')?.value || 'torque';
@@ -7037,8 +7328,8 @@ function renderProfileManager(){
         ${['Automotive','Motorcycle','EV'].map(t=>`<option value="${t}" ${p.vehicleType===t?'selected':''}>${t}</option>`).join('')}
       </select></div></div>
       <div class="dashboard-grid" style="margin-bottom:8px">
-        ${profileEditorField('Horsepower','profile_hp',p.hp,'HP')}
-        ${profileEditorField('Torque','profile_torque',p.torque,'lb-ft')}
+        ${profileEditorField('Horsepower','profile_hp',p.hp,perfProfileToken('profile_hp')||'HP')}
+        ${profileEditorField('Torque','profile_torque',p.torque,perfProfileToken('profile_torque')||'lb-ft')}
         ${profileEditorField('Weight','profile_weight',p.weight,'lbs')}
         ${profileEditorField('Bore','profile_bore',p.bore,'in')}
         ${profileEditorField('Stroke','profile_stroke',p.stroke,'in')}
@@ -7064,7 +7355,7 @@ function renderProfileManager(){
   const list = modal.querySelector('#profile-list');
   list.innerHTML = PROFILES.map(p=>`
     <div class="profile-item ${p.active?'active':''}" onclick="selectProfile(${p.id})">
-      <div><div class="profile-name">${escapeHtml(p.name)}</div><div class="profile-sub">${escapeHtml(p.vehicleType||'Automotive')} · ${fmtUnitValue(p.hp,"HP")} ${metricUnit("HP")} · ${fmtUnitValue(p.weight,"lbs")} ${metricUnit("lbs")} · ${fmtUnitValue(p.displacement,"ci")} ${metricUnit("ci")}${p.status?` · ${escapeHtml(p.status)}`:''}</div></div>
+      <div><div class="profile-name">${escapeHtml(p.name)}</div><div class="profile-sub">${escapeHtml(p.vehicleType||'Automotive')} · ${fmtUnitValue(p.hp,perfProfileToken('profile_hp')||"HP")} ${metricUnit(perfProfileToken('profile_hp')||"HP")} · ${fmtUnitValue(p.weight,"lbs")} ${metricUnit("lbs")} · ${fmtUnitValue(p.displacement,"ci")} ${metricUnit("ci")}${p.status?` · ${escapeHtml(p.status)}`:''}</div></div>
       <button class="edit-btn" onclick="event.stopPropagation();editProfile(${p.id})">Edit</button>
     </div>`).join('');
 }
@@ -7113,6 +7404,7 @@ function deleteProfile(id){
 // Sync the unit toggle to the persisted preference on first render.
 document.getElementById('btn-imperial').classList.toggle('active', UNIT.system==='imperial');
 document.getElementById('btn-metric').classList.toggle('active', UNIT.system==='metric');
+perfSyncControls();   // the Power / Torque drop-downs show the stored preferences
 buildNav();
 renderCalc('dashboard');
 </script>
@@ -9993,6 +10285,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     // forgot the unit (84 Free calculators) read a Metric display number as if it were Imperial. An explicit unit -- including '' -- is never overridden,
     // and a field declared with no unit, or with a unit no table knows, still converts nothing, so callers that never needed the mechanism are unchanged.
     if(unit===undefined) unit=declaredFieldUnit(id);
+    else { const du=declaredFieldUnit(id); if(isPerfToken(du)) unit=du; }   // GH-IMP-019: a box on screen as a power / torque row is read through its token, whatever unit the caller names (lsd_t was read as 'lb-ft' while it showed N·m)
     // Unit-system switch: the DOM still holds the PRE-switch display strings while UNIT.system is already the NEW system,
     // so converting them (below) would treat e.g. '3200' lb as 3200 N. v()/vd() already read the exact pre-switch canonical
     // value from UNIT_SWITCH_CANONICAL for this render; do the same here. Only for unit-bearing fields (unit arg given): the

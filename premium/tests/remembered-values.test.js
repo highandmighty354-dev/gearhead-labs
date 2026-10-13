@@ -37,7 +37,9 @@ const PICK = ['drag_force', 'tow_range', 'spring_rate', 'natural_frequency', 'fu
               'ev_regen_power'];                                     // the last one reads its boxes through vd() (the family of GH-DEF-018); the others through certValue()
 /* v()/vd() calculators that unit-system.test.js has no case for: Horsepower = torque x angular speed, in SI (P = T w, w = 2 pi RPM / 60) */
 const LOCAL_CASES = [
-  { id: 'hp_from_torque', fields: [['torq', 'torque', 600], ['rpm_t', 'none', 5200]], compute: v => ({ 'Horsepower': ['power', v.torq * v.rpm_t * 2 * Math.PI / 60] }) }
+  /* GH-IMP-019 (2026-10-13): engine torque and power show lb-ft and HP in both systems under the default Power / Torque preferences, so this case uses the fixed kinds 'lbftfix' / 'hpfix'
+     (unit-system.test.js): a Metric switch made elsewhere must leave the remembered 600 lb-ft as typed. Remembered values and a preference change are covered by performance-units.test.js section 6. */
+  { id: 'hp_from_torque', fields: [['torq', 'lbftfix', 600], ['rpm_t', 'none', 5200]], compute: v => ({ 'Horsepower': ['hpfix', v.torq * v.rpm_t * 2 * Math.PI / 60] }) }
 ];
 const OTHER1 = 'beam_deflection', OTHER2 = 'chip_load', OTHER3 = 'machining_rpm';       // calculators used only to switch the system "somewhere else"
 const REL = 2e-5;                                                                      // display text keeps 6 significant digits; two conversions

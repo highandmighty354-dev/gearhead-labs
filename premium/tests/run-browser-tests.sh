@@ -21,12 +21,14 @@
 #   negative-zero.test.js      a result that rounds to zero is shown as "0", never "-0"; a real small negative keeps its sign; all 696 calculators swept in both systems (GH-DEF-022)
 #   dashboard-summary.test.js  the dashboard vehicle summary in both systems with real clicks: the settled page shows none, the unreachable template's recorded wrong text is the known-open ledger (GH-DEF-026)
 #   profile-shortcut.test.js   the "use vehicle value" shortcut: offered only in a box of the same quantity and converted to the unit the box shows (hybrid power split, GH-DEF-027); 9 mutants
+#   performance-units.test.js  the independent Power (Auto / hp / kW) and Torque (Auto / lb-ft / N·m) preferences with real clicks: application defaults, explicit override, Metric/Imperial never overwrite them, saved / remembered / profile / simulator paths, 20 mutants (GH-IMP-019)
+#   performance-census.test.js every power / torque row of all 696 calculators in every Power x Torque x system state against the classification table: no unclassified row, retained categories unchanged (GH-IMP-019); QUICK=1 for the 128 classified calculators
 # Run with the Playwright module on NODE_PATH or installed globally. GH_ENGINE=path tests another copy of the engine.
 # Takes about 30 minutes on a 2-core machine. Exit code 0 only when every suite passes. (run-tests.sh is the separate backend/schema suite.)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 rc=0
-for t in engine-selftest.js browser-smoke.js unit-system.test.js temperature-units.test.js toggle-sweep.test.js nav-return.test.js converters.test.js label-consistency.test.js native-units.test.js declared-metric-units.test.js remembered-values.test.js dew-point.test.js formula-fingerprints.test.js mass-force.test.js unit-factors.test.js unit-census.test.js airflow-readers.test.js legacy-fixes.test.js negative-zero.test.js profile-shortcut.test.js dashboard-summary.test.js; do
+for t in engine-selftest.js browser-smoke.js unit-system.test.js temperature-units.test.js toggle-sweep.test.js nav-return.test.js converters.test.js label-consistency.test.js native-units.test.js declared-metric-units.test.js remembered-values.test.js dew-point.test.js formula-fingerprints.test.js mass-force.test.js unit-factors.test.js unit-census.test.js airflow-readers.test.js legacy-fixes.test.js negative-zero.test.js profile-shortcut.test.js dashboard-summary.test.js performance-units.test.js performance-census.test.js; do
   echo "=== $t"
   node "$HERE/$t" || { echo "FAILED: $t"; rc=1; }
 done
