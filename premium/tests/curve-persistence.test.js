@@ -16,9 +16,8 @@
      E. with no curve ever typed, the default curve is used on every draw (unchanged behaviour); the editor shows the same twelve boxes when it is opened again;
      F. a remembered torque curve is never read as a power curve when the mode in force is Power (the default is used, as before, not 500 lb-ft taken for 500 hp).
 
-   RESULTS ARE COMPARED BETWEEN SETTLED DRAWS. A simulator opened for the first time draws once with every one of its own boxes still missing, and Drivetrain Efficiency then falls back to
-   0.85 where its box holds 85 (a percentage), so that one draw runs at the 50 % floor; every later draw reads the box. That is a separate, older defect (GH-DEF-032, recorded, not fixed here), so the
-   curve summary is checked on every draw including the first, but a result is compared with the settled draws (the box re-typed, redraws, visits), never with the very first draw.
+   RESULTS OF THE FIRST DRAW ARE COMPARED TOO. Until GH-DEF-032 was fixed a simulator drawn for the first time ran at the 50 % efficiency floor (its fallback was 0.85 where the box holds 85), so a result was compared
+   with the settled draws (the box re-typed, redraws, visits), never with the very first draw. It is now an ordinary draw and the first draw is held to the same result.
    Top Speed ends at the redline unless the curve is weak at the redline, so the typed curve also has a weak last point (10 lb-ft or 12 hp at 6,500 rpm) for that simulator's result to depend on it.
    (Until GH-DEF-033 was fixed the Acceleration simulator's default 60 mph target was also its 60-ft mark and this test followed a 50 mph target instead; it now follows the default.)
 
@@ -121,7 +120,7 @@ async function run(enginePath) {
       for (const k of ['first', 'retyped', 'afterOther', 'afterOtherCalc'])
         check(`${tag}: ${k} draw reads the typed torque curve (peak 500 lb-ft at 4000 rpm)`, isPeak(d[k].summary, 'Torque', 500, 4000), JSON.stringify(d[k].summary));
       check(`${tag}: weight edit keeps the typed curve`, isPeak(d.lighter.summary, 'Torque', 500, 4000), JSON.stringify(d.lighter.summary));
-      for (const k of ['afterOther', 'afterOtherCalc'])
+      for (const k of ['first', 'afterOther', 'afterOtherCalc'])
         check(`${tag}: ${k} result equals the re-typed (settled) draw`, approx(d[k].n, d.retyped.n, 1e-9), `retyped ${d.retyped.n}, ${k} ${d[k].n}`);
       check(`${tag}: the typed curve is really used (differs from the default-curve result)`, Number.isFinite(d.retyped.n) && Math.abs(d.retyped.n - base[sim.id].n) > 0.01 * base[sim.id].n, `typed ${d.retyped.n}, default ${base[sim.id].n}`);
       if (sim.id !== 'sim_top_speed') check(`${tag}: a lighter vehicle on the typed curve is faster than the heavier one`, d.lighter.n < d.retyped.n, `lighter ${d.lighter.n}, heavier ${d.retyped.n}`);
@@ -139,7 +138,7 @@ async function run(enginePath) {
       const tag = `B ${stateName(st)} ${sim.id}`;
       for (const k of ['first', 'retyped', 'afterOther', 'afterOtherCalc', 'lighter'])
         check(`${tag}: ${k} draw reads the typed power curve (peak 400 hp at 4000 rpm)`, isPeak(d[k].summary, 'Power', 400, 4000), JSON.stringify(d[k].summary));
-      for (const k of ['afterOther', 'afterOtherCalc'])
+      for (const k of ['first', 'afterOther', 'afterOtherCalc'])
         check(`${tag}: ${k} result equals the re-typed (settled) draw`, approx(d[k].n, d.retyped.n, 1e-9), `retyped ${d.retyped.n}, ${k} ${d[k].n}`);
     }
   }
