@@ -19,9 +19,8 @@
    RESULTS ARE COMPARED BETWEEN SETTLED DRAWS. A simulator opened for the first time draws once with every one of its own boxes still missing, and Drivetrain Efficiency then falls back to
    0.85 where its box holds 85 (a percentage), so that one draw runs at the 50 % floor; every later draw reads the box. That is a separate, older defect (GH-DEF-032, recorded, not fixed here), so the
    curve summary is checked on every draw including the first, but a result is compared with the settled draws (the box re-typed, redraws, visits), never with the very first draw.
-   The Acceleration simulator's default target (60 mph) is also one of its distance marks (60 ft), so at the default it reports the 60-foot time as the Target Time (GH-DEF-033, recorded, not fixed here);
-   this test sets the target to 50 mph (typed in the unit the box shows) before it follows that result. Top Speed ends at the redline unless the curve is weak at the redline, so the typed curve also
-   has a weak last point (10 lb-ft or 12 hp at 6,500 rpm) for that simulator's result to depend on it.
+   Top Speed ends at the redline unless the curve is weak at the redline, so the typed curve also has a weak last point (10 lb-ft or 12 hp at 6,500 rpm) for that simulator's result to depend on it.
+   (Until GH-DEF-033 was fixed the Acceleration simulator's default 60 mph target was also its 60-ft mark and this test followed a 50 mph target instead; it now follows the default.)
 
    Run: node premium/tests/curve-persistence.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 otherwise. */
@@ -74,8 +73,6 @@ async function run(enginePath) {
   const goTo = id => page.evaluate(i => renderCalc(i, false), id);                  // navigation that keeps what is remembered
   const openEditor = async () => { await fresh(); await goTo('sim_curve_editor'); };
   const fill = async (id, text) => { await page.fill('#' + id, String(text)); await page.waitForTimeout(40); };
-  const sysNow = () => page.evaluate(() => UNIT.system);
-  const tune = async sim => { if (sim.id === 'sim_acceleration') await fill('sim_target', (await sysNow()) === 'metric' ? sig(50 * KMH_PER_MPH) : '50'); };   // GH-DEF-033: not the default 60
   const choose = async mode => { await page.selectOption('#curve_mode', mode); await page.waitForTimeout(70); };
   const read = () => page.evaluate(() => {
     const t = e => (e ? e.textContent.replace(/\s+/g, ' ').trim() : '');
@@ -96,14 +93,14 @@ async function run(enginePath) {
   /* the default-curve result of every simulator in a state (nothing typed in the editor) */
   async function baselines(st) {
     await setState(st); await fresh(); const out = {};
-    for (const sim of SIMS) { await goTo(sim.id); await tune(sim); await fill('sim_weight', (await read()).weight); out[sim.id] = await result(sim); }   // settled draw
+    for (const sim of SIMS) { await goTo(sim.id); await fill('sim_weight', (await read()).weight); out[sim.id] = await result(sim); }   // settled draw
     return out;
   }
   /* the ways a simulator is drawn after the curve was typed: first (editor page still on screen), re-typed box (the settled reference), edited weight, after another simulator, after an unrelated calculator */
   async function draws(sim, others) {
     const out = {};
     await goTo(sim.id); out.first = await result(sim);
-    await tune(sim); await fill('sim_weight', out.first.weight); out.retyped = await result(sim);
+    await fill('sim_weight', out.first.weight); out.retyped = await result(sim);
     const w = num(out.first.weight) * 0.9375; await fill('sim_weight', sig(w)); out.lighter = await result(sim);
     await fill('sim_weight', out.first.weight);
     await goTo(others[0].id); await goTo(sim.id); out.afterOther = await result(sim);
@@ -154,7 +151,7 @@ async function run(enginePath) {
     await setState(STATES[0]); await openEditor(); await fill('curve_y_6', '500'); await fill('curve_y_11', '10');
     await goTo(sim.id); const first0 = await result(sim);
     check(`C ${sim.id}: first draw reads the typed curve`, isPeak(first0.summary, 'Torque', 500, 4000), JSON.stringify(first0.summary));
-    await tune(sim); await fill('sim_weight', first0.weight);                    // a redraw, so the editor page is gone
+    await fill('sim_weight', first0.weight);                    // a redraw, so the editor page is gone
     const ref = await result(sim);
     check(`C ${sim.id}: reference (settled) draw reads the typed curve`, isPeak(ref.summary, 'Torque', 500, 4000), JSON.stringify(ref.summary));
     for (const [what, act] of [['Metric', () => setSystem('metric')], ['Torque = N·m', () => setPref('torque', 'N·m')], ['Power = kW', () => setPref('power', 'kW')], ['Imperial', () => setSystem('imperial')], ['Torque = lb-ft', () => setPref('torque', 'lb-ft')], ['Power = hp', () => setPref('power', 'hp')]]) {
@@ -167,7 +164,7 @@ async function run(enginePath) {
     await setSystem('metric'); await setPref('torque', 'N·m');
     await goTo(sim.id); const r0 = await result(sim);
     check(`C ${sim.id}: system and torque preference changed on the editor page, then the simulator: first draw is the same engine`, isPeak(r0.summary, 'Torque', 500, 4000), JSON.stringify(r0.summary));
-    await tune(sim); await fill('sim_weight', r0.weight); const r1 = await result(sim);
+    await fill('sim_weight', r0.weight); const r1 = await result(sim);
     check(`C ${sim.id}: ... and after a redraw of the simulator: same engine, same result`, isPeak(r1.summary, 'Torque', 500, 4000) && approx(r1.n, ref.n, 0, 0.0105 + 1e-4 * ref.n), `${JSON.stringify(r1.summary)} result ${r1.n} (reference ${ref.n})`);
     await goTo('hp_quarter_mile'); await goTo(sim.id); const r2 = await result(sim);
     check(`C ${sim.id}: ... and after a visit to another calculator`, isPeak(r2.summary, 'Torque', 500, 4000) && approx(r2.n, r1.n, 1e-9), `${JSON.stringify(r2.summary)} result ${r2.n} (before ${r1.n})`);

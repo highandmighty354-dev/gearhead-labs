@@ -7042,7 +7042,9 @@ function simulateCurveAcceleration(opts={}){
   const gears=(opts.gears||simGears()).filter(g=>Number.isFinite(g)&&g>0);
   const target=Math.max(0.1,Number.isFinite(opts.target)?opts.target:60), dt=0.01;
   let t=0,x=0,v=0,gear=0,maxAccel=0,shiftCount=0,peakRPM=0,peakWheelTorque=0,peakTireForce=0;
-  const crossed={}; const marks=[60,100,132,330,660,1000,1320];
+  /* GH-DEF-033. `crossed` holds the DISTANCE marks (feet), keyed by the distance. The target SPEED (mph) used to be stored in it under its own number, so a target equal to a mark (the default 60 mph is also
+     the 60-ft mark; 100 and 132 mph likewise) was "reached" when the vehicle passed that many feet and the run reported the time at that distance. The speed event is now kept apart in `targetHit`. */
+  const crossed={}; const marks=[60,100,132,330,660,1000,1320]; let targetHit=null;
   if(!gears.length || b.weight<=0 || b.tire<=0 || b.final<=0) return {time:0,distance:0,mph:0,gear:1,shiftCount:0,peakRPM:0,maxAccel:0,crossed,peakWheelTorque:0,peakTireForce:0};
   for(let step=0;step<60000 && t<60;step++){
     const mph=v*3600/5280;
@@ -7067,13 +7069,13 @@ function simulateCurveAcceleration(opts={}){
     const prevX=x; v+=accel*dt; x+=v*dt; t+=dt;
     const mphNow=v*3600/5280;
     for(const m of marks){ if(x>=m && !crossed[m]) crossed[m]={t,x,mph:mphNow}; }
-    if(!crossed[target] && mphNow>=target) crossed[target]={t,x,mph:mphNow};
+    if(!targetHit && mphNow>=target) targetHit={t,x,mph:mphNow};
     if(opts.distanceFt && x>=opts.distanceFt) break;
-    if(crossed[target] && opts.stopAtTarget!==false) break;
+    if(targetHit && opts.stopAtTarget!==false) break;
     if(v<=0 && t>1) break;
     if(Math.abs(prevX-x)<1e-12 && t>2) break;
   }
-  const targetResult=crossed[target]||crossed[opts.distanceFt]||{t,x,mph:v*3600/5280};
+  const targetResult=targetHit||crossed[opts.distanceFt]||{t,x,mph:v*3600/5280};
   return {time:targetResult.t,distance:targetResult.x,mph:targetResult.mph,gear:gear+1,shiftCount,peakRPM,maxAccel,crossed,peakWheelTorque,peakTireForce};
 }
 function simulateAcceleration(opts={}){ return simulateCurveAcceleration(opts); }
