@@ -10704,10 +10704,12 @@ RENDERS.diffuser_angle_expansion=()=>{const h1=certValue('dae_h1',3,'in'),h2=cer
     bmep_from_torque:     [[300,350],       4*Math.PI*12*300/350,      1e-6, '4-stroke BMEP=4pi*T(lb-in)/Vd'],
     imep_from_power:      [[300,350,6000],  300*33000*12*2/(350*6000), 1e-9, 'IMEP from indicated power'],
     engine_air_density:   [[14.7,519],      14.7*144/(53.35*519),      1e-9, 'ideal gas lbm basis -> lb/ft3'],
-    airflow_from_ve:      [[350,6000,0.85], 350*6000*0.85/3456,        1e-9, 'CFM=V*rpm*VE/3456'],
-    carb_cfm:             [[350,6000,0.85], 350*6000*0.85/3456,        1e-9, 'same as airflow_from_ve'],
-    port_velocity:        [[250,2],         250*144/(2*60),            1e-9, 'v=CFM*144/(A*60)'],
-    valve_curtain_area:   [[2.02,0.45],     Math.PI*2.02*0.45,         1e-9, 'pi*d*L'],
+    /* GH-DEF-008: airflow_from_ve, carb_cfm, valve_curtain_area, volumetric_efficiency and fraction_to_decimal were retired
+       aliases (GH_CALC_ALIASES -> engine_airflow, carb_sizing, curtain_area, volumetric_eff, fraction_decimal). The canonical
+       calculators are not in GH_E1/E101_FORMULAS (they live in the display-only GH_LEGACY/GH_BACKFILL registries), so the rows
+       could never resolve. Their checks now live in the renderer tests below (engine_airflow, carb_sizing, curtain_area,
+       volumetric_eff, fraction_decimal) and in the "alias" parity tests, which keep each retired id rendering its canonical. */
+    port_velocity:       [[250,2],         250*144/(2*60),            1e-9, 'v=CFM*144/(A*60)'],
     injector_size:        [[500,0.5,8,0.8], 500*0.5/(8*0.8),           1e-9, 'lb/hr per injector'],
     afr_from_lambda:      [[0.85,14.7],     0.85*14.7,                 1e-9, 'AFR=lambda*stoich'],
     lambda_from_afr:      [[12.5,14.7],     12.5/14.7,                 1e-9, 'lambda=AFR/stoich'],
@@ -10758,7 +10760,6 @@ RENDERS.diffuser_angle_expansion=()=>{const h1=certValue('dae_h1',3,'in'),h2=cer
     tube_weight:          [[2,1.75,60,0.283], Math.PI/4*(4-3.0625)*60*0.283, 1e-9,'annulus vol*density'],
     bend_allowance:       [[90,0.125,0.075,0.44], (Math.PI/180*90)*(0.125+0.44*0.075), 1e-9,'BA'],
     thermal_expansion:    [[100,6.5e-6,200],100*6.5e-6*200,            1e-12,'L*a*dT'],
-    volumetric_efficiency:[[400,470],       400/470*100,               1e-9, 'A/T as %'],
     injector_duty_cycle:  [[400,550],       400/550*100,               1e-9, 'req/rated %'],
     tow_tongue_percent:   [[900,7500],      900/7500*100,              1e-9, 'TW/GTW %'],
     diesel_scr_efficiency:[[500,50],        (1-50/500)*100,            1e-9, '1-out/in'],
@@ -10769,7 +10770,6 @@ RENDERS.diffuser_angle_expansion=()=>{const h1=certValue('dae_h1',3,'in'),h2=cer
     rpm_frequency:        [[6000],          6000/60,                   1e-9, 'Hz=rpm/60'],
     engine_order:         [[6000,2],        6000/60*2,                 1e-9, 'Hz*order'],
     mixed_number_to_decimal:[[3,5,8],       3+5/8,                     1e-12,'w+n/d'],
-    fraction_to_decimal:  [[3,8],           0.375,                     1e-12,'n/d'],
     fraction_to_percent:  [[3,8],           37.5,                      1e-12,'n/d*100'],
     thread_engagement:    [[0.75,0.5],      1.5,                       1e-12,'L/D'],
     tap_drill:            [[0.5,0.0769],    0.5-0.0769,                1e-12,'D-pitch (approx)'],
@@ -10851,7 +10851,9 @@ RENDERS.diffuser_angle_expansion=()=>{const h1=certValue('dae_h1',3,'in'),h2=cer
  tow_trailer_capacity:[[10000,3200], 6800,1e-9,'GVWR-empty'],
  tow_gcwr_margin:[[16000,13500], 2500,1e-9,'GCWR-actual'],
  tow_trip_fuel_cost:[[400,11.7,3.79], 400/11.7*3.79,1e-9,'mi/mpg*$'],
- deck_height:[[9.025,6.123,1.875,1.02], 9.025-6.123-1.875-1.02,1e-9,'block-rod-stroke/2-CH'],
+ /* GH-DEF-008: the Stroke input is the FULL stroke (3.75 in); deck clearance = block - (stroke/2 + rod + CH). The old row passed the
+    already-halved 1.875 and never halved it. Hand check: 9.025 - (1.875 + 6.123 + 1.02) = 9.025 - 9.018 = 0.007 in. */
+ deck_height:[[9.025,6.123,3.75,1.02], 0.007,1e-9,'block-(stroke/2+rod+CH), full stroke input'],
  quench_clearance:[[0.015,0.040], 0.055,1e-12,'deck+gasket'],
  piston_to_valve_clearance:[[0.120,0.020], 0.100,1e-12,'meas-margin'],
  ring_gap_bore:[[4.030,0.0045], 4.030*0.0045,1e-12,'bore*factor'],
@@ -10865,7 +10867,10 @@ RENDERS.diffuser_angle_expansion=()=>{const h1=certValue('dae_h1',3,'in'),h2=cer
  driveshaft_order:[[3000,2], 100,1e-9,'rpm/60*order'],
  damping_ratio:[[900,1400], 900/1400,1e-9,'c/cc'],
  steering_ratio:[[540,36], 15,1e-9,'SW/RW angle'],
- sensor_scaling:[[512,5,1024], 512*5/1024,1e-9,'raw*span/outspan'],
+ /* GH-DEF-008: inputs are [raw, signal span, output span] and Scaled = raw x output span / signal span (corrected in the 2026-09
+    audit; the old row still used the superseded raw x span / outspan order). Hand check: a 10-bit ADC reading 512 of 1024 counts on a
+    5 V reference is half scale = 2.5 V. */
+ sensor_scaling:[[512,1024,5], 2.5,1e-9,'raw*outspan/span: 512/1024 counts on 5 V = 2.5 V'],
  pid_proportional:[[12,2.5], 30,1e-9,'e*Kp'],
  control_error:[[200,185], 15,1e-9,'SP-PV'],
  can_bitrate:[[128,1000], 128000,1e-9,'bits*frames'],
@@ -10986,7 +10991,7 @@ RENDERS.diffuser_angle_expansion=()=>{const h1=certValue('dae_h1',3,'in'),h2=cer
     T('mean_piston_speed 3.75@6000','mean_piston_speed',{str4:3.75,rpm3:6000},'piston speed',3.75*2*6000/12,2,'2*S*RPM/12');
     T('bmep 490lbft 426ci','bmep',{torq_b:490,disp_b:426},'bmep',4*Math.PI*12*490/426,2,'4pi*T(lb-in)/Vd');
     T('intake_port_vel 250/2','intake_port_vel',{cfm4:250,pa:2},'velocity',250*144/(2*60),0.6,'CFM*144/(A*60)');
-    T('curtain_area 2.02/0.45','curtain_area',{vd:2.02,vlift2:0.45},'curtain',Math.PI*2.02*0.45,0.01,'pi*d*L');
+    T('curtain_area 1.88/0.52','curtain_area',{vd:1.88,vlift2:0.52},'curtain',Math.PI*1.88*0.52,0.01,'pi*d*L (non-default inputs; also covers retired valve_curtain_area)');
     GHM_STORAGE.set('brt_mode','manual'); // brake_rotor_temp gained an auto/manual mode toggle; manual mode is what this test exercises
     T('brake_rotor_temp','brake_rotor_temp',{ke:500000,rm:15,cp_rotor:0.107,absorb_rotor:100},'temp',(500000/778.169)/(15*0.107),3,'E(BTU)/(m*c)');
     T('rotating_weight I=20','rotating_weight',{rw_I:20,rw_rpm1:3000,rw_rpm2:6000,rw_dt:1},'power',Math.abs((20/(144*32.174))*((6000-3000)*2*Math.PI/60/1)*4500/5252),0.5,'lb-in2 -> slug-ft2 /144');
@@ -11020,13 +11025,18 @@ RENDERS.diffuser_angle_expansion=()=>{const h1=certValue('dae_h1',3,'in'),h2=cer
     T('wheel_motion','wheel_motion',{sr2:200,mr:0.75},'wheel',200*0.5625,0.2,'k*MR^2');
     T('supercharger_speed','supercharger_speed',{cr3:6.0,rpm8:6000},'supercharger rpm',36000,2,'rpm*ratio');
     T('hp_from_boost 10psi','hp_from_boost',{hp8:350,boost:10,atm_boost:14.7},'idealized total hp',350*(24.7/14.7),1,'hp*PR');
-    T('engine_airflow 426 6000 .85','engine_airflow',{ve_v:426,ve_rpm:6000,ve_ve:0.85},'airflow',426*6000*0.85/3456,1,'V*rpm*VE/3456'); // engine_airflow now delegates to airflow_from_ve (a Sept 2026 duplicate-consolidation pass), which uses ve_v/ve_rpm/ve_ve field ids instead of the old disp3/rpm9/ve
-    T('carb_sizing','carb_sizing',{carb_v:426,carb_rpm:6000,carb_ve:0.85},'carburetor cfm',426*6000*0.85/3456,1,'same'); // carb_sizing now delegates to carb_cfm (same Sept 2026 consolidation as engine_airflow/airflow_from_ve), which uses carb_v/carb_rpm/carb_ve field ids and a "Required Carburetor CFM" label
+    T('engine_airflow 350 6500 .92','engine_airflow',{disp3:350,rpm9:6500,ve:0.92},'airflow',350*6500*0.92/3456,0.6,'V*rpm*VE/3456 (real field ids, non-default inputs; also covers retired airflow_from_ve)');
+    T('carb_sizing','carb_sizing',{disp4:350,rpm10:6500,ve2:0.92},'recommended carb size',350*6500*0.92/3456,0.6,'V*rpm*VE/3456 (real field ids and label, non-default inputs; also covers retired carb_cfm)');
     T('injector_sizing 425hp','injector_sizing',{hp9:425,inj:8,duty:0.80},'flow',425*0.5/(8*0.8),0.2,'hp*.5/(n*duty)');
     T('air_filter 750cfm','air_filter',{cfm3:750},'area',750/450*144,1,'cfm/450*144');
     T('intake_runner','intake_runner',{rpm11:4500,c_sound:1125,harm:4},'length',(30*1125)/(4500*4)*12,0.2,'wave tuning');
     T('octane_mixture','octane_mixture',{o1:93,v1:10,o2:100,v2:5},'octane',(93*10+100*5)/15,0.1,'weighted avg');
-    T('volumetric_eff 700/850','volumetric_eff',{ac:700,tc:850},'volumetric',700/850*100,0.2,'a/t %');
+    T('volumetric_eff 400/470','volumetric_eff',{ac:400,tc:470},'volumetric',400/470*100,0.2,'a/t % (non-default inputs; also covers retired volumetric_efficiency)');
+    T('fraction_decimal 3/8 in','fraction_decimal',{num_fd:3,den_fd:8},'decimal',0.375,0.0005,'n/d (GH-DEF-008: also covers retired fraction_to_decimal)');
+    T('fraction_decimal 3/8 mm','fraction_decimal',{num_fd:3,den_fd:8},'millimeters',9.525,0.001,'n/d*25.4 (3/8 in = 9.525 mm exactly)');
+    T('deck_height 9.025/3.75/6.123/1.02','deck_height',{blk_dh:9.025,str_dh:3.75,rod_dh:6.123,pin_dh:1.02},'deck clearance',0.007,0.0005,'block-(stroke/2+rod+CH), full stroke input (GH-DEF-008)');
+    T('deck_height 9.800/3.48/5.700/1.560','deck_height',{blk_dh:9.8,str_dh:3.48,rod_dh:5.7,pin_dh:1.56},'deck clearance',0.8,0.0005,'block-(stroke/2+rod+CH) = 9.8-(1.74+5.7+1.56) = 0.800 in, piston below deck');
+    T('sensor_scaling 3.2V of 5V, 0-150psi','sensor_scaling',{ss_r:3.2,ss_s:5,ss_o:150},'scaled output',96,0.01,'raw*outspan/span = 3.2*150/5 = 96 (GH-DEF-008)');
     T('resistance series','resistance',{r1:100,r2:100,r3:100},'series',300,0.2,'sum');
     T('gas_oil_mix 50:1','gas_oil_mix',{gas:1,ratio4:50},'oil',128/50,0.02,'gal*128/ratio');
     T('tank_volume','tank_volume',{len2:20,wd:10,ht:6},'volume',20*10*6/231,0.02,'in3/231');
@@ -11433,6 +11443,25 @@ RENDERS.diffuser_angle_expansion=()=>{const h1=certValue('dae_h1',3,'in'),h2=cer
     T('diffuser_angle_expansion flare with wider exit','diffuser_angle_expansion',{dae_h1:3,dae_h2:9,dae_l:36,dae_w1:40,dae_w2:48},'Lateral Flare',6.340191746,0.006,'atan((w2-w1)/2/L)');
     T('diffuser_angle_expansion expansion ratio with wider exit','diffuser_angle_expansion',{dae_h1:3,dae_h2:9,dae_w1:40,dae_w2:48},'Area Expansion',3.6,0.006,'A2/A1');
     T('diffuser_angle_expansion ramp alt','diffuser_angle_expansion',{dae_h1:2.5,dae_h2:7,dae_l:30,dae_w1:36,dae_w2:36},'Ramp Angle',8.53076561,0.006,'atan((h2-h1)/L)');
+
+    // Retired aliases (GH_CALC_ALIASES, GH-DEF-008): each must stay mapped to its canonical calculator and still render exactly what the
+    // canonical renders for the same inputs, so a retired id cannot silently drift from (or stop pointing at) the calculator that replaced it.
+    (function(){
+      [['carb_cfm','carb_sizing',{disp4:350,rpm10:6500,ve2:0.92}],
+       ['airflow_from_ve','engine_airflow',{disp3:350,rpm9:6500,ve:0.92}],
+       ['volumetric_efficiency','volumetric_eff',{ac:400,tc:470}],
+       ['valve_curtain_area','curtain_area',{vd:1.88,vlift2:0.52}],
+       ['fraction_to_decimal','fraction_decimal',{num_fd:3,den_fd:8}]
+      ].forEach(function(c){
+        const alias = c[0], canon = c[1], mapped = (typeof GH_CALC_ALIASES === "object" && GH_CALC_ALIASES) ? GH_CALC_ALIASES[alias] : undefined;
+        if (mapped !== canon) { record(false, { group:"alias", label:alias, detail:"GH_CALC_ALIASES maps "+alias+" to "+mapped+", expected "+canon }); return; }
+        let a, b;
+        try { a = renderPairs(alias, c[2]); b = renderPairs(canon, c[2]); }
+        catch (e) { record(false, { group:"alias", label:alias, detail:"threw: "+e.message }); return; }
+        const same = Object.keys(b).length > 0 && JSON.stringify(a) === JSON.stringify(b);
+        record(same, { group:"alias", label:alias, detail:same ? undefined : "alias renders "+JSON.stringify(a)+" but "+canon+" renders "+JSON.stringify(b) });
+      });
+    })();
 
     // ===== 3. STRUCTURAL INTEGRITY =====
     (function(){

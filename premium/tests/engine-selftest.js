@@ -1,15 +1,17 @@
 #!/usr/bin/env node
-/* Gearhead Labs — runs the engine's built-in self-test (ghSelfTest) in real Chromium and compares it with the recorded baseline.
+/* Gearhead Labs — runs the engine's built-in self-test (ghSelfTest) in real Chromium and requires it to be clean.
 
    ghSelfTest is a separate suite from the browser, unit-system, temperature and sweep suites: it checks the formula registry, the
-   renderers and the round trips from inside the engine page itself. Its totals are never added to those suites' counts.
+   renderers, the retired-alias parity and the round trips from inside the engine page itself. Its totals are never added to those
+   suites' counts.
 
-   The engine has eight long-standing failures that were analysed on 2026-10-12 (docs/DEFERRED-WORK-REGISTER.md, GH-DEF-008):
-     five reference-table rows name retired alias ids, two reference-table rows carry wrong expected values (deck_height omits the "/2"
-     on stroke; sensor_scaling passes its spans in a different order from the calculator's labels), one renderer row expects a label
-     the calculator does not use. None of them is a calculator-mathematics failure.
-   This test passes while exactly those eight fail, FAILS on any other failure (a regression), and FAILS if one of the eight starts
-   passing (so the baseline cannot go stale: remove it from KNOWN_BASELINE and update GH-DEF-008).
+   BASELINE: none. Until 2026-10-13 the engine carried eight long-standing failures (GH-DEF-008): five reference-table rows that named
+   retired alias ids, two reference-table rows with wrong expected values (deck_height passed an already-halved stroke; sensor_scaling
+   passed its spans in a different order from the calculator's labels) and one renderer row that expected a label the calculator does
+   not use. None was a calculator-mathematics failure; they were corrected in the tests and the engine now reports no failures.
+   The runner fails on ANY failure. KNOWN_BASELINE is kept (empty) so that, if a future failure must ever be recorded rather than
+   fixed, it is listed here with its register id, and the runner then also fails when a listed entry starts passing (so a baseline can
+   never go stale).
 
    Run: node premium/tests/engine-selftest.js     GH_ENGINE=path tests another copy of the engine     VERBOSE=1 prints every failure's detail */
 'use strict';
@@ -20,10 +22,7 @@ let playwright;
 try { playwright = require('playwright'); } catch (e) { playwright = require(path.join(execSync('npm root -g', { encoding: 'utf8' }).trim(), 'playwright')); }
 const CHROMIUM = process.env.GH_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chromium-1194/chrome-linux/chrome') ? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' : undefined);
 
-const KNOWN_BASELINE = [
-  'formula:airflow_from_ve', 'formula:carb_cfm', 'formula:valve_curtain_area', 'formula:volumetric_efficiency', 'formula:fraction_to_decimal',
-  'formula:deck_height', 'formula:sensor_scaling', 'renderer:carb_sizing'
-];
+const KNOWN_BASELINE = [];   // none — see the header; any entry must cite a GH-DEF/GH-ENG register id
 
 (async () => {
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });
