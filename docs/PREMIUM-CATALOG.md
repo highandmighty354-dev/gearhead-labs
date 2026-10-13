@@ -574,7 +574,7 @@ Register-only commits (`1a9d66f`, `5b742c2`, `4a66a25`, `03274a2`, `0058bba`, `4
 
 **Corrections to the pass's own earlier statements.** The first write-up of GH-DEF-006 said the error was 4.4 times; it is 9.8 times (the ratio of a kilogram to a newton), now corrected in the register and the commit message (amended before it was pushed). A second register entry for the ft-lb label (GH-IMP-015) duplicated GH-IMP-001; it is marked SUPERSEDED and its evidence merged into GH-IMP-001. GH-ENG-001's count of "ten" Class A calculators was eight.
 
-#### Verified status (closing regression)
+#### Verified status (closing regression of the second stage; SUPERSEDED for the engine self-test, the label-consistency row and the fingerprint row by the third-stage table below)
 
 Run suite by suite, never concurrently, on the final engine (sha256 `df33ab91…`, byte-identical since `7482992`) at HEAD `285be2a`, with `bash premium/tests/run-browser-tests.sh` listing the suites. **The counts below are separate suites and are not added together.** `legacy-fixes.test.js` was added after that run (tests only, engine unchanged) and was run on its own.
 
@@ -601,7 +601,7 @@ Run suite by suite, never concurrently, on the final engine (sha256 `df33ab91…
 
 **Known failures that remain, none new:** the 8 engine self-test baseline failures (legacy alias / formula-registry mismatches, GH-DEF-008, deferred). The two sweep inconsistencies and the 29 label inconsistencies are known-open ledger entries, not passes: the label ledger is GH-DEF-020, an open defect. The suites that carry a ledger fail if an entry in it starts passing or a calculator not in it starts failing, so they cannot go stale.
 
-#### Register status at the end of the pass
+#### Register status at the end of the second stage (SUPERSEDED by the third-stage status below)
 
 | Category | Entries | Status |
 |---|---|---|
@@ -614,6 +614,71 @@ Run suite by suite, never concurrently, on the final engine (sha256 `df33ab91…
 **Open items that need an owner decision:** GH-DEF-019 (one-token fix for yards to kilometres, awaiting authorization); GH-DEF-020 (29 calculators, the largest remaining unit defect: a Metric user who types a labelled number is read as Imperial); GH-ENG-014 (whether and how `dew_point` gets a new `formula_versions` row before this branch is deployed, with a proposed migration written in the entry but not applied); GH-IMP-013 (should vehicle, trailer and part weights show kg rather than N in Metric: 47 rows in 30 calculators); GH-IMP-014 (61 unregistered US-customary units: 208 rows in 122 calculators); GH-IMP-001 (ft-lb energy labelled N·m rather than J); GH-DEF-022 (a tiny negative result printed as "-0").
 
 **How to run.** `bash premium/tests/run-browser-tests.sh` runs the 16 Chromium suites in order (about 30 minutes on a 2-core machine; Playwright with a local Chromium, no network). `bash premium/tests/run-tests.sh` runs the catalog, register, frontend and schema suites. After any engine edit run `node catalog/build-catalog.js` first, because the catalogue stores the engine hash, and `node premium/tests/register-check.js --write-index` after any register edit.
+
+### Third stage: closeout and next-batch readiness (2026-10-13)
+
+**What it was.** A closeout under the same change control: resolve the eight legacy self-test failures, triage and fix the 29 Metric-label inconsistencies (GH-DEF-020), evaluate the remaining small defects, document the unregistered units and prepare the formula-fingerprint migration for review. Work stayed on `premium/full-calculator-expansion`; `main` and production were not touched, nothing was merged, deployed or applied to a database, and **Batch 11 was not started and is not authorized.** Findings stay in [DEFERRED-WORK-REGISTER.md](DEFERRED-WORK-REGISTER.md); no second register was created.
+
+| Commit | Register | What changed | Evidence |
+|---|---|---|---|
+| `b88c62e` | GH-DEF-008 | **Test tables only.** The eight legacy self-test failures resolved: 5 obsolete alias references removed (and the aliases tested instead), `deck_height` and `sensor_scaling` expected values corrected against hand calculations, `carb_sizing` label and field ids corrected; three renderer tests that passed only on defaults now use real ids and non-default inputs; baseline emptied | engine self-test 679 / 679 / 0 (was 674 / 666 / 8); 16 of 16 live-behavior engine mutants detected by the corrected tests (2 more altered a shadowed definition and change nothing) |
+| `8787c9e` | GH-DEF-020 | 17 result rows in 15 calculators that print a Metric-named unit on a number already in that unit are shown as computed (the existing `raw` flag) | 9 calculators leave the label-consistency ledger |
+| `1e38852` | GH-DEF-020 | 30 input boxes in 20 calculators that are Metric by design (kW, mm, cc, kg, a degC rise) are read and shown as typed (`field(..., native)` / `nativeField()`); `native-units.test.js` and `declared-metric-units.test.js` added; ledger emptied | native-units 29 of 29 (0 of 29 before); declared-metric-units 0 unprotected declarations; label-consistency 696 of 696 |
+| `00c31c5` | GH-DEF-019 | `distance_converter` yards to kilometres uses the exact 0.0009144 (was 0.000914, 0.044 % low) | converters 2,064 checks; the deviation list is empty; the fingerprint change is part of GH-ENG-014 |
+| `ce09545` | (test) | `native-units.test.js` opens each calculator through the page's own unit button and checks the boxes are on screen | same 29 cases |
+| `eebcd57` | GH-DEF-022 | A result that rounds to zero is shown as "0", not "-0"; a real small negative keeps its sign | negative-zero 20 checks plus 696 + 696 sweeps; 6 failures on the previous engine, 0 now |
+| `f7abb1a` | GH-IMP-001 | The five energy rows declared `ft-lb` read J in Metric instead of N·m (one-token alias change) | unit-system 559, unit-census 2,622, unit-factors 514; with the alias put back 16 / 5 / 1 label failures |
+| `e818939` | GH-DEF-008 | The self-test helper refuses a renderer test whose field ids are not on the page | 679 / 679 / 0; one renamed id fails |
+| `2c43bb1` | GH-IMP-014 | **Test tool only.** `LIST=1 unit-census` prints every unit instead of the first 40 lines | census 2,622 checks unchanged |
+| `6f057cc` | GH-ENG-014, GH-IMP-014 | **Documents and a script, no engine change.** The migration proposal with the SQL (not applied), a throwaway-database check script, and the list of the 61 unregistered units | 17 of 17 database checks |
+
+**What each item found, in a line.** *GH-DEF-008:* all eight failures were wrong tests, none a calculator defect; the real finding was that a test with a wrong field id silently ran on the defaults. *GH-DEF-020:* all 29 gave a physically wrong figure in Metric through one cause (a Metric-named unit converted twice), so the fix was a per-declaration `native` / `raw` flag rather than a shared rule. *GH-DEF-019:* a constant 0.044 % low, and its fix moved a formula fingerprint. *GH-DEF-022:* a presentation artifact of a rounded input (the true value is zero), not a masked result. *GH-IMP-001:* a label only, fixed by reusing a unit the table already had. *GH-ENG-014:* two fingerprints, not one, and a rollback that is deliberately "revert the engine".
+
+#### Verified status (closeout regression)
+
+Run suite by suite, never concurrently, on the final engine (sha256 `d3906d19…`) at HEAD `e818939`. **The counts below are separate suites and are not added together.**
+
+| Suite | Result |
+|---|---|
+| Engine self-test (`ghSelfTest`) | **679 total, 679 passed, 0 failed**; baseline empty, 0 stale |
+| `browser-smoke.js` | 19/19 |
+| `unit-system.test.js` | 559 result checks, 0 failures |
+| `temperature-units.test.js` | 1,108 result/unit checks and 990 toggle-invariance checks, 0 failures |
+| `toggle-sweep.test.js` | 696 swept: 694 consistent, 2 in the expected-rounding ledger (GH-EXP-001/002); 735 checks, 0 failures |
+| `nav-return.test.js` | 696 checked (4 without a numeric input skipped): 692 consistent, 0 inconsistent; 0 failures |
+| `converters.test.js` | 2,064 checks, 0 failures |
+| `label-consistency.test.js` | 696 checked: **696 consistent**, 0 inconsistent, ledger empty; 0 failures |
+| `native-units.test.js` (new) | 29 calculators in 8 stages each, 29 passing |
+| `declared-metric-units.test.js` (new) | 696 rendered; 59 Metric-named declarations in 38 calculators are native/raw; 0 unprotected |
+| `remembered-values.test.js` | 371 checks, 0 failures |
+| `dew-point.test.js` | 688 checks, 0 failures |
+| `formula-fingerprints.test.js` | 577 seed formulas: 575 identical to the production seed, 2 recorded as corrected (`dew_point`, `distance_converter`); 0 failures |
+| `mass-force.test.js` | 255 pound-unit rows (136 force/weight, 119 mass), 601 checks, 0 failures |
+| `unit-factors.test.js` | 42 canonical units, 87 aliases, 514 checks, 0 failures (worst relative difference 1.63e-9) |
+| `unit-census.test.js` | 696 calculators, 2,762 rows with a unit, 2,622 checks, 0 failures |
+| `airflow-readers.test.js` | 131 checks, 0 failures |
+| `legacy-fixes.test.js` | 61 checks, 0 failures |
+| `negative-zero.test.js` (new) | 20 formatter / Density Altitude checks and 696 + 696 calculator sweeps, 0 failures |
+| `eng014-throwaway-db.sh` (new, not in the browser runner) | 17 of 17 checks on a private PostgreSQL 16 |
+| `premium/tests/run-tests.sh` | catalog check OK; register check OK (66 entries); frontend adapter 55/55; schema contract 26/26 (throwaway PostgreSQL 16) |
+| `premium-foundation/tests/run-tests.sh` | 47 checks, 47 passed, 0 failed; idempotency, order, rollback and upgrade ok; 24 of 24 database mutants killed (PostgreSQL 16) |
+| Before/after comparison of all 696 calculators (both systems, every numeric field retyped), engine of `9c6faad` against this one | Imperial: 0 of 696 changed. Metric: 33 changed, each explained (the 29 of GH-DEF-020; three energy labels, GH-IMP-001; `density_altitude`, GH-DEF-022); 0 page errors in either system |
+
+**Known failures that remain:** none in the suites above. There is no baseline of known failures and no ledger left for label consistency. The two toggle-sweep entries (GH-EXP-001/002) are classified expected rounding, not defects.
+
+#### Register status at the end of the closeout
+
+| Category | Entries | Status |
+|---|---|---|
+| Defects (`GH-DEF`) | 23 | 22 VERIFIED CLOSED, 1 SUPERSEDED (GH-DEF-007 by GH-IMP-014) |
+| Improvements (`GH-IMP`) | 16 | 1 VERIFIED CLOSED (GH-IMP-001), 14 DEFERRED (including new GH-IMP-016), 1 SUPERSEDED (GH-IMP-015 by GH-IMP-001) |
+| Engineering questions (`GH-ENG`) | 14 | 3 VERIFIED CLOSED (GH-ENG-001, 002, 009), 2 SUPERSEDED (GH-ENG-003, GH-ENG-005), 9 OPEN (GH-ENG-004 narrowed, 006, 007, 008, 010, 011, 012, 013, 014) |
+| Future work (`GH-FUT`) | 10 | 1 AWAITING AUTHORIZATION (GH-FUT-001, Batch 11), 3 APPROVED, 5 DEFERRED, 1 OPEN (GH-FUT-010) |
+| Expected behaviour (`GH-EXP`) | 3 | 3 EXPECTED BEHAVIOR |
+
+**Decisions the owner needs to make** (none blocks the others): GH-ENG-014 D1–D4 (the migration, a read-only count of production records, the catalog tooling, an optional ledger; see `docs/ENG-014-FORMULA-VERSION-MIGRATION-PROPOSAL.md`); GH-IMP-013 (kg or N for weights); GH-IMP-014 (which units to register and when; order in `docs/IMP-014-UNREGISTERED-UNITS.md`); GH-IMP-016 (Pressure Altitude: rule of thumb or exact relation); and authorization to start Batch 11 (GH-FUT-001).
+
+**How to run.** `bash premium/tests/run-browser-tests.sh` runs the 19 Chromium suites (about 37 minutes, measured on a 2-core machine). `bash premium/tests/run-tests.sh` runs the catalog, register, frontend and schema suites. `sh premium/tests/eng014-throwaway-db.sh` needs PostgreSQL server binaries. After any engine edit run `node catalog/build-catalog.js`; after any register edit `node premium/tests/register-check.js --write-index`.
 
 ## Premium-only tools (Engineering Lab)
 
