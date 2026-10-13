@@ -808,7 +808,12 @@ function refreshVisibleUnits(){
 function fmtUnitValue(value,unit,precision=4){
   const n=convertForDisplay(value,unit);
   if(!isFinite(n)) return '—';
-  return Number.isInteger(n)?n.toLocaleString():n.toLocaleString(undefined,{maximumFractionDigits:precision});
+  const text=Number.isInteger(n)?n.toLocaleString():n.toLocaleString(undefined,{maximumFractionDigits:precision});
+  /* GH-DEF-022: a number that rounds to zero at the precision being shown is a zero, and a zero has no sign. toLocaleString keeps the sign of the value it
+     rounded (and of a negative zero), so a result a hair below zero printed "-0" ("Pressure Altitude -0 m" after a Metric round trip). The test is the displayed
+     text itself -- nothing but a minus sign and zeros -- so there is no tolerance to choose and a small negative that is still visible at this precision
+     ("-0.0004" at 4 decimals) is untouched. */
+  return /^[-\u2212]0(?:[.,]0+)?$/.test(text) ? text.slice(1) : text;
 }
 function fieldDisplayValue(value,unit){
   if(value===null||value===undefined||value==='') return '';
