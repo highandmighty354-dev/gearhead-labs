@@ -1082,8 +1082,18 @@ function ghmSaveCurrentToVehicle(){
   p.savedCalculatorInputs[currentCalc]={savedAt:new Date().toISOString(),unit:UNIT.system,fields:inputs};
   Object.entries(inputs).forEach(([id,d])=>{
     const m=PROFILE_FIELD_MAP.find(x=>x.pattern.test(id));
-    if(!m || !Number.isFinite(d.canonical)) return;
-    p[m.prop]=d.canonical;
+    if(!m) return;
+    /* GH-DEF-027: only a box that holds the vehicle property is written back, and in the unit the vehicle stores it in. A box whose id merely begins like the
+       property (a fraction, an RPM, a torque, a g) is skipped; the hybrid system power is a kilowatt box and is written as horsepower. */
+    const rule=profileLinkRule(id);
+    if(rule && rule.toProfile){
+      const kw=Number.isFinite(d.canonical)?d.canonical:parseFloat(d.value);
+      if(rule.prop!==m.prop || !Number.isFinite(kw)) return;
+      p[m.prop]=rule.toProfile(kw);
+    } else {
+      if(!Number.isFinite(d.canonical) || (!(rule && rule.allow) && !profileBoxMatches(m,d.unit))) return;
+      p[m.prop]=d.canonical;
+    }
     changed.push(m.label);
   });
   /* The new cam/flow system gets a vehicle-scoped configuration snapshot.
@@ -1210,21 +1220,56 @@ function getActiveProfile(){
   return PROFILES.find(p=>p.active) || PROFILES[0] || null;
 }
 
-function matchProfileField(fieldId){
+/* GH-DEF-027. A box is offered a vehicle value (the "↓ use ..." shortcut) only when it holds the SAME QUANTITY as the vehicle property its id points to.
+   The id pattern alone is not evidence of that: "hps_f" (a 0 to 1 engine share), "hpf_rpm" (RPM), "hp_tq" (torque) and "wt_accel" (g) all begin like a horsepower or a
+   weight. PROFILE_PROP_UNIT says which unit a box must declare for each property (the canonical unit the vehicle value is stored in); the test is on the unit the box
+   DECLARES (field()'s unit), never on its label. A box that declares a different unit is not offered the value, and "Save to vehicle" does not write it back.
+   PROFILE_LINK_RULES is the explicit exception list, keyed "calculator:box":
+     allow    the box carries no unit text and is nevertheless the property (a converter whose input is in the unit it is named for)
+     convert  the box is the property in another unit: toBox() turns the stored vehicle value into the box's own unit, toProfile() turns the box value back
+   Anything not listed here and not in the same family gets no shortcut. */
+const PROFILE_PROP_UNIT = {
+  bore:'in', stroke:'in', weight:'lbs', hp:'HP', torque:'lb-ft', cylinders:'', displacement:'ci', peakRPM:'RPM',
+  intakeValve:'in', exhaustValve:'in', rockerRatio:':1', camLobeLift:'in', camLSA:'°', camICL:'°'
+};
+const PROFILE_LINK_RULES = {
+  'hp_to_kw:hp_to_kw_x':{ allow:true },            // Horsepower to kW: the input is horsepower
+  'hp_to_ps:hp_to_ps_x':{ allow:true },            // Horsepower to PS: the input is horsepower
+  'rpm_to_radsec:rpm_to_radsec_x':{ allow:true },  // RPM to rad/s: the input is RPM
+  /* Hybrid power split: Total System Power is a native kW box (GH-DEF-020). The vehicle's rated power is stored in horsepower; the box takes kilowatts. */
+  'hybrid_power_split:hps_p':{ prop:'hp', boxUnit:'kW', toBox:hp=>UNIT_DEFS.HP.toMetric(hp), toProfile:kw=>UNIT_DEFS.HP.fromMetric(kw) }
+};
+function profileLinkRule(fieldId){ return PROFILE_LINK_RULES[currentCalc+':'+fieldId] || null; }
+/* does a box declaring boxUnit hold the quantity the vehicle property m.prop is stored in? */
+function profileBoxMatches(m, boxUnit){
+  const want = PROFILE_PROP_UNIT[m.prop];
+  return want!==undefined && canonicalUnit(boxUnit||'')===canonicalUnit(want);
+}
+
+/* boxUnit: the unit the box declares to the display layer (field()'s `conv`, the box's data-ghm-unit); '' for a box with no unit.
+   Returns { value, boxValue, converted, label, profileName }: value = the stored vehicle value; boxValue = that value in the unit the box DECLARES (the
+   canonical unit, converted for display by the caller); converted = the box is the property in a different unit (a PROFILE_LINK_RULES "convert" entry). */
+function matchProfileField(fieldId, boxUnit){
   const m = PROFILE_FIELD_MAP.find(m=>m.pattern.test(fieldId));
   if(!m) return null;
+  const rule = profileLinkRule(fieldId);
   const profile = getActiveProfile();
   if(!profile || profile[m.prop]===undefined || profile[m.prop]===null) return null;
-  return { value: profile[m.prop], label: m.label, profileName: profile.name };
+  if(rule && rule.toBox){
+    if(rule.prop!==m.prop) return null;
+    return { value: profile[m.prop], boxValue: rule.toBox(profile[m.prop]), converted: true, boxUnit: rule.boxUnit, label: m.label, profileName: profile.name };
+  }
+  if(!(rule && rule.allow) && !profileBoxMatches(m, boxUnit)) return null;
+  return { value: profile[m.prop], boxValue: profile[m.prop], converted: false, label: m.label, profileName: profile.name };
 }
 
 function useProfileValue(fieldId){
-  const match = matchProfileField(fieldId);
-  if(!match) return;
   const input = document.getElementById(fieldId);
+  const u = input?.dataset?.ghmUnit || '';
+  const match = matchProfileField(fieldId, u);
+  if(!match) return;
   if(input){
-    const u = input.dataset?.ghmUnit || '';
-    input.value = fieldDisplayValue(match.value, u);
+    input.value = fieldDisplayValue(match.boxValue, u);
     renderCalc(currentCalc, false);
   }
 }
@@ -1262,9 +1307,9 @@ function field(label, id, val, unit, type='number', step='any', native=false){
   const hasSnapshot = snapshotHas(id, type==='number'?conv:undefined);
   if(hasSnapshot) val = CALC_FIELD_SNAPSHOT[id];
 
-  const profileMatch = type==='number' ? matchProfileField(id) : null;
+  const profileMatch = type==='number' ? matchProfileField(id, conv) : null;
   const numericVal = hasSnapshot ? parseFloat(val) : +val;
-  const showLink = profileMatch && isFinite(numericVal) && +profileMatch.value !== numericVal;
+  const showLink = profileMatch && isFinite(numericVal) && (profileMatch.converted ? +fieldDisplayValue(profileMatch.boxValue, conv) : +profileMatch.value) !== numericVal;
   const warning = type==='number' ? checkFieldRange(id, numericVal) : null;
   const isNumeric=type==='number';
   if(isNumeric&&currentCalc){ const reg=FIELD_UNIT_REGISTRY[currentCalc]||(FIELD_UNIT_REGISTRY[currentCalc]={}); if(conv) reg[id]=conv; else delete reg[id]; }
@@ -1284,7 +1329,7 @@ function field(label, id, val, unit, type='number', step='any', native=false){
     displayVal = val;
   }
   const shownUnit=native?unit:metricUnit(unit);
-  return `<div class="field"><label class="field-label">${label}${showLink?`<span class="profile-link" onclick="useProfileValue('${id}')" title="Use ${profileMatch.label} from ${profileMatch.profileName}">↓ use ${fieldDisplayValue(profileMatch.value, conv)}</span>`:''}</label>
+  return `<div class="field"><label class="field-label">${label}${showLink?`<span class="profile-link" onclick="useProfileValue('${id}')" title="Use ${profileMatch.label} from ${profileMatch.profileName}${profileMatch.converted?` (${fieldDisplayValue(profileMatch.value,'')} hp, as ${fieldDisplayValue(profileMatch.boxValue, conv)} ${profileMatch.boxUnit})`:''}">↓ use ${fieldDisplayValue(profileMatch.converted?profileMatch.boxValue:profileMatch.value, conv)}${profileMatch.converted?' '+profileMatch.boxUnit:''}</span>`:''}</label>
     <div class="input-wrap"><input class="field-input${warning?' field-warning':''}" id="${id}" data-ghm-unit="${conv||''}" type="${inputType}"${inputMode} value="${displayVal}" oninput="renderCalc('${currentCalc}',false)">
     ${unit?`<span class="field-unit">${shownUnit}</span>`:''}</div>
     ${warning?`<div class="field-warning-text">⚠ ${warning}</div>`:''}
