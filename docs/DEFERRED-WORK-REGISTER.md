@@ -25,29 +25,29 @@ This is the **single authoritative register** of known defects, deferred improve
 <!-- INDEX:START -->
 | ID | Title | Status | Severity | Priority |
 |---|---|---|---|---|
-| [GH-DEF-001](#gh-def-001--free-calculators-read-a-unit-bearing-field-without-its-unit-class-a) | Free calculators read a unit-bearing field without its unit (Class A) | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-002](#gh-def-002--evregenpower-labels-an-already-converted-kw-figure-kw-and-the-display-layer-converts-it-again) | `ev_regen_power` labels an already-converted kW figure "kW" and the display layer converts it again | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-003](#gh-def-003--seven-converter-calculators-convert-their-result-rows-a-second-time-in-metric) | Seven converter calculators convert their result rows a second time in Metric | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-004](#gh-def-004--remembered-values-reappear-unconverted-after-a-unit-switch-made-on-another-calculator-class-c) | Remembered values reappear unconverted after a unit switch made on another calculator (Class C) | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-005](#gh-def-005--dewpoint-applies-a-celsius-rule-of-thumb-to-a-fahrenheit-input) | `dew_point` applies a Celsius rule of thumb to a Fahrenheit input | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-006](#gh-def-006--mass-quantities-declared-in-lb-display-as-newtons-in-metric) | Mass quantities declared in `lb` display as newtons in Metric | FIXED — UNVERIFIED | Medium | P1 |
+| [GH-DEF-001](#gh-def-001--free-calculators-read-a-unit-bearing-field-without-its-unit-class-a) | Free calculators read a unit-bearing field without its unit (Class A) | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-002](#gh-def-002--evregenpower-labels-an-already-converted-kw-figure-kw-and-the-display-layer-converts-it-again) | `ev_regen_power` labels an already-converted kW figure "kW" and the display layer converts it again | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-003](#gh-def-003--seven-converter-calculators-convert-their-result-rows-a-second-time-in-metric) | Seven converter calculators convert their result rows a second time in Metric | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-004](#gh-def-004--remembered-values-reappear-unconverted-after-a-unit-switch-made-on-another-calculator-class-c) | Remembered values reappear unconverted after a unit switch made on another calculator (Class C) | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-005](#gh-def-005--dewpoint-applies-a-celsius-rule-of-thumb-to-a-fahrenheit-input) | `dew_point` applies a Celsius rule of thumb to a Fahrenheit input | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-006](#gh-def-006--mass-quantities-declared-in-lb-display-as-newtons-in-metric) | Mass quantities declared in `lb` display as newtons in Metric | VERIFIED CLOSED | Medium | P1 |
 | [GH-DEF-007](#gh-def-007--unregistered-compound-units-stay-imperial-in-metric-mode) | Unregistered compound units stay Imperial in Metric mode | SUPERSEDED | Low | P2 |
 | [GH-DEF-008](#gh-def-008--eight-pre-existing-engine-self-test-failures) | Eight pre-existing engine self-test failures | DEFERRED | Low | Deferred |
-| [GH-DEF-010](#gh-def-010--free-aero-calculators-gave-wrong-results-after-editing-or-toggling-in-metric) | Free aero calculators gave wrong results after editing or toggling in Metric | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-011](#gh-def-011--temperature-differences-were-converted-like-temperature-readings-in-metric) | Temperature differences were converted like temperature readings in Metric | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-012](#gh-def-012--temperature-converter-f-and-c-rows-were-converted-twice-in-metric) | Temperature Converter °F and °C rows were converted twice in Metric | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-013](#gh-def-013--brake-energy-brake-fade-energy-and-head-flow-curve-gave-wrong-results-after-a-toggle-or-metric-edit) | Brake Energy, Brake Fade Energy and Head Flow Curve gave wrong results after a toggle or Metric edit | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-014](#gh-def-014--premium-result-panels-were-computed-from-pre-switch-display-strings-after-a-unit-toggle-shared-certvalue) | Premium result panels were computed from pre-switch display strings after a unit toggle (shared `certValue`) | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-015](#gh-def-015--metric-mode-live-re-render-corrupted-results-in-batch-13-calculators) | Metric-mode live re-render corrupted results in Batch 1–3 calculators | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-016](#gh-def-016--hpfromspecs-produced-a-physically-impossible-result-missing-air-density-conversion) | `hp_from_specs` produced a physically impossible result (missing air-density conversion) | FIXED — UNVERIFIED | High | P1 |
-| [GH-DEF-017](#gh-def-017--rcbrakebiasrc-bug-recorded-open-in-older-notes) | `rc_brake_bias_rc` bug recorded OPEN in older notes | FIXED — UNVERIFIED | Low | P3 |
-| [GH-DEF-018](#gh-def-018--result-panel-is-computed-from-the-shipped-defaults-after-navigating-away-and-returning-class-d) | Result panel is computed from the shipped defaults after navigating away and returning (Class D) | FIXED — UNVERIFIED | High | P1 |
-| [GH-DEF-021](#gh-def-021--a-box-id-shared-by-two-calculators-lets-one-calculators-remembered-text-appear-in-the-other-even-when-the-units-differ) | A box id shared by two calculators lets one calculator's remembered text appear in the other, even when the units differ | FIXED — UNVERIFIED | Low | P1 |
+| [GH-DEF-010](#gh-def-010--free-aero-calculators-gave-wrong-results-after-editing-or-toggling-in-metric) | Free aero calculators gave wrong results after editing or toggling in Metric | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-011](#gh-def-011--temperature-differences-were-converted-like-temperature-readings-in-metric) | Temperature differences were converted like temperature readings in Metric | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-012](#gh-def-012--temperature-converter-f-and-c-rows-were-converted-twice-in-metric) | Temperature Converter °F and °C rows were converted twice in Metric | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-013](#gh-def-013--brake-energy-brake-fade-energy-and-head-flow-curve-gave-wrong-results-after-a-toggle-or-metric-edit) | Brake Energy, Brake Fade Energy and Head Flow Curve gave wrong results after a toggle or Metric edit | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-014](#gh-def-014--premium-result-panels-were-computed-from-pre-switch-display-strings-after-a-unit-toggle-shared-certvalue) | Premium result panels were computed from pre-switch display strings after a unit toggle (shared `certValue`) | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-015](#gh-def-015--metric-mode-live-re-render-corrupted-results-in-batch-13-calculators) | Metric-mode live re-render corrupted results in Batch 1–3 calculators | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-016](#gh-def-016--hpfromspecs-produced-a-physically-impossible-result-missing-air-density-conversion) | `hp_from_specs` produced a physically impossible result (missing air-density conversion) | VERIFIED CLOSED | High | P1 |
+| [GH-DEF-017](#gh-def-017--rcbrakebiasrc-bug-recorded-open-in-older-notes) | `rc_brake_bias_rc` bug recorded OPEN in older notes | VERIFIED CLOSED | Low | P3 |
+| [GH-DEF-018](#gh-def-018--result-panel-is-computed-from-the-shipped-defaults-after-navigating-away-and-returning-class-d) | Result panel is computed from the shipped defaults after navigating away and returning (Class D) | VERIFIED CLOSED | High | P1 |
+| [GH-DEF-021](#gh-def-021--a-box-id-shared-by-two-calculators-lets-one-calculators-remembered-text-appear-in-the-other-even-when-the-units-differ) | A box id shared by two calculators lets one calculator's remembered text appear in the other, even when the units differ | VERIFIED CLOSED | Low | P1 |
 | [GH-DEF-019](#gh-def-019--distanceconverter-turns-yards-into-kilometres-with-0000914-instead-of-00009144) | `distance_converter` turns yards into kilometres with 0.000914 instead of 0.0009144 | OPEN | Low | P3 |
 | [GH-DEF-020](#gh-def-020--29-free-calculators-declare-a-metric-named-unit-on-a-value-the-engine-treats-as-imperial-so-metric-shows-and-reads-the-wrong-number) | 29 Free calculators declare a Metric-named unit on a value the engine treats as Imperial, so Metric shows and reads the wrong number | OPEN | High | P1 candidate |
 | [GH-DEF-022](#gh-def-022--a-result-that-is-a-tiny-negative-number-is-shown-as--0-pressure-altitude--0-m-in-metric) | A result that is a tiny negative number is shown as "-0" (Pressure Altitude "-0 m" in Metric) | OPEN | Low | P3 |
-| [GH-DEF-023](#gh-def-023--airflow-power-and-engine-airflow-handoffs-read-displacement-and-air-density-as-raw-text-ignoring-the-unit-system) | Airflow Power and Engine Airflow handoffs read displacement and air density as raw text, ignoring the unit system | FIXED — UNVERIFIED | Medium | P1 |
-| [GH-DEF-024](#gh-def-024--stage-estimate-for-powertorque-simulator-ignores-the-displacement-and-bsfc-entered-in-the-calculator) | "Stage Estimate for Power/Torque Simulator" ignores the displacement and BSFC entered in the calculator | FIXED — UNVERIFIED | Medium | P2 |
+| [GH-DEF-023](#gh-def-023--airflow-power-and-engine-airflow-handoffs-read-displacement-and-air-density-as-raw-text-ignoring-the-unit-system) | Airflow Power and Engine Airflow handoffs read displacement and air density as raw text, ignoring the unit system | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-024](#gh-def-024--stage-estimate-for-powertorque-simulator-ignores-the-displacement-and-bsfc-entered-in-the-calculator) | "Stage Estimate for Power/Torque Simulator" ignores the displacement and BSFC entered in the calculator | VERIFIED CLOSED | Medium | P2 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | DEFERRED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
 | [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
@@ -63,7 +63,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-IMP-013](#gh-imp-013--vehicle-trailer-and-part-weights-show-newtons-in-metric-should-they-show-kilograms) | Vehicle, trailer and part weights show newtons in Metric: should they show kilograms? | DEFERRED | Low | P3 |
 | [GH-IMP-014](#gh-imp-014--sixty-one-us-customary-units-are-not-registered-so-a-metric-page-shows-them-unconverted) | Sixty-one US-customary units are not registered, so a Metric page shows them unconverted | DEFERRED | Low | P2 |
 | [GH-IMP-015](#gh-imp-015--energy-rows-declared-ft-lb-read-nm-in-metric-instead-of-j) | Energy rows declared `ft-lb` read N·m in Metric instead of J | SUPERSEDED | Low | P3 |
-| [GH-ENG-001](#gh-eng-001--which-of-the-65-metric-named-unit-inventory-entries-are-real-defects) | Which of the 65 "metric-named unit" inventory entries are real defects? | INVESTIGATING | Medium | P1 |
+| [GH-ENG-001](#gh-eng-001--which-of-the-65-metric-named-unit-inventory-entries-are-real-defects) | Which of the 65 "metric-named unit" inventory entries are real defects? | VERIFIED CLOSED | Medium | P1 |
 | [GH-ENG-002](#gh-eng-002--are-all-registered-unit-conversion-factors-correct) | Are all registered unit conversion factors correct? | VERIFIED CLOSED | Low | P1 |
 | [GH-ENG-003](#gh-eng-003--do-the-airflow-block-an-readers-have-the-head-flow-curve-defect) | Do the airflow-block `an()` readers have the Head Flow Curve defect? | SUPERSEDED | Medium | P1 |
 | [GH-ENG-004](#gh-eng-004--do-the-cross-calculator-stage-handoffs-write-values-in-the-right-unit-system) | Do the cross-calculator "stage" handoffs write values in the right unit system? | OPEN | Unknown | P2 |
@@ -97,7 +97,7 @@ This is the **single authoritative register** of known defects, deferred improve
 ## A. Known defects
 
 ### GH-DEF-001 — Free calculators read a unit-bearing field without its unit (Class A)
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium
 - **Priority:** P1 (authorized; reliability pass Item 1)
 - **Description:** 84 Free calculators call `certValue(id, fallback)` without the field's unit for a field declared with a convertible unit. In Metric, a live re-render (retyping or editing any field) reads the number on screen (km/h, m², N, kW, …) as if it were Imperial, and the Metric → Imperial toggle re-reads stale Metric text. Imperial mode is unaffected. Same mechanism as the six Free aero calculators fixed in `6209d74` (GH-DEF-010).
@@ -114,9 +114,10 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-10-12 — entry created from the committed test ledger; count 84 re-confirmed by the baseline sweep.
   2026-10-12 — fixed in `dc9dfd8`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: the new unit-system cases fail 143 of 343 checks on the previous behaviour and pass 343 of 343 on the fix (suite 538 checks, 0 failures); the new contract checks fail 9 of 28 on the previous behaviour, pass 28 of 28 on the fix; the full sweep gives 693 consistent and 3 inconsistent of 696 (`ev_regen_power`, `density_altitude`, `drivetrain_loss`, all in their own open entries), 735 checks, 0 failures; the five temperature calculators exempted for this defect pass 93 + 126 checks (39 fail on the previous behaviour); a before/after comparison of all 696 calculators in both systems (default render plus a 1.25 x edit of each of up to 8 fields, real typing) changed 0 calculators in Imperial and exactly the 84 in Metric. Example: `tow_range` in Metric, fuel capacity 128.704 L edited to 160.88 L, gave 3,127 mi (the litres read as gallons); now 514 mi (411 x 1.25).
   2026-10-12 — scope note: eight of the 84 (`ev_charge_added`, `ev_coolant_flow`, `ev_hvac_energy`, `ev_inverter_loss`, `ev_power_conversion`, `heat_input_per_cycle`, `hybrid_power_split`, `hybrid_regen_energy`) declare a Metric-named unit (kW, °C, kg) on a value the calculator already treats in that unit. Their calculations are now correct and toggle-consistent, but the Metric display of that input is still wrong (for example `ev_charge_added` shows 7 kW as 5.2199 kW; `ev_coolant_flow` shows a 5 °C difference as −15 °C). That is the Metric-named-unit class tracked in GH-ENG-001 (Item 2), not a Class A defect; the toggle sweep cannot see it because both systems scale together. Fields declared `lb` that hold a mass still display as N: GH-DEF-006 (Item 4).
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: unit-system 559 result checks, 0 failures (includes the 18 representative Class A calculators, both systems, defaults / toggle / retype every field / repeated toggles); toggle-sweep 696 calculators swept, 694 consistent, the 2 not consistent are the expected-rounding ledger (GH-EXP-001, GH-EXP-002, both Free calculators that were already there), `CLASS_A` ledger empty, 735 checks, 0 failures; label-consistency and nav-return 0 failures; before/after comparison at `dc9dfd8` changed 84 calculators in Metric and none in Imperial.
 
 ### GH-DEF-002 — `ev_regen_power` labels an already-converted kW figure "kW" and the display layer converts it again
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium
 - **Priority:** P1 (done; reliability pass Item 2)
 - **Description:** The calculator returns a power it has already converted to kW and labels it `kW`; the display layer treats `kW` as the Metric label of horsepower, so in Metric the figure is converted a second time: 112.7 kW is shown as 84.1 kW.
@@ -132,9 +133,10 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Verification:** Metric and Imperial show the same physical power (112.7 kW = 151.1 HP at the default) with the label matching the number; value already in its target unit is not converted again; ledger entry removed and the sweep consistent.
 - **History:** 2026-10-12 — entry created.
   2026-10-12 — fixed in `df3764b`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: the new `ev_regen_power` unit-system case fails 10 of 559 checks on the previous engine (Metric 84.04 kW against the independent 112.75 kW at the defaults) and passes 559 of 559 on the fix; `label-consistency.test.js` reports it on the previous engine and not on the fix; the before/after comparison of all 696 calculators changed 0 in Imperial and exactly 8 in Metric (this one and the seven converters of GH-DEF-003).
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: unit-system 559 checks, 0 failures (the `ev_regen_power` case against P = m a v eta); toggle-sweep `CLASS_B` ledger empty, 735 checks, 0 failures; label-consistency 696 checked, 0 failures (`ev_regen_power` is not in its 29-entry ledger).
 
 ### GH-DEF-003 — Seven converter calculators convert their result rows a second time in Metric
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium
 - **Priority:** P1 (done; reliability pass Item 2)
 - **Description:** The output rows of `speed_converter`, `distance_converter`, `volume_converter`, `pressure_converter`, `power_converter`, `sheet_gauge` and `fraction_to_decimal_mm` already name the unit of each row (for example "KM/H", "Millimeters"), but the rows are passed through the Imperial→Metric display layer again, so Metric shows different numbers from Imperial for the same input. The Temperature Converter had the same defect and was fixed in `5d469cd` (GH-DEF-012) with the `multiResult` `raw` flag, which is the ready mechanism.
@@ -150,9 +152,10 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Verification:** For each, a known input gives the independently computed output in every row in both unit systems, identical rows in both systems, and displayed unit equals the unit of the number; `CONVERTERS_OPEN` empties and the converter checks pass.
 - **History:** 2026-10-12 — entry created.
   2026-10-12 — fixed in `df3764b`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `converters.test.js` fails 708 of 2,064 checks on the previous engine (133 distance, 20 fraction, 57 power, 159 pressure, 48 sheet gauge, 132 speed, 159 volume; none in the 27 single-purpose converters) and 0 on the fix; examples on the previous engine: speed converter in Metric showed the MPH row as "96.56 km/h" and 60 mph as 155.4 km/h, power converter showed 316.92 kW as 236.3 kW; the sweep converter section is identical in both systems for all eight converters; before/after comparison of 696 calculators: 0 changed in Imperial, exactly 8 in Metric.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: converters 2,064 checks, 0 failures (every From option, both starting systems, repeated toggles, plus the 27 single-purpose converters); toggle-sweep `CONVERTERS_OPEN` empty, 735 checks, 0 failures. The one converter inaccuracy found on the way, `distance_converter` yards to kilometres, is a different cause and is GH-DEF-019 (open).
 
 ### GH-DEF-004 — Remembered values reappear unconverted after a unit switch made on another calculator (Class C)
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium
 - **Priority:** P1 (done; reliability pass Item 3)
 - **Description:** Each calculator remembers its inputs as display strings (`CALC_PERSISTENT_STATE`) with no record of the unit system they were typed in. If the unit system is switched while another calculator is open, the remembered string is shown again unchanged under the new unit label: 100 mph reappears as 100 km/h (about 62 mph). The same happened after switching on the same calculator, leaving it and coming back (the text captured during the switch was still in the old system).
@@ -168,9 +171,10 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Verification:** 100 mph → about 160.9 km/h and back to 100 mph; Imperial→Metric, Metric→Imperial, repeated toggles, editing after switching, navigating away and returning, switching on a different calculator before returning, calculators with differently-unit fields; one calculator's unit switch never relabels another's stored value; round-trip within display rounding; non-numeric remembered text left alone.
 - **History:** 2026-10-12 — entry created; mechanism confirmed in the code.
   2026-10-12 — fixed in `def921c`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `remembered-values.test.js` fails 152 of 308 checks on the previous engine (30 Metric-elsewhere, 60 switch-on-the-same-calculator, 30 Metric-typed, 22 edit-after-switch, 5 two-calculators, the anchor and others) and 0 of 309 on the fix; anchor: 100 mph typed in Imperial reads 160.934 km/h after Metric is chosen on another calculator and 100 mph after Imperial is chosen again; the three `toggle-sweep` examples (`drag_force`, `brake_rotor_temp`, `rotor_cooling_rate`) were failing and are enforced; a before/after comparison of all 696 calculators in both systems (default render plus a 1.25 x edit of each of up to 8 fields, real typing) changed 0 in Imperial and 0 in Metric. Not covered: the result panel of a calculator that reads its boxes through `v()`/`vd()` after navigating (GH-DEF-018, next commit).
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: remembered-values 371 checks, 0 failures (11 calculators x 8 scenarios, the 100 mph anchor, kept-as-typed text, no-record text, drop-downs, shared-id hand-off); toggle-sweep 735 checks, 0 failures.
 
 ### GH-DEF-005 — `dew_point` applies a Celsius rule of thumb to a Fahrenheit input
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium
 - **Priority:** P1 (done; reliability pass Item 4a)
 - **Description:** The calculator computes `Dew Point = Temp − (100 − RH) / 5` on the temperature in °F. That rule of thumb (Lawrence 2005) is defined for °C; in °F the subtraction is too small by a factor of 1.8. (The rule's accuracy was first recorded here as "about 1 °C for RH above 50%"; measured in Item 4a it is within 1.24 °C of the Magnus formula for RH 60–100% from 0 to 40 °C and 2.4 °C off at 40 °C / 50% — see History.)
@@ -186,9 +190,10 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Verification:** Results agree with the Magnus-Tetens dew point within the rule's stated accuracy across a grid of temperature and RH ≥ 60% (0–40 °C), in Imperial and Metric, and with the stated rule evaluated in °C at every grid point including RH below 60% (criterion corrected from "RH ≥ 50%": the rule drifts below 60%, see History); spread consistent; test fails on the unfixed engine.
 - **History:** 2026-10-12 — entry created from the earlier finding; confirmed by reading the source and hand calculation.
   2026-10-12 — fixed in `4bfbb48`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `dew-point.test.js` fails 301 of 688 checks on the previous engine (for example 75 °F at 60% reads 67 °F, the rule in °C gives 60.6 °F, Magnus 60.2 °F) and 0 of 688 on the fix; a before/after comparison of all 696 calculators in both systems changed exactly one calculator in each system, `dew_point` (Imperial 67 °F / 8 °F spread → 60.6 °F / 14.4 °F; Metric 19.4444 °C → 15.8889 °C = 23.8889 °C − 8 °C), with 0 page errors; engine self-test 674 total / 666 passed / 8 failed (the 8 known baseline failures, 0 new). Accuracy of the rule, measured: against Magnus (Alduchov–Eskridge constants) the rule is within 1.24 °C for RH 60–100% between 0 and 40 °C, worst at 40 °C / 60%; below 60% it drifts (2.4 °C at 40 °C / 50%), so the test compares RH below 60% with the stated rule only.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: dew-point 688 checks, 0 failures (stated rule in degrees Celsius and Magnus, both systems, plus a switch with values typed); formula-fingerprints 577 seed formulas, 576 identical to the production seed and 1 (`dew_point`) recorded as corrected; the new fingerprint for the production table is a separate question, GH-ENG-014 (open).
 
 ### GH-DEF-006 — Mass quantities declared in `lb` display as newtons in Metric
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium
 - **Priority:** P1 (done for the quantities of matter; reliability pass Item 4b)
 - **Description:** The unit table treats `lb` as a force (Metric label N). Fields whose quantity is a mass (vehicle, payload or part weight entered as pounds) therefore show newtons in Metric instead of kilograms. The calculation is unaffected when the value is entered in Imperial, but in Metric the box reads newtons: a user who types 7 (kilograms, as the label of every other mass field says) is read as 7 N = 1.57 lb, so the mass is read 9.8 times too small (the ratio of a kilogram to a newton, 9.80665) and the answer is wrong by that factor.
@@ -204,6 +209,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Verification:** Inventory table in this entry; each mass field shows kg in Metric with the independent conversion (1 lb = 0.45359237 kg); each force field still shows N; calculations unchanged.
 - **History:** 2026-10-12 — entry created; scope inventory pending.
   2026-10-12 — inventory made and fixed in `3b84b36`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `mass-force.test.js` fails 62 of 612 checks on the previous engine and 0 of 601 on the fix (the totals differ because the 11 mass rows move from the force group to the mass group); the 10 kg typed physics checks (temperature rise, air mass, tube and sheet mass against SI physics; the five multi-step thermal models against the Imperial page) all pass; `temperature-units.test.js` fails 166 checks on the previous engine with the corrected mass expectations and 0 on the fix. A before/after comparison of all 696 calculators (both systems, every numeric field retyped) changed 4 calculators in Imperial (the result unit text of `air_fuel_mass`, `diesel_injection_quantity`, `tube_weight`, `sheet_weight`) and exactly the 10 calculators named above in Metric. Regression at that commit: engine self-test 674 total / 666 passed / 8 failed (the 8 known baseline failures, no new one); browser smoke 19/19; unit-system 559 checks, 0 failures; temperature-units 1,108 + 990 checks, 0 failures; toggle-sweep 735 checks, 0 failures; nav-return, label-consistency, converters (2,064), remembered-values (371), dew-point (688) and formula-fingerprints 0 failures; run-tests.sh catalog / register / frontend 55/55 / schema 26/26 all passing.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: mass-force 255 pound-unit rows scanned (136 force/weight, 119 mass), 601 checks, 0 failures; temperature-units 1,108 result/unit checks and 990 toggle-invariance checks, 0 failures; before/after comparison at `3b84b36` changed exactly the 10 calculators named in this entry in Metric. The weight convention for the other 47 rows is a separate decision, GH-IMP-013 (deferred).
 
 ### GH-DEF-007 — Unregistered compound units stay Imperial in Metric mode
 - **Status:** SUPERSEDED
@@ -245,7 +251,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-10-12 — entry created; each failure analysed; baseline unchanged (8, same names).
 
 ### GH-DEF-010 — Free aero calculators gave wrong results after editing or toggling in Metric
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium
 - **Priority:** P1 (done)
 - **Description:** `drag_force`, `dynamic_pressure`, `aero_hp`, `downforce`, `lift_force` and `wing_force` called `certValue` without the unit argument (12 call sites), so a Metric number on screen was read as Imperial (Drag Force 392.28 N → 94.39 N after re-entering the same value; Dynamic Pressure 12.53 → 32.44 lb/sq ft; Aerodynamic Horsepower 12.27 kW → 87.86 kW).
@@ -260,9 +266,10 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Docs:** `docs/PREMIUM-CATALOG.md` Batch 10 and "Reliability pass" → Item 1.
 - **Verification:** `unit-system.test.js` passes with independent SI expected values for all six, both starting systems, with edits, a toggle and three repeat toggles; sweep consistent for the six.
 - **History:** 2026-10-12 — fixed (`6209d74`); 2026-10-12 — baseline re-run on HEAD `6550452` shows unit-system 195/0; closure recorded at the end of this pass.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: unit-system 559 result checks, 0 failures (independent SI values for the six aero calculators, both starting systems, edits, a toggle and three repeat toggles); toggle-sweep 735 checks, 0 failures.
 
 ### GH-DEF-011 — Temperature differences were converted like temperature readings in Metric
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium
 - **Priority:** P1 (done)
 - **Description:** A temperature reading converts with an offset (°C = (°F − 32)·5/9); a difference does not (Δ°C = Δ°F·5/9). Every rise, drop, spread, margin and LMTD was declared `°F`, so a 15 °F rise showed as −9.4 °C. A separate `Δ°F` unit (metric label `Δ°C`) now exists and is declared on 26 fields/results in 25 calculators.
@@ -277,9 +284,10 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Docs:** `docs/PREMIUM-CATALOG.md` Batch 9 note and "Reliability pass" → Item 2.
 - **Verification:** `temperature-units.test.js` passes with independent physics for all 25 calculators in both systems; five Free cases fully checked (not only Imperial → Metric) once GH-DEF-001 is fixed.
 - **History:** 2026-10-12 — fixed (`64d4933`); baseline 1,025/878/0 on HEAD `6550452`.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: temperature-units 1,108 result/unit checks and 990 toggle-invariance checks, 0 failures; every case ran the full re-entry / toggle sequence in both starting systems, including the five Free cases that were Imperial to Metric only until GH-DEF-001 was fixed.
 
 ### GH-DEF-012 — Temperature Converter °F and °C rows were converted twice in Metric
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium
 - **Priority:** P1 (done)
 - **Description:** The four rows are already the answer in the unit named on each row; the °F and °C rows were passed through the display layer again (70 °F showed "°F: 21.11 °C" and "°C: −6.05 °C" in Metric). `multiResult` gained an optional per-item `raw` flag.
@@ -294,9 +302,10 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Item 2.
 - **Verification:** Every row equals the independent conversion in both systems; rows identical in both systems.
 - **History:** 2026-10-12 — fixed (`5d469cd`).
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: temperature-units 1,108 / 990 checks, 0 failures (converter rows, 8 points x 4 rows x 2 systems); toggle-sweep converter section 735 checks, 0 failures; converters 2,064 checks, 0 failures.
 
 ### GH-DEF-013 — Brake Energy, Brake Fade Energy and Head Flow Curve gave wrong results after a toggle or Metric edit
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium
 - **Priority:** P1 (done)
 - **Description:** `brake_energy` and `brake_fade_energy` called `certValue` without the unit (Brake Energy 421,210 ft-lb → 4,852,693 ft-lb after switching to Metric and back); `head_flow_curve` read its "Interpolate Intake at Lift" box with `an()` (raw text, no unit awareness), so a millimetre value was compared with inch lifts and Metric always answered "outside the measured range".
@@ -311,9 +320,10 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Docs:** `docs/PREMIUM-CATALOG.md` Batch 10 findings and "Reliability pass" → Item 3.
 - **Verification:** `unit-system.test.js` passes with independent expected values (KE = ½(W/g)v² in SI; table re-interpolated in the test); sweep consistent for the three.
 - **History:** 2026-10-12 — fixed (`716b664`). An earlier note said Brake Energy and Brake Fade Energy "do not use `certValue`"; that was wrong (they use it without the unit) and was corrected in `6550452`.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: unit-system 559 checks, 0 failures (Brake Energy, Brake Fade Energy, Head Flow Curve against independent physics); toggle-sweep 735 checks, 0 failures.
 
 ### GH-DEF-014 — Premium result panels were computed from pre-switch display strings after a unit toggle (shared `certValue`)
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium
 - **Priority:** P1 (done)
 - **Description:** After clicking Metric / Imperial, the result panel of a unit-bearing Premium calculator used the pre-switch display strings read as the new system ("3200" lb read as 3200 N) until the next keystroke; 80 of 111 Premium calculators were affected. `certValue(id, fallback, unit)` now reads the exact pre-switch canonical value like `v()`/`vd()` do. `36026e7` put the five lines inside an existing comment (no effect); `bfddb21` moved them to the top of the function.
@@ -328,9 +338,10 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Docs:** `docs/PREMIUM-CATALOG.md` Batch 10 findings and "Reliability pass" → Item 4.
 - **Verification:** Contract checks and the Premium part of the sweep pass.
 - **History:** 2026-10-12 — fixed; durable tests added in `08b445b`.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: toggle-sweep certValue contract section and sweep: 735 checks, 0 failures; 696 swept, 694 consistent, the 2 not consistent are the Free expected-rounding calculators, so no Premium calculator is inconsistent.
 
 ### GH-DEF-015 — Metric-mode live re-render corrupted results in Batch 1–3 calculators
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium
 - **Priority:** P1 (done)
 - **Description:** `certValue(id, fallback)` never converted a displayed value back to canonical units, so editing any field in Metric fed a metric number to an Imperial formula. Fixed with the optional third `unit` parameter and 62 call-site updates (the pattern GH-DEF-001 shows is still missing in 84 Free calculators).
@@ -345,45 +356,48 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Docs:** project plan Batch 4 row; `docs/PREMIUM-CATALOG.md`.
 - **Verification:** The Premium part of the current sweep passes for the 17.
 - **History:** 2026-10-07 — fixed (`df50a05`); 2026-10-12 — entered in the register.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: toggle-sweep 696 swept, 694 consistent, the only 2 not consistent are the Free expected-rounding calculators (`drivetrain_loss`, `density_altitude`), so all Premium calculators including the 17 are consistent; 735 checks, 0 failures.
 
 ### GH-DEF-016 — `hp_from_specs` produced a physically impossible result (missing air-density conversion)
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** High
 - **Priority:** P1 (done)
 - **Description:** A documented open bug (about 6,390 HP at defaults) in one of the 21 migrated Premium calculators. The Phase 1 notes record the formula as already fixed on `main` before the expansion; regression coverage was added on a separate branch.
 - **Evidence:** Project doc `premium-expansion-phase1-exceptions-resolved.md` (Section C): 5 `hp_from_specs` tests pass, 0 failures. Not re-verified on this branch in this pass.
 - **Affected:** `hp_from_specs`.
 - **Impact:** Wrong HP (fixed on `main`, which is an ancestor of this branch).
-- **Decision:** Closure waits for an independent check on this branch.
+- **Decision:** Closed on the independent check on this branch (`premium/tests/legacy-fixes.test.js`, added at the end of the reliability pass); no engine change.
 - **Dependencies:** none.
 - **Revisit:** Reliability pass Item 4 (cheap independent check) or the next test-hygiene pass.
-- **Commits:** `888eb7d` (regression tests, on branch `fix/hp-from-specs-regression-coverage`, not merged into this branch); the formula fix itself predates it on `main` (commit not re-located in this pass).
-- **Tests:** self-test 'hp_from_specs airflow path' (airflow only); the mass-flow tests of `888eb7d` are not on this branch.
+- **Commits:** `0fbc388` (verification test on this branch, no engine change). Earlier: `888eb7d` (regression tests, on branch `fix/hp-from-specs-regression-coverage`, not merged into this branch); the formula fix itself predates it on `main` (commit not re-located in this pass).
+- **Tests:** `premium/tests/legacy-fixes.test.js` (every result row against the independent chain, defaults and three edited points, both unit systems); self-test 'hp_from_specs airflow path' (airflow only); the mass-flow tests of `888eb7d` are not on this branch.
 - **Docs:** Project docs `premium-expansion-phase1-reconciliation.md`, `premium-expansion-phase1-exceptions-resolved.md`.
 - **Verification:** `hp_from_specs` at its defaults matches an independent calculation (CFM = CID·RPM·VE/3456, mass flow at the standard density, fuel flow at the stated AFR, power at the stated BSFC) in both unit systems.
 - **History:** 2026-10-07 — recorded as fixed on `main`; 2026-10-12 — entered in the register as FIXED — UNVERIFIED on this branch.
+  2026-10-13 — closed: verified on this branch by `legacy-fixes.test.js` (`0fbc388`): Estimated Airflow, Air Mass Flow, Fuel Flow and Estimated HP equal CFM = CID x RPM x VE / 3456, air mass = CFM x density, fuel = air mass / AFR, HP = fuel x 60 / BSFC at the defaults (about 379 HP, plausible for 350 ci at 6,000 RPM) and at three edited points, in Imperial and in Metric (cc, kg/m³, kg/kW-hr typed). The file has 61 checks in all (shared with GH-DEF-017) and passes 61 of 61 on the final engine; with the original defect put back (air density skipped) and the GH-DEF-017 defect put back it fails 36 of 61.
 
 ### GH-DEF-017 — `rc_brake_bias_rc` bug recorded OPEN in older notes
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Low
 - **Priority:** P3
 - **Description:** Older deferred-issue material marked this bug OPEN. Phase 1 found an audit fix (`/* FIX (audit, 2026-09)... */`) already in the live repository and treated the bug as resolved.
 - **Evidence:** Phase 1 reconciliation note; the fix comment in the engine. Not independently re-verified in this pass.
 - **Affected:** `rc_brake_bias_rc`.
-- **Impact:** Unknown until verified.
+- **Impact:** Before the audit fix the weight transfer was inflated about 12 times (an uncapped front share of about 315 % at the defaults, hidden by the 95 % cap); verified fixed, see History.
 - **Decision:** Recorded so the older OPEN marking does not resurface unexplained.
 - **Dependencies:** none.
 - **Revisit:** Next test-hygiene pass.
-- **Commits:** The audit fix is in the engine history (commit not re-located in this pass).
-- **Tests:** None identified.
+- **Commits:** `0fbc388` (verification test, no engine change). The audit fix is in the engine history (commit not re-located in this pass).
+- **Tests:** `premium/tests/legacy-fixes.test.js` (defaults, four edited points and the 95 % cap, both unit systems).
 - **Docs:** Project doc `premium-expansion-phase1-reconciliation.md` ("Special defect flags").
 - **Verification:** Independent expected-value test of the calculator's bias result in both unit systems.
 - **History:** 2026-10-07 — treated as resolved by the live repository; 2026-10-12 — entered in the register.
 
 ---
+  2026-10-13 — closed: verified on this branch by `legacy-fixes.test.js` (`0fbc388`): Ideal Brake Bias equals static front share + deceleration x CG height / wheelbase, capped at 95 %, at the defaults (48 % + 1.5 x 16 / 108 = 70.2 %), four edited points and the cap, in Imperial and in Metric (both lengths typed in millimetres, only their ratio matters). 61 of 61 checks pass on the final engine; with the stray /0.0833 term put back the calculator shows 95 % at the defaults and the file fails 36 of 61 (together with the GH-DEF-016 defect put back).
 
 ### GH-DEF-018 — Result panel is computed from the shipped defaults after navigating away and returning (Class D)
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** High (wrong numbers shown next to the user's own inputs, on 404 of 696 calculators)
 - **Priority:** P1 (done; reliability pass Item 3b)
 - **Description:** Type a value into a calculator, open another calculator, come back: the boxes show what was typed (the remembered text is restored) but the result panel shows the result for the shipped defaults. The next keystroke or click re-renders it correctly, so the panel and the boxes disagree until then. No unit switch is involved. Cause read in the code: `renderCalc` restores every remembered box through `CALC_FIELD_SNAPSHOT`, but `v()` and `vd()` read the live DOM, and on a return trip the container still holds the previous calculator's page while the calculator function runs, so the field is "missing" and `v()` / `vd()` fall back to the default. `certValue()` reads the snapshot first, which is why none of the 84 calculators in GH-DEF-001 is affected.
@@ -399,9 +413,10 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Verification:** The ledger emptied (or each remaining calculator reclassified here with a reason), `nav-return.test.js` passing on all 696 calculators with an empty ledger, the Item 3 navigation matrix passing, and no change in the other suites (engine self-test baseline, unit-system, temperature, toggle-sweep).
 - **History:** 2026-10-12 — found by the navigation probe while preparing Item 3; mechanism confirmed in the code; the 404 / 696 count measured on the engine at `2c89397`.
   2026-10-12 — fixed in `7846339`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `nav-return.test.js` with the ledger emptied fails 404 of 696 calculators on the previous engine (`5b742c2`) and passes on the fix (692 consistent, 0 inconsistent, 4 without a numeric input skipped); `remembered-values.test.js` fails 12 of 371 checks on the previous engine and 0 of 371 on the fix; a before/after comparison of all 696 calculators in both systems (default render plus a 1.25 x retype of up to 8 fields) changed 0 in Imperial and 0 in Metric; navigation-render side effects (toasts, storage writes, new globals) are identical for all 696; engine self-test 674 total / 666 passed / 8 failed (the 8 known baseline failures), smoke 19/19, unit-system 559, temperature 1,108 + 990, converters 2,064, toggle-sweep 735, label-consistency 696 checked with the 29 known-open (GH-DEF-020), all with 0 failures. Anchor: Quarter-Mile HP from ET, Weight 4275 typed, another calculator opened, return: the panel read 383 HP before and 479 HP now, equal to the value before leaving.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: nav-return 696 calculators checked (4 without a numeric input skipped), 692 consistent, 0 inconsistent, ledger `nav-return-open.json` empty, 0 failures; remembered-values 371 checks, 0 failures; the other suites unchanged (engine self-test 674 / 666 / the 8 known failures, unit-system 559, temperature-units 1,108 + 990, toggle-sweep 735, all 0 new failures).
 
 ### GH-DEF-021 — A box id shared by two calculators lets one calculator's remembered text appear in the other, even when the units differ
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Low (4 box ids; wrong value shown in a box on direct navigation)
 - **Priority:** P1 (done; reliability pass Item 3)
 - **Description:** `renderCalc(id)` captures every input of the page on screen into the remembered state of the calculator being opened, and restores the focused box's text into the new page. When two calculators use the same box id, the first calculator's text appeared in the second. For 57 of the 61 shared ids the units agree (sibling calculators) and the hand-off is harmless; for four the units differ, so a value of one unit became a value of another: a g-value typed in `weight_transfer` (`g2`) became the gear ratio of `gear_shift_rpm_drag`; `epc_p`, `eir_i` and `dds_t` likewise (inH2O / unit-less, CFM / A, hr / lb-ft).
@@ -416,6 +431,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
 - **Verification:** The four ids no longer carry a value across calculators with different units; the same-unit hand-off still works; no other calculator changes (before/after comparison of all 696).
 - **History:** 2026-10-12 — hypothesis GH-ENG-005 reproduced with `g2` during Item 3; registered here and fixed in `def921c`; the g2 checks fail on the previous engine (2 of 308 failures) and pass on the fix.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: remembered-values 371 checks, 0 failures (hand-off, same unit: kept; different units: refused; navigation with focus kept: refused); before/after comparison of all 696 calculators at `def921c` showed no other calculator changed.
 
 ### GH-DEF-019 — `distance_converter` turns yards into kilometres with 0.000914 instead of 0.0009144
 - **Status:** OPEN
@@ -469,7 +485,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-10-12 — found while explaining 43 Metric differences in the Item 3b comparison; confirmed to exist before that change; entry created.
 
 ### GH-DEF-023 — Airflow Power and Engine Airflow handoffs read displacement and air density as raw text, ignoring the unit system
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium
 - **Priority:** P1 (done; reliability pass Item 4d)
 - **Description:** `an(id, default)` in the airflow extension is a bare `parseFloat` of the box text. A Metric box shows centimetres cubed, kilograms per cubic metre and so on, and `an()` hands that number to code that expects Imperial. Two buttons use it for a unit-bearing box: the **Airflow vs RPM** graph of Engine Airflow Estimation reads `air_d` (displacement, declared `ci`; Metric shows cc) and the **Stage Estimate for Power/Torque Simulator** button of Airflow → Power Estimate reads `ap_rho` (air density, declared `lb/ft³`; Metric shows kg/m³). The same raw read is in `GHM_AIRFLOW_POWER`, the helper that function was written for. The unitless boxes (`air_ve`, `air_cycle`, `ap_ve`, `ap_afr`) are unaffected.
@@ -485,9 +501,10 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Verification:** `airflow-readers.test.js` passes with independent expected values (four-stroke volume flow = displacement x RPM x VE / 3,456; Metric litres per minute = CFM x 28.316846592; displacement typed in cc / 16.387064 = cubic inches; density typed in kg/m³ x 0.062427961 = lb/ft³; horsepower = air mass flow / AFR x 60 / BSFC) in both systems, and fails on the engine before the change.
 - **History:** 2026-10-12 — found by reproducing GH-ENG-003 (Item 4d); entry created.
   2026-10-12 — fixed in `6bbea45`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `airflow-readers.test.js` fails 12 of 69 checks on the engine before the change (all in Metric: the graph is 16.3871 times the physics, which is exactly the cc per cubic inch, in all four scenarios; the staged curve and `GHM_AIRFLOW_POWER()` are 16.02 times the physics, which is the kg/m³ per lb/ft³) and 0 of 69 on the fix; Imperial was correct throughout. Regression at that commit: engine self-test 674 total / 666 passed / 8 failed (the 8 known baseline failures, no new one); browser smoke 19/19; unit-system 559 checks, 0 failures; temperature-units 1,108 + 990 checks, 0 failures; toggle-sweep 735 checks (696 swept, 2 in the known-open ledger), 0 failures; nav-return 0 inconsistent; label-consistency 29 known-open, 0 failures; converters 2,064, remembered-values 371, dew-point 688, formula-fingerprints 577, mass-force 601, unit-factors 515, unit-census 2,535 checks, all 0 failures; run-tests.sh catalog / register / frontend 55/55 / schema 26/26 all passing. A before/after comparison of all 696 calculators (both systems, every numeric field retyped) changed none.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: airflow-readers 131 checks (628 curve / estimate points), 0 failures, groups A and B: the Airflow vs RPM graph equals the independent flow at all 61 points and the staged curve and `GHM_AIRFLOW_POWER()` equal the independent horsepower, in Imperial and Metric; it failed 12 of 69 checks on the engine before `6bbea45`.
 
 ### GH-DEF-024 — "Stage Estimate for Power/Torque Simulator" ignores the displacement and BSFC entered in the calculator
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium
 - **Priority:** P2 (done; found while fixing GH-DEF-023)
 - **Description:** The staging button sweeps ten RPM points from 1,000 to the profile's peak RPM and computes horsepower at each. It takes the displacement from the active profile (`p.displacement`, never the **Displacement** box `ap_d`) and reads BSFC from `ap_bsfc`, a box that does not exist (the box is `ap_bs`), so the default 0.5 lb/hp-hr is always used. `GHM_AIRFLOW_POWER`, the helper meant for the same purpose, has the same stale ids (`ap_disp`, `ap_rpm`, `ap_bsfc`). A person who changes the displacement or the BSFC and then stages the estimate stages a curve that does not contain their numbers. The air density, VE and AFR are read from the right boxes.
@@ -503,6 +520,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Verification:** After editing displacement, VE, density, AFR and BSFC in either system, the staged curve equals the independent horsepower at each of its ten RPM points (to the 0.1 HP the curve stores), and `GHM_AIRFLOW_POWER()` equals the displayed estimate at the box RPM.
 - **History:** 2026-10-12 — found while reproducing GH-DEF-023; entry created.
   2026-10-12 — fixed in `7482992`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: group C of `airflow-readers.test.js` (displacement edited, BSFC edited, and RPM / displacement / VE / density / AFR / BSFC edited together, both systems) fails 32 of 131 checks on the engine with only GH-DEF-023 fixed (16 per system: the staged curve is the profile engine at 0.5 lb/hp-hr, e.g. 66.4 HP at 1,000 RPM where the edited 400 ci engine gives 65.05 HP and BSFC 0.45 gives 73.72 HP; `GHM_AIRFLOW_POWER()` ignores the displacement, RPM and BSFC boxes and disagrees with the horsepower the page shows) and 0 of 131 on the fix, including `GHM_AIRFLOW_POWER()` equal to the Estimated Horsepower row. Regression at that commit: engine self-test 674 total / 666 passed / 8 failed (the 8 known baseline failures, no new one); browser smoke 19/19; unit-system 559 checks, 0 failures; temperature-units 1,108 + 990 checks, 0 failures; toggle-sweep 735 checks (696 swept, 2 in the known-open ledger), 0 failures; nav-return 0 inconsistent; label-consistency 29 known-open, 0 failures; converters 2,064, remembered-values 371, dew-point 688, formula-fingerprints 577, mass-force 601, unit-factors 515, unit-census 2,535 checks, all 0 failures; run-tests.sh catalog / register / frontend 55/55 / schema 26/26 all passing. A before/after comparison of all 696 calculators (both systems, every numeric field retyped) changed none.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: airflow-readers 131 checks, 0 failures, group C: after editing displacement, BSFC, and RPM / displacement / VE / density / AFR / BSFC together, the staged curve equals the independent horsepower at its ten points and `GHM_AIRFLOW_POWER()` equals both the physics and the Estimated Horsepower row, in Imperial and Metric; it failed 32 of 131 checks on the engine before `7482992`.
 
 ## B. Deferred improvements
 
@@ -767,18 +785,18 @@ This is the **single authoritative register** of known defects, deferred improve
 ## C. Engineering questions and research
 
 ### GH-ENG-001 — Which of the 65 "metric-named unit" inventory entries are real defects?
-- **Status:** INVESTIGATING
-- **Severity:** Medium (unknown until audited)
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium (audited: 38 of the 65 were real defects)
 - **Priority:** P1 (authorized audit; Item 2)
 - **Description:** A static inventory found 65 Free calculators that print a Metric unit name (`cc`, `mm`, `kW`, `km/h`, …) beside a value the engine treats as Imperial. That is a *candidate* list, not a list of defects. Item 2 audited every entry against a known input and an independent factor and classified it (table below): 38 confirmed defects (9 fixed, 29 open), 27 verified correct, 0 unresolved. Not all 65 are broken, and the 27 that were checked and found correct are recorded as such.
 - **Evidence:** Inventory run 2026-10-12; classification below. Method: (a) `premium/tests/converters.test.js` group 2 types a value into each of the 27 single-purpose converters in both unit systems and compares with the exact factor; (b) `premium/tests/label-consistency.test.js` renders all 696 calculators in Imperial and Metric and flags any row whose unit text is the same but whose number differs, or whose number is the same but whose unit text changed; (c) a list of the 22 calculators whose defaults show a unit-labelled 0 (a zero hides a mix-up), five of which get typed values in the test (only `wheel_offset` turned out defective); (d) a typed-value probe on the 29 open ones: the same labelled number typed in Imperial and in Metric gives a different number in a result row whose unit text is identical in both systems for 22 of the 29 (the other seven change a row's label or unit text, or only echo the wrong number; example `tap_drill`: M10 in Imperial gives an 8.782 mm drill, in Metric "M0.3937007874015748×1.25" and −0.824 mm).
 - **Affected:** Inventory ids: `static_compression`, `milling_heads`, `tire_size`, `tire_size_comparison`, `throttle_body`, `fuel_economy`, `ev_charge_time`, `ev_motor_power`, `ev_motor_torque`, `ev_battery_current`, `wheel_offset`, `reaction_distance`, `head_gasket_vol`, `tap_drill_size`, `fraction_decimal`, `thread_engagement`, `ev_peak_power`, `ev_motor_efficiency`, `tap_drill`, `fuel_cell_power`, `fuel_cell_efficiency`, `inch_fraction_to_mm`, `decimal_inch_to_mm`, `feet_to_mm`, `feet_to_meters`, `miles_to_km`, `mph_to_kmh`, `lb_to_kg`, `quarts_to_liters`, `gallons_to_liters`, `cubic_inches_to_cc`, `cubic_inches_to_liters`, `psi_to_kpa`, `psi_to_bar`, `lbft_to_nm`, `lbin_to_nm`, `hp_to_kw`, `btu_hr_to_kw`, `ftlb_to_joules`, `btu_to_joules`, `fahrenheit_to_celsius`, `kelvin_to_celsius`, `lbforce_to_newton`, `kgf_to_newton`, `cubic_feet_to_liters`, `square_inches_to_square_mm`, `square_feet_to_square_meters`, `tpi_to_thread_pitch`, plus the ten already in GH-DEF-001 (`heat_input_per_cycle`, `ev_inverter_loss`, `ev_power_conversion`, `ev_charge_added`, `ev_hvac_energy`, `ev_coolant_flow`, `hybrid_power_split`, `hybrid_regen_energy`) and GH-DEF-002/003/012.
-- **Impact:** Unknown; confirmed cases show wrong numbers in Metric.
+- **Impact:** 38 confirmed cases showed wrong numbers or labels in Metric (9 fixed, 29 open under GH-DEF-020); 27 were correct.
 - **Decision:** Item 2 audits each entry against a known input and an independent conversion and classifies it: confirmed defect / verified correct / unresolved. No claim that all 65 are broken is made.
 - **Dependencies:** GH-DEF-001 (same files are in both lists).
 - **Revisit:** Reliability pass Item 2.
-- **Commits:** None yet.
-- **Tests:** None yet.
+- **Commits:** `2fea067` (audit, `label-consistency.test.js` and its ledger); the fixes it led to: `df3764b` (GH-DEF-002, GH-DEF-003), `5d469cd` (GH-DEF-012).
+- **Tests:** `premium/tests/converters.test.js` (group 2: the 27 single-purpose converters against exact factors, both systems); `premium/tests/label-consistency.test.js` with the ledger `premium/tests/data/label-consistency-open.json` (29 open, GH-DEF-020).
 - **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 2.
 - **Verification:** Every inventory id has a recorded classification with its evidence; confirmed ones move to section A.
 - **History:** 2026-10-12 — entry created.
@@ -796,6 +814,7 @@ This is the **single authoritative register** of known defects, deferred improve
 
   The 29 open ones are 21 of the 48 listed under *Affected* (which the default-values probe finds, plus `wheel_offset`, whose default 0 hides the defect until a non-zero value is typed) and the eight Metric-named calculators of GH-DEF-001. The 65 are 48 listed ids + those eight + the nine of GH-DEF-002/003/012; the earlier text said "ten", it names eight. A finding that is not shown at the shipped defaults (a defect hidden by a default of 0) can exist in a calculator that is not in the inventory: the probe covers the 22 calculators with a labelled zero and no others, so this classification is complete for the inventory and not a proof about the other 631.
   2026-10-12 — Item 2 audit complete: all 65 entries classified (table above). Confirmed ones are in section A (GH-DEF-002, -003, -012 fixed; GH-DEF-020 open). The question is answered; the entry is closed with the final regression of this pass.
+  2026-10-13 — closed: the question was answered by the Item 2 audit (classification table above, 0 unresolved) and the closing regression of the pass confirms it: converters 2,064 checks, 0 failures (the 27 verified-correct converters and the repaired ones); label-consistency 696 calculators checked, 667 consistent, 29 inconsistent and all 29 in the GH-DEF-020 ledger, 0 failures. The audit does not prove anything about calculators outside the inventory (stated in the classification note); the unit census (GH-IMP-014) is the broader look.
 
 ### GH-ENG-002 — Are all registered unit conversion factors correct?
 - **Status:** VERIFIED CLOSED
@@ -850,6 +869,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Verification:** Each handoff exercised in Metric against an independent expected value.
 - **History:** 2026-10-12 — entry created.
   2026-10-12 — Item 4d looked at `GHM_STAGE_AIRFLOW`: it does not write into another calculator's remembered state but a ten-point horsepower curve (canonical horsepower, no unit string) into the Simulator's curve store; its input reads were wrong in Metric and ignored the entered displacement and BSFC (GH-DEF-023, GH-DEF-024). `GHM_STAGE_CORRECTED_FLOW` and `useIVC` are not part of that finding and stay open here.
+  2026-10-13 — narrowed by reading the two remaining helpers and probing the calculator side (still OPEN: the receiving page was not exercised). `GHM_STAGE_CORRECTED_FLOW` stages the canonical value in lb/min as typed into the button (36.02 in both systems, while the Metric calculator shows 16.34 kg/min) into the Turbo Compressor Map Builder's Corrected Flow box, which is declared `lb/min`, an unregistered unit that is displayed unconverted in both systems (GH-IMP-014), so the staged number and the box label agree by construction. `useIVC` stages a crank angle in degrees (a unit that is never converted) into `dynamic_compression.ica`. Neither looks defective, but the Turbo Compressor Map Builder is only present on the integrated page (it is not in the engine file the tests load), and no test in this branch opens it in Metric after staging; `remembered-values.test.js` covers only the write itself (a staged value drops any older record). Closing needs that integrated-page test.
 
 ### GH-ENG-005 — Does leaving a calculator write its inputs into the next calculator's remembered state?
 - **Status:** SUPERSEDED
