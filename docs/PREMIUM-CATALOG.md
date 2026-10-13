@@ -867,7 +867,7 @@ Same branch and change control, now with the owner's explicit authorization for 
 
 **Found and recorded, not fixed.** (GH-DEF-028 and GH-DEF-029 were fixed afterwards, in the defect pass below.) GH-DEF-028 (range warnings are matched on the first letters of a box id and compare the converted number with Imperial limits), GH-DEF-029 (Curve Editor: choosing "Power vs RPM" relabels the points without converting them, and the simulators always read the curve as torque), GH-IMP-020 (the policy questions that remain: BSFC, power-to-weight ratio units, EV motor torque, component torque, the browser-local scope, text outside the row inventory, the shell's compact units menu).
 
-**How to run.** `bash premium/tests/run-browser-tests.sh` now runs 25 Chromium suites (79 minutes measured on a 2-core machine on 2026-10-13 for the first 23; the two added by the defect pass, `curve-editor-mode` and `range-warnings`, take about 4 minutes each); `QUICK=1 node premium/tests/performance-census.test.js` checks only the 128 classified calculators. `bash premium/tests/run-tests.sh` runs the catalogue, register, frontend and schema suites. After any engine edit run `node catalog/build-catalog.js` so the catalogue records the page's new hash (the catalogue check fails on a stale hash). Every new power or torque row needs an entry in the engine's `PERF_ROWS`; the census fails on a row without one.
+**How to run.** `bash premium/tests/run-browser-tests.sh` now runs 26 Chromium suites (79 minutes measured on a 2-core machine on 2026-10-13 for the first 23; the two added by the defect pass, `curve-editor-mode` and `range-warnings`, take about 4 minutes each, and `curve-persistence`, added by the GH-DEF-030 fix, about 1 minute); `QUICK=1 node premium/tests/performance-census.test.js` checks only the 128 classified calculators. `bash premium/tests/run-tests.sh` runs the catalogue, register, frontend and schema suites. After any engine edit run `node catalog/build-catalog.js` so the catalogue records the page's new hash (the catalogue check fails on a stale hash). Every new power or torque row needs an entry in the engine's `PERF_ROWS`; the census fails on a row without one.
 
 **Register status after this step.** 74 entries.
 
@@ -886,7 +886,7 @@ Branch `premium/full-calculator-expansion`, from `c121091`; engine and tests in 
 - **GH-DEF-029 (Curve Editor), fixed.** Choosing "Power vs RPM" / "Torque vs RPM" now converts each of the twelve points at its own RPM (power = torque × RPM / 5252) into the unit the Power or Torque preference shows, and the three simulators read the curve in the mode chosen. `premium/tests/curve-editor-mode.test.js`: 107 checks, 33 fail on `c121091`, 0 on the fix, 8 injected faults caught.
 - **GH-DEF-028 (range warnings), fixed.** Each sanity range belongs to an explicit list of 140 `calculator.box-id` entries instead of a match on the first letters of the id; 21 boxes that matched by accident (a balancer diameter, the weight-transfer geometry boxes, the converter value boxes and others) no longer warn; every box is compared in its canonical unit, so Metric no longer compares millimetres with inches. `premium/tests/range-warnings.test.js`: 2,469 checks, 224 fail on `c121091`, 0 on the fix, 6 injected faults caught. The classified list is `premium/tests/data/range-boxes.json`.
 - **Verified:** Full regression on the fixed engine (`bash premium/tests/run-browser-tests.sh`, 25 suites, 81 minutes on the 2-core machine, 2026-10-13): every suite passed with 0 failures and every injected fault in every suite was caught; `bash premium/tests/run-tests.sh`: catalogue OK, register OK, frontend 55/55, schema 26/26.
-- **Found and recorded, not fixed:** GH-DEF-030 (a curve typed in the Curve Editor reaches the simulators on their first draw only; pre-existing, identical on both engines) and GH-DEF-031 (the shell's compact UNITS menu calls `setUnits`, which does not exist; the former GH-IMP-020 U8, now probed).
+- **Found and recorded, not fixed in this pass:** GH-DEF-030 (a curve typed in the Curve Editor reaches the simulators on their first draw only; pre-existing, identical on both engines; fixed afterwards, see the next section) and GH-DEF-031 (the shell's compact UNITS menu calls `setUnits`, which does not exist; the former GH-IMP-020 U8, now probed).
 - **The 133 Power / Torque output changes** reconcile exactly with the existing inventory: `premium/tests/data/power-torque-rows.json` marks 128 Metric and 5 Imperial rows (`chg_met`, `chg_imp`) with calculator, label, class, the unit before and the unit after, and the effect.
 
 **Register status after the defect pass.** 76 entries.
@@ -895,7 +895,23 @@ Branch `premium/full-calculator-expansion`, from `c121091`; engine and tests in 
 |---|---|---|
 | Defects (`GH-DEF`) | 30 | 26 VERIFIED CLOSED (GH-DEF-028 and GH-DEF-029 closed in this pass), 1 SUPERSEDED (GH-DEF-007 by GH-IMP-014), 3 OPEN (GH-DEF-026, Low; GH-DEF-030 and GH-DEF-031, new) |
 
-The other four categories are unchanged. New in the open list for the owner: GH-DEF-031 (check the production shell's unit control by eye before release) and GH-DEF-030 (decide where a typed curve should live).
+The other four categories are unchanged. New in the open list for the owner: GH-DEF-031 (check the production shell's unit control by eye before release) and GH-DEF-030 (fixed afterwards, below).
+
+### Targeted fix: GH-DEF-030, custom-curve persistence (2026-10-13)
+
+Branch `premium/full-calculator-expansion`, from `f72a718`; engine, test and runner in `6068a4a`. No merge, no deployment, no database migration, no change to the unit-policy table.
+
+- **GH-DEF-030, fixed.** The Acceleration, Dragstrip and Top Speed simulators have no curve boxes of their own and read the Curve Editor's boxes from the page on screen, so only their first draw saw a typed curve; every later draw used the default engine. They now read a box that is not on the page from the editor's remembered inputs (already kept for the session), converted from the unit and Power / Torque token it showed. Nothing new is stored. `premium/tests/curve-persistence.test.js`: 238 checks, 139 fail on `f72a718`, 0 on the fix; 4 of 6 injected faults caught, the other 2 equivalent (see the register entry).
+- **Verified:** the new test; the GH-DEF-029 regression `curve-editor-mode` 107/107; `airflow-readers` 131; `performance-units` 95; `nav-return` and `toggle-sweep` for the four affected calculators; `bash premium/tests/run-tests.sh` (catalogue OK, register OK, frontend 55/55, schema 26/26). **Not run:** the other 21 browser suites and the full 26-suite run (about 82 minutes).
+- **Found and recorded, not fixed:** GH-DEF-032 (a simulator's first draw runs at 50 % drivetrain efficiency: the fallback is 0.85 where the box holds 85) and GH-DEF-033 (the Acceleration simulator's default 60 mph target is also its 60-ft distance mark, so the default result is the 60-foot time).
+
+**Register status after the targeted fix.** 78 entries.
+
+| Category | Entries | Status |
+|---|---|---|
+| Defects (`GH-DEF`) | 32 | 27 VERIFIED CLOSED (GH-DEF-030 closed in this fix), 1 SUPERSEDED (GH-DEF-007 by GH-IMP-014), 4 OPEN (GH-DEF-026, Low; GH-DEF-031; GH-DEF-032 and GH-DEF-033, new) |
+
+The other four categories are unchanged. New in the open list for the owner: GH-DEF-032 and GH-DEF-033 (both simulator results on first open; whether to fix them before the Premium simulators are promoted).
 
 **Decisions the owner needs to make:** GH-ENG-014 (approve the two rows; sequencing; the catalogue tooling; then the separate authorizations A and B, still required before any merge or deployment); GH-IMP-020 (U1 to U9); GH-DEF-026 (timing, now low priority), GH-DEF-028 and GH-DEF-029; GH-IMP-013 Q1-Q3; GH-IMP-014; GH-IMP-016; GH-IMP-018; and authorization to start Batch 11 (every new power or torque row will need a table entry; the census fails on a row without one). **Nothing was merged, deployed or migrated and Batch 11 is not started.**
 
