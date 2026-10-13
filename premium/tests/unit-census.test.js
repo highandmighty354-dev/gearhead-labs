@@ -18,7 +18,7 @@
      4. The converter calculators (the ones whose output rows name their own unit, checked by converters.test.js) are counted and left out of 1 and 2.
      5. Units that the unit table cannot resolve safely never appear as a declared unit: 'qt' (aliased to gal), 'L/min' and 'm/min' (duplicated keys), see unit-factors.test.js.
 
-   Run: node premium/tests/unit-census.test.js   (VERBOSE=1 prints counts per unit; LIST=1 prints every Imperial-only unit with the calculators that use it; GH_ENGINE=path tests another copy of the engine)
+   Run: node premium/tests/unit-census.test.js   (VERBOSE=1 prints counts per unit; LIST=1 prints every Imperial-only unit with the calculators that use it (all of them, no 40-line cap); GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 = at least one failed. */
 'use strict';
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
@@ -137,7 +137,8 @@ const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
   if (pageErrors.length) { failures++; lines.push('PAGE ERRORS:\n' + pageErrors.slice(0, 5).join('\n')); }
   if (process.env.LIST) for (const [u, w] of Object.entries(where).sort((x, y) => y[1].length - x[1].length)) lines.push(`  ${u} (${impOnly[u].kind}${impOnly[u].of ? ' of ' + impOnly[u].of : ''}${impOnly[u].metric ? ' -> ' + impOnly[u].metric : ''}): ${w.length} rows in ${new Set(w).size} calculators: ${[...new Set(w)].join(', ')}`);
   if (process.env.VERBOSE) { lines.push('rows per Imperial unit text: ' + Object.entries(perUnit).sort((x, y) => y[1] - x[1]).map(([u, n]) => `${u}:${n}`).join('  ')); }
-  const shown = lines.length > 40 ? lines.slice(0, 40).concat(`  ... ${lines.length - 40} more`) : lines;
+  const CAP = process.env.LIST ? Infinity : 40;                                         // LIST=1 prints every unit; the normal run keeps the failure report short
+  const shown = lines.length > CAP ? lines.slice(0, CAP).concat(`  ... ${lines.length - CAP} more`) : lines;
   if (shown.length) console.log(shown.join('\n'));
   const rowsTotal = count.converted + count.neutral + count.si + count.imperial_only + count.converter;
   console.log(`\nunit-census tests: 696 calculators, ${rowsTotal} rows with a unit: ${count.converted} converted (${pairsSeen.size} unit pairs), ${count.neutral} neutral, ${count.si} metric-declared, ` +
