@@ -6,7 +6,9 @@
 #   temperature-units.test.js  temperature readings vs temperature differences, the Temperature Converter, catalogue label guard
 #   toggle-sweep.test.js       certValue() contract + every calculator: toggle == live re-render == round trip, with the known-open ledger
 #   nav-return.test.js         every calculator: result panel matches the box after navigating away and back (known-open ledger, GH-DEF-018)
-#   label-consistency.test.js  every calculator: same unit text must mean the same number in both systems (known-open ledger, GH-DEF-020)
+#   label-consistency.test.js  every calculator: same unit text must mean the same number in both systems (known-open ledger, now empty, GH-DEF-020)
+#   native-units.test.js       the 29 calculators that work in a Metric-named unit (kW, mm, cc, kg, J, m, L/100km, °C): typed values and result rows against independent physics in both systems (GH-DEF-020)
+#   declared-metric-units.test.js structural guard: no calculator may declare a Metric-named unit without native/raw, so a new one cannot slip past the other tests with a zero default (GH-DEF-020)
 #   remembered-values.test.js  remembered boxes across calculators and unit systems: converted once, never relabelled (GH-DEF-004, GH-DEF-021)
 #   converters.test.js         the 7 repaired converters and the 27 single-purpose converters against exact SI factors, both systems (GH-DEF-003)
 #   dew-point.test.js          Dew Point & Humidity against the rule in degrees Celsius and the Magnus formula, both systems (GH-DEF-005)
@@ -21,7 +23,7 @@
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 rc=0
-for t in engine-selftest.js browser-smoke.js unit-system.test.js temperature-units.test.js toggle-sweep.test.js nav-return.test.js converters.test.js label-consistency.test.js remembered-values.test.js dew-point.test.js formula-fingerprints.test.js mass-force.test.js unit-factors.test.js unit-census.test.js airflow-readers.test.js legacy-fixes.test.js; do
+for t in engine-selftest.js browser-smoke.js unit-system.test.js temperature-units.test.js toggle-sweep.test.js nav-return.test.js converters.test.js label-consistency.test.js native-units.test.js declared-metric-units.test.js remembered-values.test.js dew-point.test.js formula-fingerprints.test.js mass-force.test.js unit-factors.test.js unit-census.test.js airflow-readers.test.js legacy-fixes.test.js; do
   echo "=== $t"
   node "$HERE/$t" || { echo "FAILED: $t"; rc=1; }
 done

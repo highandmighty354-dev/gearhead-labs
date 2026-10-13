@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "8bb20a221cc1ca7febf358dafa57ceb89788c97c9cd766e5e127925ba8db4664"
+      "sha256": "c6be5b923074206b9bb6a9382fa11ecb6b58e3121274350638a446ca66959008"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
