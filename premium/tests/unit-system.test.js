@@ -103,7 +103,15 @@ const OUT = {
   velocity: { fromSI: (s, x) => s === 'metric' ? x : x / K.ft_m, unit: s => s === 'metric' ? 'm/s' : 'ft/sec' },                    // base m/s
   tempdiff: { fromSI: (s, x) => s === 'metric' ? x : x * 9 / 5, unit: s => s === 'metric' ? 'Δ°C' : 'Δ°F' },                       // base K (a difference)
   /* --- item 2 kind --- */
-  kw:     { fromSI: (s, x) => x, unit: s => 'kW' }                                                                                    // base kW; a calculator that computes in kW and prints kW shows the same number and symbol in both systems
+  kw:     { fromSI: (s, x) => x, unit: s => 'kW' },                                                                                   // base kW; a calculator that computes in kW and prints kW shows the same number and symbol in both systems
+  /* --- metric-convention pass (GH-IMP-013): a vehicle / trailer weight or manufacturer rating is read and shown as a MASS (lbs <-> kg, base kg);
+     a calculated or specified force declared in pound-force shows lbf <-> N (base N). The 'force' kind above keeps the older "lb" text some force rows still use. --- */
+  mass:   { fromSI: (s, x) => s === 'metric' ? x : x / K.lb_kg, unit: s => s === 'metric' ? 'kg' : 'lbs' },                                // base kg
+  forcelbf: { fromSI: (s, x) => s === 'metric' ? x : x / K.lbf_N, unit: s => s === 'metric' ? 'N' : 'lbf' },                              // base N, a force declared lbf
+  speed:  { fromSI: (s, x) => s === 'metric' ? x * 3.6 : x / K.mph_ms, unit: s => s === 'metric' ? 'km/h' : 'mph' },                       // base m/s
+  pct:    { fromSI: (s, x) => x, unit: s => '%' },
+  gee:    { fromSI: (s, x) => x, unit: s => 'g' },
+  springratelbs: { fromSI: (s, x) => s === 'metric' ? x / 1000 : x * K.in_m / K.lbf_N, unit: s => s === 'metric' ? 'N/mm' : 'lbs/in' }       // base N/m; this calculator prints its rate as "lbs/in"
 };
 
 /* ---- cases: fields = [id, input kind, SI edit value used for the re-entry steps]; compute(inSI) -> {label: [outKind, SI value]} ---- */
@@ -121,8 +129,8 @@ const CASES = [
   { id: 'aero_hp', fields: [['ahp_f', 'force', 520.0], ['ahp_v', 'speed', 33.0]],
     compute: v => ({ 'Aerodynamic Power': ['power', v.ahp_f * v.ahp_v] }) },
   /* --- reliability pass item 3: the three calculators reported by the sweep after Batch 10 --- */
-  { id: 'brake_energy', fields: [['wt_be', 'force', 15600], ['v_be', 'speed', 29.0]],                 // "Vehicle Weight" is a weight force (lbf <-> N)
-    compute: v => ({ 'Kinetic Energy': ['energy', 0.5 * (v.wt_be / K.g0) * v.v_be * v.v_be] }) },       // KE = 1/2 m v^2, m = W / g
+  { id: 'brake_energy', fields: [['wt_be', 'mass', 1600], ['v_be', 'speed', 29.0]],                    // "Vehicle Weight" is a vehicle weight as people state it: a mass (lbs <-> kg), GH-IMP-013
+    compute: v => ({ 'Kinetic Energy': ['energy', 0.5 * v.wt_be * v.v_be * v.v_be] }) },                // KE = 1/2 m v^2
   { id: 'brake_fade_energy', fields: [['bfe_e', 'energy', 2400000], ['bfe_n', 'none', 10]],
     compute: v => ({ 'Energy per Stop': ['energy', v.bfe_e / v.bfe_n] }) },
   /* a measured flow table: 9 lift points (in <-> mm) with 9 intake flows (CFM <-> L/min) and a query lift; the result is plain linear interpolation */
@@ -152,8 +160,8 @@ const CASES = [
     compute: v => ({ 'Wheel Torque': ['torque', v.ewt_t * v.ewt_r * v.ewt_e] }) },
   { id: 'spring_rate', fields: [['sr_f', 'force', 1200], ['sr_x', 'length', 0.012]],
     compute: v => ({ 'Spring Rate': ['springrate', v.sr_f / v.sr_x] }) },
-  { id: 'natural_frequency', fields: [['nf_k', 'springrate', 90000], ['nf_m', 'force', 4200]],
-    compute: v => ({ 'Natural Frequency': ['hz', Math.sqrt(v.nf_k / (v.nf_m / K.g0)) / (2 * Math.PI)] }) },                  // f = sqrt(k / m) / 2 pi, the supported weight W gives m = W / g
+  { id: 'natural_frequency', fields: [['nf_k', 'springrate', 90000], ['nf_m', 'mass', 430]],
+    compute: v => ({ 'Natural Frequency': ['hz', Math.sqrt(v.nf_k / v.nf_m) / (2 * Math.PI)] }) },                          // f = sqrt(k / m) / 2 pi, "Supported Weight" is the supported mass in kg (GH-IMP-013)
   { id: 'stress', fields: [['st_f', 'force', 52000], ['st_a', 'sqin', 0.0015]],
     compute: v => ({ 'Normal Stress': ['pressure', v.st_f / v.st_a] }) },
   { id: 'flow_coefficient', fields: [['fc_cfm', 'cfm', 310 * K.cfm_m3s], ['fc_dp', 'inh2o', 25 * K.inH2O_Pa], ['fc_a', 'sqin', 2.3 * K.in_m * K.in_m]],
@@ -180,7 +188,53 @@ const CASES = [
   /* item 2 (GH-DEF-002): the calculator works in kW already and prints kW, so Metric must not convert it again. P = m a v x efficiency, entirely in SI:
      m kg x (g-fraction x 9.80665 m/s^2) x v m/s = W; x efficiency/100; /1000 = kW. The fields are vehicle weight (mass), deceleration (in g), speed, efficiency (%). */
   { id: 'ev_regen_power', fields: [['ev_rwt', 'mass', 1900], ['ev_rg', 'none', 0.45], ['ev_rmph', 'speed', 29], ['ev_reff', 'none', 70]],
-    compute: v => ({ 'Estimated Recovered Power': ['kw', v.ev_rwt * v.ev_rg * K.g0 * v.ev_rmph * (v.ev_reff / 100) / 1000] }) }
+    compute: v => ({ 'Estimated Recovered Power': ['kw', v.ev_rwt * v.ev_rg * K.g0 * v.ev_rmph * (v.ev_reff / 100) / 1000] }) },
+
+  /* ---- metric-convention pass (GH-IMP-013). Each case states the physics once, in SI. ----
+     Vehicle / trailer weights and manufacturer ratings (GVWR, GCWR, payload, tongue weight, hitch rating, winch and recovery ratings) are MASSES in kg:
+     a person types 2950 for a 2950 kg vehicle. A force that is CALCULATED from a mass (load transfer, rolling resistance) is a force in newtons, F = m g0 x ... */
+  { id: 'tow_payload_remaining', fields: [['tpr_p', 'mass', 1000], ['tpr_c', 'mass', 200], ['tpr_t', 'mass', 410]],
+    compute: v => ({ 'Remaining Payload': ['mass', v.tpr_p - v.tpr_c - v.tpr_t] }) },
+  { id: 'tow_gvwr_margin', fields: [['tgm_g', 'mass', 3200], ['tgm_w', 'mass', 2950]],
+    compute: v => ({ 'GVWR Margin': ['mass', v.tgm_g - v.tgm_w] }) },
+  { id: 'tow_gcwr_margin', fields: [['tcm_g', 'mass', 7600], ['tcm_w', 'mass', 6900]],
+    compute: v => ({ 'GCWR Margin': ['mass', v.tcm_g - v.tcm_w] }) },
+  { id: 'tow_actual_combined', fields: [['tac_v', 'mass', 2100], ['tac_t', 'mass', 3300]],
+    compute: v => ({ 'Combined Weight': ['mass', v.tac_v + v.tac_t] }) },
+  { id: 'tow_tongue_percent', fields: [['ttp_t', 'mass', 380], ['ttp_w', 'mass', 3600]],
+    compute: v => ({ 'Tongue Weight %': ['pct', v.ttp_t / v.ttp_w * 100] }) },
+  { id: 'tow_axle_load', fields: [['tal_w', 'mass', 3600], ['tal_t', 'mass', 380]],
+    compute: v => ({ 'Trailer Axle Load': ['mass', v.tal_w - v.tal_t] }) },
+  { id: 'tow_trailer_capacity', fields: [['ttc_g', 'mass', 3800], ['ttc_e', 'mass', 2900]],
+    compute: v => ({ 'Trailer Cargo Capacity': ['mass', v.ttc_g - v.ttc_e] }) },
+  { id: 'tow_hitch_margin', fields: [['thm_h', 'mass', 450], ['thm_t', 'mass', 390]],
+    compute: v => ({ 'Hitch Capacity Margin': ['mass', v.thm_h - v.thm_t] }) },
+  { id: 'tow_grade_power', fields: [['tgp_w', 'mass', 6800], ['tgp_g', 'none', 0.05], ['tgp_s', 'speed', 24.5]],
+    compute: v => ({ 'Grade Power': ['power', v.tgp_w * K.g0 * v.tgp_g * v.tgp_s] }) },                                      // P = F v, F = m g0 x grade (the calculator's stated rule)
+  { id: 'tow_grade_speed', fields: [['tgs_hp', 'power', 60000], ['tgs_w', 'mass', 6800], ['tgs_g', 'none', 0.05]],
+    compute: v => ({ 'Grade Speed': ['speed', v.tgs_hp / (v.tgs_w * K.g0 * v.tgs_g)] }) },                                   // v = P / (m g0 x grade)
+  { id: 'tow_rolling_resistance', fields: [['trr_w', 'mass', 6800], ['trr_c', 'none', 0.012]],
+    compute: v => ({ 'Rolling Resistance Force': ['force', v.trr_w * K.g0 * v.trr_c] }) },                                   // a FORCE: newtons
+  { id: 'tow_brake_energy', fields: [['tbe_w', 'mass', 6800], ['tbe_v', 'speed', 24.5]],
+    compute: v => ({ 'Kinetic Energy': ['energy', 0.5 * v.tbe_w * v.tbe_v * v.tbe_v] }) },
+  { id: 'load_transfer_longitudinal', fields: [['ltl_w', 'mass', 1600], ['ltl_h', 'length', 0.5], ['ltl_l', 'length', 2.75], ['ltl_a', 'none', 0.6]],
+    compute: v => ({ 'Longitudinal Load Transfer': ['force', v.ltl_w * K.g0 * v.ltl_a * v.ltl_h / v.ltl_l] }) },               // dF = m g0 a h / L
+  { id: 'load_transfer_lateral', fields: [['ltla_w', 'mass', 1600], ['ltla_h', 'length', 0.5], ['ltla_t', 'length', 1.55], ['ltla_a', 'none', 0.9]],
+    compute: v => ({ 'Lateral Load Transfer': ['force', v.ltla_w * K.g0 * v.ltla_a * v.ltla_h / v.ltla_t] }) },
+  { id: 'weight_transfer_braking', fields: [['wtb_w', 'mass', 1600], ['wtb_h', 'length', 0.5], ['wtb_l', 'length', 2.75], ['wtb_g', 'none', 1.0]],
+    compute: v => ({ 'Front Load Transfer': ['force', v.wtb_w * K.g0 * v.wtb_g * v.wtb_h / v.wtb_l] }) },
+  { id: 'weight_transfer_accel', fields: [['wta_w', 'mass', 1600], ['wta_h', 'length', 0.5], ['wta_l', 'length', 2.75], ['wta_g', 'none', 0.5]],
+    compute: v => ({ 'Rear Load Transfer': ['force', v.wta_w * K.g0 * v.wta_g * v.wta_h / v.wta_l] }) },
+  { id: 'ride_frequency', fields: [['rf_k', 'springrate', 32000], ['rf_m', 'mass', 360]],
+    compute: v => ({ 'Ride Frequency': ['hz', Math.sqrt(v.rf_k / v.rf_m) / (2 * Math.PI)] }) },
+  { id: 'tire_rolling_resistance', fields: [['tirerr_w', 'mass', 1600], ['tirerr_c', 'none', 0.011], ['tirerr_v', 'speed', 27.0]],
+    compute: v => ({ 'Rolling Resistance Force': ['force', v.tirerr_w * K.g0 * v.tirerr_c],
+                     'Power Loss': ['power', v.tirerr_w * K.g0 * v.tirerr_c * v.tirerr_v] }) },                               // F = m g0 Crr; P = F v
+  /* a winch / recovery rating is a mass-equivalent rating ("12,000 lb (5,440 kg)"), the recommendation is vehicle mass x multiplier and is compared with that rating */
+  { id: 'winch_line_pull', fields: [['wlp_gvwr', 'mass', 2800], ['wlp_mult', 'none', 1.75], ['wlp_rated', 'mass', 5440], ['wlp_blocks', 'none', 1]],
+    compute: v => ({ 'Recommended Minimum Line Pull': ['mass', v.wlp_gvwr * v.wlp_mult], 'Effective Pull With Blocks': ['mass', v.wlp_rated * Math.pow(2, Math.round(v.wlp_blocks))] }), rel: 3e-3 },
+  { id: 'recovery_point_rating', fields: [['rpr_w', 'mass', 2800], ['rpr_mult', 'none', 2.5], ['rpr_pts', 'none', 2]],
+    compute: v => ({ 'Required Minimum Working Load per Point': ['mass', v.rpr_w * v.rpr_mult / v.rpr_pts] }), rel: 3e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;
@@ -224,7 +278,7 @@ async function verify(page, c, sys, step) {
     if (!r) { fail(label0, `no result "${label}" (page shows: ${res.map(x => x.label).join(', ') || 'validation error'})`); continue; }
     const got = Number(r.text.replace(/,/g, ''));
     const want = OUT[kind].fromSI(sys, si);
-    const tol = 0.5 * Math.pow(10, -decimals(r.text)) + 1e-4 * Math.abs(want);
+    const tol = 0.5 * Math.pow(10, -decimals(r.text)) + (c.rel || 1e-4) * Math.abs(want);
     const unitOk = r.unit === OUT[kind].unit(sys);
     if (!Number.isFinite(got) || Math.abs(got - want) > tol) fail(label0, `${label}: page ${r.text} ${r.unit}, expected ${want.toPrecision(7)} ${OUT[kind].unit(sys)} (inputs shown ${shown.join(' / ')})`);
     else if (!unitOk) fail(label0, `${label}: unit "${r.unit}" expected "${OUT[kind].unit(sys)}"`);
