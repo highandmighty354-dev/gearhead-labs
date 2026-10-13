@@ -24,7 +24,7 @@
 #   performance-units.test.js  the independent Power (Auto / hp / kW) and Torque (Auto / lb-ft / N·m) preferences with real clicks: application defaults, explicit override, Metric/Imperial never overwrite them, saved / remembered / profile / simulator paths, 20 mutants (GH-IMP-019)
 #   performance-census.test.js every power / torque row of all 696 calculators in every Power x Torque x system state against the classification table: no unclassified row, retained categories unchanged (GH-IMP-019); QUICK=1 for the 128 classified calculators
 # Run with the Playwright module on NODE_PATH or installed globally. GH_ENGINE=path tests another copy of the engine.
-# Takes about 30 minutes on a 2-core machine. Exit code 0 only when every suite passes. (run-tests.sh is the separate backend/schema suite.)
+# Takes about 80 minutes on a 2-core machine (79 minutes measured on 2026-10-13 with 23 suites). Exit code 0 only when every suite passes. (run-tests.sh is the separate backend/schema suite.)
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 rc=0

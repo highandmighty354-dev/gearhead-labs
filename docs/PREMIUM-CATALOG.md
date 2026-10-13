@@ -765,7 +765,7 @@ Same change control and branch; `main` and production untouched, nothing merged,
 | Engine and EV performance | Gasoline / diesel engine power defaults to hp and engine torque to lb-ft, also when the general system is Metric. EV motor and electric-powertrain output defaults to kW; EV motor torque defaults to lb-ft (current convention). kW and N·m may be offered as optional alternatives. Combustion hp is not converted to kW because Metric is selected. The general measurement setting and the performance-unit setting are separate settings. |
 | Scope | Inputs, outputs, labels, comparisons, saved configurations and reports; each calculator is judged by the physical quantity it shows. |
 
-Implemented and verified: the mass and load half (below). Inventoried and planned, **not implemented**: the performance half (GH-IMP-019).
+Implemented and verified: the mass and load half (below). Inventoried and planned, **not implemented** at the time: the performance half (GH-IMP-019). **Update 2026-10-13 (later): the performance half is implemented and verified; see "Performance-unit implementation (GH-IMP-019), 2026-10-13" below.**
 
 | Commit | Register | What changed | Evidence |
 |---|---|---|---|
@@ -837,6 +837,49 @@ Same branch and change control. **Planning and documentation only: no engine cod
 | Others | unchanged | `GH-ENG` 14, `GH-FUT` 10, `GH-EXP` 3 |
 
 **Decisions the owner needs to make for GH-IMP-019 (A1 to A8, replacing "answer O1-O6" in the list above):** A1 approve the recommended categories together with the decided ones; A2 road-load power and the EV context; A3 wheel and driveline torque and the shaft / axle rows; A4 the power-to-weight convention and its timing; A5 hybrid system power; A6 BSFC; A7 the two selectors and their wording; A8 when to fix GH-DEF-026 and GH-DEF-027. Implementation needs a separate explicit authorization. **Batch 11 is not started and not authorized.**
+
+#### Performance-unit implementation (GH-IMP-019), 2026-10-13
+
+Same branch and change control, now with the owner's explicit authorization for this work only. **Done and verified: the hybrid power-split defect (GH-DEF-027, closed), the independent Power and Torque preferences with the decided policy applied to 177 rows (GH-IMP-019, closed), and the dashboard investigation (GH-DEF-026, left open, not reachable).** Nothing was merged, deployed or applied to a database; `main` is still `a4203cd`; GH-ENG-014 is untouched and Batch 11 is not started. Files changed: the engine page, `premium/tests/` (three new suites, two data files, the runner), [DEFERRED-WORK-REGISTER.md](DEFERRED-WORK-REGISTER.md), this catalogue and `premium/tests/data/power-torque-rows.json` (a recorded reconciliation block; no row changed). No second register or plan document was created.
+
+| Commit | Register | What changed |
+|---|---|---|
+| `b0f507f` | GH-DEF-027 | The "use vehicle value" shortcut and "Save to vehicle" apply only to a box that holds the same quantity as the vehicle property and convert to the unit the box shows (18 boxes in 6 calculators offered or wrote the wrong quantity). |
+| `0d5835b` | GH-DEF-026 | Evidence and guard test only: the dashboard vehicle summary line prints Imperial names beside Metric numbers in its template, but the template is replaced by the home page one tick later and is never visible. |
+| `d92f5c7` | GH-IMP-019 | Power (Auto / hp / kW) and Torque (Auto / lb-ft / N·m) preferences, one policy table, one token resolver; tests, mutants and data. |
+
+**Behaviour.** Two drop-downs in the page header (PWR and TRQ on a phone) beside the Imperial / Metric buttons, stored in this browser only. Auto is the default of each calculator's application, never of the selected vehicle: combustion-engine power hp and torque lb-ft in both systems; EV motor and powertrain power kW, EV motor torque lb-ft; road-load and wheel power hp; wheel and driveline torque lb-ft; hybrid power split by row (engine hp, motor kW, combined system kW, the fraction unitless). An explicit choice overrides Auto everywhere, EV rows included, and survives pressing Imperial or Metric, which no longer touch a power or torque box. Stored values, vehicle profiles, saved setups and remembered values keep their meaning (the calculator's own unit is never changed); setups saved before the change load correctly under every choice.
+
+| Quantity | Auto | Explicit choices | Rows (calculators) |
+|---|---|---|---|
+| Engine power (also oil pump and diesel power) | hp | kW | 97 (61) |
+| Engine torque | lb-ft | N·m | 28 (15) |
+| EV motor and powertrain power | kW | hp | 24 (18) |
+| EV motor torque | lb-ft | N·m | 3 (3) |
+| Road-load power | hp | kW | 5 (5) |
+| Wheel power | hp | kW | 3 (2) |
+| Wheel torque | lb-ft | N·m | 7 (6) |
+| Driveline, shaft and axle torque | lb-ft | N·m | 9 (6) |
+| Hybrid combined system power | kW | hp | 1 (1) |
+| Kept as before (BSFC 16, converters 14, accessory and electrical power 11, component torque 10, power-to-weight ratios 5, other 5) | system-governed | not affected | 61 |
+
+**Verified.** Before / after of all 696 calculators in both systems at the default state against the engine before this work: 6,366 rows, 6,231 identical (all 118 retained-category rows and every Imperial row outside a preference-following category), 133 changed on purpose (Metric 128, Imperial 5), 2 moved by 2 parts per million (rounded-text class), 0 unexpected, 0 page errors. Census: every power or torque unit on any page of the 696 calculators is in the table, 0 unclassified. Existing browser suites after the old kW / N·m expectations of seven of them were moved to the policy (never relaxed): unit-system 1,619 checks, toggle-sweep 735 (696 calculators swept: 695 consistent, 1 inconsistent and in the known-open ledger), native-units 29 calculator cases, remembered-values 371, unit-census 2,622, airflow-readers 131, profile-shortcut 80 + 9 mutants caught, dashboard-summary 9, all 0 failures. The complete one-pass run of all 23 browser suites (`run-browser-tests.sh`) exited 0 with 0 failures (79 minutes on the 2-core machine). New tests fail on the previous engine (performance-units reports 42 checks of which 23 fail (the sections that need the Power and Torque selectors stop at the missing selectors), performance-census reports its one check failing because the policy table does not exist) and 20 injected faults (Auto following Metric or the vehicle, a Metric press overwriting the preference, wrong factors, double conversion, label and number disagreeing, a dropped row, EV defaulting to hp, a saved setup or remembered value read in the wrong unit, a profile or simulator ignoring the preference, and others) are all caught.
+
+**Found and recorded, not fixed.** GH-DEF-028 (range warnings are matched on the first letters of a box id and compare the converted number with Imperial limits), GH-DEF-029 (Curve Editor: choosing "Power vs RPM" relabels the points without converting them, and the simulators always read the curve as torque), GH-IMP-020 (the policy questions that remain: BSFC, power-to-weight ratio units, EV motor torque, component torque, the browser-local scope, text outside the row inventory, the shell's compact units menu).
+
+**How to run.** `bash premium/tests/run-browser-tests.sh` now runs 23 Chromium suites (79 minutes measured on a 2-core machine on 2026-10-13); `QUICK=1 node premium/tests/performance-census.test.js` checks only the 128 classified calculators. `bash premium/tests/run-tests.sh` runs the catalogue, register, frontend and schema suites. After any engine edit run `node catalog/build-catalog.js` so the catalogue records the page's new hash (the catalogue check fails on a stale hash). Every new power or torque row needs an entry in the engine's `PERF_ROWS`; the census fails on a row without one.
+
+**Register status after this step.** 74 entries.
+
+| Category | Entries | Status |
+|---|---|---|
+| Defects (`GH-DEF`) | 28 | 24 VERIFIED CLOSED (GH-DEF-027 closed this step), 1 SUPERSEDED (GH-DEF-007 by GH-IMP-014), 3 OPEN (GH-DEF-026, now Low; GH-DEF-028 and GH-DEF-029, new) |
+| Improvements (`GH-IMP`) | 19 | 2 VERIFIED CLOSED (GH-IMP-001, GH-IMP-019), 14 DEFERRED (including new GH-IMP-020), 1 IN PROGRESS (GH-IMP-013, D1-D3), 1 OPEN (GH-IMP-018), 1 SUPERSEDED (GH-IMP-015 by GH-IMP-001) |
+| Engineering questions (`GH-ENG`) | 14 | 3 VERIFIED CLOSED (GH-ENG-001, 002, 009), 2 SUPERSEDED (GH-ENG-003, GH-ENG-005), 9 OPEN (GH-ENG-004 narrowed, 006, 007, 008, 010, 011, 012, 013, 014) |
+| Future work (`GH-FUT`) | 10 | 1 AWAITING AUTHORIZATION (GH-FUT-001, Batch 11), 3 APPROVED, 5 DEFERRED, 1 OPEN (GH-FUT-010) |
+| Expected behaviour (`GH-EXP`) | 3 | 3 EXPECTED BEHAVIOR |
+
+**Decisions the owner needs to make:** GH-ENG-014 (approve the two rows; sequencing; the catalogue tooling; then the separate authorizations A and B, still required before any merge or deployment); GH-IMP-020 (U1 to U9); GH-DEF-026 (timing, now low priority), GH-DEF-028 and GH-DEF-029; GH-IMP-013 Q1-Q3; GH-IMP-014; GH-IMP-016; GH-IMP-018; and authorization to start Batch 11 (every new power or torque row will need a table entry; the census fails on a row without one). **Nothing was merged, deployed or migrated and Batch 11 is not started.**
 
 ## Premium-only tools (Engineering Lab)
 
