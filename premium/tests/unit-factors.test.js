@@ -84,7 +84,9 @@ const EXPECT = {
   'Mpsi':         ['GPa',           1e6 * PSI,                  1e9],                                    // a modulus of elasticity
   'lb-ft/deg':    ['N·m/deg',       LBF * FT,                   1],                                      // a torsional stiffness: torque per degree
   /* Batch 11b (2026-10-14) */
-  'kJ/in':        ['kJ/mm',         1000 / IN,                  1000 / 1e-3]                             // a weld heat input: energy per length of weld
+  'kJ/in':        ['kJ/mm',         1000 / IN,                  1000 / 1e-3],                            // a weld heat input: energy per length of weld
+  /* Batch 11c (2026-10-14) */
+  'lb·ft²':       ['kg·m²',         LB * FT * FT,               1]                                       // a mass moment of inertia
 };
 const SPECIAL = ['°F', 'Δ°F', 'mpg'];                                                                       // not plain factors: checked at reference points
 

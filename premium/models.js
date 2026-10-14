@@ -455,7 +455,14 @@
     { id: 'bend_deduction', name: 'Bend Deduction',
       promo: 'Gearhead Labs Premium unlocks Bend Deduction — outside setback, bend deduction and flat blank length.' },
     { id: 'minimum_bend_radius', name: 'Minimum Bend Radius',
-      promo: 'Gearhead Labs Premium unlocks Minimum Bend Radius — a ductility-based estimate of the tightest bend, with its limits stated.' }
+      promo: 'Gearhead Labs Premium unlocks Minimum Bend Radius — a ductility-based estimate of the tightest bend, with its limits stated.' },
+    /* Batch 11c — NVH and Machining (2026-10-14) */
+    { id: 'bearing_defect_frequency', name: 'Bearing Defect Frequency',
+      promo: 'Gearhead Labs Premium unlocks Bearing Defect Frequency — BPFO, BPFI, ball spin and cage frequencies from bearing geometry.' },
+    { id: 'gear_mesh_frequency', name: 'Gear Mesh Frequency',
+      promo: 'Gearhead Labs Premium unlocks Gear Mesh Frequency — mesh, shaft and hunting-tooth frequencies of a gear pair.' },
+    { id: 'torsional_resonance_speed', name: 'Torsional Resonance Speed',
+      promo: 'Gearhead Labs Premium unlocks Torsional Resonance Speed — the speed at which an excitation order meets a torsional natural frequency.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */

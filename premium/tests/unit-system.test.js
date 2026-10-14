@@ -84,7 +84,9 @@ const IN = {
   /* --- Batch 11a (Structure, Stress and Fatigue): a stress is NOT a pressure and a modulus is NOT a stress rating, so each has its own kind and unit pair --- */
   stress: { toSI: (s, x) => s === 'metric' ? x * 1e6 : x * 1000 * K.psi_Pa, fromSI: (s, x) => s === 'metric' ? x / 1e6 : x / (1000 * K.psi_Pa) },      // ksi <-> MPa, base Pa
   modulus:{ toSI: (s, x) => s === 'metric' ? x * 1e9 : x * 1e6 * K.psi_Pa, fromSI: (s, x) => s === 'metric' ? x / 1e9 : x / (1e6 * K.psi_Pa) },          // Mpsi <-> GPa, base Pa
-  tstiff: { toSI: (s, x) => s === 'metric' ? x : x * K.ftlbf_J, fromSI: (s, x) => s === 'metric' ? x : x / K.ftlbf_J }                                 // lb-ft/deg <-> N.m/deg, base N.m/deg
+  tstiff: { toSI: (s, x) => s === 'metric' ? x : x * K.ftlbf_J, fromSI: (s, x) => s === 'metric' ? x : x / K.ftlbf_J },                                // lb-ft/deg <-> N.m/deg, base N.m/deg
+  /* --- Batch 11c --- */
+  inertia:{ toSI: (s, x) => s === 'metric' ? x : x * K.lb_kg * K.ft_m * K.ft_m, fromSI: (s, x) => s === 'metric' ? x : x / (K.lb_kg * K.ft_m * K.ft_m) }  // lb·ft² <-> kg·m², base kg·m²
 };
 /* output kinds: SI -> display, plus the unit text the page must show */
 const OUT = {
@@ -427,7 +429,21 @@ const CASES = [
       return { 'Bend Allowance': ['length', ba], 'Outside Setback (OSSB)': ['length', ossb], 'Bend Deduction': ['length', bd], 'Flat Blank Length': ['length', v.bd_la + v.bd_lb - bd] }; }, rel: 2e-3 },
   { id: 'minimum_bend_radius', fields: [['mbr_t', 'length', 0.004], ['mbr_ra', 'none', 45], ['mbr_r', 'length', 0.006]],
     compute: v => { const ra = v.mbr_ra, rt = ra < 20 ? 50 / ra - 1 : (100 - ra) ** 2 / (200 * ra - ra * ra), rmin = rt * v.mbr_t;
-      return { 'Minimum R/t (estimate)': ['ratio', rt], 'Minimum Inside Bend Radius (estimate)': ['length', rmin], 'Outer-Fiber Strain at Planned Radius': ['pct', 100 / (2 * v.mbr_r / v.mbr_t + 1)], 'Planned Radius ÷ Estimated Minimum': ['ratio', v.mbr_r / rmin] }; }, rel: 2e-3 }
+      return { 'Minimum R/t (estimate)': ['ratio', rt], 'Minimum Inside Bend Radius (estimate)': ['length', rmin], 'Outer-Fiber Strain at Planned Radius': ['pct', 100 / (2 * v.mbr_r / v.mbr_t + 1)], 'Planned Radius ÷ Estimated Minimum': ['ratio', v.mbr_r / rmin] }; }, rel: 2e-3 },
+
+  /* ---- Batch 11c, C1 rotating NVH (speeds in RPM and frequencies in Hz are the same numbers in both systems) ---- */
+  { id: 'bearing_defect_frequency', fields: [['bdf_rpm', 'none', 2400], ['bdf_n', 'none', 11], ['bdf_bd', 'length', 0.009], ['bdf_pd', 'length', 0.05], ['bdf_th', 'none', 12]],
+    compute: v => { const fr = v.bdf_rpm / 60, g = v.bdf_bd / v.bdf_pd * Math.cos(v.bdf_th * Math.PI / 180);
+      return { 'Shaft Rotation Frequency': ['hz', fr], 'Cage Frequency (FTF)': ['hz', fr / 2 * (1 - g)], 'Outer-Race Defect Frequency (BPFO)': ['hz', v.bdf_n * fr / 2 * (1 - g)], 'Inner-Race Defect Frequency (BPFI)': ['hz', v.bdf_n * fr / 2 * (1 + g)],
+               'Ball Spin Frequency (BSF)': ['hz', v.bdf_pd / (2 * v.bdf_bd) * fr * (1 - g * g)], 'BPFO Order (× shaft speed)': ['ratio', v.bdf_n / 2 * (1 - g)], 'BPFI Order (× shaft speed)': ['ratio', v.bdf_n / 2 * (1 + g)] }; }, rel: 2e-3 },
+  { id: 'gear_mesh_frequency', fields: [['gmf_z1', 'none', 17], ['gmf_z2', 'none', 51], ['gmf_rpm', 'none', 2500]],   // the speed last: the harness re-types the last box at 0.9 x, and a tooth count must stay whole
+    compute: v => { const f1 = v.gmf_rpm / 60, gm = v.gmf_z1 * f1, g = (a, b) => b ? g(b, a % b) : a, na = g(v.gmf_z1, v.gmf_z2);
+      return { 'Gear Mesh Frequency': ['hz', gm], 'Gear 1 Rotation Frequency': ['hz', f1], 'Gear 2 Speed': ['rpm', v.gmf_rpm * v.gmf_z1 / v.gmf_z2], 'Gear 2 Rotation Frequency': ['hz', f1 * v.gmf_z1 / v.gmf_z2],
+               'Mesh Order (× gear 1 speed)': ['ratio', v.gmf_z1], 'Hunting Tooth Frequency': ['hz', gm * na / (v.gmf_z1 * v.gmf_z2)] }; }, rel: 2e-3 },
+  /* K typed per degree; omega^2 = K(per radian) (1/J1 + 1/J2) */
+  { id: 'torsional_resonance_speed', fields: [['trs_k', 'tstiff', 2000], ['trs_j1', 'inertia', 0.05], ['trs_j2', 'inertia', 0.2], ['trs_q', 'none', 3], ['trs_op', 'none', 5000]],
+    compute: v => { const Kr = v.trs_k * 180 / Math.PI, f = Math.sqrt(Kr * (1 / v.trs_j1 + 1 / v.trs_j2)) / (2 * Math.PI), n = 60 * f / v.trs_q;
+      return { 'Torsional Natural Frequency': ['hz', f], 'Natural Frequency as Shaft Speed (order 1)': ['rpm', 60 * f], 'Resonance Speed for This Order': ['rpm', n], 'Operating Speed ÷ Resonance Speed': ['ratio', v.trs_op / n] }; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

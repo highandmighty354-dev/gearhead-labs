@@ -48,10 +48,11 @@ const PAIRS = {
   'HP/ton': ['kW/metric ton', HP / (2 * LB)], 'lbs/HP': ['kg/kW', LB / HP], 'HP/klb': ['kW/tonne', HP / (LB)], 'CM': ['mm²', Math.PI / 4 * (IN * 1000 / 1000) ** 2],
   'thou (.001")': ['mm', IN],
   'ksi': ['MPa', LBF / (IN * IN) / 1000], 'Mpsi': ['GPa', LBF / (IN * IN) / 1000], 'lb-ft/deg': ['N·m/deg', LBF * FT],   // Batch 11a: stress, modulus, torsional stiffness
-  'kJ/in': ['kJ/mm', 1 / (IN * 1000)]   // Batch 11b: weld heat input
+  'kJ/in': ['kJ/mm', 1 / (IN * 1000)],   // Batch 11b: weld heat input
+  'lb·ft²': ['kg·m²', LB * FT * FT]   // Batch 11c: mass moment of inertia
 };
 const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
-const N_CALCS = 724;                                                                   // 696 + Batch 11a
+const N_CALCS = 727;                                                                   // 696 + Batch 11a
 
 (async () => {
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });

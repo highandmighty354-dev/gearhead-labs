@@ -662,7 +662,9 @@ const UNIT_ALIASES = {
   /* Batch 11a (2026-10-14): a STRESS and a MODULUS are not pressures (psi / bar), and a torsional stiffness is not a torque */
   'ksi':'ksi','MPa':'ksi','Mpsi':'Mpsi','GPa':'Mpsi','lb-ft/deg':'lb-ft/deg','N·m/deg':'lb-ft/deg',
   /* Batch 11b: a weld heat input is an energy per length of weld */
-  'kJ/in':'kJ/in','kJ/mm':'kJ/in'
+  'kJ/in':'kJ/in','kJ/mm':'kJ/in',
+  /* Batch 11c: a mass moment of inertia */
+  'lb·ft²':'lb·ft²','kg·m²':'lb·ft²'
 };
 const UNIT_DEFS = {
   'lbs':{metric:'kg',toMetric:v=>v*0.45359237,fromMetric:v=>v/0.45359237},
@@ -711,7 +713,9 @@ const UNIT_DEFS = {
   'Mpsi':{metric:'GPa',toMetric:v=>v*6.894757293168361,fromMetric:v=>v/6.894757293168361},
   'lb-ft/deg':{metric:'N·m/deg',toMetric:v=>v*1.3558179483314004,fromMetric:v=>v/1.3558179483314004},
   /* Batch 11b: 1 kJ/in = 1 kJ per 25.4 mm (exact) */
-  'kJ/in':{metric:'kJ/mm',toMetric:v=>v/25.4,fromMetric:v=>v*25.4}
+  'kJ/in':{metric:'kJ/mm',toMetric:v=>v/25.4,fromMetric:v=>v*25.4},
+  /* Batch 11c: 1 lb·ft² = 0.45359237 kg x 0.3048² m² = 0.0421401100938048 kg·m² (exact) */
+  'lb·ft²':{metric:'kg·m²',toMetric:v=>v*0.0421401100938048,fromMetric:v=>v/0.0421401100938048}
 };
 function canonicalUnit(unit){ if(isPerfToken(unit)) return PERF_SRC_CANON[perfParse(unit).src]; return UNIT_ALIASES[(unit||'').trim()] || unit || ''; }
 /* =====================================================================================================================================================================
@@ -9036,6 +9040,10 @@ const GH_E1_CALCS = [
 {cat:"UNIVERSAL / MANUFACTURING", id:"bend_k_factor", name:"Bend K-Factor"},
 {cat:"UNIVERSAL / MANUFACTURING", id:"bend_deduction", name:"Bend Deduction"},
 {cat:"UNIVERSAL / MANUFACTURING", id:"minimum_bend_radius", name:"Minimum Bend Radius"},
+/* Batch 11c (2026-10-14): NVH and Machining — C1 rotating NVH */
+{cat:"UNIVERSAL / NVH", id:"bearing_defect_frequency", name:"Bearing Defect Frequency"},
+{cat:"UNIVERSAL / NVH", id:"gear_mesh_frequency", name:"Gear Mesh Frequency"},
+{cat:"UNIVERSAL / NVH", id:"torsional_resonance_speed", name:"Torsional Resonance Speed"},
 
 ];
 
@@ -11404,6 +11412,31 @@ RENDERS.minimum_bend_radius=()=>{
   const rmin=ok?rt*t:NaN, strain=ok?100/(2*r/t+1):NaN;
   return `${headerHTML('Minimum Bend Radius','An ESTIMATE of the smallest inside radius a sheet or plate can be bent to without cracking on the outside, from its ductility in a tensile test (the correlation of bendability with tensile properties by Datsko and Yang, as used in sheet-metal and plate-bending practice). The outside fiber of a bend stretches by an engineering strain of about 1 ÷ (2R/t + 1), and the bend is assumed to crack when that strain reaches the fracture strain implied by the tensile reduction of area Ar: R/t = 50 ÷ Ar − 1 for Ar below 20 %, and R/t = (100 − Ar)² ÷ (200 Ar − Ar²) for Ar of 20 % or more (where the neutral axis shift matters). The two relations do not meet at 20 % (1.50 against 1.78), and the reduction of area is the only material input. Bendability also depends on things this model ignores: the width of the piece (wide plates bend in plane strain and crack sooner than narrow strips), sheared or burred edges, bending across or along the rolling direction, inclusions and surface condition, prior cold work, thickness and the bending method. Reduction of area alone is therefore NOT a universal predictor: use the result to compare materials and to sanity-check a design, and follow the material specification’s or supplier’s minimum bend radius, and test bends, for any real part. No material table is built in; enter the reduction of area from the material’s certificate or test.')}<div class="calc-body">${field('Material Thickness (t)','mbr_t',0.125,'in')}${field('Tensile Reduction of Area (Ar)','mbr_ra',30,'%')}${field('Planned Inside Bend Radius','mbr_r',0.25,'in')}${ok?multiResult([{label:'Minimum R/t (estimate)',value:rt,unit:'',precision:3},{label:'Minimum Inside Bend Radius (estimate)',value:rmin,unit:'in',precision:4},{label:'Outer-Fiber Strain at Planned Radius',value:strain,unit:'%',precision:1},{label:'Planned Radius ÷ Estimated Minimum',value:rmin>0?r/rmin:NaN,unit:'',precision:2}]):certError('Thickness must be above 0 and up to 4 in, the reduction of area 1–99 %, and the planned inside radius above 0 (up to 100 in).')}${ok?`<div class="help-note">Relation used: ${eq}.${ra>=15&&ra<=25?' The reduction of area is near 20 %, where the two published relations disagree by about 20 %: treat the estimate as approximate.':''}${r<rmin?' ⚠ The planned radius is tighter than the estimated minimum: cracking on the outside of the bend is likely.':''}</div>`:''}</div>${calcFooter('Minimum Bend Radius')}`;
 };
+/* ===== Batch 11c, C1 rotating NVH (2026-10-14): Bearing Defect Frequency, Gear Mesh Frequency, Torsional Resonance Speed. Frequencies in Hz and speeds in RPM read the same in both systems. ===== */
+RENDERS.bearing_defect_frequency=()=>{
+  const rpm=certValue('bdf_rpm',1800,'RPM'),n=certValue('bdf_n',9),bd=certValue('bdf_bd',0.3125,'in'),pd=certValue('bdf_pd',1.5,'in'),th=certValue('bdf_th',0,'°');
+  const ok=[rpm,n,bd,pd,th].every(Number.isFinite)&&rpm>0&&rpm<=100000&&Number.isInteger(n)&&n>=3&&n<=100&&bd>0&&pd>bd&&pd<=100&&th>=0&&th<=60;
+  let fr=NaN,ftf=NaN,bpfo=NaN,bpfi=NaN,bsf=NaN;
+  if(ok){const g=bd/pd*Math.cos(th*Math.PI/180);fr=rpm/60;ftf=fr/2*(1-g);bpfo=n*fr/2*(1-g);bpfi=n*fr/2*(1+g);bsf=pd/(2*bd)*fr*(1-g*g);}
+  return `${headerHTML('Bearing Defect Frequency','The four characteristic frequencies of a rolling-element bearing, the frequencies at which a local defect (a spall or crack) on one part of the bearing is struck once per pass. With f_r the shaft rotation frequency, N the number of rolling elements, B_d the rolling-element diameter, P_d the pitch diameter (the diameter of the circle through the element centres) and θ the contact angle (0° for a radial ball or cylindrical roller bearing): Cage (fundamental train) FTF = f_r ÷ 2 × (1 − B_d/P_d cos θ); Outer-race defect BPFO = N f_r ÷ 2 × (1 − B_d/P_d cos θ); Inner-race defect BPFI = N f_r ÷ 2 × (1 + B_d/P_d cos θ); Ball spin BSF = P_d ÷ (2 B_d) × f_r × (1 − (B_d/P_d cos θ)²) (a ball defect touches both races once per spin, so it often shows at 2 × BSF). They assume the inner ring turns with the shaft and the outer ring is stationary (swap the race formulas for a rotating outer ring, as in many wheel hubs) and pure rolling with no slip. They are THEORETICAL characteristic frequencies: real bearings slip a little (a percent or so is common), so a measured defect line sits near, not exactly on, these values, and seeing energy there is a diagnostic clue, not proof of a defect. Use the manufacturer’s geometry (or published defect frequencies) for your bearing.')}<div class="calc-body">${field('Shaft Speed','bdf_rpm',1800,'RPM')}${field('Number of Rolling Elements (N)','bdf_n',9,'')}${field('Rolling Element Diameter (Bd)','bdf_bd',0.3125,'in')}${field('Pitch Diameter (Pd)','bdf_pd',1.5,'in')}${field('Contact Angle (θ, 0° radial bearing)','bdf_th',0,'°')}${ok?multiResult([{label:'Shaft Rotation Frequency',value:fr,unit:'Hz',precision:3},{label:'Cage Frequency (FTF)',value:ftf,unit:'Hz',precision:3},{label:'Outer-Race Defect Frequency (BPFO)',value:bpfo,unit:'Hz',precision:3},{label:'Inner-Race Defect Frequency (BPFI)',value:bpfi,unit:'Hz',precision:3},{label:'Ball Spin Frequency (BSF)',value:bsf,unit:'Hz',precision:3},{label:'BPFO Order (× shaft speed)',value:bpfo/fr,unit:'',precision:4},{label:'BPFI Order (× shaft speed)',value:bpfi/fr,unit:'',precision:4}]):certError('Shaft speed must be above 0 (up to 100,000 RPM); the number of rolling elements a whole number from 3 to 100; the element diameter above 0 and smaller than the pitch diameter (up to 100 in); and the contact angle 0–60°.')}</div>${calcFooter('Bearing Defect Frequency')}`;
+};
+const GH11C_gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;};
+RENDERS.gear_mesh_frequency=()=>{
+  const rpm=certValue('gmf_rpm',3000,'RPM'),z1=certValue('gmf_z1',23),z2=certValue('gmf_z2',41);
+  const ok=[rpm,z1,z2].every(Number.isFinite)&&rpm>0&&rpm<=100000&&Number.isInteger(z1)&&Number.isInteger(z2)&&z1>=5&&z1<=1000&&z2>=5&&z2<=1000;
+  let f1=NaN,gm=NaN,n2=NaN,f2=NaN,ht=NaN,na=NaN;
+  if(ok){f1=rpm/60;gm=z1*f1;n2=rpm*z1/z2;f2=n2/60;na=GH11C_gcd(z1,z2);ht=gm*na/(z1*z2);}
+  return `${headerHTML('Gear Mesh Frequency','The rate at which teeth come into mesh in a simple external gear pair: Gear Mesh Frequency = number of teeth × shaft rotation frequency = z₁ × (RPM₁ ÷ 60) = z₂ × (RPM₂ ÷ 60), in Hz (cycles per second). The driven gear turns at RPM₁ × z₁ ÷ z₂. Mesh vibration and gear whine appear at the mesh frequency and its harmonics, usually with sidebands spaced at the two shaft frequencies; the hunting-tooth frequency, GMF × n_a ÷ (z₁ × z₂) with n_a the greatest common divisor of the tooth counts, is how often the same pair of teeth meet again (a tooth fault that meets one particular tooth repeats at this rate). The mesh frequency is a frequency, not a level: it tells you WHERE to look in a spectrum or which speed may excite a resonance, but on its own it predicts neither the noise level nor a failure, which depend on tooth accuracy, load, alignment, lubrication and the structure’s response. Planetary sets and idlers have their own relationships (use the speeds relative to the carrier).')}<div class="calc-body">${field('Gear 1 (Driving) Shaft Speed','gmf_rpm',3000,'RPM')}${field('Gear 1 Number of Teeth (z₁)','gmf_z1',23,'')}${field('Gear 2 Number of Teeth (z₂)','gmf_z2',41,'')}${ok?multiResult([{label:'Gear Mesh Frequency',value:gm,unit:'Hz',precision:3},{label:'Gear 1 Rotation Frequency',value:f1,unit:'Hz',precision:4},{label:'Gear 2 Speed',value:n2,unit:'RPM',precision:2},{label:'Gear 2 Rotation Frequency',value:f2,unit:'Hz',precision:4},{label:'Mesh Order (× gear 1 speed)',value:z1,unit:'',precision:0},{label:'Hunting Tooth Frequency',value:ht,unit:'Hz',precision:5}]):certError('The shaft speed must be above 0 (up to 100,000 RPM), and each tooth count a whole number from 5 to 1,000.')}</div>${calcFooter('Gear Mesh Frequency')}`;
+};
+RENDERS.torsional_resonance_speed=()=>{
+  const mode=sv('trs_mode')==='one'?'one':'two';
+  const k=certValue('trs_k',1000,'lb-ft/deg'),j1=certValue('trs_j1',1.5,'lb·ft²'),j2=mode==='two'?certValue('trs_j2',3,'lb·ft²'):NaN,q=certValue('trs_q',2),op=certValue('trs_op',6000,'RPM');
+  const ok=[k,j1,q,op].every(Number.isFinite)&&(mode==='one'||Number.isFinite(j2))&&k>0&&k<=1e9&&j1>0&&j1<=1e6&&(mode==='one'||(j2>0&&j2<=1e6))&&q>0&&q<=48&&op>0&&op<=100000;
+  let fn=NaN,nres=NaN;
+  if(ok){const K=k*180/Math.PI*1.3558179483314004, J1=j1*0.0421401100938048, J2=mode==='two'?j2*0.0421401100938048:Infinity;   // N·m/rad, kg·m²
+    const w=Math.sqrt(K*(1/J1+(mode==='two'?1/J2:0)));fn=w/(2*Math.PI);nres=60*fn/q;}
+  return `${headerHTML('Torsional Resonance Speed','A simplified estimate of the engine or shaft speed at which a torsional excitation order meets the first torsional natural frequency of a lumped system. Two models: ONE inertia J₁ on a shaft of torsional stiffness K whose other end is held fixed, ω = √(K ÷ J₁); or TWO inertias joined by the shaft and free at both ends (for example a flywheel and a crank or a driveline mass), ω = √(K × (1/J₁ + 1/J₂)). The natural frequency is f = ω ÷ 2π (K in torque per radian). An excitation of order q (q events per shaft revolution: a four-stroke engine’s firing order is cylinders ÷ 2, so 2 for a four-cylinder and 4 for a V8; a Cardan joint at an angle excites order 2 of the shaft) reaches that frequency at Resonance Speed = 60 × f ÷ q RPM. A ratio of operating speed to resonance speed near 1 means that order crosses the resonance at that speed. This is NOT a torsional-dynamics simulation: it covers one mode of an undamped two-mass model, ignores the damping and the variable inertia of a real crank, the other modes of a multi-mass driveline, gear backlash and engagement, and needs every inertia referred to the same shaft (multiply an inertia on the other side of a gear ratio by the ratio squared). Use it to see whether a resonance sits near the operating range, then confirm with a full torsional analysis or measurement.')}<div class="calc-body">${selectField('System Model','trs_mode',[{v:'two',l:'Two inertias on a shaft (free-free)'},{v:'one',l:'One inertia on a shaft fixed at the other end'}],mode)}${field('Torsional Stiffness of the Shaft (K)','trs_k',1000,'lb-ft/deg')}${field('Inertia 1 (J₁)','trs_j1',1.5,'lb·ft²')}${mode==='two'?field('Inertia 2 (J₂)','trs_j2',3,'lb·ft²'):''}${field('Excitation Order (events per revolution)','trs_q',2,'')}${field('Operating Speed to Compare','trs_op',6000,'RPM')}${ok?multiResult([{label:'Torsional Natural Frequency',value:fn,unit:'Hz',precision:3},{label:'Natural Frequency as Shaft Speed (order 1)',value:60*fn,unit:'RPM',precision:0},{label:'Resonance Speed for This Order',value:nres,unit:'RPM',precision:0},{label:'Operating Speed ÷ Resonance Speed',value:op/nres,unit:'',precision:3}]):certError('The torsional stiffness must be above 0 (up to 1,000,000,000 lb-ft/deg), each inertia above 0 (up to 1,000,000 lb·ft²), the excitation order above 0 and up to 48, and the operating speed above 0 (up to 100,000 RPM).')}</div>${calcFooter('Torsional Resonance Speed')}`;
+};
 })();
 </script>
 
@@ -12214,6 +12247,12 @@ RENDERS.minimum_bend_radius=()=>{
     T('bend_deduction 90 deg K 0.4448','bend_deduction',{bd_t:0.0625,bd_r:0.0625,bd_a:90,bd_k:0.4448,bd_la:1,bd_lb:1},'Bend Deduction',0.25-Math.PI/2*(0.0625+0.4448*0.0625),0.0001,'2 OSSB - BA');
     T('minimum_bend_radius Ar 10','minimum_bend_radius',{mbr_t:0.125,mbr_ra:10,mbr_r:0.25},'Minimum R/t',4,0.001,'50/Ar - 1');
     T('minimum_bend_radius Ar 30','minimum_bend_radius',{mbr_t:0.125,mbr_ra:30,mbr_r:0.25},'Minimum R/t',4900/5100,0.001,'(100-Ar)^2/(200Ar-Ar^2)');
+    /* Batch 11c, C1 (2026-10-14) */
+    T('bearing_defect_frequency BPFO 1800 rpm 9 balls','bearing_defect_frequency',{bdf_rpm:1800,bdf_n:9,bdf_bd:0.3125,bdf_pd:1.5,bdf_th:0},'BPFO',106.875,0.001,'N fr/2 (1 - Bd/Pd cos th)');
+    T('bearing_defect_frequency BPFI','bearing_defect_frequency',{bdf_rpm:1800,bdf_n:9,bdf_bd:0.3125,bdf_pd:1.5,bdf_th:0},'BPFI',163.125,0.001,'N fr/2 (1 + Bd/Pd cos th)');
+    T('gear_mesh_frequency 3000 rpm 23 teeth','gear_mesh_frequency',{gmf_rpm:3000,gmf_z1:23,gmf_z2:41},'Gear Mesh Frequency',1150,0.001,'z1 rpm/60');
+    T('gear_mesh_frequency hunting 20/40','gear_mesh_frequency',{gmf_rpm:3000,gmf_z1:20,gmf_z2:40},'Hunting Tooth',25,0.0001,'GMF gcd/(z1 z2)');
+    T('torsional_resonance_speed two-mass 1000 lb-ft/deg','torsional_resonance_speed',{trs_k:1000,trs_j1:1.5,trs_j2:3,trs_q:2,trs_op:6000},'Natural Frequency',216.0898,0.01,'sqrt(K(1/J1+1/J2))/2pi');
 
     // Retired aliases (GH_CALC_ALIASES, GH-DEF-008): each must stay mapped to its canonical calculator and still render exactly what the
     // canonical renders for the same inputs, so a retired id cannot silently drift from (or stop pointing at) the calculator that replaced it.
