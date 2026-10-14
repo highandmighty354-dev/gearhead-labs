@@ -20,17 +20,17 @@ The early $1.99 Garage / $3.99 additional-profile concept is retired and impleme
 |---|---|
 | Free public calculators (F1.12.4; F1.12.3 is the frozen baseline) | **585** |
 | Calculators migrated from Free to Premium (owner-approved audit, 2026-10-06) | **21** |
-| Premium Calculator Expansion calculators (net-new, no Free counterpart; owner-approved brief, 2026-10-07-) | **133** (of 143 approved; see below) |
+| Premium Calculator Expansion calculators (net-new, no Free counterpart; owner-approved brief, 2026-10-07-) | **135** (of 143 approved; see below) |
 | Premium-only tools: the Engineering Lab, E01–E14 (10 analyzers, 4 workbenches) | **14** |
-| Premium-only tools total (21 migrated + 133 expansion calculators + 14 Engineering Lab) | **168** |
-| Tools available in Premium (Free + Premium-only) | **753** |
-| Premium expansion tools validated from approved work (E01–E14 + expansion calculators) | **147** |
+| Premium-only tools total (21 migrated + 135 expansion calculators + 14 Engineering Lab) | **170** |
+| Tools available in Premium (Free + Premium-only) | **755** |
+| Premium expansion tools validated from approved work (E01–E14 + expansion calculators) | **149** |
 | Approved future Premium tools (not yet built) | **0** |
 | Aliases (alternate ids, never counted) | 6 |
 
 Free calculators by lab: universal 315, gasoline 162, diesel 42, EV 39, towing 27 (585 total; see "Calculators migrated from Free to Premium" below for the 21 that moved out of these lab counts on 2026-10-06; the Premium Calculator Expansion's calculators were never Free and so never counted in these lab totals).
 
-*Table updated 2026-10-14 after Batch 14 stage 1 (it had last been updated after Batch 10, at 90 expansion calculators, until Batch 13; the narrative paragraphs below still describe that point, and the batch sections hold the detail). The figures match `catalog/build-catalog.js` and `run-tests.sh`'s catalog check: 133 expansion, 168 Premium-only, 753 in Premium, 147 validated.*
+*Table updated 2026-10-14 after Batch 14 stage 2 (it had last been updated after Batch 10, at 90 expansion calculators, until Batch 13; the narrative paragraphs below still describe that point, and the batch sections hold the detail). The figures match `catalog/build-catalog.js` and `run-tests.sh`'s catalog check: 135 expansion, 170 Premium-only, 755 in Premium, 149 validated.*
 
 **751 is the current Premium catalog, not the final one.** The Premium catalog is still incomplete, implemented batch by batch. The historical target of about 752 tools (612 Free plus about 140 Premium expansion tools) is still not used here, for two reasons:
 - the authoritative baseline for calculator-kind tools before the expansion began was 606 (585 Free + 21 migrated to Premium), not 612;
@@ -91,7 +91,8 @@ Saving is not being extended to new tools while the catalog is incomplete. The e
 - **Decided (2026-10-14, owner approval), example-default policy:** Cutting Force (specific cutting force k_c) and Tool Life (Taylor n and C) keep their example material constants as defaults. They are labelled as examples on the page and in the box labels, the user can replace them, and nothing states or implies that they are validated for the user's material or cutting conditions. The same applies to any future calculator whose empirical constant needs a starting value.
 - **Decided (2026-10-14, owner authorization for Batch 13):** Scavenging / Charging Efficiency and Port Timing from Measured Geometry (classed "Analyzer" in the reconciliation) are built as calculators, with their limits stated on the page. The Batch 13 formula decisions (tuned-pipe model with an explicit exhaust-gas temperature, scavenging definitions and the two ideal reference curves, crankcase compression ratio convention) are recorded in the Batch 13 section.
 - **Decided (2026-10-14, owner authorization, Batch 14 stage 1):** Regenerative Braking Energy Recovery and Battery Pack Heat Balance only, from the Batch 14 model specification; heat rows in W (RETAIN-ACCESSORY), EV power in native kW (EV_POWER), energies kWh / Wh / kJ on a page selector. The specification's battery transient was corrected (see the Batch 14 stage 1 section).
-- **Open: next batch.** Batch 11 (37) and Batch 13 (4) are complete; Batch 14 stage 1 (2 of 6) is done. 10 approved items remain: the other four Batch 14 calculators (Motor Thermal Limit, Inverter Thermal Load, DC Fast-Charge Time, Hybrid Power-Split Device Kinematics), which wait for owner decisions D-14-1 to D-14-8 and their own authorization, and Batch 16 Workbenches (6), unauthorized. No batch starts without explicit authorization.
+- **Decided (2026-10-14, owner authorization, Batch 14 stage 2):** Motor Thermal Limit and Inverter Thermal Load (Mode A only), with decisions S2-1 to S2-8 (`claude/batch-14-stage2-decisions.md` in the project): loss rows in W (RETAIN-ACCESSORY), EV power in native kW, motor input power or torque + speed (torque EV_TORQUE, lb-ft under Auto), τ as the motor heat-storage input with C as a result, the extrapolated continuous output kept and labelled, copper-loss feedback left out, no inverter junction estimate and no Mode B selector.
+- **Open: next batch.** Batch 11 (37) and Batch 13 (4) are complete; Batch 14 stages 1 and 2 (4 of 6) are done. 8 approved items remain: DC Fast-Charge Time and Hybrid Power-Split Device Kinematics (owner decisions D-14-5, D-14-6, D-14-2 and their own authorization) and Batch 16 Workbenches (6), unauthorized. Inverter Thermal Load's Mode B is also outstanding: it is not ready (its application-note equations and switching-loss scaling are unverified; D-14-4). No batch starts without explicit authorization.
 - **Open: E01–E14 QA counting.** They are live in the Premium Engineering Lab, but ENGINEERING_EXPANSION_CATALOG_V1.md says they are not counted as public calculators until QA sign-off.
 
 ### Calculators excluded from saving (119)
@@ -254,7 +255,7 @@ Note on `turbo_sizing`: its promotion copy explicitly distinguishes it from the 
 
 Access is gated client-side only (same approach as the Engineering Lab, `premium/engineering-bridge.js`): `premium-calculator-gating.js` wraps each of these 21 ids' render function and nav entry, checking `GHP.services.entitlements.isPremium()` fresh on every render. It grants no access and talks to no database — these calculators are entirely client-side math, same as every Free calculator, so there is nothing for Supabase RLS to enforce here. What Supabase enforces is Premium status itself (`entitlement_grants`, `pf_has_feature`; see `PREMIUM_ARCHITECTURE.md`), which this gate reads but never decides.
 
-## Premium Calculator Expansion (133 of 143 approved, batch by batch)
+## Premium Calculator Expansion (135 of 143 approved, batch by batch)
 
 Decided 2026-10-07, from a Phase 1 reconciliation and exception-resolution pass that re-examined the 147-candidate future roadmap (left unapproved by the original Premium Migration Audit, above) against the live code. **143 candidates** were approved for implementation as net-new Premium-only calculators; 1 was held for a follow-up merge decision and 3 were rejected (duplicates or out of scope — see `claude/premium-expansion-phase1-exceptions-resolved.md` and `claude/premium-expansion-batch-plan.md` in the project). Implementation proceeds in 16 named engineering-family batches on the `premium/full-calculator-expansion` branch; each batch is implemented, QA'd (unit/formula tests, catalog validation, browser smoke tests, Premium gating tests, metric/imperial tests, NaN/Infinity/undefined scan) and committed before the next begins. `main` is untouched until the expansion is reviewed and merged.
 
@@ -512,7 +513,7 @@ Batch 11a itself is complete (code and tests `f9cbdae`, docs `f6f6a89`). These a
 | F-11A-01 | Calculator classification of Mohr's Circle, Fatigue Goodman Analysis and Fatigue Soderberg Analysis (classed "Analyzer" in the Phase 1 reconciliation, built as calculators) | **CLOSED** (owner-approved 2026-10-14) | Kept as calculators, consistent with the Batch 11 plan. An Analyzer-oriented enhancement (for example an interactive Goodman diagram) would be separate, separately authorized scope. |
 | F-11A-02 | No engine self-test assertions (`GH_SELFTEST_SUITE`) were added for the 15 Batch 11a calculators (Batch 10 added 46 for its 9) | **DEFERRED** (future QA improvement) | Batch 11a is not reopened for this: its independent suites (`structural-11a` 793 checks, `unit-system` 15 cases) and the full 30-suite browser regression passed. Batch 11b did add self-test assertions for all 13 of its calculators (18 assertions); the 11a ones remain to be added with a later authorized engine change. |
 | F-11A-03 | Commit granularity: Groups A and B of Batch 11a share one code commit (`f9cbdae`, which also holds Group C) | **DEFERRED** (traceability / process improvement; history not rewritten) | Applied from Batch 11b on: one code-and-tests commit per sub-group (`ff7d826` B1, `06343d4` B2, `2d05b9a` B3), the defect entry in its own commit (`bb40ff1`), then one docs commit. |
-| F-11A-04 | Release controls | **AWAITING AUTHORIZATION** | Batch 11a is complete at `f6f6a89`, Batch 11b at `2d05b9a` (docs `d2e82c0`), Batch 11c (authorized 2026-10-14) at `605196f` (docs `f83411b`) Batch 13 (authorized 2026-10-14) at `3dfa4e3` (docs `87eb6c9`) and Batch 14 stage 1 (2 calculators, authorized 2026-10-14) at `45a2177` plus its docs commit, on `premium/full-calculator-expansion`; `main` is still `a4203cd`. No merge, deployment or migration has been authorized. GH-ENG-014 remains unapplied and separately gated (authorizations A and B). No further batch may begin without explicit owner authorization. |
+| F-11A-04 | Release controls | **AWAITING AUTHORIZATION** | Batch 11a is complete at `f6f6a89`, Batch 11b at `2d05b9a` (docs `d2e82c0`), Batch 11c (authorized 2026-10-14) at `605196f` (docs `f83411b`) Batch 13 (authorized 2026-10-14) at `3dfa4e3` (docs `87eb6c9`) and Batch 14 stage 1 (2 calculators) at `45a2177` (docs `df85938`, `71de139`) and stage 2 (2 calculators) at `3736b91` plus its docs commit, on `premium/full-calculator-expansion`; `main` is still `a4203cd`. No merge, deployment or migration has been authorized. GH-ENG-014 remains unapplied and separately gated (authorizations A and B). No further batch may begin without explicit owner authorization. |
 
 ### Batch 11b — Joints and Fabrication (13, done 2026-10-14)
 
@@ -869,6 +870,93 @@ The E1B cases cover:
   - **Not dismissed.** This is the same intermittent race already recorded as GH-DEF-035. It was seen in the Batch 11c and Batch 13 regressions on the engines of `605196f` and `3dfa4e3`, before any Batch 14 code, and it never involves a Batch 14 calculator.
   - **Frequency.** Whole-suite `nav-return` has failed in 5 of its 7 runs on this branch since Batch 11c. The evidence is recorded here, separately. GH-DEF-035 stays OPEN, and its register entry was not investigated or modified, as the stage-1 authorization requires. **`nav-return` therefore does not pass on this branch at present.** Every other suite does.
 - **Commits:** `6f85783` (E1A), `45a2177` (E1B).
+
+### Batch 14, stage 2 — Motor Thermal Limit and Inverter Thermal Load, Mode A (2 of 6, done 2026-10-14)
+
+The owner authorized these two calculators on 2026-10-14, after the Stage 2 decision table (S2-1 to S2-8, `claude/batch-14-stage2-decisions.md` in the project). The model definition is [`docs/BATCH-14-SPECIFICATION.md`](BATCH-14-SPECIFICATION.md) revision 1.1, §2.2 and §2.3 Mode A.
+- **Not implemented or investigated:** Mode B of Inverter Thermal Load, DC Fast-Charge Time and Hybrid Power-Split Device Kinematics.
+- **Not changed:** Regenerative Braking and Battery Pack Heat Balance (Stage 1), and the existing EV Inverter Loss calculator.
+
+| sub-group | id | name | category | model |
+|---|---|---|---|---|
+| E2A | `motor_thermal_limit` | Motor Thermal Limit | `EV / THERMAL` | Single node C dT/dt = P_loss − (T − T_c) ÷ R_th, with C = τ ÷ R_th (τ the input). P_loss = P_out (1/η − 1), P_out from power or from torque × ω. T_ss = T_c + P_loss R_th. Time-limited when T_ss > T_lim, with t = τ ln((T_ss − T₀) ÷ (T_ss − T_lim)). Continuous loss (T_lim − T_c) ÷ R_th; extrapolated continuous output at η |
+| E2B | `inverter_thermal_load` | Inverter Thermal Load | `EV / THERMAL` | Mode A, steady state: loss = P_out (1/η − 1) (AC output). Coolant rise = loss ÷ (ṁ c_p); outlet; mean = inlet + rise ÷ 2; heatsink (baseplate) = mean + loss × R_th. No junction estimate, no mode selector |
+
+**Owner decisions applied.**
+
+| Decision | Applied as |
+|---|---|
+| S2-1 | Loss rows and the continuous loss capacity are W (`RETAIN-ACCESSORY`). EV power rows are native kW (`EV_POWER`) |
+| S2-2 | Motor input selector: shaft power, or torque + speed. Torque is `EV_TORQUE`, lb-ft under Auto and N·m on the Torque preference, read through the existing performance token |
+| S2-3 | τ (s) is the input; C (J/K) is a result |
+| S2-4 | The approved example values are the defaults. Every box is labelled "(example)" and the help text says none is a specification or guaranteed limit |
+| S2-5 | Inverter: coolant and heatsink temperatures only. The page explains why no junction temperature is estimated |
+| S2-6 | "Continuous Output if Efficiency Stayed the Same (extrapolation, not a rating)" is kept. A time-limited point is reported in a ⚠ note as "NOT a continuous rating" |
+| S2-7 | Copper-loss temperature feedback is left out. The note says the real time to the limit is likely shorter |
+| S2-8 | No Mode B option or selector |
+
+**Wording discrepancy in the authorization, resolved by the specification.** The Stage 2 authorization listed the inverter example as "Input power: 100 kW". It also gave the expected loss as about 3.09 kW. Taken literally, 100 kW of *input* at 97 % would lose 3.00 kW. The specification (§2.3), the decision table and the expected 3.09 kW all describe 100 kW of AC *output*, so the box is "AC Output Power" and the DC input (103.09 kW) is a result. This is noted for owner review; it is not a model change.
+
+**Units.**
+- **Motor:** power kW (native); torque lb-ft ↔ N·m by the Torque preference (lb-ft in both systems under Auto); temperatures °F ↔ °C; R_th K/W, τ s and C J/K are the same in both systems.
+- **Inverter:** power kW (native); loss W; coolant flow lbs/min ↔ kg/min; rise Δ°F ↔ Δ°C; temperatures °F ↔ °C; c_p J/kg·K and R_th K/W are the same in both systems.
+- **New census units:** J/K and K/W, classified as metric-declared.
+
+**Motor worked example** (approved): 150 kW at 94 %, R_th 0.012 K/W, τ 180 s, coolant 65 °C, start 90 °C, limit 150 °C.
+
+| Result | Value |
+|---|---|
+| C | 15,000 J/K |
+| Loss | 9,574.47 W |
+| Steady winding temperature | 179.89 °C (355.81 °F), above the limit, so **time-limited** |
+| Time to 150 °C | **198.18 s** |
+| Continuous loss capacity | 7,083.33 W |
+| Continuous output if η stayed 94 % | 110.972 kW (extrapolation) |
+
+- **Independent checks:** Euler integration of the single-node equation gives 198.177 s, and bisection on P for T_ss = T_lim gives 110,972.2 W.
+- **Torque input:** 221.3 lb-ft at 4,775 RPM is 150.032 kW, and gives the same physics.
+- **Other checks:** doubling τ doubles the time to the limit; 100 kW is reported as continuous (141.60 °C).
+
+**Inverter worked example** (approved): 100 kW AC output at 97 %, coolant 0.15 kg/s at 65 °C, c_p 3,500 J/kg·K, R_th 0.01 K/W.
+
+| Result | Value |
+|---|---|
+| DC input | 103.093 kW |
+| Loss | **3,092.78 W (3.09 kW)** |
+| Coolant rise | 5.891 K |
+| Outlet / mean coolant | 70.891 / 67.946 °C |
+| Heatsink | **98.873 °C** (209.97 °F) |
+
+- **Independent checks:** loss as P_in − P_out instead of P_out (1/η − 1); the mean coolant temperature by averaging a discretised coolant profile under uniform heat flux.
+- **Heat balance:** ṁ c_p × rise = 525 W/K × 5.8910 K = 3,092.78 W = loss.
+
+**Verification.**
+- **Tests first.**
+  - Motor: the new `structural-14` E2A group failed 34 of 35 checks before the code, and its `unit-system` case failed all 5 runs.
+  - Inverter: E2B failed 27 of 29, and its `unit-system` case failed all 5.
+
+| structural-14 group | Closed-form cases | Invalid inputs | Checks | Failures |
+|---|---|---|---|---|
+| E2A | 5 × 2 systems | 29 | 119 | 0 |
+| E2B | 3 × 2 systems | 24 | 91 | 0 |
+
+- **unit-system** (SI formulas, re-entry and repeated toggles): motor 189 checks, inverter 150 checks, 0 failures.
+- **Engine self-test:** 4 new assertions, 725 / 725.
+- **Census:**
+  - unit-census: 741 calculators, 3,022 checks;
+  - declared-metric-units: 0 unprotected;
+  - mass-force: 854 checks, no rows added;
+  - unit-factors: 574 checks;
+  - performance-census (full run): 9 rows added (motor: 3 EV_POWER, 1 EV_TORQUE, 2 W; inverter: 2 EV_POWER, 1 W), 0 failed. It also checked the torque box under the N·m preference.
+- **Counts:** 739 → 741 calculator-kind tools, 154 → 156 Premium calculators, 133 → 135 expansion.
+- **run-tests.sh:** catalog OK (135 expansion), register OK, frontend 55/55, schema 26/26.
+- **Full browser regression** (34 suites, after both calculators): **33 of 34 suites passed with 0 failures; the full regression does NOT pass.** Passing suites include: self-test 725/725; smoke 19/19 with 741 calculator-kind tools; unit-system 7,058; toggle-sweep 741 swept (1 known-open); label-consistency 741 consistent; negative-zero 741 + 741; performance-units 95; performance-census 0 failed; structural-14 622 (all four Batch 14 calculators).
+  - **`nav-return` failed on one older converter,** `hp_to_ps`: the "back" result panel was empty and the live one correct, the GH-DEF-035 signature.
+  - **Re-run alone:** `hp_to_ps` passed, and the four Batch 14 calculators passed (4 consistent). In the full run all four were consistent as well.
+  - **Not dismissed.** Whole-suite `nav-return` has now failed in 6 of its 8 runs on this branch since Batch 11c, always on different older calculators and never on a new one.
+  - **Status of GH-DEF-035:** OPEN. Its register entry was not modified and the race was not investigated, per the Stage 2 authorization.
+  - **Individual calculator results are clean; full-suite success is not.**
+- **Commits:** `67f45ae` (E2A), `3736b91` (E2B).
 
 ## Reliability pass (2026-10-12, between Batch 10 and Batch 11)
 
