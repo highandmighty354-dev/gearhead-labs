@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Gearhead Labs — Batch 14 stage 1 (EV / Hybrid): Regenerative Braking Energy Recovery (E1A) and Battery Pack Heat Balance (E1B, added with its own commit). Closed-form, independent-method, unit-label,
+/* Gearhead Labs — Batch 14 stage 1 (EV / Hybrid): Regenerative Braking Energy Recovery (E1A) and Battery Pack Heat Balance (E1B). Closed-form, independent-method, unit-label,
    Metric/Imperial and invalid-input checks (docs/PREMIUM-CATALOG.md, "Batch 14, stage 1"; the model specification is batch-14-specification.md in the project).
 
    WHAT THIS PROVES, for each calculator it lists, in a real Chromium page with real typing:
@@ -98,6 +98,56 @@ const EX = { m: 2000, v1: 100 / 3.6, v2: 0, a: 2, vmin: 2, pmg: 100e3, pb: 80e3,
   add({ g: 'E1A', id: 'regen_braking_energy', title: 'stop entirely below the cut-out', sel: { rbe_eu: 'kj' }, inputs: RIN(o),
     want: { 'Kinetic Energy Released': [r.KE / 1000, 'kJ'], 'Regenerative Energy at the Wheels': [0, 'kJ'], 'Friction-Brake Energy': [r.KE / 1000, 'kJ'] }, rel: 1e-6 }); }
 
+/* ======================================================= E1B BATTERY PACK HEAT BALANCE ======================================================= */
+/* Model (specification 2.1, with the transient corrected so the coolant obeys its own energy balance; see the PREMIUM-CATALOG Batch 14 section):
+   Q = I² R − I T_K dU/dT (I > 0 discharge); heat to the coolant q = UA (T − T_c,mean), T_c,mean = T_in + q / (2 m_dot c_p)  =>  q = (T − T_in) / R_sum, R_sum = 1/UA + 1/(2 m_dot c_p).
+   Independent oracles: steady state by FIXED-POINT iteration; time to the limit by EULER integration of C dT/dt = Q(T) − q(T). */
+function packSim({ I, R, du = 0, tin, mdot, cp, UA, M, c, t0, tl, tmin = 10 }) {                 // SI and °C
+  const mc = mdot * cp, Rs = 1 / UA + 1 / (2 * mc), C = M * c, Q = T => I * I * R - I * (T + 273.15) * du, q = T => (T - tin) / Rs;
+  let T = tin; for (let i = 0; i < 20000; i++) T = tin + Q(T) * Rs;                                // fixed point (converges when |I du| Rs < 1)
+  const Tss = T, Qss = Q(Tss);
+  let tl_s = NaN; if (t0 < tl && Tss > tl) { let x = t0, t = 0; const dt = 0.01; while (x < tl) { x += dt * (Q(x) - q(x)) / C; t += dt; } tl_s = t; }
+  let x = t0; const dt = 0.01; for (let t = 0; t < tmin * 60 - 1e-9; t += dt) x += dt * (Q(x) - q(x)) / C;
+  /* continuous current to the limit by bisection on I (same direction as the entered current) */
+  const Qmax = (tl - tin) / Rs, sgn = I < 0 ? -1 : 1; let lo = 0, hi = 5000; for (let i = 0; i < 200; i++) { const mid = (lo + hi) / 2, Ii = sgn * mid; (Ii * Ii * R - Ii * (tl + 273.15) * du < Qmax) ? lo = mid : hi = mid; }
+  return { Tss, Qss, joule: I * I * R, rev: -I * (Tss + 273.15) * du, rise: Qss / mc, tout: tin + Qss / mc, tau: C / (I * du + 1 / Rs), tl_s, Tt: x, Qmax, Imax: sgn * lo };
+}
+const BIN = (o) => ({ bphb_i: [o.I, 'A'], bphb_r: [o.R, 'ohm'], bphb_du: [o.du || 0, 'V/K'], bphb_tin: [C2F(o.tin), '°F'], bphb_mf: [o.mdot * 60 / LB, 'lbs/min'], bphb_cp: [o.cp, 'J/kg·K'],
+  bphb_ua: [o.UA, 'W/K'], bphb_m: [o.M / LB, 'lbs'], bphb_c: [o.c, 'J/kg·K'], bphb_t0: [C2F(o.t0), '°F'], bphb_tl: [C2F(o.tl), '°F'], bphb_t: [o.tmin === undefined ? 10 : o.tmin, 'min'] });
+const BWANT = s => ({ 'Joule Heat (I²R)': [s.joule, 'W'], 'Reversible (Entropic) Heat at the Steady Temperature': [s.rev, 'W'], 'Total Heat Generated (steady)': [s.Qss, 'W'],
+  'Coolant Temperature Rise (steady)': [s.rise * 9 / 5, 'Δ°F'], 'Coolant Outlet Temperature (steady)': [C2F(s.tout), '°F'], 'Steady Pack Temperature': [C2F(s.Tss), '°F'],
+  'Thermal Time Constant': [s.tau / 60, 'min'], 'Pack Temperature after the Elapsed Time': [C2F(s.Tt), '°F'], 'Continuous Heat Rejection to the Limit': [s.Qmax, 'W'], 'Continuous Current to the Limit': [s.Imax, 'A'] });
+/* a) the specification's worked example: 250 A, 0.08 ohm, coolant 0.15 kg/s of c_p 3 500 at 25 °C, UA 500 W/K, 450 kg x 1 000 J/kg·K, start 25 °C, limit 35 °C.
+      Steady 39.7619 °C (spec 39.76), continuous 3 387.10 W / 205.764 A (spec 205.8 A). Time to 35 °C: 1 503.15 s (25.05 min). The specification's 1 018 s held the coolant mean at its
+      steady value from t = 0, which makes 25 °C coolant heat a 25 °C pack with 2 381 W; with the coolant's own energy balance the time constant is C x R_sum = 1 328.57 s, not C / UA = 900 s. */
+const BEX = { I: 250, R: 0.08, tin: 25, mdot: 0.15, cp: 3500, UA: 500, M: 450, c: 1000, t0: 25, tl: 35, tmin: 10 };
+{ const s = packSim(BEX);
+  add({ g: 'E1B', id: 'battery_pack_heat_balance', title: 'spec example (current mode)', sel: { bphb_mode: 'current' }, inputs: BIN(BEX),
+    want: { ...BWANT(s), 'Time to Reach the Pack Limit': [s.tl_s / 60, 'min'] },
+    literal: { 'Steady Pack Temperature': C2F(39.7619), 'Continuous Current to the Limit': 205.76, 'Total Heat Generated (steady)': 5000, 'Time to Reach the Pack Limit': 25.05 }, rel: 2e-4 });
+  /* power mode: 100 kW at 400 V is the same 250 A */
+  add({ g: 'E1B', id: 'battery_pack_heat_balance', title: 'power mode: 100 kW at 400 V = 250 A', sel: { bphb_mode: 'power' },
+    inputs: { bphb_p: [100, 'kW'], bphb_v: [400, 'V'], ...Object.fromEntries(Object.entries(BIN(BEX)).filter(([k]) => k !== 'bphb_i')) },
+    want: { 'Pack Current': [250, 'A'], 'Steady Pack Temperature': [C2F(s.Tss), '°F'], 'Time to Reach the Pack Limit': [s.tl_s / 60, 'min'] }, rel: 2e-4 }); }
+/* b) zero current: no heat; the pack settles at the coolant inlet temperature and never reaches the limit */
+{ const o = { ...BEX, I: 0 }, s = packSim(o);
+  add({ g: 'E1B', id: 'battery_pack_heat_balance', title: 'zero current', sel: { bphb_mode: 'current' }, inputs: BIN(o),
+    want: { 'Total Heat Generated (steady)': [0, 'W'], 'Steady Pack Temperature': [77, '°F'], 'Continuous Current to the Limit': [s.Imax, 'A'], 'Pack Temperature after the Elapsed Time': [77, '°F'] },
+    blank: ['Time to Reach the Pack Limit'], notes: [/does not reach the limit/i], rel: 2e-4 }); }
+/* c) discharge with an entropic coefficient of −0.0384 V/K for the pack: extra reversible heat that grows with temperature (fixed point and Euler) */
+{ const o = { ...BEX, du: -0.0384 }, s = packSim(o);
+  add({ g: 'E1B', id: 'battery_pack_heat_balance', title: 'discharge with dU/dT −0.0384 V/K', sel: { bphb_mode: 'current' }, inputs: BIN(o),
+    want: { ...BWANT(s), 'Time to Reach the Pack Limit': [s.tl_s / 60, 'min'] }, rel: 5e-4 }); }
+/* d) the same coefficient while CHARGING at 250 A: the reversible term changes sign and cools */
+{ const o = { ...BEX, I: -250, du: -0.0384 }, s = packSim(o);
+  add({ g: 'E1B', id: 'battery_pack_heat_balance', title: 'charging at 250 A with dU/dT −0.0384 V/K', sel: { bphb_mode: 'current' }, inputs: BIN(o), want: BWANT(s), rel: 5e-4 }); }
+/* e) a pack already above its limit at the start: no time is given, a note says so */
+{ const o = { ...BEX, t0: 40 };
+  add({ g: 'E1B', id: 'battery_pack_heat_balance', title: 'already above the limit', sel: { bphb_mode: 'current' }, inputs: BIN(o), want: {}, blank: ['Time to Reach the Pack Limit'], notes: [/already at or above/i] }); }
+/* f) a conductance more than twice the coolant capacity rate: the mean-coolant model is flagged */
+{ const o = { ...BEX, UA: 2000, mdot: 0.2 }, s = packSim(o);
+  add({ g: 'E1B', id: 'battery_pack_heat_balance', title: 'UA above twice m_dot c_p is flagged', sel: { bphb_mode: 'current' }, inputs: BIN(o), want: { 'Steady Pack Temperature': [C2F(s.Tss), '°F'] }, notes: [/twice the coolant/i], rel: 2e-4 }); }
+
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    INVALID INPUT.
    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -112,6 +162,12 @@ for (const [label, over] of [['end speed above start speed', { rbe_v2: '70' }], 
   ['regen share above 100 %', { rbe_f: '120' }], ['drivetrain efficiency above 100 %', { rbe_edt: '110' }], ['motor-inverter efficiency below 50 %', { rbe_emi: '40' }], ['battery efficiency above 100 %', { rbe_eb: '101' }],
   ['zero motor power limit', { rbe_pmg: '0' }], ['zero battery charge limit', { rbe_pb: '0' }], ['rotating-mass factor below 1', { rbe_k: '0.9' }], ['rotating-mass factor above 1.3', { rbe_k: '1.5' }]])
   bad('E1A', 'regen_braking_energy', BASE.regen_braking_energy, label, over, SEL.regen_braking_energy);
+BASE.battery_pack_heat_balance = flat(BIN(BEX)); SEL.battery_pack_heat_balance = { bphb_mode: 'current' };
+sweepBad('E1B', 'battery_pack_heat_balance', Object.keys(BASE.battery_pack_heat_balance), ['bphb_i', 'bphb_du', 'bphb_tin', 'bphb_t0', 'bphb_tl']);
+for (const [label, over] of [['zero resistance', { bphb_r: '0' }], ['zero coolant flow', { bphb_mf: '0' }], ['zero UA', { bphb_ua: '0' }], ['zero pack mass', { bphb_m: '0' }],
+  ['specific heat below 300', { bphb_c: '200' }], ['zero coolant specific heat', { bphb_cp: '0' }], ['limit not above the coolant inlet', { bphb_tl: '70' }], ['current above 3 000 A', { bphb_i: '3500' }],
+  ['|dU/dT| above 1 V/K', { bphb_du: '1.5' }], ['an entropic term with no steady state (heating grows faster than cooling)', { bphb_i: '2000', bphb_du: '-0.9' }]])
+  bad('E1B', 'battery_pack_heat_balance', BASE.battery_pack_heat_balance, label, over, SEL.battery_pack_heat_balance);
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    HARNESS
@@ -177,7 +233,7 @@ async function runInvalid(page, b) {
 }
 
 (async () => {
-  const groups = (process.env.GROUP || 'E1A').split(',');
+  const groups = (process.env.GROUP || 'E1A,E1B').split(',');
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });
   const page = await (await browser.newContext()).newPage(); page.setDefaultTimeout(8000);
   const pageErrors = []; page.on('pageerror', e => pageErrors.push(String(e)));

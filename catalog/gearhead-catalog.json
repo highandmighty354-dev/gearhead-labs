@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "31def8e4cb4d6a470b09ad10f3d53a622c87937af893574061ae5154fb5f6349"
+      "sha256": "7a33b674b5d1b5fda366b7fb3f6c4f19b6e3358b7390aed073c74b5488c9aefa"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -12,7 +12,7 @@
     },
     "models": {
       "file": "premium/models.js",
-      "sha256": "449300a3433181acef500ef38d1e5c3b0a8a50f03d316d11dc93116753221255"
+      "sha256": "6da1b862e97806f2fcfed068556fab119d17467603794a3f32080513b02c813b"
     },
     "engineering": {
       "file": "engineering-expansion-v1.js",
@@ -22,10 +22,10 @@
   "counts": {
     "free_public_calculators": 585,
     "migrated_premium_calculators": 21,
-    "premium_expansion_calculators": 132,
+    "premium_expansion_calculators": 133,
     "engineering_lab_tools": 14,
-    "premium_only_tools": 167,
-    "premium_total_access": 752,
+    "premium_only_tools": 168,
+    "premium_total_access": 753,
     "aliases_not_counted": 6,
     "free_by_lab": {
       "universal": 315,
@@ -35,22 +35,22 @@
       "ev": 39
     },
     "premium_by_kind": {
-      "calculator": 153,
+      "calculator": 154,
       "workbench": 4,
       "analyzer": 10
     },
     "save": {
       "eligible": 577,
-      "excluded": 161,
+      "excluded": 162,
       "saveable": 14
     },
-    "premium_expansion_validated": 146,
+    "premium_expansion_validated": 147,
     "approved_future_tools": 0
   },
   "decisions": [
-    "Owner decision 2026-10-06: the 161 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
+    "Owner decision 2026-10-06: the 162 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
     "Owner decision 2026-10-06: 21 existing Free calculators are migrated to Premium, cutting the originally-proposed 70-item list to the 21 the audit actually recommended (Gearhead_Labs_Premium_Migration_AUDIT.xlsx; 49 rejected as Engineering Lab duplicates, SEO/on-ramp anchors, or workbook-arithmetic errors). Free drops from 606 to 585; the Engineering Lab (E01-E14) is unaffected. The 147-item future roadmap remains unimplemented and uncounted.",
-    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 132 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
+    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 133 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
   ],
   "premium_migration": {
     "rule": "A Free calculator moves to Premium only from an owner-approved audit in this repository (Gearhead_Labs_Premium_Migration_AUDIT.xlsx). Each migrated calculator keeps a named Free companion as its on-ramp and stays visible (not hidden) in the Free calculator navigation with a Premium indicator.",
@@ -186,7 +186,7 @@
   },
   "premium_expansion": {
     "rule": "A Premium tool enters this catalog only from approved engineering/product work in this repository, after QA. No count target (the historical ~140 / 752 figures are not used).",
-    "validated": 146,
+    "validated": 147,
     "sources": [
       {
         "source": "ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)",
@@ -202,11 +202,11 @@
       },
       {
         "source": "Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list from the Phase 1 reconciliation and exception resolution)",
-        "outcome": "132 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 11 remain"
+        "outcome": "133 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 10 remain"
       }
     ],
     "premium_calculators": {
-      "validated": 132,
+      "validated": 133,
       "tools": [
         {
           "id": "ac_power_factor",
@@ -227,6 +227,11 @@
           "id": "axle_shaft_torque_capacity",
           "name": "Axle Shaft Torque Capacity",
           "category": "DRIVETRAIN & GEARING"
+        },
+        {
+          "id": "battery_pack_heat_balance",
+          "name": "Battery Pack Heat Balance",
+          "category": "EV / THERMAL"
         },
         {
           "id": "bearing_defect_frequency",
@@ -1475,6 +1480,7 @@
     {"id":"anti_roll_bar_wheel_rate","name":"Anti-Roll Bar Wheel Rate","category":"UNIVERSAL / VEHICLE DYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Anti-Roll Bar Wheel Rate — the general torsion-bar sizing formula behind the Free Circle Track Sway Bar calculator, with an editable shear modulus and the bar’s actual wheel-rate effect via the motion ratio."},
     {"id":"anti_squat_from_link_coordinates","name":"Anti-Squat from Link Coordinates","category":"UNIVERSAL / VEHICLE DYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Anti-Squat from Link Coordinates — builds the Instant Center Height that the Free Anti-Squat % calculator takes as a direct input, from actual suspension link geometry."},
     {"id":"axle_shaft_torque_capacity","name":"Axle Shaft Torque Capacity","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Axle Shaft Torque Capacity — the same shaft-torsion strength limit as Driveshaft Torque Capacity, framed the way axle specs are quoted: yield torque and safe working torque after a safety factor."},
+    {"id":"battery_pack_heat_balance","name":"Battery Pack Heat Balance","category":"EV / THERMAL","lab":"ev","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Battery Pack Heat Balance — pack heat, steady and transient temperature against the coolant, and the continuous current to a limit."},
     {"id":"bearing_defect_frequency","name":"Bearing Defect Frequency","category":"UNIVERSAL / NVH","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Bearing Defect Frequency — BPFO, BPFI, ball spin and cage frequencies from bearing geometry."},
     {"id":"bearing_preload","name":"Bearing Preload Calculator","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Bearing Preload Calculator — the same torque-to-clamp-force method as the Free Bolt Torque Spec calculator, applied to a preload/spindle nut instead of a structural bolt."},
     {"id":"bearing_surface_speed","name":"Bearing Journal Surface Speed","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Bearing Journal Surface Speed — the velocity term every bearing PV and oil-film check depends on."},

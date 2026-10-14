@@ -513,7 +513,17 @@ const CASES = [
       const KE = 0.5 * k * m * (v1 * v1 - v2 * v2);
       return { 'Kinetic Energy Released': ['kwh', KE], 'Regenerative Energy at the Wheels': ['kwh', E], 'Friction-Brake Energy': ['kwh', KE - E], 'Energy Delivered to the Battery Terminals': ['kwh', E * edt * emi],
                'Energy Stored (after battery charging loss)': ['kwh', E * edt * emi * eb], 'Recovered at the Battery Terminals (share of kinetic energy)': ['pct', E * edt * emi / KE * 100],
-               'Wheel-Referred Regen Power Limit': ['kw', Pw / 1000], 'Stop Duration': ['seconds', (v1 - v2) / a] }; }, rel: 2e-3 }
+               'Wheel-Referred Regen Power Limit': ['kw', Pw / 1000], 'Stop Duration': ['seconds', (v1 - v2) / a] }; }, rel: 2e-3 },
+  /* ---- E1B: Battery Pack Heat Balance (closed forms; structural-14 checks the transient by Euler integration). Elapsed time last. ---- */
+  { id: 'battery_pack_heat_balance', fields: [['bphb_i', 'none', 200], ['bphb_r', 'none', 0.07], ['bphb_du', 'none', -0.02], ['bphb_tin', 'tempabs', 295.15], ['bphb_mf', 'massflowmin', 0.12],
+      ['bphb_cp', 'none', 3600], ['bphb_ua', 'none', 450], ['bphb_m', 'mass', 400], ['bphb_c', 'none', 1050], ['bphb_t0', 'tempabs', 296.15], ['bphb_tl', 'tempabs', 310.15], ['bphb_t', 'none', 12]],
+    compute: v => { const I = v.bphb_i, R = v.bphb_r, du = v.bphb_du, Tin = v.bphb_tin, mc = v.bphb_mf * v.bphb_cp, Rs = 1 / v.bphb_ua + 1 / (2 * mc), C = v.bphb_m * v.bphb_c, b = I * du;
+      const Tss = (Tin + Rs * (I * I * R)) / (1 + Rs * b), Q = I * I * R - b * Tss, tau = C / (b + 1 / Rs), Tt = Tss - (Tss - v.bphb_t0) * Math.exp(-v.bphb_t * 60 / tau);   // Kelvin throughout
+      const Qmax = (v.bphb_tl - Tin) / Rs, Imax = (du * v.bphb_tl + (I < 0 ? -1 : 1) * Math.sqrt((du * v.bphb_tl) ** 2 + 4 * R * Qmax)) / (2 * R);
+      return { 'Joule Heat (I²R)': ['watts', I * I * R], 'Reversible (Entropic) Heat at the Steady Temperature': ['watts', -b * Tss], 'Total Heat Generated (steady)': ['watts', Q],
+               'Coolant Temperature Rise (steady)': ['tempdiff', Q / mc], 'Coolant Outlet Temperature (steady)': ['tempabs', Tin + Q / mc], 'Steady Pack Temperature': ['tempabs', Tss],
+               'Thermal Time Constant': ['minutes', tau / 60], 'Pack Temperature after the Elapsed Time': ['tempabs', Tt], 'Continuous Heat Rejection to the Limit': ['watts', Qmax],
+               'Continuous Current to the Limit': ['amps', Imax] }; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

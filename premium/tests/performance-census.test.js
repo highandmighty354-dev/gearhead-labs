@@ -61,6 +61,11 @@ const ADDED = [
   ['regen_braking_energy', 'IN|rbe_pb|kW', 'EV_POWER', 'Batch 14 stage 1: the battery charge-acceptance power limit (native kW box)'],
   ['regen_braking_energy', 'OUT|Wheel-Referred Regen Power Limit|kW', 'EV_POWER', 'Batch 14 stage 1: the binding regen power cap referred to the wheels'],
   ['regen_braking_energy', 'OUT|Peak Regen Power at the Wheels|kW', 'EV_POWER', 'Batch 14 stage 1: peak regen power at the wheels'],
+  ['battery_pack_heat_balance', 'IN|bphb_p|kW', 'EV_POWER', 'Batch 14 stage 1: battery power in the power-input mode (native kW box)'],
+  ['battery_pack_heat_balance', 'OUT|Joule Heat (I²R)|W', 'RETAIN-ACCESSORY', 'Batch 14 stage 1: battery heat in W, like ev_battery_heat'],
+  ['battery_pack_heat_balance', 'OUT|Reversible (Entropic) Heat at the Steady Temperature|W', 'RETAIN-ACCESSORY', 'Batch 14 stage 1: battery heat in W'],
+  ['battery_pack_heat_balance', 'OUT|Total Heat Generated (steady)|W', 'RETAIN-ACCESSORY', 'Batch 14 stage 1: battery heat in W'],
+  ['battery_pack_heat_balance', 'OUT|Continuous Heat Rejection to the Limit|W', 'RETAIN-ACCESSORY', 'Batch 14 stage 1: coolant heat capacity in W'],
 ];
 /* inventory rows the table does not carry: [calc, kind, key, why] */
 const DROPPED = [];
