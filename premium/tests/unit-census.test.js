@@ -50,7 +50,7 @@ const PAIRS = {
   'ksi': ['MPa', LBF / (IN * IN) / 1000], 'Mpsi': ['GPa', LBF / (IN * IN) / 1000], 'lb-ft/deg': ['N·m/deg', LBF * FT]   // Batch 11a: stress, modulus, torsional stiffness
 };
 const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
-const N_CALCS = 711;                                                                   // 696 + Batch 11a
+const N_CALCS = 717;                                                                   // 696 + Batch 11a
 
 (async () => {
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });

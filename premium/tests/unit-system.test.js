@@ -149,6 +149,9 @@ const col = (E, Sy, od, id, L, Kf, johnson) => {
   else { out['Governing Critical Load'] = ['forcelbf', Pe]; out['Governing Critical Stress'] = ['stress', Pe / A]; }
   return out;
 };
+/* Batch 11b: UN tensile stress area in SI from a diameter in metres and threads per inch; FED-STD-H28/2B thread shear areas per unit engagement (n threads per metre, diameters in metres) */
+const atUNsi = (d, tpi) => Math.PI / 4 * (d - 0.9743 * K.in_m / tpi) ** 2;
+const shearSI = (n, es, kn, ds, en) => ({ as1: Math.PI * n * kn * (1 / (2 * n) + 0.57735 * (es - kn)), an1: Math.PI * n * ds * (1 / (2 * n) + 0.57735 * (ds - en)) });
 const CASES = [
   aeroForce('drag_force',  'Drag Force',  'df_cd',  'df_a',  'df_v',  0.28, 2.2, 36.1),
   aeroForce('downforce',   'Downforce',   'dnf_cl', 'dnf_a', 'dnf_v', 1.35, 2.6, 55.0),
@@ -371,7 +374,33 @@ const CASES = [
   { id: 'fatigue_soderberg', fields: [['fs_max', 'stress', 2.5e8], ['fs_min', 'stress', 5e7], ['fs_se', 'stress', 2.0e8], ['fs_sy', 'stress', 4.5e8]],
     compute: v => { const sa = (v.fs_max - v.fs_min) / 2, sm = (v.fs_max + v.fs_min) / 2;
       return { 'Alternating Stress (σa)': ['stress', sa], 'Mean Stress (σm)': ['stress', sm], 'Fatigue Safety Factor (Soderberg)': ['ratio', sm >= 0 ? 1 / (sa / v.fs_se + sm / v.fs_sy) : v.fs_se / sa],
-               'Allowable Alternating Stress at This Mean': ['stress', sm >= 0 ? v.fs_se * (1 - sm / v.fs_sy) : v.fs_se], 'Yield Safety Factor (first cycle, Langer)': ['ratio', v.fs_sy / Math.max(Math.abs(v.fs_max), Math.abs(v.fs_min))] }; }, rel: 2e-3 }
+               'Allowable Alternating Stress at This Mean': ['stress', sm >= 0 ? v.fs_se * (1 - sm / v.fs_sy) : v.fs_se], 'Yield Safety Factor (first cycle, Langer)': ['ratio', v.fs_sy / Math.max(Math.abs(v.fs_max), Math.abs(v.fs_min))] }; }, rel: 2e-3 },
+
+  /* ---- Batch 11b, B1 fasteners (default thread standard: UN, diameter in -> mm, threads per inch a count in both systems). A_t = pi/4 (d - 0.9743/n)^2 with n per metre = tpi / 0.0254 ---- */
+  { id: 'bolt_tensile_capacity', fields: [['btc_d', 'length', 0.016], ['btc_tpi', 'none', 14], ['btc_sp', 'stress', 6.0e8], ['btc_su', 'stress', 8.3e8], ['btc_n', 'none', 2]],
+    compute: v => { const at = atUNsi(v.btc_d, v.btc_tpi);
+      return { 'Tensile Stress Area': ['sqin', at], 'Proof Load': ['forcelbf', at * v.btc_sp], 'Minimum Tensile (Ultimate) Load': ['forcelbf', at * v.btc_su], 'Allowable Tensile Load (proof ÷ safety factor)': ['forcelbf', at * v.btc_sp / v.btc_n] }; }, rel: 2e-3 },
+  { id: 'bolt_shear_capacity', fields: [['bsc_d', 'length', 0.016], ['bsc_tpi', 'none', 14], ['bsc_su', 'stress', 8.3e8], ['bsc_r', 'none', 0.62], ['bsc_m', 'none', 2], ['bsc_n', 'none', 2]],
+    compute: v => { const a = Math.PI / 4 * v.bsc_d ** 2, uc = v.bsc_m * a * v.bsc_r * v.bsc_su;   // default: shear plane through the shank
+      return { 'Shear Area per Plane': ['sqin', a], 'Ultimate Shear Capacity': ['forcelbf', uc], 'Allowable Shear Capacity': ['forcelbf', uc / v.bsc_n] }; }, rel: 2e-3 },
+  { id: 'thread_stripping_strength', fields: [['tss_d', 'length', 0.0127], ['tss_tpi', 'none', 13], ['tss_le', 'length', 0.015], ['tss_es', 'length', 0.011265], ['tss_kn', 'length', 0.011024], ['tss_ds', 'length', 0.012385], ['tss_en', 'length', 0.011595],
+                                            ['tss_se', 'stress', 8.3e8], ['tss_si', 'stress', 4.0e8], ['tss_r', 'none', 0.55]],
+    compute: v => { const n = v.tss_tpi / K.in_m, s = shearSI(n, v.tss_es, v.tss_kn, v.tss_ds, v.tss_en), as = s.as1 * v.tss_le, an = s.an1 * v.tss_le, at = atUNsi(v.tss_d, v.tss_tpi);
+      const fe = as * v.tss_r * v.tss_se, fi = an * v.tss_r * v.tss_si, fb = at * v.tss_se;
+      return { 'External Thread Shear Area (As)': ['sqin', as], 'Internal Thread Shear Area (An)': ['sqin', an], 'External Thread Stripping Load': ['forcelbf', fe], 'Internal Thread Stripping Load': ['forcelbf', fi],
+               'Bolt Tensile Breaking Load': ['forcelbf', fb], 'Governing Failure Load': ['forcelbf', Math.min(fe, fi, fb)] }; }, rel: 2e-3 },
+  { id: 'thread_engagement_required', fields: [['ter_d', 'length', 0.0127], ['ter_tpi', 'none', 13], ['ter_es', 'length', 0.011265], ['ter_kn', 'length', 0.011024], ['ter_ds', 'length', 0.012385], ['ter_en', 'length', 0.011595],
+                                             ['ter_se', 'stress', 8.3e8], ['ter_si', 'stress', 4.0e8], ['ter_r', 'none', 0.55]],
+    compute: v => { const n = v.ter_tpi / K.in_m, s = shearSI(n, v.ter_es, v.ter_kn, v.ter_ds, v.ter_en), at = atUNsi(v.ter_d, v.ter_tpi), le = at / (v.ter_r * s.as1), J = (s.as1 * v.ter_se) / (s.an1 * v.ter_si);
+      return { 'Tensile Stress Area': ['sqin', at], 'Engagement for Equal Strength (Le)': ['length', le], 'Material Factor (J)': ['ratio', J], 'Required Length of Engagement': ['length', le * Math.max(1, J)], 'Required Engagement ÷ Nominal Diameter': ['ratio', le * Math.max(1, J) / v.ter_d] }; }, rel: 2e-3 },
+  /* T = K D F; the torque box is a fastener (component) torque like bolt_torque_spec: lb-ft / N.m by system */
+  { id: 'bolt_preload_from_torque', fields: [['bpt_t', 'torque', 80], ['bpt_k', 'none', 0.16], ['bpt_d', 'length', 0.0127], ['bpt_tpi', 'none', 13], ['bpt_sp', 'stress', 6.0e8]],
+    compute: v => { const F = v.bpt_t / (v.bpt_k * v.bpt_d), at = atUNsi(v.bpt_d, v.bpt_tpi);
+      return { 'Estimated Preload': ['forcelbf', F], 'Tensile Stress Area': ['sqin', at], 'Preload Stress (on tensile stress area)': ['stress', F / at], 'Preload ÷ Proof Load': ['pct', F / (at * v.bpt_sp) * 100] }; }, rel: 2e-3 },
+  { id: 'joint_separation', fields: [['js_fi', 'force', 30000], ['js_p', 'force', 12000], ['js_kb', 'springrate', 3.0e8], ['js_km', 'springrate', 1.2e9]],
+    compute: v => { const C = v.js_kb / (v.js_kb + v.js_km), P0 = v.js_fi / (1 - C), sep = v.js_p >= P0;
+      return { 'Joint Stiffness Constant (C)': ['ratio', C], 'Bolt Load': ['forcelbf', sep ? v.js_p : v.js_fi + C * v.js_p], 'Remaining Clamp Load': ['forcelbf', sep ? 0 : v.js_fi - (1 - C) * v.js_p],
+               'Separation Load (P₀)': ['forcelbf', P0], 'Separation Safety Factor': ['ratio', P0 / v.js_p] }; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

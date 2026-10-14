@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "c6a8414a6ce0e0fcc0937f460268822413a7bc40669291e60dc2124997c165cf"
+      "sha256": "25f4809ddd34fff3542ef4df4a2e44a3cc5b0da0a6ceb662f985c2190e91d354"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -12,7 +12,7 @@
     },
     "models": {
       "file": "premium/models.js",
-      "sha256": "4e842bd03bf71549bafd6c1cb1fe06802430ef72244f204feac7ee21ad4e5ee7"
+      "sha256": "87e59574207de929c0db93440450803e0e82f43be4fb5186ef9b7228639148a9"
     },
     "engineering": {
       "file": "engineering-expansion-v1.js",
@@ -22,10 +22,10 @@
   "counts": {
     "free_public_calculators": 585,
     "migrated_premium_calculators": 21,
-    "premium_expansion_calculators": 105,
+    "premium_expansion_calculators": 111,
     "engineering_lab_tools": 14,
-    "premium_only_tools": 140,
-    "premium_total_access": 725,
+    "premium_only_tools": 146,
+    "premium_total_access": 731,
     "aliases_not_counted": 6,
     "free_by_lab": {
       "universal": 315,
@@ -35,22 +35,22 @@
       "ev": 39
     },
     "premium_by_kind": {
-      "calculator": 126,
+      "calculator": 132,
       "workbench": 4,
       "analyzer": 10
     },
     "save": {
       "eligible": 577,
-      "excluded": 134,
+      "excluded": 140,
       "saveable": 14
     },
-    "premium_expansion_validated": 119,
+    "premium_expansion_validated": 125,
     "approved_future_tools": 0
   },
   "decisions": [
-    "Owner decision 2026-10-06: the 134 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
+    "Owner decision 2026-10-06: the 140 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
     "Owner decision 2026-10-06: 21 existing Free calculators are migrated to Premium, cutting the originally-proposed 70-item list to the 21 the audit actually recommended (Gearhead_Labs_Premium_Migration_AUDIT.xlsx; 49 rejected as Engineering Lab duplicates, SEO/on-ramp anchors, or workbook-arithmetic errors). Free drops from 606 to 585; the Engineering Lab (E01-E14) is unaffected. The 147-item future roadmap remains unimplemented and uncounted.",
-    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 105 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
+    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 111 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
   ],
   "premium_migration": {
     "rule": "A Free calculator moves to Premium only from an owner-approved audit in this repository (Gearhead_Labs_Premium_Migration_AUDIT.xlsx). Each migrated calculator keeps a named Free companion as its on-ramp and stays visible (not hidden) in the Free calculator navigation with a Premium indicator.",
@@ -186,7 +186,7 @@
   },
   "premium_expansion": {
     "rule": "A Premium tool enters this catalog only from approved engineering/product work in this repository, after QA. No count target (the historical ~140 / 752 figures are not used).",
-    "validated": 119,
+    "validated": 125,
     "sources": [
       {
         "source": "ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)",
@@ -202,11 +202,11 @@
       },
       {
         "source": "Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list from the Phase 1 reconciliation and exception resolution)",
-        "outcome": "105 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 38 remain"
+        "outcome": "111 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 32 remain"
       }
     ],
     "premium_calculators": {
-      "validated": 105,
+      "validated": 111,
       "tools": [
         {
           "id": "ac_power_factor",
@@ -242,6 +242,21 @@
           "id": "bernoulli_equation",
           "name": "Bernoulli Equation",
           "category": "HYDRAULICS"
+        },
+        {
+          "id": "bolt_preload_from_torque",
+          "name": "Bolt Preload from Torque",
+          "category": "UNIVERSAL / MANUFACTURING"
+        },
+        {
+          "id": "bolt_shear_capacity",
+          "name": "Bolt Shear Capacity",
+          "category": "UNIVERSAL / MATERIALS & STRUCTURES"
+        },
+        {
+          "id": "bolt_tensile_capacity",
+          "name": "Bolt Tensile Capacity",
+          "category": "UNIVERSAL / MATERIALS & STRUCTURES"
         },
         {
           "id": "brake_duct_cfm",
@@ -479,6 +494,11 @@
           "category": "UNIVERSAL / MATERIALS & STRUCTURES"
         },
         {
+          "id": "joint_separation",
+          "name": "Joint Separation",
+          "category": "UNIVERSAL / MANUFACTURING"
+        },
+        {
           "id": "key_keyway_torque_capacity",
           "name": "Key/Keyway Torque Capacity",
           "category": "UNIVERSAL / MANUFACTURING"
@@ -661,6 +681,16 @@
         {
           "id": "thin_wall_longitudinal_stress",
           "name": "Thin-Wall Longitudinal Stress",
+          "category": "UNIVERSAL / MATERIALS & STRUCTURES"
+        },
+        {
+          "id": "thread_engagement_required",
+          "name": "Thread Engagement Required",
+          "category": "UNIVERSAL / MANUFACTURING"
+        },
+        {
+          "id": "thread_stripping_strength",
+          "name": "Thread Stripping Strength",
           "category": "UNIVERSAL / MATERIALS & STRUCTURES"
         },
         {
@@ -1343,6 +1373,9 @@
     {"id":"bearing_preload","name":"Bearing Preload Calculator","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Bearing Preload Calculator — the same torque-to-clamp-force method as the Free Bolt Torque Spec calculator, applied to a preload/spindle nut instead of a structural bolt."},
     {"id":"bearing_surface_speed","name":"Bearing Journal Surface Speed","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Bearing Journal Surface Speed — the velocity term every bearing PV and oil-film check depends on."},
     {"id":"bernoulli_equation","name":"Bernoulli Equation","category":"HYDRAULICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Bernoulli Equation calculator — solve for pressure change across a fluid-line transition in elevation, diameter, or velocity."},
+    {"id":"bolt_preload_from_torque","name":"Bolt Preload from Torque","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Bolt Preload from Torque — clamp force, preload stress and percent of proof from a tightening torque."},
+    {"id":"bolt_shear_capacity","name":"Bolt Shear Capacity","category":"UNIVERSAL / MATERIALS & STRUCTURES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Bolt Shear Capacity — single or double shear through the shank or the threads."},
+    {"id":"bolt_tensile_capacity","name":"Bolt Tensile Capacity","category":"UNIVERSAL / MATERIALS & STRUCTURES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Bolt Tensile Capacity — tensile stress area, proof and ultimate loads for UN or ISO metric threads."},
     {"id":"brake_duct_cfm","name":"Brake Duct CFM","category":"BRAKES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Brake Duct CFM — the same sensible-heat airflow formula behind the Free Electric Fan CFM Requirement calculator, sized for a brake cooling duct’s heat-rejection target instead of a radiator’s."},
     {"id":"brake_energy","name":"Brake Energy","category":"BRAKES","lab":"universal","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-71b01416","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"brake_torque","promotion":"Use the free Brake Torque calculator to establish the baseline. Premium’s Brake Energy analyzes the complete thermal workflow alongside Brake Rotor Temp Rise and Brake Heat per Stop."},
     {"id":"brake_fade_energy","name":"Brake Heat per Stop","category":"BRAKES","lab":"universal","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-6dd1feda","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"brake_torque","promotion":"Use the free Brake Torque calculator to establish the baseline. Premium’s Brake Heat per Stop completes the thermal workflow alongside Brake Energy and Brake Rotor Temp Rise."},
@@ -1414,6 +1447,7 @@
     {"id":"intake_throat_diameter_sizing","name":"CYLINDER HEAD / FLOW · Intake Throat Diameter Sizing","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Intake Throat Diameter Sizing — turns a target CFM and velocity straight into an actual throat diameter to size or machine to."},
     {"id":"intercooler_core_sizing","name":"Intercooler Core Sizing","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Intercooler Core Sizing — go beyond the Free Intercooler Efficiency calculator’s check to the actual core heat-transfer surface area your setup requires."},
     {"id":"johnson_column_buckling","name":"Johnson Column Buckling","category":"UNIVERSAL / MATERIALS & STRUCTURES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Johnson Column Buckling — inelastic critical load, with the Euler/Johnson regime chosen and stated."},
+    {"id":"joint_separation","name":"Joint Separation","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Joint Separation — bolt and clamp loads under an external load and the load that opens the joint."},
     {"id":"key_keyway_torque_capacity","name":"Key/Keyway Torque Capacity","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Key/Keyway Torque Capacity — shear and bearing torque limits and the minimum key length."},
     {"id":"lift_coefficient","name":"Lift Coefficient","category":"UNIVERSAL / AERODYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Lift Coefficient — extracts CL from a measured lift or downforce force, the reverse of the Free Aerodynamic Lift calculator."},
     {"id":"load_transfer_distribution","name":"Load Transfer Distribution","category":"UNIVERSAL / VEHICLE DYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Load Transfer Distribution — combines the Free Longitudinal and Lateral Load Transfer formulas into all four corners at once for a real combined maneuver like trail-braking."},
@@ -1459,6 +1493,8 @@
     {"id":"thermal_resistance_network","name":"Thermal Resistance Network","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Thermal Resistance Network analyzer — chains conduction and convection resistance in series for a complete heat-shield or wall heat-loss picture, beyond the Free single-mode Heat Transfer calculator."},
     {"id":"thin_wall_hoop_stress","name":"Thin-Wall Hoop Stress","category":"UNIVERSAL / MATERIALS & STRUCTURES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Thin-Wall Hoop Stress — pressure hoop stress with a thick-wall (Lamé) check and yield safety factor."},
     {"id":"thin_wall_longitudinal_stress","name":"Thin-Wall Longitudinal Stress","category":"UNIVERSAL / MATERIALS & STRUCTURES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Thin-Wall Longitudinal Stress — closed-end axial stress and the combined von Mises check."},
+    {"id":"thread_engagement_required","name":"Thread Engagement Required","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Thread Engagement Required — the engagement that makes the threads as strong as the bolt, with the J factor for softer parts."},
+    {"id":"thread_stripping_strength","name":"Thread Stripping Strength","category":"UNIVERSAL / MATERIALS & STRUCTURES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Thread Stripping Strength — FED-STD-H28 shear areas and the weakest link: bolt, bolt thread or nut thread."},
     {"id":"tire_contact_patch","name":"Tire Contact Patch Pressure & Area","category":"UNIVERSAL / VEHICLE DYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Tire Contact Patch Pressure & Area — the standard load-over-pressure footprint estimate, with no existing contact-patch calculator today."},
     {"id":"tire_deflection","name":"Tire Deflection","category":"UNIVERSAL / VEHICLE DYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Tire Deflection — the straightforward load/spring-rate relationship for vertical tire compliance, the reverse direction of Tire Vertical Stiffness."},
     {"id":"tire_heat_generation","name":"Tire Heat Generation","category":"UNIVERSAL / VEHICLE DYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Tire Heat Generation — carries rolling-resistance power forward into accumulated heat energy and an adiabatic temperature-rise estimate, beyond Tire Rolling Resistance’s force/power alone."},

@@ -428,7 +428,20 @@
     { id: 'fatigue_goodman', name: 'Fatigue Goodman Analysis',
       promo: 'Gearhead Labs Premium unlocks Fatigue Goodman Analysis — alternating and mean stress, Goodman safety factor and first-cycle yield check.' },
     { id: 'fatigue_soderberg', name: 'Fatigue Soderberg Analysis',
-      promo: 'Gearhead Labs Premium unlocks Fatigue Soderberg Analysis — the conservative yield-based fatigue line and safety factor.' }
+      promo: 'Gearhead Labs Premium unlocks Fatigue Soderberg Analysis — the conservative yield-based fatigue line and safety factor.' },
+    /* Batch 11b — Joints and Fabrication (2026-10-14) */
+    { id: 'bolt_tensile_capacity', name: 'Bolt Tensile Capacity',
+      promo: 'Gearhead Labs Premium unlocks Bolt Tensile Capacity — tensile stress area, proof and ultimate loads for UN or ISO metric threads.' },
+    { id: 'bolt_shear_capacity', name: 'Bolt Shear Capacity',
+      promo: 'Gearhead Labs Premium unlocks Bolt Shear Capacity — single or double shear through the shank or the threads.' },
+    { id: 'thread_stripping_strength', name: 'Thread Stripping Strength',
+      promo: 'Gearhead Labs Premium unlocks Thread Stripping Strength — FED-STD-H28 shear areas and the weakest link: bolt, bolt thread or nut thread.' },
+    { id: 'thread_engagement_required', name: 'Thread Engagement Required',
+      promo: 'Gearhead Labs Premium unlocks Thread Engagement Required — the engagement that makes the threads as strong as the bolt, with the J factor for softer parts.' },
+    { id: 'bolt_preload_from_torque', name: 'Bolt Preload from Torque',
+      promo: 'Gearhead Labs Premium unlocks Bolt Preload from Torque — clamp force, preload stress and percent of proof from a tightening torque.' },
+    { id: 'joint_separation', name: 'Joint Separation',
+      promo: 'Gearhead Labs Premium unlocks Joint Separation — bolt and clamp loads under an external load and the load that opens the joint.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */
