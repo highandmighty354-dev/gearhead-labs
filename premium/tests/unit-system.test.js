@@ -80,7 +80,11 @@ const IN = {
   tempabs:{ toSI: (s, x) => s === 'metric' ? x + 273.15 : (x - 32) * 5 / 9 + 273.15, fromSI: (s, x) => s === 'metric' ? x - 273.15 : (x - 273.15) * 9 / 5 + 32 },   // degF <-> degC readings, base K
   tempdiff: { toSI: (s, x) => s === 'metric' ? x : x * 5 / 9, fromSI: (s, x) => s === 'metric' ? x : x * 9 / 5 },                     // delta degF <-> delta degC, base K
   /* --- item 2 kind --- */
-  mass:   { toSI: (s, x) => s === 'metric' ? x : x * K.lb_kg, fromSI: (s, x) => s === 'metric' ? x : x / K.lb_kg }                      // lb (vehicle weight as mass) <-> kg, base kg
+  mass:   { toSI: (s, x) => s === 'metric' ? x : x * K.lb_kg, fromSI: (s, x) => s === 'metric' ? x : x / K.lb_kg },                     // lb (vehicle weight as mass) <-> kg, base kg
+  /* --- Batch 11a (Structure, Stress and Fatigue): a stress is NOT a pressure and a modulus is NOT a stress rating, so each has its own kind and unit pair --- */
+  stress: { toSI: (s, x) => s === 'metric' ? x * 1e6 : x * 1000 * K.psi_Pa, fromSI: (s, x) => s === 'metric' ? x / 1e6 : x / (1000 * K.psi_Pa) },      // ksi <-> MPa, base Pa
+  modulus:{ toSI: (s, x) => s === 'metric' ? x * 1e9 : x * 1e6 * K.psi_Pa, fromSI: (s, x) => s === 'metric' ? x / 1e9 : x / (1e6 * K.psi_Pa) },          // Mpsi <-> GPa, base Pa
+  tstiff: { toSI: (s, x) => s === 'metric' ? x : x * K.ftlbf_J, fromSI: (s, x) => s === 'metric' ? x : x / K.ftlbf_J }                                 // lb-ft/deg <-> N.m/deg, base N.m/deg
 };
 /* output kinds: SI -> display, plus the unit text the page must show */
 const OUT = {
@@ -123,7 +127,11 @@ const OUT = {
      the tire calculators also print an area, a length and a heat energy --- */
   length: { fromSI: (s, x) => s === 'metric' ? x * 1000 : x / K.in_m, unit: s => s === 'metric' ? 'mm' : 'in' },                          // base m
   sqin:   { fromSI: (s, x) => s === 'metric' ? x * 1e6 : x / (K.in_m * K.in_m), unit: s => s === 'metric' ? 'mm²' : 'sq in' },           // base m^2
-  btu:    { fromSI: (s, x) => x / K.BTU_J, unit: s => 'BTU' }                                                                             // base J; BTU is unregistered, so the same text and number in both systems
+  btu:    { fromSI: (s, x) => x / K.BTU_J, unit: s => 'BTU' },                                                                            // base J; BTU is unregistered, so the same text and number in both systems
+  /* --- Batch 11a --- */
+  stress: { fromSI: (s, x) => s === 'metric' ? x / 1e6 : x / (1000 * K.psi_Pa), unit: s => s === 'metric' ? 'MPa' : 'ksi' },                       // base Pa
+  tstiff: { fromSI: (s, x) => s === 'metric' ? x : x / K.ftlbf_J, unit: s => s === 'metric' ? 'N·m/deg' : 'lb-ft/deg' },                          // base N.m/deg (a torque per angle: NOT an energy and NOT a torque)
+  angle:  { fromSI: (s, x) => x, unit: s => '°' }                                                                                                  // base degrees: the same number and symbol in both systems
 };
 
 /* ---- cases: fields = [id, input kind, SI edit value used for the re-entry steps]; compute(inSI) -> {label: [outKind, SI value]} ---- */
@@ -131,6 +139,16 @@ const aeroForce = (id, label, cField, aField, vField, cEdit, aEdit_m2, vEdit_ms)
   id, fields: [[cField, 'none', cEdit], [aField, 'sqft', aEdit_m2], [vField, 'speed', vEdit_ms]],
   compute: v => ({ [label]: ['force', 0.5 * K.rho_ISA * v[cField] * v[aField] * v[vField] * v[vField]] })
 });
+/* Batch 11a: a round bar / tube column in SI. Euler P = pi^2 E I / (K L)^2; Johnson sigma = Sy - (Sy lambda / 2 pi)^2 / E, valid for lambda <= Cc = sqrt(2 pi^2 E / Sy) */
+const col = (E, Sy, od, id, L, Kf, johnson) => {
+  const A = Math.PI / 4 * (od * od - id * id), I = Math.PI / 64 * (od ** 4 - id ** 4), r = Math.sqrt(I / A), lam = Kf * L / r, cc = Math.sqrt(2 * Math.PI * Math.PI * E / Sy), Pe = Math.PI * Math.PI * E * I / (Kf * L) ** 2;
+  const out = { 'Cross-Section Area': ['sqin', A], 'Radius of Gyration': ['length', r], 'Slenderness Ratio (KL/r)': ['ratio', lam], 'Transition Slenderness Ratio (Cc)': ['ratio', cc], 'Euler Critical Load': ['forcelbf', Pe] };
+  if (!johnson) { out['Euler Critical Stress'] = ['stress', Pe / A]; return out; }
+  const sj = Sy - (Sy * lam / (2 * Math.PI)) ** 2 / E;
+  if (lam <= cc) { out['Johnson Critical Stress'] = ['stress', sj]; out['Governing Critical Load'] = ['forcelbf', sj * A]; out['Governing Critical Stress'] = ['stress', sj]; }
+  else { out['Governing Critical Load'] = ['forcelbf', Pe]; out['Governing Critical Stress'] = ['stress', Pe / A]; }
+  return out;
+};
 const CASES = [
   aeroForce('drag_force',  'Drag Force',  'df_cd',  'df_a',  'df_v',  0.28, 2.2, 36.1),
   aeroForce('downforce',   'Downforce',   'dnf_cl', 'dnf_a', 'dnf_v', 1.35, 2.6, 55.0),
@@ -288,7 +306,72 @@ const CASES = [
   { id: 'combined_slip', fields: [['cmbs_w', 'mass', 400], ['cmbs_mu', 'none', 1.0], ['cmbs_sr', 'none', 8], ['cmbs_srpk', 'none', 12], ['cmbs_sa', 'none', 5], ['cmbs_sapk', 'none', 8]],
     compute: v => { const F = v.cmbs_mu * v.cmbs_w * K.g0, lonF = Math.min(1, Math.abs(v.cmbs_sr) / v.cmbs_srpk), latF = Math.min(1, Math.abs(v.cmbs_sa) / v.cmbs_sapk);
       return { 'Available Longitudinal Force': ['forcelbf', F * Math.sqrt(Math.max(0, 1 - latF * latF))], 'Available Lateral Force': ['forcelbf', F * Math.sqrt(Math.max(0, 1 - lonF * lonF))],
-               'Longitudinal Reduction (from lateral demand)': ['pct', (1 - Math.sqrt(Math.max(0, 1 - latF * latF))) * 100], 'Lateral Reduction (from longitudinal demand)': ['pct', (1 - Math.sqrt(Math.max(0, 1 - lonF * lonF))) * 100] }; }, rel: 2e-3 }
+               'Longitudinal Reduction (from lateral demand)': ['pct', (1 - Math.sqrt(Math.max(0, 1 - latF * latF))) * 100], 'Lateral Reduction (from longitudinal demand)': ['pct', (1 - Math.sqrt(Math.max(0, 1 - lonF * lonF))) * 100] }; }, rel: 2e-3 },
+
+  /* ---- Batch 11a, Group A (2026-10-14). Expected values are the closed-form formulas written out from the SI quantities the page shows; nothing is read from the engine. ---- */
+  /* a torsion-rig test: equal and opposite forces F across the track t make a couple T = F t; each load point moves by delta, so the twist is atan(2 delta / t); K = T / twist */
+  { id: 'chassis_torsional_stiffness', fields: [['cts_f', 'force', 2000], ['cts_t', 'length', 1.4], ['cts_d', 'length', 0.002]],
+    compute: v => { const T = v.cts_f * v.cts_t, th = Math.atan(2 * v.cts_d / v.cts_t) * 180 / Math.PI;
+      return { 'Applied Torque': ['torque', T], 'Twist Angle': ['angle', th], 'Torsional Stiffness': ['tstiff', T / th] }; }, rel: 2e-3 },
+  /* Lame thick-cylinder interference fit: p = (delta_r) / ( r [ (1/Eo)((ro^2+r^2)/(ro^2-r^2) + nu_o) + (1/Ei)((r^2+ri^2)/(r^2-ri^2) - nu_i) ] ), delta_r = half the diametral interference */
+  { id: 'press_fit_interference', fields: [['pf_d', 'length', 0.04], ['pf_i', 'length', 0.00004], ['pf_do', 'length', 0.08], ['pf_di', 'length', 0.01], ['pf_eh', 'modulus', 2.0e11], ['pf_vh', 'none', 0.29],
+                                           ['pf_es', 'modulus', 2.1e11], ['pf_vs', 'none', 0.3], ['pf_mu', 'none', 0.12], ['pf_l', 'length', 0.05], ['pf_syh', 'stress', 4.0e8]],
+    compute: v => { const r = v.pf_d / 2, ro = v.pf_do / 2, ri = v.pf_di / 2, dr = v.pf_i / 2;
+      const kh = (ro * ro + r * r) / (ro * ro - r * r), ks = (r * r + ri * ri) / (r * r - ri * ri);
+      const p = dr / (r * ((kh + v.pf_vh) / v.pf_eh + (ks - v.pf_vs) / v.pf_es)), sth = p * kh, vm = Math.sqrt(sth * sth + sth * p + p * p);
+      return { 'Contact Pressure': ['stress', p], 'Hub Bore Hoop Stress': ['stress', sth], 'Shaft Surface Hoop Stress (compressive)': ['stress', p * ks],
+               'Hub Yield Safety Factor (bore)': ['ratio', v.pf_syh / vm], 'Axial Slip Force': ['forcelbf', v.pf_mu * p * 2 * Math.PI * r * v.pf_l], 'Torque Capacity': ['lbftfix', v.pf_mu * p * 2 * Math.PI * r * r * v.pf_l] }; }, rel: 2e-3 },
+  /* a vehicle of mass m meets the end of a strap at speed v; the strap is a linear spring through (breaking strength F = rating x g0, at stretch e): k = F / (e L); 1/2 m v^2 = 1/2 k x^2; peak force k x */
+  { id: 'recovery_strap_energy', fields: [['rse_m', 'mass', 2700], ['rse_v', 'speed', 4.5], ['rse_l', 'ft', 9], ['rse_f', 'mass', 13000], ['rse_e', 'none', 20]],
+    compute: v => { const Fb = v.rse_f * K.g0, k = Fb / (v.rse_e / 100 * v.rse_l), x = v.rse_v * Math.sqrt(v.rse_m / k), Fp = k * x;   // the rating is typed as a mass (kg in Metric): breaking force = rating x g0
+      return { 'Kinetic Energy at Strap Tension': ['energy', 0.5 * v.rse_m * v.rse_v * v.rse_v], 'Peak Strap Extension': ['ft', x], 'Peak Strap Strain': ['pct', x / v.rse_l * 100],
+               'Peak Strap Force': ['forcelbf', Fp], 'Peak Force ÷ Breaking Strength': ['pct', Fp / Fb * 100], 'Strap Stiffness': ['springrate', k] }; }, rel: 2e-3 },
+  /* key in shear (tau_a = Sy / sqrt 3 / n over w L) and in bearing (Sy / n over (h/2) L), each at the shaft-surface radius d/2; the smaller governs */
+  { id: 'key_keyway_torque_capacity', fields: [['kk_d', 'length', 0.04], ['kk_w', 'length', 0.01], ['kk_h', 'length', 0.008], ['kk_l', 'length', 0.05], ['kk_sy', 'stress', 4.0e8], ['kk_n', 'none', 2.5], ['kk_t', 'lbftfix', 300]],
+    compute: v => { const Fs = v.kk_sy / Math.sqrt(3) / v.kk_n * v.kk_w * v.kk_l, Fb = v.kk_sy / v.kk_n * (v.kk_h / 2) * v.kk_l, Ts = Fs * v.kk_d / 2, Tb = Fb * v.kk_d / 2, Tc = Math.min(Ts, Tb);
+      const Lreq = Math.max(v.kk_t * 2 / v.kk_d / (v.kk_sy / Math.sqrt(3) / v.kk_n * v.kk_w), v.kk_t * 2 / v.kk_d / (v.kk_sy / v.kk_n * (v.kk_h / 2)));
+      return { 'Key Shear Torque Limit': ['lbftfix', Ts], 'Key Bearing Torque Limit': ['lbftfix', Tb], 'Torque Capacity (Governing Limit)': ['lbftfix', Tc], 'Minimum Key Length for Applied Torque': ['length', Lreq], 'Applied Torque ÷ Capacity': ['pct', v.kk_t / Tc * 100] }; }, rel: 2e-3 },
+
+  /* ---- Batch 11a, Group B: columns (round bar / tube), combined stress, plane-stress transformations. Tension positive. ---- */
+  { id: 'euler_column_buckling', fields: [['eb_e', 'modulus', 2.0e11], ['eb_sy', 'stress', 3.5e8], ['eb_od', 'length', 0.04], ['eb_id', 'length', 0.032], ['eb_l', 'length', 1.5], ['eb_k', 'none', 0.8]],
+    compute: v => col(v.eb_e, v.eb_sy, v.eb_od, v.eb_id, v.eb_l, v.eb_k, false), rel: 2e-3 },
+  { id: 'johnson_column_buckling', fields: [['jb_e', 'modulus', 2.0e11], ['jb_sy', 'stress', 3.5e8], ['jb_od', 'length', 0.04], ['jb_id', 'length', 0.032], ['jb_l', 'length', 0.8], ['jb_k', 'none', 1.0]],
+    compute: v => col(v.jb_e, v.jb_sy, v.jb_od, v.jb_id, v.jb_l, v.jb_k, true), rel: 2e-3 },
+  { id: 'combined_axial_bending_stress', fields: [['cab_p', 'force', 9000], ['cab_m', 'torque', 700], ['cab_od', 'length', 0.05], ['cab_id', 'length', 0.04], ['cab_sy', 'stress', 3.5e8]],
+    compute: v => { const A = Math.PI / 4 * (v.cab_od ** 2 - v.cab_id ** 2), I = Math.PI / 64 * (v.cab_od ** 4 - v.cab_id ** 4), sa = v.cab_p / A, sb = v.cab_m * (v.cab_od / 2) / I;
+      return { 'Axial Stress': ['stress', sa], 'Bending Stress (extreme fiber)': ['stress', sb], 'Maximum Fiber Stress (σa + σb)': ['stress', sa + sb], 'Minimum Fiber Stress (σa − σb)': ['stress', sa - sb],
+               'Yield Safety Factor': ['ratio', v.cab_sy / Math.max(Math.abs(sa + sb), Math.abs(sa - sb))] }; }, rel: 2e-3 },
+  { id: 'von_mises_stress', fields: [['vm_sx', 'stress', 1.5e8], ['vm_sy', 'stress', -5e7], ['vm_txy', 'stress', 6e7], ['vm_yield', 'stress', 3.5e8]],
+    compute: v => { const vm = Math.sqrt(v.vm_sx ** 2 - v.vm_sx * v.vm_sy + v.vm_sy ** 2 + 3 * v.vm_txy ** 2), C = (v.vm_sx + v.vm_sy) / 2, R = Math.hypot((v.vm_sx - v.vm_sy) / 2, v.vm_txy);
+      const tr = Math.max(2 * R, Math.abs(C + R), Math.abs(C - R));
+      return { 'Von Mises Equivalent Stress': ['stress', vm], 'Yield Safety Factor (von Mises)': ['ratio', v.vm_yield / vm], 'Tresca Equivalent Stress (σz = 0)': ['stress', tr], 'Yield Safety Factor (Tresca)': ['ratio', v.vm_yield / tr] }; }, rel: 2e-3 },
+  { id: 'principal_stress', fields: [['ps_sx', 'stress', 1.5e8], ['ps_sy', 'stress', -5e7], ['ps_txy', 'stress', 6e7]],
+    compute: v => { const C = (v.ps_sx + v.ps_sy) / 2, R = Math.hypot((v.ps_sx - v.ps_sy) / 2, v.ps_txy);
+      return { 'Maximum Principal Stress (σ1)': ['stress', C + R], 'Minimum Principal Stress (σ2)': ['stress', C - R], 'Maximum In-Plane Shear Stress': ['stress', R],
+               'Absolute Maximum Shear Stress (σz = 0)': ['stress', Math.max(R, Math.abs(C + R) / 2, Math.abs(C - R) / 2)], 'Principal Angle θp (σ1 from x-axis)': ['angle', 0.5 * Math.atan2(2 * v.ps_txy, v.ps_sx - v.ps_sy) * 180 / Math.PI] }; }, rel: 2e-3 },
+  { id: 'mohr_circle', fields: [['mc_sx', 'stress', 1.5e8], ['mc_sy', 'stress', -5e7], ['mc_txy', 'stress', 6e7], ['mc_th', 'none', 25]],
+    compute: v => { const C = (v.mc_sx + v.mc_sy) / 2, a = (v.mc_sx - v.mc_sy) / 2, R = Math.hypot(a, v.mc_txy), r2 = 2 * v.mc_th * Math.PI / 180;
+      return { 'Circle Center (average normal stress)': ['stress', C], 'Circle Radius (max in-plane shear)': ['stress', R], 'Principal Stress σ1': ['stress', C + R], 'Principal Stress σ2': ['stress', C - R],
+               'Normal Stress on Plane at θ': ['stress', C + a * Math.cos(r2) + v.mc_txy * Math.sin(r2)], 'Shear Stress on Plane at θ': ['stress', -a * Math.sin(r2) + v.mc_txy * Math.cos(r2)] }; }, rel: 2e-3 },
+
+  /* ---- Batch 11a, Group C: thin-wall pressure stresses (mean radius r = (OD - t)/2), stress concentration, Goodman / Soderberg fatigue (tension-positive cycle max / min) ---- */
+  { id: 'thin_wall_hoop_stress', fields: [['twh_p', 'pressure', 1.2e7], ['twh_od', 'length', 0.09], ['twh_t', 'length', 0.004], ['twh_sy', 'stress', 3.0e8]],
+    compute: v => { const rm = (v.twh_od - v.twh_t) / 2, ro = v.twh_od / 2, ri = ro - v.twh_t, sh = v.twh_p * rm / v.twh_t;
+      return { 'Hoop Stress (thin-wall)': ['stress', sh], 'Mean Radius ÷ Wall Thickness': ['ratio', rm / v.twh_t], 'Hoop Stress at Bore (Lamé, thick-wall check)': ['stress', v.twh_p * (ro * ro + ri * ri) / (ro * ro - ri * ri)], 'Yield Safety Factor (hoop)': ['ratio', v.twh_sy / sh] }; }, rel: 2e-3 },
+  { id: 'thin_wall_longitudinal_stress', fields: [['twl_p', 'pressure', 1.2e7], ['twl_od', 'length', 0.09], ['twl_t', 'length', 0.004], ['twl_sy', 'stress', 3.0e8]],
+    compute: v => { const rm = (v.twl_od - v.twl_t) / 2, sh = v.twl_p * rm / v.twl_t, sl = sh / 2, vm = Math.sqrt(sh * sh - sh * sl + sl * sl);
+      return { 'Longitudinal Stress (closed ends)': ['stress', sl], 'Hoop Stress (for comparison)': ['stress', sh], 'Mean Radius ÷ Wall Thickness': ['ratio', rm / v.twl_t], 'Von Mises Stress (hoop + longitudinal)': ['stress', vm], 'Yield Safety Factor (von Mises)': ['ratio', v.twl_sy / vm] }; }, rel: 2e-3 },
+  { id: 'stress_concentration', fields: [['sc_s', 'stress', 1.2e8], ['sc_kt', 'none', 2.2], ['sc_q', 'none', 0.85], ['sc_sy', 'stress', 4.0e8]],
+    compute: v => { const kf = 1 + v.sc_q * (v.sc_kt - 1);
+      return { 'Peak Stress at the Notch (Kt × σnom)': ['stress', v.sc_kt * v.sc_s], 'Fatigue Stress Concentration Factor (Kf)': ['ratio', kf], 'Effective Fatigue Stress (Kf × σnom)': ['stress', kf * v.sc_s], 'Local Yield Safety Factor (Sy ÷ peak)': ['ratio', v.sc_sy / (v.sc_kt * v.sc_s)] }; }, rel: 2e-3 },
+  { id: 'fatigue_goodman', fields: [['fg_max', 'stress', 2.5e8], ['fg_min', 'stress', 5e7], ['fg_se', 'stress', 2.0e8], ['fg_sut', 'stress', 6.0e8], ['fg_sy', 'stress', 4.5e8]],
+    compute: v => { const sa = (v.fg_max - v.fg_min) / 2, sm = (v.fg_max + v.fg_min) / 2;
+      return { 'Alternating Stress (σa)': ['stress', sa], 'Mean Stress (σm)': ['stress', sm], 'Fatigue Safety Factor (Goodman)': ['ratio', sm >= 0 ? 1 / (sa / v.fg_se + sm / v.fg_sut) : v.fg_se / sa],
+               'Allowable Alternating Stress at This Mean': ['stress', sm >= 0 ? v.fg_se * (1 - sm / v.fg_sut) : v.fg_se], 'Yield Safety Factor (first cycle, Langer)': ['ratio', v.fg_sy / Math.max(Math.abs(v.fg_max), Math.abs(v.fg_min))] }; }, rel: 2e-3 },
+  { id: 'fatigue_soderberg', fields: [['fs_max', 'stress', 2.5e8], ['fs_min', 'stress', 5e7], ['fs_se', 'stress', 2.0e8], ['fs_sy', 'stress', 4.5e8]],
+    compute: v => { const sa = (v.fs_max - v.fs_min) / 2, sm = (v.fs_max + v.fs_min) / 2;
+      return { 'Alternating Stress (σa)': ['stress', sa], 'Mean Stress (σm)': ['stress', sm], 'Fatigue Safety Factor (Soderberg)': ['ratio', sm >= 0 ? 1 / (sa / v.fs_se + sm / v.fs_sy) : v.fs_se / sa],
+               'Allowable Alternating Stress at This Mean': ['stress', sm >= 0 ? v.fs_se * (1 - sm / v.fs_sy) : v.fs_se], 'Yield Safety Factor (first cycle, Langer)': ['ratio', v.fs_sy / Math.max(Math.abs(v.fs_max), Math.abs(v.fs_min))] }; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

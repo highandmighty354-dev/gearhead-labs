@@ -46,9 +46,11 @@ const PAIRS = {
   'inH2O': ['kPa', G0 * 25.4 / 1000], 'miles': ['km', MI / 1000], 'in/min': ['mm/min', IN * 1000], 'in Hg': ['kPa', 3.386389], 'ft/min': ['m/min', FT], 'GPM': ['L/min', GAL],
   'cc/min': ['L/min', 0.001], 'GPH': ['L/h', GAL], 'ft of head': ['m of head', FT], 'SFM': ['m/min', FT], 'lbs/deg': ['kg/deg', LB], 'lbs/min': ['kg/min', LB],
   'HP/ton': ['kW/metric ton', HP / (2 * LB)], 'lbs/HP': ['kg/kW', LB / HP], 'HP/klb': ['kW/tonne', HP / (LB)], 'CM': ['mm²', Math.PI / 4 * (IN * 1000 / 1000) ** 2],
-  'thou (.001")': ['mm', IN]
+  'thou (.001")': ['mm', IN],
+  'ksi': ['MPa', LBF / (IN * IN) / 1000], 'Mpsi': ['GPa', LBF / (IN * IN) / 1000], 'lb-ft/deg': ['N·m/deg', LBF * FT]   // Batch 11a: stress, modulus, torsional stiffness
 };
 const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
+const N_CALCS = 711;                                                                   // 696 + Batch 11a
 
 (async () => {
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });
@@ -82,7 +84,7 @@ const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
   const num = s => { const t = String(s || '').replace(/,/g, '').replace(/[−–]/g, '-').replace('~', '').trim(); const n = Number(t); return t !== '' && Number.isFinite(n) ? n : NaN; };
   const dec = s => { const m = String(s).replace(/,/g, '').match(/\.(\d+)/); return m ? m[1].length : 0; };
   const ids = Object.keys(imp);
-  check('all 696 calculators scanned in both systems', ids.length === 696 && Object.keys(met).length === 696, `${ids.length} / ${Object.keys(met).length}`);
+  check(`all ${N_CALCS} calculators scanned in both systems`, ids.length === N_CALCS && Object.keys(met).length === N_CALCS, `${ids.length} / ${Object.keys(met).length}`);
 
   const neutral = new Set(CENSUS.neutral), si = new Set(CENSUS.si), impOnly = CENSUS.imperial_only, perf = new Set(CENSUS.performance || []);   // performance: HP, WHP, lb-ft read the same in both systems under the default Power / Torque preferences (GH-IMP-019)
   const count = { converted: 0, neutral: 0, si: 0, imperial_only: 0, performance: 0, converter: 0, unitless: 0 }, perUnit = {}, unknown = {}, pairsSeen = new Set(), where = {};
@@ -142,7 +144,7 @@ const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
   const shown = lines.length > CAP ? lines.slice(0, CAP).concat(`  ... ${lines.length - CAP} more`) : lines;
   if (shown.length) console.log(shown.join('\n'));
   const rowsTotal = count.converted + count.neutral + count.si + count.imperial_only + count.performance + count.converter;
-  console.log(`\nunit-census tests: 696 calculators, ${rowsTotal} rows with a unit: ${count.converted} converted (${pairsSeen.size} unit pairs), ${count.neutral} neutral, ${count.si} metric-declared, ${count.performance} performance-preference, ` +
+  console.log(`\nunit-census tests: ${N_CALCS} calculators, ${rowsTotal} rows with a unit: ${count.converted} converted (${pairsSeen.size} unit pairs), ${count.neutral} neutral, ${count.si} metric-declared, ${count.performance} performance-preference, ` +
     `${count.imperial_only} imperial-only (${Object.keys(impOnly).length} units, ${Object.values(impOnly).filter(v => v.kind === 'variant').length} of them spellings of a registered unit), ${count.converter} converter rows set aside; ${numericChecked} numbers compared; ${checks} checks, ${failures} failure(s)`);
   process.exit(failures ? 1 : 0);
 })();

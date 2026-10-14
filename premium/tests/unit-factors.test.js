@@ -78,7 +78,11 @@ const EXPECT = {
   'lb/hp-hr':     ['kg/kW-hr',      LB / (HP * 3600),           1 / (1000 * 3600)],
   'CM':           ['mm²',           Math.PI / 4 * (IN / 1000) ** 2, 1e-6],                               // circular mil = area of a circle 0.001 in across
   'inHg':         ['kPa',           3386.389,                   1000],                                   // SP 811 conventional inch of mercury, 3.386 389 kPa
-  'inH2O':        ['kPa',           G0 * 25.4,                  1000]                                    // conventional inch of water: 1 mm H2O = 9.80665 Pa exactly
+  'inH2O':        ['kPa',           G0 * 25.4,                  1000],                                   // conventional inch of water: 1 mm H2O = 9.80665 Pa exactly
+  /* Batch 11a (2026-10-14) */
+  'ksi':          ['MPa',           1000 * PSI,                 1e6],                                    // a stress (not a pressure): 1 ksi = 1000 lbf/in2
+  'Mpsi':         ['GPa',           1e6 * PSI,                  1e9],                                    // a modulus of elasticity
+  'lb-ft/deg':    ['N·m/deg',       LBF * FT,                   1]                                       // a torsional stiffness: torque per degree
 };
 const SPECIAL = ['°F', 'Δ°F', 'mpg'];                                                                       // not plain factors: checked at reference points
 

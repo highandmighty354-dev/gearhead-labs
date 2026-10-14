@@ -46,6 +46,14 @@ const ADDED = [
     [c, 'OUT|Engine curve peak|lb-ft', 'ENGINE_TORQUE', 'the "peak X lb-ft @ rpm" line of the Engine Curve block - literal text outside the result helpers'],
     [c, 'OUT|Engine curve peak|HP', 'ENGINE_POWER', 'the same line when the curve is a power curve (reachable only through window._ghmCurveMode, see GH-DEF-029)'],
   ]),
+  /* Batch 11a (2026-10-14): new calculators, classified when they were written */
+  ['chassis_torsional_stiffness', 'OUT|Applied Torque|lb-ft', 'RETAIN-COMPONENT', 'Batch 11a: the couple a torsion rig applies to a chassis, a structural test moment'],
+  ['press_fit_interference', 'OUT|Torque Capacity|lb-ft', 'DRIVELINE_TORQUE', 'Batch 11a: the slip torque of a hub pressed on a shaft'],
+  ['key_keyway_torque_capacity', 'IN|kk_t|lb-ft', 'DRIVELINE_TORQUE', 'Batch 11a: the torque a keyed shaft must transmit'],
+  ['key_keyway_torque_capacity', 'OUT|Key Shear Torque Limit|lb-ft', 'DRIVELINE_TORQUE', 'Batch 11a: key torque capacity in shear'],
+  ['key_keyway_torque_capacity', 'OUT|Key Bearing Torque Limit|lb-ft', 'DRIVELINE_TORQUE', 'Batch 11a: key torque capacity in bearing'],
+  ['key_keyway_torque_capacity', 'OUT|Torque Capacity (Governing Limit)|lb-ft', 'DRIVELINE_TORQUE', 'Batch 11a: the governing key torque capacity'],
+  ['combined_axial_bending_stress', 'IN|cab_m|lb-ft', 'RETAIN-COMPONENT', 'Batch 11a: a bending moment in a structural member'],
 ];
 /* inventory rows the table does not carry: [calc, kind, key, why] */
 const DROPPED = [];
