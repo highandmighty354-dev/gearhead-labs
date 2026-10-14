@@ -1,0 +1,57 @@
+# Supabase keep-alive and health audit (read-only, no secrets).
+#
+# What it does, in one job:
+#   * keep-alive: three read-only API queries that the database must answer;
+#   * health audit: project identity, migration-file baseline, frozen sources,
+#     auth/API reachability, recent workflow failures, schedule-disable risk.
+# Result: PASS / WARNING / FAIL in the run summary. FAIL marks the run as failed,
+# which makes GitHub send its standard failure email.
+#
+# Safety:
+#   * Uses only the PUBLIC publishable key already in supabase-config.js and the
+#     run's read-only GITHUB_TOKEN. No repository secrets, no GitHub Environment,
+#     no service-role key, no database password.
+#   * Writes nothing to the database or the repository.
+#   * No Claude/AI usage; runs entirely on GitHub's free runners.
+#
+# Schedule: GitHub cron cannot express "every 4 days" continuously, because
+# day-of-month steps restart each month. '*/4' runs on days 1, 5, 9, 13, 17, 21,
+# 25 and 29 — never more than 4 days apart; across a month boundary the gap is
+# shorter (1–3 days). Scheduled runs happen only from the default branch, can be
+# delayed by GitHub, and GitHub turns schedules off in public repos after 60
+# days without repository activity (the audit warns from day 45).
+
+name: Supabase keep-alive and health audit
+
+on:
+  schedule:
+    - cron: '17 13 */4 * *'   # 13:17 UTC (9:17 a.m. Eastern daylight time)
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/supabase-keepalive.yml'
+      - '.github/scripts/supabase-health.mjs'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: supabase-keepalive
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Keep-alive and health audit
+        env:
+          EXPECTED_PROJECT_REF: jmztpjudwzjvrcdtjynd
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/scripts/supabase-health.mjs
