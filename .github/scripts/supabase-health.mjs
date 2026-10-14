@@ -145,10 +145,10 @@ async function checkLive(ref) {
   // so Postgres itself must answer with error 42501 "permission denied". That error code
   // is produced by Postgres, so it proves the request reached and was executed by the
   // database. No data is returned and nothing is written.
-  const tables = ['calculators', 'formula_versions', 'plans'];
+  const tables = { calculators: 'calculator_id', formula_versions: 'calculator_id', plans: 'plan_key' };
   const outcomes = [];
-  for (const t of tables) {
-    const r = await timedFetch(`${base}/rest/v1/${t}?select=id&limit=1`, headers);
+  for (const [t, col] of Object.entries(tables)) {
+    const r = await timedFetch(`${base}/rest/v1/${t}?select=${col}&limit=1`, headers);
     let code = '';
     try { code = JSON.parse(r.body)?.code || ''; } catch { /* not JSON */ }
     outcomes.push({ table: t, ...r, code });
