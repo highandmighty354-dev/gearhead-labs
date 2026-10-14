@@ -131,7 +131,9 @@ const OUT = {
   /* --- Batch 11a --- */
   stress: { fromSI: (s, x) => s === 'metric' ? x / 1e6 : x / (1000 * K.psi_Pa), unit: s => s === 'metric' ? 'MPa' : 'ksi' },                       // base Pa
   tstiff: { fromSI: (s, x) => s === 'metric' ? x : x / K.ftlbf_J, unit: s => s === 'metric' ? 'N·m/deg' : 'lb-ft/deg' },                          // base N.m/deg (a torque per angle: NOT an energy and NOT a torque)
-  angle:  { fromSI: (s, x) => x, unit: s => '°' }                                                                                                  // base degrees: the same number and symbol in both systems
+  angle:  { fromSI: (s, x) => x, unit: s => '°' },
+  /* Batch 11b: a weld heat input (energy per length of weld): kJ/in <-> kJ/mm, base J/m */
+  heatin: { fromSI: (s, x) => s === 'metric' ? x / 1e6 : x * K.in_m / 1000, unit: s => s === 'metric' ? 'kJ/mm' : 'kJ/in' }                                                                                                  // base degrees: the same number and symbol in both systems
 };
 
 /* ---- cases: fields = [id, input kind, SI edit value used for the re-entry steps]; compute(inSI) -> {label: [outKind, SI value]} ---- */
@@ -400,7 +402,15 @@ const CASES = [
   { id: 'joint_separation', fields: [['js_fi', 'force', 30000], ['js_p', 'force', 12000], ['js_kb', 'springrate', 3.0e8], ['js_km', 'springrate', 1.2e9]],
     compute: v => { const C = v.js_kb / (v.js_kb + v.js_km), P0 = v.js_fi / (1 - C), sep = v.js_p >= P0;
       return { 'Joint Stiffness Constant (C)': ['ratio', C], 'Bolt Load': ['forcelbf', sep ? v.js_p : v.js_fi + C * v.js_p], 'Remaining Clamp Load': ['forcelbf', sep ? 0 : v.js_fi - (1 - C) * v.js_p],
-               'Separation Load (P₀)': ['forcelbf', P0], 'Separation Safety Factor': ['ratio', P0 / v.js_p] }; }, rel: 2e-3 }
+               'Separation Load (P₀)': ['forcelbf', P0], 'Separation Safety Factor': ['ratio', P0 / v.js_p] }; }, rel: 2e-3 },
+
+  /* ---- Batch 11b, B2 welds ---- */
+  { id: 'weld_fillet_strength', fields: [['wfs_w', 'length', 0.008], ['wfs_l', 'length', 0.15], ['wfs_exx', 'stress', 4.9e8], ['wfs_f', 'none', 0.3]],
+    compute: v => { const th = v.wfs_w * Math.SQRT1_2, tau = v.wfs_f * v.wfs_exx;
+      return { 'Effective Throat': ['length', th], 'Throat Area': ['sqin', th * v.wfs_l], 'Allowable Throat Shear Stress': ['stress', tau], 'Allowable Load per Inch of Weld': ['springrate', th * tau], 'Allowable Weld Load': ['forcelbf', th * tau * v.wfs_l] }; }, rel: 2e-3 },
+  { id: 'weld_heat_input', fields: [['whi_v', 'none', 28], ['whi_i', 'none', 240], ['whi_s', 'feedrate', 0.3], ['whi_k', 'none', 0.8]],
+    compute: v => { const ae = v.whi_v * v.whi_i * 60 / v.whi_s;   // J per metre: V x A = W, travel speed in m/min
+      return { 'Arc Energy': ['heatin', ae], 'Heat Input (arc energy × k)': ['heatin', ae * v.whi_k] }; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

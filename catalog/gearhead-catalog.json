@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "25f4809ddd34fff3542ef4df4a2e44a3cc5b0da0a6ceb662f985c2190e91d354"
+      "sha256": "3deaf87f2c29f01d3caa4d633101d123862ce36dbf0712bb74e16e22ec3d2d95"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -12,7 +12,7 @@
     },
     "models": {
       "file": "premium/models.js",
-      "sha256": "87e59574207de929c0db93440450803e0e82f43be4fb5186ef9b7228639148a9"
+      "sha256": "859d67b3c4bb05d3fc556cc2a0ba21577668532a3c98295034d0bc66fcdd94f4"
     },
     "engineering": {
       "file": "engineering-expansion-v1.js",
@@ -22,10 +22,10 @@
   "counts": {
     "free_public_calculators": 585,
     "migrated_premium_calculators": 21,
-    "premium_expansion_calculators": 111,
+    "premium_expansion_calculators": 113,
     "engineering_lab_tools": 14,
-    "premium_only_tools": 146,
-    "premium_total_access": 731,
+    "premium_only_tools": 148,
+    "premium_total_access": 733,
     "aliases_not_counted": 6,
     "free_by_lab": {
       "universal": 315,
@@ -35,22 +35,22 @@
       "ev": 39
     },
     "premium_by_kind": {
-      "calculator": 132,
+      "calculator": 134,
       "workbench": 4,
       "analyzer": 10
     },
     "save": {
       "eligible": 577,
-      "excluded": 140,
+      "excluded": 142,
       "saveable": 14
     },
-    "premium_expansion_validated": 125,
+    "premium_expansion_validated": 127,
     "approved_future_tools": 0
   },
   "decisions": [
-    "Owner decision 2026-10-06: the 140 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
+    "Owner decision 2026-10-06: the 142 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
     "Owner decision 2026-10-06: 21 existing Free calculators are migrated to Premium, cutting the originally-proposed 70-item list to the 21 the audit actually recommended (Gearhead_Labs_Premium_Migration_AUDIT.xlsx; 49 rejected as Engineering Lab duplicates, SEO/on-ramp anchors, or workbook-arithmetic errors). Free drops from 606 to 585; the Engineering Lab (E01-E14) is unaffected. The 147-item future roadmap remains unimplemented and uncounted.",
-    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 111 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
+    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 113 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
   ],
   "premium_migration": {
     "rule": "A Free calculator moves to Premium only from an owner-approved audit in this repository (Gearhead_Labs_Premium_Migration_AUDIT.xlsx). Each migrated calculator keeps a named Free companion as its on-ramp and stays visible (not hidden) in the Free calculator navigation with a Premium indicator.",
@@ -186,7 +186,7 @@
   },
   "premium_expansion": {
     "rule": "A Premium tool enters this catalog only from approved engineering/product work in this repository, after QA. No count target (the historical ~140 / 752 figures are not used).",
-    "validated": 125,
+    "validated": 127,
     "sources": [
       {
         "source": "ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)",
@@ -202,11 +202,11 @@
       },
       {
         "source": "Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list from the Phase 1 reconciliation and exception resolution)",
-        "outcome": "111 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 32 remain"
+        "outcome": "113 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 30 remain"
       }
     ],
     "premium_calculators": {
-      "validated": 111,
+      "validated": 113,
       "tools": [
         {
           "id": "ac_power_factor",
@@ -747,6 +747,16 @@
           "id": "von_mises_stress",
           "name": "Von Mises Stress",
           "category": "UNIVERSAL / MATERIALS & STRUCTURES"
+        },
+        {
+          "id": "weld_fillet_strength",
+          "name": "Weld Fillet Strength",
+          "category": "UNIVERSAL / MATERIALS & STRUCTURES"
+        },
+        {
+          "id": "weld_heat_input",
+          "name": "Weld Heat Input",
+          "category": "UNIVERSAL / MANUFACTURING"
         },
         {
           "id": "wing_aspect_ratio",
@@ -1508,6 +1518,8 @@
     {"id":"valve_acceleration","name":"Valve Acceleration","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Valve Acceleration — the inertial loading your valvetrain and springs must control through the lift event."},
     {"id":"valve_motion_velocity","name":"Valve Motion Velocity","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Valve Motion Velocity — how fast the valve is actually moving at any point in the lift event, not just how far it opens."},
     {"id":"von_mises_stress","name":"Von Mises Stress","category":"UNIVERSAL / MATERIALS & STRUCTURES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Von Mises Stress — distortion-energy equivalent stress with a Tresca comparison and safety factors."},
+    {"id":"weld_fillet_strength","name":"Weld Fillet Strength","category":"UNIVERSAL / MATERIALS & STRUCTURES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Weld Fillet Strength — throat, allowable stress and load of a fillet weld on the AWS / AISC basis."},
+    {"id":"weld_heat_input","name":"Weld Heat Input","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Weld Heat Input — arc energy and process heat input from voltage, current and travel speed."},
     {"id":"wing_aspect_ratio","name":"Wing Aspect Ratio","category":"UNIVERSAL / AERODYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Wing Aspect Ratio — span, chord and planform area, plus the induced-drag coefficient that aspect ratio drives."},
     {"id":"wing_center_of_pressure","name":"Wing Center of Pressure","category":"UNIVERSAL / AERODYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Wing Center of Pressure — where a wing’s resultant force acts along the chord, from the section’s CL and moment coefficient."},
     {"id":"yaw_inertia_estimate","name":"Yaw Inertia Estimate","category":"UNIVERSAL / VEHICLE DYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Yaw Inertia Estimate — a rotational mass property (moment of inertia) distinct from the Free Yaw Moment calculator’s force-times-lever-arm moment."}

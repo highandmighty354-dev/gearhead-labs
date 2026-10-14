@@ -130,6 +130,22 @@ add({ g: 'B1', id: 'joint_separation', title: 'Fi 6 000 lbf, P 3 000 lbf, C = 0.
 add({ g: 'B1', id: 'joint_separation', title: 'P above P0: the joint has opened; the bolt carries P', inputs: { js_fi: [6000, 'lbf'], js_p: [9000, 'lbf'], js_kb: [2e6, 'lb/in'], js_km: [8e6, 'lb/in'] },
   want: { 'Bolt Load': [9000, 'lbf'], 'Remaining Clamp Load': [0, 'lbf'], 'Separation Safety Factor': [7500 / 9000, ''] }, notes: [/has opened/], rel: 1e-5 });
 
+
+/* ======================================================= B2 WELDS ======================================================= */
+/* 7. Weld Fillet Strength. 1/4 in leg, 4 in long, E70, 0.30: throat 0.25 x 0.707107 = 0.176777 in; area 0.707107 sq in; 21 ksi; 3 712 lb/in (the AISC rule 0.928 kip/in per 1/16 in x 4 = 3.712); 14 849 lbf. */
+{
+  const th = 0.25 * Math.SQRT1_2;
+  add({ g: 'B2', id: 'weld_fillet_strength', title: '1/4 in E70 fillet, 4 in long', inputs: { wfs_w: [0.25, 'in'], wfs_l: [4, 'in'], wfs_exx: [70, 'ksi'], wfs_f: [0.3, ''] },
+    want: { 'Effective Throat': [th, 'in'], 'Throat Area': [th * 4, 'sq in'], 'Allowable Throat Shear Stress': [21, 'ksi'], 'Allowable Load per Inch of Weld': [th * 21000, 'lb/in'], 'Allowable Weld Load': [th * 21000 * 4, 'lbf'] },
+    literal: { 'Effective Throat': 0.17678, 'Allowable Load per Inch of Weld': 3712, 'Allowable Weld Load': 14849 }, rel: 2e-4 });
+  add({ g: 'B2', id: 'weld_fillet_strength', title: '1/16 in E70: the AISC 0.928 kip/in', inputs: { wfs_w: [0.0625, 'in'], wfs_l: [1, 'in'], wfs_exx: [70, 'ksi'], wfs_f: [0.3, ''] },
+    want: { 'Allowable Load per Inch of Weld': [0.0625 * Math.SQRT1_2 * 21000, 'lb/in'] }, literal: { 'Allowable Load per Inch of Weld': 928 }, rel: 2e-4 });
+}
+/* 8. Weld Heat Input. 25 V, 200 A, 10 in/min: arc energy 60 x 25 x 200 / (1 000 x 10) = 30 kJ/in (EXACT) = 1.1811 kJ/mm; k 0.8 (GMAW): 24 kJ/in. */
+add({ g: 'B2', id: 'weld_heat_input', title: '25 V, 200 A, 10 in/min, k 0.8', inputs: { whi_v: [25, 'V'], whi_i: [200, 'A'], whi_s: [10, 'in/min'], whi_k: [0.8, ''] },
+  want: { 'Arc Energy': [30, 'kJ/in'], 'Heat Input (arc energy × k)': [24, 'kJ/in'] }, literal: { 'Arc Energy': 30, 'Heat Input (arc energy × k)': 24 }, rel: 1e-5 });
+add({ g: 'B2', id: 'weld_heat_input', title: 'half the travel speed doubles the heat input', inputs: { whi_v: [25, 'V'], whi_i: [200, 'A'], whi_s: [5, 'in/min'], whi_k: [1, ''] },
+  want: { 'Arc Energy': [60, 'kJ/in'], 'Heat Input (arc energy × k)': [60, 'kJ/in'] }, rel: 1e-5 });
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    INVALID INPUT.
    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -166,6 +182,15 @@ bad('B1', 'bolt_preload_from_torque', BASE.bolt_preload_from_torque, 'zero torqu
 sweepBad('B1', 'joint_separation', Object.keys(BASE.joint_separation));
 bad('B1', 'joint_separation', BASE.joint_separation, 'zero external load', { js_p: '0' });
 bad('B1', 'joint_separation', BASE.joint_separation, 'zero bolt stiffness', { js_kb: '0' });
+BASE.weld_fillet_strength = { wfs_w: 0.25, wfs_l: 4, wfs_exx: 70, wfs_f: 0.3 };
+BASE.weld_heat_input = { whi_v: 25, whi_i: 200, whi_s: 10, whi_k: 0.8 };
+sweepBad('B2', 'weld_fillet_strength', Object.keys(BASE.weld_fillet_strength));
+bad('B2', 'weld_fillet_strength', BASE.weld_fillet_strength, 'zero length', { wfs_l: '0' });
+bad('B2', 'weld_fillet_strength', BASE.weld_fillet_strength, 'shear factor above 0.6', { wfs_f: '0.7' });
+bad('B2', 'weld_fillet_strength', BASE.weld_fillet_strength, 'filler strength below 40 ksi', { wfs_exx: '20' });
+sweepBad('B2', 'weld_heat_input', Object.keys(BASE.weld_heat_input));
+bad('B2', 'weld_heat_input', BASE.weld_heat_input, 'zero travel speed', { whi_s: '0' });
+bad('B2', 'weld_heat_input', BASE.weld_heat_input, 'efficiency above 1', { whi_k: '1.2' });
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    HARNESS

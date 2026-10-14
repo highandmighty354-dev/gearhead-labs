@@ -47,10 +47,11 @@ const PAIRS = {
   'cc/min': ['L/min', 0.001], 'GPH': ['L/h', GAL], 'ft of head': ['m of head', FT], 'SFM': ['m/min', FT], 'lbs/deg': ['kg/deg', LB], 'lbs/min': ['kg/min', LB],
   'HP/ton': ['kW/metric ton', HP / (2 * LB)], 'lbs/HP': ['kg/kW', LB / HP], 'HP/klb': ['kW/tonne', HP / (LB)], 'CM': ['mm²', Math.PI / 4 * (IN * 1000 / 1000) ** 2],
   'thou (.001")': ['mm', IN],
-  'ksi': ['MPa', LBF / (IN * IN) / 1000], 'Mpsi': ['GPa', LBF / (IN * IN) / 1000], 'lb-ft/deg': ['N·m/deg', LBF * FT]   // Batch 11a: stress, modulus, torsional stiffness
+  'ksi': ['MPa', LBF / (IN * IN) / 1000], 'Mpsi': ['GPa', LBF / (IN * IN) / 1000], 'lb-ft/deg': ['N·m/deg', LBF * FT],   // Batch 11a: stress, modulus, torsional stiffness
+  'kJ/in': ['kJ/mm', 1 / (IN * 1000)]   // Batch 11b: weld heat input
 };
 const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
-const N_CALCS = 717;                                                                   // 696 + Batch 11a
+const N_CALCS = 719;                                                                   // 696 + Batch 11a
 
 (async () => {
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });

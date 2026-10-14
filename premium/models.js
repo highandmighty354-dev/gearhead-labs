@@ -441,7 +441,11 @@
     { id: 'bolt_preload_from_torque', name: 'Bolt Preload from Torque',
       promo: 'Gearhead Labs Premium unlocks Bolt Preload from Torque — clamp force, preload stress and percent of proof from a tightening torque.' },
     { id: 'joint_separation', name: 'Joint Separation',
-      promo: 'Gearhead Labs Premium unlocks Joint Separation — bolt and clamp loads under an external load and the load that opens the joint.' }
+      promo: 'Gearhead Labs Premium unlocks Joint Separation — bolt and clamp loads under an external load and the load that opens the joint.' },
+    { id: 'weld_fillet_strength', name: 'Weld Fillet Strength',
+      promo: 'Gearhead Labs Premium unlocks Weld Fillet Strength — throat, allowable stress and load of a fillet weld on the AWS / AISC basis.' },
+    { id: 'weld_heat_input', name: 'Weld Heat Input',
+      promo: 'Gearhead Labs Premium unlocks Weld Heat Input — arc energy and process heat input from voltage, current and travel speed.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */

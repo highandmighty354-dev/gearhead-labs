@@ -660,7 +660,9 @@ const UNIT_ALIASES = {
   'J':'ft-lb',
   '°R':'°R',
   /* Batch 11a (2026-10-14): a STRESS and a MODULUS are not pressures (psi / bar), and a torsional stiffness is not a torque */
-  'ksi':'ksi','MPa':'ksi','Mpsi':'Mpsi','GPa':'Mpsi','lb-ft/deg':'lb-ft/deg','N·m/deg':'lb-ft/deg'
+  'ksi':'ksi','MPa':'ksi','Mpsi':'Mpsi','GPa':'Mpsi','lb-ft/deg':'lb-ft/deg','N·m/deg':'lb-ft/deg',
+  /* Batch 11b: a weld heat input is an energy per length of weld */
+  'kJ/in':'kJ/in','kJ/mm':'kJ/in'
 };
 const UNIT_DEFS = {
   'lbs':{metric:'kg',toMetric:v=>v*0.45359237,fromMetric:v=>v/0.45359237},
@@ -707,7 +709,9 @@ const UNIT_DEFS = {
   /* Batch 11a: 1 ksi = 1000 psi = 1000 x (4.4482216152605 N / 0.0254^2 m^2) = 6.894757293168361 MPa; 1 Mpsi = 6.894757293168361 GPa; 1 lb-ft/deg = 1.3558179483314004 N·m/deg */
   'ksi':{metric:'MPa',toMetric:v=>v*6.894757293168361,fromMetric:v=>v/6.894757293168361},
   'Mpsi':{metric:'GPa',toMetric:v=>v*6.894757293168361,fromMetric:v=>v/6.894757293168361},
-  'lb-ft/deg':{metric:'N·m/deg',toMetric:v=>v*1.3558179483314004,fromMetric:v=>v/1.3558179483314004}
+  'lb-ft/deg':{metric:'N·m/deg',toMetric:v=>v*1.3558179483314004,fromMetric:v=>v/1.3558179483314004},
+  /* Batch 11b: 1 kJ/in = 1 kJ per 25.4 mm (exact) */
+  'kJ/in':{metric:'kJ/mm',toMetric:v=>v/25.4,fromMetric:v=>v*25.4}
 };
 function canonicalUnit(unit){ if(isPerfToken(unit)) return PERF_SRC_CANON[perfParse(unit).src]; return UNIT_ALIASES[(unit||'').trim()] || unit || ''; }
 /* =====================================================================================================================================================================
@@ -9023,6 +9027,9 @@ const GH_E1_CALCS = [
 {cat:"UNIVERSAL / MANUFACTURING", id:"thread_engagement_required", name:"Thread Engagement Required"},
 {cat:"UNIVERSAL / MANUFACTURING", id:"bolt_preload_from_torque", name:"Bolt Preload from Torque"},
 {cat:"UNIVERSAL / MANUFACTURING", id:"joint_separation", name:"Joint Separation"},
+/* Batch 11b — B2 Welds */
+{cat:"UNIVERSAL / MATERIALS & STRUCTURES", id:"weld_fillet_strength", name:"Weld Fillet Strength"},
+{cat:"UNIVERSAL / MANUFACTURING", id:"weld_heat_input", name:"Weld Heat Input"},
 
 ];
 
@@ -11337,6 +11344,20 @@ RENDERS.joint_separation=()=>{
   if(ok){c=kb/(kb+km);p0=fi/(1-c);sep=p>=p0;fb=sep?p:fi+c*p;fm=sep?0:fi-(1-c)*p;}
   return `${headerHTML('Joint Separation','How an external tensile load P shares between a preloaded bolt and the parts it clamps, and the load at which the joint opens (the linear bolted-joint model, as in Shigley’s Mechanical Engineering Design). Joint constant C = k_b ÷ (k_b + k_m), where k_b is the bolt’s axial stiffness and k_m the clamped members’ stiffness. While the joint stays closed the bolt load is F_b = F_i + C P and the remaining clamp force is F_m = F_i − (1 − C) P: the bolt sees only the fraction C of the external load. The joint separates when F_m reaches zero, at P₀ = F_i ÷ (1 − C); the separation safety factor is P₀ ÷ P. Beyond P₀ the members carry nothing and the bolt carries the whole external load. Estimate k_b from the bolt (k_b = A E ÷ L for each section in series) and k_m from the members (for example the frustum methods in Shigley); the result is only as good as those stiffnesses. The model assumes a concentric load introduced at the bolt head and nut faces, no prying, no gasket creep or embedding loss of preload, and no thermal change.')}<div class="calc-body">${field('Bolt Preload (Fi)','js_fi',6000,'lbf')}${field('External Tensile Load per Bolt (P)','js_p',3000,'lbf')}${field('Bolt Stiffness (kb)','js_kb',1250000,'lb/in')}${field('Clamped Member Stiffness (km)','js_km',5000000,'lb/in')}${ok?multiResult([{label:'Joint Stiffness Constant (C)',value:c,unit:'',precision:4},{label:'Bolt Load',value:fb,unit:'lbf',precision:0},{label:'Remaining Clamp Load',value:fm,unit:'lbf',precision:0},{label:'Separation Load (P₀)',value:p0,unit:'lbf',precision:0},{label:'Separation Safety Factor',value:p0/p,unit:'',precision:3}]):certError('Preload and external load must each be above 0 and up to 10,000,000 lbf, and both stiffnesses above 0 (up to 10,000,000,000 lb/in).')}${ok&&sep?'<div class="help-note">⚠ The external load is at or above the separation load: the joint has opened. The clamped parts carry nothing and the bolt carries the whole external load; the linear model above no longer applies to the joint faces.</div>':''}</div>${calcFooter('Joint Separation')}`;
 };
+/* ===== Batch 11b, B2 Welds (2026-10-14): Weld Fillet Strength, Weld Heat Input. ===== */
+RENDERS.weld_fillet_strength=()=>{
+  const w=certValue('wfs_w',0.25,'in'),l=certValue('wfs_l',4,'in'),exx=certValue('wfs_exx',70,'ksi'),f=certValue('wfs_f',0.3);
+  const ok=[w,l,exx,f].every(Number.isFinite)&&w>=0.03&&w<=4&&l>0&&l<=1000&&exx>=40&&exx<=150&&f>0&&f<=0.6;
+  let th=NaN,a=NaN,tau=NaN,q=NaN,P=NaN;
+  if(ok){th=w*Math.SQRT1_2;a=th*l;tau=f*exx;q=th*tau*1000;P=q*l;}
+  return `${headerHTML('Weld Fillet Strength','The allowable load of an equal-leg fillet weld, on the allowable-stress basis of AWS D1.1 and AISC: every fillet weld is treated as failing in shear across its effective throat, the shortest distance from the root to the face, which for an equal-leg 45° fillet is leg × 0.707 (cos 45°). Allowable shear stress on the throat = 0.30 × the filler metal’s tensile strength (E70XX electrodes: 70 ksi, so 21 ksi); the 0.30 is an editable input. Allowable load = throat × length × allowable stress, and per inch of weld = throat × allowable stress (for E70 that is 0.928 kip per inch for each 1/16 in of leg). Use the effective length (the full-size length, without craters or run-off). The check covers the weld metal only: the base metal next to the weld, a weld loaded transversely (AISC allows a strength increase this tool does not take), eccentric loads that add bending or torsion to the weld group, fatigue and weld quality are separate.')}<div class="calc-body">${field('Fillet Weld Leg Size (equal legs)','wfs_w',0.25,'in')}${field('Effective Weld Length','wfs_l',4,'in')}${field('Filler Metal Tensile Strength (E70XX = 70)','wfs_exx',70,'ksi')}${field('Allowable Shear Factor (× filler strength)','wfs_f',0.3,'')}${ok?multiResult([{label:'Effective Throat',value:th,unit:'in',precision:4},{label:'Throat Area',value:a,unit:'sq in',precision:4},{label:'Allowable Throat Shear Stress',value:tau,unit:'ksi',precision:2},{label:'Allowable Load per Inch of Weld',value:q,unit:'lb/in',precision:0},{label:'Allowable Weld Load',value:P,unit:'lbf',precision:0}]):certError('The leg size must be 0.03–4 in, the effective length above 0 and up to 1,000 in, the filler metal tensile strength 40–150 ksi, and the allowable shear factor above 0 and up to 0.6.')}</div>${calcFooter('Weld Fillet Strength')}`;
+};
+RENDERS.weld_heat_input=()=>{
+  const v=certValue('whi_v',25,'V'),i=certValue('whi_i',200,'A'),s=certValue('whi_s',10,'in/min'),k=certValue('whi_k',1);
+  const ok=[v,i,s,k].every(Number.isFinite)&&v>=5&&v<=100&&i>=1&&i<=2000&&s>=0.1&&s<=500&&k>=0.1&&k<=1;
+  const ae=ok?60*v*i/(1000*s):NaN;
+  return `${headerHTML('Weld Heat Input','The heat a welding arc puts into each inch (millimetre) of weld, the number welding procedures and steel specifications limit to protect toughness and hardness. Arc Energy = 60 × voltage × current ÷ (1,000 × travel speed), in kJ per inch with the travel speed in inches per minute (AWS D1.1 calls this the heat input). ISO/TR 17671-1 and ISO 1011-1 multiply the arc energy by a thermal efficiency factor k for the process: about 1.0 for submerged arc, 0.8 for shielded metal arc, gas metal arc and flux-cored, and 0.6 for gas tungsten arc and plasma. Leave k at 1.0 to get the arc energy (the AWS figure); enter the process factor for the ISO heat input. Use the average voltage and current measured at the arc and the travel speed along the joint (weave widens the bead but does not change this calculation). Pulsed and waveform-controlled processes need instantaneous energy or power metering instead of V × I averages.')}<div class="calc-body">${field('Arc Voltage','whi_v',25,'V')}${field('Welding Current','whi_i',200,'A')}${field('Travel Speed','whi_s',10,'in/min')}${field('Thermal Efficiency k (1.0 = arc energy)','whi_k',1,'')}${ok?multiResult([{label:'Arc Energy',value:ae,unit:'kJ/in',precision:3},{label:'Heat Input (arc energy × k)',value:ae*k,unit:'kJ/in',precision:3}]):certError('The arc voltage must be 5–100 V, the current 1–2,000 A, the travel speed 0.1–500 in/min, and the efficiency factor 0.1–1.0.')}</div>${calcFooter('Weld Heat Input')}`;
+};
 })();
 </script>
 
@@ -12137,6 +12158,10 @@ RENDERS.joint_separation=()=>{
     T('bolt_preload_from_torque 50 lb-ft K 0.2 1/2 in','bolt_preload_from_torque',{bpt_t:50,bpt_k:0.2,bpt_d:0.5,bpt_tpi:13,bpt_sp:85},'Estimated Preload',6000,1,'F = T/(K D)');
     T('joint_separation bolt load C 0.2','joint_separation',{js_fi:6000,js_p:3000,js_kb:2000000,js_km:8000000},'Bolt Load',6600,1,'Fi + C P');
     T('joint_separation separation load','joint_separation',{js_fi:6000,js_p:3000,js_kb:2000000,js_km:8000000},'Separation Load',7500,1,'Fi/(1-C)');
+    T('weld_fillet_strength 1/4 E70 4 in','weld_fillet_strength',{wfs_w:0.25,wfs_l:4,wfs_exx:70,wfs_f:0.3},'Allowable Weld Load',0.25*Math.SQRT1_2*21000*4,1,'0.707 w L 0.30 Exx');
+    T('weld_fillet_strength per inch 1/16 E70','weld_fillet_strength',{wfs_w:0.0625,wfs_l:1,wfs_exx:70,wfs_f:0.3},'Allowable Load per Inch',928.08,0.5,'AISC 0.928 kip/in per sixteenth');
+    T('weld_heat_input 25 V 200 A 10 ipm','weld_heat_input',{whi_v:25,whi_i:200,whi_s:10,whi_k:1},'Arc Energy',30,0.001,'60 V I / (1000 S)');
+    T('weld_heat_input k 0.8','weld_heat_input',{whi_v:25,whi_i:200,whi_s:10,whi_k:0.8},'Heat Input',24,0.001,'k x arc energy');
 
     // Retired aliases (GH_CALC_ALIASES, GH-DEF-008): each must stay mapped to its canonical calculator and still render exactly what the
     // canonical renders for the same inputs, so a retired id cannot silently drift from (or stop pointing at) the calculator that replaced it.
