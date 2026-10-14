@@ -20,17 +20,17 @@ The early $1.99 Garage / $3.99 additional-profile concept is retired and impleme
 |---|---|
 | Free public calculators (F1.12.4; F1.12.3 is the frozen baseline) | **585** |
 | Calculators migrated from Free to Premium (owner-approved audit, 2026-10-06) | **21** |
-| Premium Calculator Expansion calculators (net-new, no Free counterpart; owner-approved brief, 2026-10-07-) | **131** (of 143 approved; see below) |
+| Premium Calculator Expansion calculators (net-new, no Free counterpart; owner-approved brief, 2026-10-07-) | **133** (of 143 approved; see below) |
 | Premium-only tools: the Engineering Lab, E01–E14 (10 analyzers, 4 workbenches) | **14** |
-| Premium-only tools total (21 migrated + 131 expansion calculators + 14 Engineering Lab) | **166** |
-| Tools available in Premium (Free + Premium-only) | **751** |
-| Premium expansion tools validated from approved work (E01–E14 + expansion calculators) | **145** |
+| Premium-only tools total (21 migrated + 133 expansion calculators + 14 Engineering Lab) | **168** |
+| Tools available in Premium (Free + Premium-only) | **753** |
+| Premium expansion tools validated from approved work (E01–E14 + expansion calculators) | **147** |
 | Approved future Premium tools (not yet built) | **0** |
 | Aliases (alternate ids, never counted) | 6 |
 
 Free calculators by lab: universal 315, gasoline 162, diesel 42, EV 39, towing 27 (585 total; see "Calculators migrated from Free to Premium" below for the 21 that moved out of these lab counts on 2026-10-06; the Premium Calculator Expansion's calculators were never Free and so never counted in these lab totals).
 
-*Table updated 2026-10-14 after Batch 13 (it had last been updated after Batch 10, at 90 expansion calculators; the narrative paragraphs below still describe that point, and the batch sections hold the detail). The figures match `catalog/build-catalog.js` and `run-tests.sh`'s catalog check: 131 expansion, 166 Premium-only, 751 in Premium, 145 validated.*
+*Table updated 2026-10-14 after Batch 14 stage 1 (it had last been updated after Batch 10, at 90 expansion calculators, until Batch 13; the narrative paragraphs below still describe that point, and the batch sections hold the detail). The figures match `catalog/build-catalog.js` and `run-tests.sh`'s catalog check: 133 expansion, 168 Premium-only, 753 in Premium, 147 validated.*
 
 **751 is the current Premium catalog, not the final one.** The Premium catalog is still incomplete, implemented batch by batch. The historical target of about 752 tools (612 Free plus about 140 Premium expansion tools) is still not used here, for two reasons:
 - the authoritative baseline for calculator-kind tools before the expansion began was 606 (585 Free + 21 migrated to Premium), not 612;
@@ -90,7 +90,8 @@ Saving is not being extended to new tools while the catalog is incomplete. The e
 - **Decided (2026-10-14, owner approval):** Torsional Resonance Speed (Batch 11c) stays a calculator, keeping its stated limits: a simplified, undamped, single-mode lumped model, never presented as a full torsional-dynamics simulation. This closes the classification question; all four reconciliation "Analyzer" items of Batch 11 and Joint Separation are calculators.
 - **Decided (2026-10-14, owner approval), example-default policy:** Cutting Force (specific cutting force k_c) and Tool Life (Taylor n and C) keep their example material constants as defaults. They are labelled as examples on the page and in the box labels, the user can replace them, and nothing states or implies that they are validated for the user's material or cutting conditions. The same applies to any future calculator whose empirical constant needs a starting value.
 - **Decided (2026-10-14, owner authorization for Batch 13):** Scavenging / Charging Efficiency and Port Timing from Measured Geometry (classed "Analyzer" in the reconciliation) are built as calculators, with their limits stated on the page. The Batch 13 formula decisions (tuned-pipe model with an explicit exhaust-gas temperature, scavenging definitions and the two ideal reference curves, crankcase compression ratio convention) are recorded in the Batch 13 section.
-- **Open: next batch.** Batch 11 (37) and Batch 13 (4) are complete. 12 approved items remain: Batch 14 EV / Hybrid (6) and Batch 16 Workbenches (6), both unauthorized (readiness review in GH-FUT-003 and GH-FUT-004 of the register). No batch starts without explicit authorization.
+- **Decided (2026-10-14, owner authorization, Batch 14 stage 1):** Regenerative Braking Energy Recovery and Battery Pack Heat Balance only, from the Batch 14 model specification; heat rows in W (RETAIN-ACCESSORY), EV power in native kW (EV_POWER), energies kWh / Wh / kJ on a page selector. The specification's battery transient was corrected (see the Batch 14 stage 1 section).
+- **Open: next batch.** Batch 11 (37) and Batch 13 (4) are complete; Batch 14 stage 1 (2 of 6) is done. 10 approved items remain: the other four Batch 14 calculators (Motor Thermal Limit, Inverter Thermal Load, DC Fast-Charge Time, Hybrid Power-Split Device Kinematics), which wait for owner decisions D-14-1 to D-14-8 and their own authorization, and Batch 16 Workbenches (6), unauthorized. No batch starts without explicit authorization.
 - **Open: E01–E14 QA counting.** They are live in the Premium Engineering Lab, but ENGINEERING_EXPANSION_CATALOG_V1.md says they are not counted as public calculators until QA sign-off.
 
 ### Calculators excluded from saving (119)
@@ -253,7 +254,7 @@ Note on `turbo_sizing`: its promotion copy explicitly distinguishes it from the 
 
 Access is gated client-side only (same approach as the Engineering Lab, `premium/engineering-bridge.js`): `premium-calculator-gating.js` wraps each of these 21 ids' render function and nav entry, checking `GHP.services.entitlements.isPremium()` fresh on every render. It grants no access and talks to no database — these calculators are entirely client-side math, same as every Free calculator, so there is nothing for Supabase RLS to enforce here. What Supabase enforces is Premium status itself (`entitlement_grants`, `pf_has_feature`; see `PREMIUM_ARCHITECTURE.md`), which this gate reads but never decides.
 
-## Premium Calculator Expansion (131 of 143 approved, batch by batch)
+## Premium Calculator Expansion (133 of 143 approved, batch by batch)
 
 Decided 2026-10-07, from a Phase 1 reconciliation and exception-resolution pass that re-examined the 147-candidate future roadmap (left unapproved by the original Premium Migration Audit, above) against the live code. **143 candidates** were approved for implementation as net-new Premium-only calculators; 1 was held for a follow-up merge decision and 3 were rejected (duplicates or out of scope — see `claude/premium-expansion-phase1-exceptions-resolved.md` and `claude/premium-expansion-batch-plan.md` in the project). Implementation proceeds in 16 named engineering-family batches on the `premium/full-calculator-expansion` branch; each batch is implemented, QA'd (unit/formula tests, catalog validation, browser smoke tests, Premium gating tests, metric/imperial tests, NaN/Infinity/undefined scan) and committed before the next begins. `main` is untouched until the expansion is reviewed and merged.
 
@@ -511,7 +512,7 @@ Batch 11a itself is complete (code and tests `f9cbdae`, docs `f6f6a89`). These a
 | F-11A-01 | Calculator classification of Mohr's Circle, Fatigue Goodman Analysis and Fatigue Soderberg Analysis (classed "Analyzer" in the Phase 1 reconciliation, built as calculators) | **CLOSED** (owner-approved 2026-10-14) | Kept as calculators, consistent with the Batch 11 plan. An Analyzer-oriented enhancement (for example an interactive Goodman diagram) would be separate, separately authorized scope. |
 | F-11A-02 | No engine self-test assertions (`GH_SELFTEST_SUITE`) were added for the 15 Batch 11a calculators (Batch 10 added 46 for its 9) | **DEFERRED** (future QA improvement) | Batch 11a is not reopened for this: its independent suites (`structural-11a` 793 checks, `unit-system` 15 cases) and the full 30-suite browser regression passed. Batch 11b did add self-test assertions for all 13 of its calculators (18 assertions); the 11a ones remain to be added with a later authorized engine change. |
 | F-11A-03 | Commit granularity: Groups A and B of Batch 11a share one code commit (`f9cbdae`, which also holds Group C) | **DEFERRED** (traceability / process improvement; history not rewritten) | Applied from Batch 11b on: one code-and-tests commit per sub-group (`ff7d826` B1, `06343d4` B2, `2d05b9a` B3), the defect entry in its own commit (`bb40ff1`), then one docs commit. |
-| F-11A-04 | Release controls | **AWAITING AUTHORIZATION** | Batch 11a is complete at `f6f6a89`, Batch 11b at `2d05b9a` (docs `d2e82c0`), Batch 11c (authorized 2026-10-14) at `605196f` (docs `f83411b`) and Batch 13 (authorized 2026-10-14) at `3dfa4e3` plus its docs commit, on `premium/full-calculator-expansion`; `main` is still `a4203cd`. No merge, deployment or migration has been authorized. GH-ENG-014 remains unapplied and separately gated (authorizations A and B). No further batch may begin without explicit owner authorization. |
+| F-11A-04 | Release controls | **AWAITING AUTHORIZATION** | Batch 11a is complete at `f6f6a89`, Batch 11b at `2d05b9a` (docs `d2e82c0`), Batch 11c (authorized 2026-10-14) at `605196f` (docs `f83411b`) Batch 13 (authorized 2026-10-14) at `3dfa4e3` (docs `87eb6c9`) and Batch 14 stage 1 (2 calculators, authorized 2026-10-14) at `45a2177` plus its docs commit, on `premium/full-calculator-expansion`; `main` is still `a4203cd`. No merge, deployment or migration has been authorized. GH-ENG-014 remains unapplied and separately gated (authorizations A and B). No further batch may begin without explicit owner authorization. |
 
 ### Batch 11b — Joints and Fabrication (13, done 2026-10-14)
 
@@ -719,6 +720,155 @@ The reconciliation classed Scavenging / Charging Efficiency and Port Timing from
 - [Scooterotica, "Exhaust theory Pt1"](https://www.scooterotica.org/forum/viewtopic.php?p=48): L_t = ED × 42,545 ÷ RPM, a = √(401.8 (T + 273)), L_t = 83.3 × a × ED ÷ RPM; worked example 190°, 10,000 RPM, 550 °C → 910 mm.
 - [MPBA, "Tuned Pipes"](https://www.mpba.org.uk/?p=10656): L = ED × K ÷ RPM, with K calibrated from a known-good pipe (an implicit fixed gas temperature) and L measured from the manifold face (or, it notes, the plug) to the widest part of the front cone; an example of the reference-point variation between sources.
 - [LCGB forum, primary compression measurement](https://www.ilambretta.co.uk/forum/viewtopic.php?p=132326): crankcase volume filled with oil at BDC; the open question of what the fill includes.
+
+### Batch 14, stage 1 — Regenerative Braking and Battery Pack Heat Balance (2 of 6, done 2026-10-14)
+
+The owner authorized these two calculators only, on 2026-10-14. The model definition is the Batch 14 model specification (`batch-14-specification.md`, delivered to the owner the same day), §2.6 and §2.1.
+
+The other four Batch 14 calculators are not started:
+- Motor Thermal Limit;
+- Inverter Thermal Load (Mode A and Mode B);
+- DC Fast-Charge Time;
+- Hybrid Power-Split Device Kinematics.
+
+They wait for owner decisions D-14-1 to D-14-8 and their own authorization. Neither of the two new calculators adds a category; both use existing EV categories.
+
+| sub-group | id | name | category | model |
+|---|---|---|---|---|
+| E1A | `regen_braking_energy` | Regenerative Braking Energy Recovery | `EV / HYBRID & ALTERNATIVE ENERGY` | Energy released E = ½ k m (v₁² − v₂²). Wheel regen power min(share × k m a v, P_w) above the cut-out speed, where P_w = min(P_mg ÷ η_dt, P_b ÷ (η_dt η_mi)). Integrated over the stop in closed form. Terminals = wheels × η_dt × η_mi; stored = terminals × η_batt; friction = E − wheels |
+| E1B | `battery_pack_heat_balance` | Battery Pack Heat Balance | `EV / THERMAL` | Lumped mean pack temperature. Q = I²R − I T_K dU/dT. Heat to the coolant q = (T − T_in) ÷ R_sum, with R_sum = 1/UA + 1/(2 ṁ c_p). Closed-form steady state, transient (τ = C ÷ (I dU/dT + 1/R_sum)), time to a limit and continuous current |
+
+#### Regenerative Braking Energy Recovery
+
+**Model.** As specified (§2.6).
+- **Braking power:** at constant deceleration a, the braking power at the wheels at speed v is k m a v. The regen system takes the regen-axle share of it above the cut-out speed, up to the wheel-referred cap P_w.
+- **The cap:** each limit is referred to the wheels through the stages it sits behind. The motor/generator shaft limit becomes P_mg ÷ η_dt. The battery charge-acceptance limit, at the terminals, becomes P_b ÷ (η_dt η_mi). The smaller one binds, and the page names it.
+- **Closed form:** E_wheels = P_w (v₁ − max(v*, v_lo)) ÷ a + share × ½ k m (min(v₁, v*)² − v_lo²). Here v* = P_w ÷ (share × k m a) and v_lo = max(v₂, v_cut).
+- **Efficiencies:** each acts once, on its own stage. η_dt runs from the wheels to the motor shaft, η_mi from the shaft to the battery terminals, and η_batt from the terminals to stored energy. The page tells the user not to enter a round-trip efficiency.
+- **Friction:** friction-brake energy = energy released − regen energy at the wheels, so the two always add up.
+
+**Units.**
+- Mass: lbs ↔ kg. Speeds: mph ↔ km/h. Deceleration: g.
+- The two power limits are native kW boxes (EV_POWER). The wheel-referred cap and the peak regen power are raw kW rows (EV_POWER).
+- Energies use a page selector: kWh (4 decimals), Wh (1) or kJ (2), the same number in both systems. A single stop is about 0.2 kWh, which reads better in Wh or kJ.
+
+**Limits stated on the page.**
+- Road loads are neglected, so the braking energy is an upper bound.
+- Not modelled: grade, variable deceleration, ABS events, the motor's low-speed constant-torque region, and the reduced charge acceptance of a full or cold battery (the user enters the acceptance the battery has).
+- Cross-references to the Free Regenerative Braking Power calculator (one instant) and Hybrid Regen Energy Recovered (a known power for a known time).
+
+**Departure from the specification.** The specification's validation table asked for v₁ > v₂. Zero speed change is accepted: every energy is 0 and the recovered-share row is blank, because the owner's brief asked for zero-speed-change behaviour to be tested and the zeros are physically meaningful.
+
+**Worked example** (specification): 2,000 kg, 100 km/h to rest at 2 m/s², cut-out 7.2 km/h, motor 100 kW, battery 80 kW, η_dt 97 %, η_mi 92 %.
+
+| Result | Value |
+|---|---|
+| Motor limit at the wheels | 103.093 kW |
+| Battery limit at the wheels | 89.6459 kW (binds) |
+| Power-limited above | 22.4115 m/s (50.13 mph, 80.68 km/h) |
+| Energy released | 771,604.94 J (0.214335 kWh) |
+| Regen at the wheels | 738,807.73 J |
+| Friction brakes | 32,797.21 J (32.8 kJ) |
+| Battery terminals | 659,312.02 J = 0.183142 kWh = 183.1 Wh, 85.447 % of the energy released |
+| Duration | 13.889 s |
+
+The independent check time-steps the stop (400,000 midpoint steps) instead of using the closed form, and gives the same figures.
+
+#### Battery Pack Heat Balance
+
+**Model.** As specified (§2.1), with one correction to the transient.
+- **Heat generated:** Q = I²R + Q_rev, with Q_rev = −I T_K dU/dT (Bernardi, Pawlikowski & Newman, 1985; I > 0 on discharge).
+  - dU/dT is the pack value (cell value × cells in series). It defaults to 0, meaning omitted, not estimated.
+  - The reversible term is evaluated at the pack temperature, so the steady state and transient stay linear and exact.
+- **Heat removal:** heat leaves only to the coolant, q = UA (T − T_c,mean), with T_c,mean = T_in + q ÷ (2 ṁ c_p). That gives q = (T − T_in) ÷ R_sum, where R_sum = 1/UA + 1/(2 ṁ c_p).
+- **Steady state:** T_ss = (T_in,K + R_sum I²R) ÷ (1 + R_sum I dU/dT).
+- **Transient:** C dT/dt = Q(T) − q(T) gives T(t) = T_ss − (T_ss − T₀) e^(−t/τ), with τ = C ÷ (I dU/dT + 1/R_sum).
+  - If I dU/dT + 1/R_sum ≤ 0 there is no steady state: the reversible heat grows faster than cooling. The page rejects that input with this reason.
+- **Continuous current to the limit:** the root of R I² − dU/dT T_lim,K I − (T_lim − T_in) ÷ R_sum = 0, in the direction of the current entered.
+- **Inputs:** pack current, or battery power with pack voltage.
+- **Outputs and notes:**
+  - pack temperature after an elapsed time;
+  - notes when the limit is never reached, when the pack starts at or above it, and when UA > 2 ṁ c_p (the mean-coolant model then puts the outlet above the pack, which cannot happen).
+
+**Correction to the specification (a demonstrated defect).** The specification's transient held the mean coolant temperature at its *steady* value from t = 0: τ = C ÷ UA = 900 s, time to 35 °C = 1,018 s.
+- **The defect:** at t = 0 that model has 25 °C coolant heating a 25 °C pack with UA × (25 − 29.76) = −2,381 W, which violates the coolant's own energy balance.
+- **The correction:** with the balance applied, τ = C × R_sum = 1,328.57 s, and the example reaches 35 °C in **1,503.15 s (25.05 min)**.
+- **Independent checks:**
+  - Euler integration of the pack with the coolant balance: 1,503.15 s.
+  - A two-node model with a 2 kg (or 0.2 kg) coolant mass: 1,505.6 s (or 1,503.4 s), converging to it.
+- **Unchanged:** the steady temperature and the continuous capacity, because both already used R_sum in the specification.
+- **A related finding, not adopted:** a 200-segment plug-flow channel gives 1,445 s. That is a different exchanger model, in which UA is not referred to the mean coolant temperature. The specification's mean-coolant definition of UA is kept.
+
+**Units.**
+- Temperatures: °F ↔ °C (with the offset). Temperature rise: Δ°F ↔ Δ°C. Coolant flow: lbs/min ↔ kg/min. Pack mass: lbs ↔ kg.
+- The same in both systems: c_p and the pack specific heat (J/kg·K), UA (W/K), dU/dT (V/K), current (A), resistance (ohm) and times (min).
+- The four heat rows are W, `RETAIN-ACCESSORY`, like `ev_battery_heat`. The power-mode battery power is a native kW box, `EV_POWER`.
+- The 35 °C (95 °F) limit is an example, labelled as such on the page.
+
+**Limits stated on the page.**
+- It gives one mean temperature, not a cell-level simulation: no gradients, hot spots, ageing or runaway.
+- Resistance and dU/dT are inputs, not derived from chemistry.
+- Heat to ambient is neglected.
+- Constant current only.
+
+**Worked example** (specification): 250 A, 0.08 ohm, coolant 0.15 kg/s with c_p 3,500 at 25 °C, UA 500 W/K, 450 kg × 1,000 J/kg·K, start 25 °C, limit 35 °C.
+
+| Result | Value |
+|---|---|
+| Heat | 5,000 W |
+| Coolant rise | 9.5238 K; outlet 34.5238 °C |
+| Steady pack temperature | **39.7619 °C** (103.57 °F) |
+| Continuous capacity | 3,387.10 W, **205.764 A** |
+| τ | 22.14 min |
+| Pack temperature after 10 min | 30.36 °C |
+| Time to 35 °C | **25.05 min (1,503 s)** — the corrected figure, not 1,018 s |
+
+#### Verification
+
+**Tests first, per calculator.** `premium/tests/structural-14.test.js` (new) and two new `unit-system` cases were run before the engine code existed.
+- **Before the code:** the first combined run failed 105 of 106 checks (only "no page errors" passed). Before E1B's code: E1B 48 of 49, and all 5 `unit-system` runs failed.
+
+**structural-14** (independent oracles: a time-stepped stop for regen; fixed-point iteration and Euler integration for the pack). Every case runs in Imperial and Metric with unit labels checked.
+
+| Group | Closed-form cases | Invalid inputs | Checks | Failures |
+|---|---|---|---|---|
+| E1A | 9 | 48 | 238 | 0 |
+| E1B | 7 | 41 | 177 | 0 |
+
+The E1A cases cover:
+- the specification example in kWh, kJ and Wh;
+- a motor-limited case;
+- a never-limited case with an exact answer;
+- share, rotating-mass factor and battery efficiency together;
+- zero speed change;
+- zero share;
+- a stop entirely below the cut-out.
+
+The E1B cases cover:
+- the specification example;
+- power mode;
+- zero current;
+- discharge and charge with dU/dT;
+- a pack already above its limit;
+- the UA > 2 ṁ c_p flag.
+
+**Other suites.**
+- **unit-system** (SI formulas, re-entry and repeated toggles): regen 296 checks, battery 370 checks, 0 failures.
+- **Engine self-test:** 5 new assertions, 721 / 721.
+- **Census:**
+  - mass-force: 2 mass rows added, 854 checks;
+  - unit-census: 739 calculators, 2,996 checks; Wh, kJ, V/K and W/K classified as metric-declared;
+  - unit-factors: 574 checks;
+  - declared-metric-units: 0 unprotected;
+  - performance-census (full run): 9 rows added (5 EV_POWER, 4 RETAIN-ACCESSORY), 0 failed.
+- **Counts:** 737 → 739 calculator-kind tools, 152 → 154 Premium calculators, 131 → 133 expansion.
+- **run-tests.sh:** catalog OK (133 expansion), register OK, frontend 55/55, schema 26/26.
+- **Full browser regression** (34 suites, after both calculators): 33 of 34 suites passed with 0 failures: self-test 721/721; smoke 19/19 with 739 calculator-kind tools; unit-system 6,719; toggle-sweep 739 swept (1 known-open); label-consistency 739 consistent; negative-zero 739 + 739; range-warnings 2,469; performance-census 0 failed; structural-11a 793, 11b 730, 11c 429, 13 251 and 14 414.
+  - **`nav-return` failed.** It failed 2 older calculators (`diesel_exhaust_flow`, `lease_vs_buy`) with the "back" result panel empty and the live one correct, the GH-DEF-035 signature. Both passed alone, and both new calculators passed alone and in the full run.
+  - **The whole-suite re-run failed too,** on 3 different older calculators (`exhaust_intake_flow_ratio`, `loan_payment`, `pressure_converter`).
+  - **Not dismissed.** This is the same intermittent race already recorded as GH-DEF-035. It was seen in the Batch 11c and Batch 13 regressions on the engines of `605196f` and `3dfa4e3`, before any Batch 14 code, and it never involves a Batch 14 calculator.
+  - **Frequency.** Whole-suite `nav-return` has failed in 5 of its 7 runs on this branch since Batch 11c. The evidence is recorded here, separately. GH-DEF-035 stays OPEN, and its register entry was not investigated or modified, as the stage-1 authorization requires. **`nav-return` therefore does not pass on this branch at present.** Every other suite does.
+- **Commits:** `6f85783` (E1A), `45a2177` (E1B).
 
 ## Reliability pass (2026-10-12, between Batch 10 and Batch 11)
 

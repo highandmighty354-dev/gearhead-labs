@@ -1672,7 +1672,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Priority:** P2
 - **Description:** Battery Pack Heat Balance, Motor Thermal Limit, Inverter Thermal Load, DC Fast-Charge Time with CC-CV Taper, Hybrid Power-Split Device Kinematics, Regenerative Braking Energy Recovery.
 - **Evidence:** Project plan; Phase 1 notes (Regenerative Braking replaces the "braking power" input of `hybrid_regen_energy`).
-- **Affected:** 6 new Premium calculators.
+- **Affected:** 6 new Premium calculators; 2 exist (stage 1, 2026-10-14): `regen_braking_energy`, `battery_pack_heat_balance` (`docs/PREMIUM-CATALOG.md`, "Batch 14, stage 1").
 - **Impact:** Catalog expansion.
 - **Decision:** Approved set.
 - **Dependencies:**
@@ -1680,8 +1680,8 @@ This is the **single authoritative register** of known defects, deferred improve
   - New power and torque rows must be classified under the GH-IMP-019 policy (EV_POWER, HYBRID_SYSTEM_POWER, EV_TORQUE, ENGINE_POWER) with `PERF_ROWS` and census entries. The policy questions still open in GH-IMP-020 (EV motor torque and the rest) may affect them.
   - Related existing calculators: `hybrid_regen_energy`, `hybrid_power_split`, `ev_charge_time`, `ev_battery_heat`, `ev_coolant_flow`, `ev_motor_*` and Batch 7's `planetary_gearset_ratio`. Each needs a cross-link and an overlap check.
 - **Revisit:** After Batch 13 (readiness review 2026-10-14, see History).
-- **Commits:** None.
-- **Tests:** None.
+- **Commits:** stage 1: `6f85783` (Regenerative Braking Energy Recovery), `45a2177` (Battery Pack Heat Balance), docs in the following commit.
+- **Tests:** stage 1: `premium/tests/structural-14.test.js` (new, 414 checks), 2 `unit-system` cases (new `massflowmin` input and `kwh`, `watts`, `amps`, `seconds`, `tempabs` output kinds), 5 engine self-test assertions, 9 `PERF_ROWS` / performance-census rows, 2 mass rows.
 - **Docs:** Project plan.
 - **Verification:** Batch workflow.
 - **History:** 2026-10-12 — entry created.
@@ -1696,6 +1696,9 @@ This is the **single authoritative register** of known defects, deferred improve
     - Battery Pack Heat Balance: I²R generation against coolant capacity; its inputs need defining.
   - **Shared risk:** many power, torque and energy rows touch the performance-unit policy. kWh and other electrical units are unregistered (neutral or SI), and Metric/Imperial handling of these rows needs care.
   - **Complexity:** medium to high, the heaviest of the remaining calculator batches.
+  2026-10-14 — model-specification review (no code): models selected and verified for all six; owner decisions D-14-1 to D-14-8 listed (`batch-14-specification.md`).
+  2026-10-14 — **stage 1 authorized and done: Regenerative Braking Energy Recovery and Battery Pack Heat Balance only**, test-first, one commit each. One specification defect corrected: the battery transient held the coolant mean at its steady value from t = 0 (τ = C ÷ UA); with the coolant's own energy balance τ = C × R_sum, and the example's time to 35 °C is 1,503 s, not 1,018 s (steady 39.76 °C and continuous 205.8 A unchanged). Full regression: 33 of 34 suites clean; `nav-return` failed on older calculators with the GH-DEF-035 signature (twice); the evidence is recorded in `docs/PREMIUM-CATALOG.md` ("Batch 14, stage 1", Verification) and GH-DEF-035 itself was not modified, as the stage-1 authorization requires. The other four calculators are not started; status stays APPROVED until they are built.
+
 
 ### GH-FUT-004 — Batch 16: Workbenches (6)
 - **Status:** APPROVED
