@@ -1696,7 +1696,7 @@ This is the **single authoritative register** of known defects, deferred improve
     - Battery Pack Heat Balance: I²R generation against coolant capacity; its inputs need defining.
   - **Shared risk:** many power, torque and energy rows touch the performance-unit policy. kWh and other electrical units are unregistered (neutral or SI), and Metric/Imperial handling of these rows needs care.
   - **Complexity:** medium to high, the heaviest of the remaining calculator batches.
-  2026-10-14 — model-specification review (no code): models selected and verified for all six; owner decisions D-14-1 to D-14-8 listed (`batch-14-specification.md`).
+  2026-10-14 — model-specification review (no code): models selected and verified for all six; owner decisions D-14-1 to D-14-8 listed (`docs/BATCH-14-SPECIFICATION.md`, revision 1.1 after the Stage 1 correction).
   2026-10-14 — **stage 1 authorized and done: Regenerative Braking Energy Recovery and Battery Pack Heat Balance only**, test-first, one commit each. One specification defect corrected: the battery transient held the coolant mean at its steady value from t = 0 (τ = C ÷ UA); with the coolant's own energy balance τ = C × R_sum, and the example's time to 35 °C is 1,503 s, not 1,018 s (steady 39.76 °C and continuous 205.8 A unchanged). Full regression: 33 of 34 suites clean; `nav-return` failed on older calculators with the GH-DEF-035 signature (twice); the evidence is recorded in `docs/PREMIUM-CATALOG.md` ("Batch 14, stage 1", Verification) and GH-DEF-035 itself was not modified, as the stage-1 authorization requires. The other four calculators are not started; status stays APPROVED until they are built.
 
 

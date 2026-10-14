@@ -723,7 +723,7 @@ The reconciliation classed Scavenging / Charging Efficiency and Port Timing from
 
 ### Batch 14, stage 1 — Regenerative Braking and Battery Pack Heat Balance (2 of 6, done 2026-10-14)
 
-The owner authorized these two calculators only, on 2026-10-14. The model definition is the Batch 14 model specification (`batch-14-specification.md`, delivered to the owner the same day), §2.6 and §2.1.
+The owner authorized these two calculators only, on 2026-10-14. The model definition is the Batch 14 model specification, now committed as [`docs/BATCH-14-SPECIFICATION.md`](BATCH-14-SPECIFICATION.md) (revision 1.1, which carries the §2.1 transient correction below as an erratum), §2.6 and §2.1.
 
 The other four Batch 14 calculators are not started:
 - Motor Thermal Limit;
