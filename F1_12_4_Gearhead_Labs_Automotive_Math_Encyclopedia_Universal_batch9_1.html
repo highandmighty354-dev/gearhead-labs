@@ -8332,12 +8332,18 @@ function ghDecorateCalculator(id){
   container.appendChild(seo);
 }
 
+/* GH-DEF-035: the follow-up below runs one timer tick after the render. Only the LATEST render may do it: when another page is rendered before the timer fires
+   (two renders in one task), the older timer would otherwise act on the newer page -- the dashboard's home-page swap wiped a calculator drawn after it, and a
+   calculator's decoration was added to the next calculator's page. The newer render schedules its own follow-up, so a superseded timer simply does nothing. */
+let GH_RENDER_SEQ=0;
 function ghRender(id, scroll=true){
+  const seq=++GH_RENDER_SEQ;
   const result=window.GH_BASE_RENDER_CALC(id,scroll);
   const c=CALCS.find(x=>x.id===id);
   const labKey=ghLabForCalc(c);
   ghUpdateMeta(c,labKey);
   setTimeout(()=>{
+    if(seq!==GH_RENDER_SEQ) return;   // superseded by a newer render (GH-DEF-035)
     if(id==='dashboard'){
       const box=document.getElementById('calc-container');
       if(box){box.innerHTML=ghHome();}
