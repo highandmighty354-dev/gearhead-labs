@@ -1574,6 +1574,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-10-12 — entry created; hard stop recorded.
   2026-10-13 — closeout phase: dependency note updated; status unchanged. **Batch 11 is still AWAITING AUTHORIZATION; none of its 37 calculators was started.**
   2026-10-14 — Batch 11a (15 calculators) implemented test-first, verified and pushed; status IN PROGRESS. 11b and 11c not started (need their own authorization).
+  2026-10-14 — Batch 11a follow-ups F-11A-01 to F-11A-04 recorded in `docs/PREMIUM-CATALOG.md` ("Batch 11a follow-ups"); Batch 11b plan proposed there ("Batch 11b — Joints and Fabrication (13): proposed plan"), AWAITING AUTHORIZATION. The authoritative 11b list has 13 names: Bolt Tensile Capacity and Bolt Shear Capacity are two calculators (the Chapter 10 closeout wrote them as one item). Nothing implemented.
 
 ### GH-FUT-002 — Batch 13: Two-Stroke (4 calculators)
 - **Status:** APPROVED
