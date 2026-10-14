@@ -58,6 +58,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-032](#gh-def-032--a-simulators-first-draw-runs-at-50--drivetrain-efficiency-its-fallback-is-085-where-the-box-holds-85) | A simulator's first draw runs at 50 % drivetrain efficiency (its fallback is 0.85 where the box holds 85) | VERIFIED CLOSED | High | P2 |
 | [GH-DEF-033](#gh-def-033--the-acceleration-simulators-default-60-mph-target-is-also-one-of-its-distance-marks-60-ft-so-it-reports-the-60-foot-time-as-the-target-time) | The Acceleration simulator's default 60 mph target is also one of its distance marks (60 ft), so it reports the 60-foot time as the Target Time | VERIFIED CLOSED | High | P2 |
 | [GH-DEF-034](#gh-def-034--bolt-torque-spec-by-grade-estimates-the-tensile-stress-area-with-16-threads-per-inch-for-every-bolt-above-03-in-reported-needs-investigation) | Bolt Torque Spec by Grade estimates the tensile stress area with 16 threads per inch for every bolt above 0.3 in (reported; needs investigation) | OPEN | Unknown until investigated | P2 |
+| [GH-DEF-035](#gh-def-035--a-navigation-made-in-the-same-instant-as-a-trip-to-the-dashboard-can-be-overwritten-by-the-dashboards-deferred-home-page-swap-intermittent-nav-return-failures) | A navigation made in the same instant as a trip to the dashboard can be overwritten by the dashboard's deferred home-page swap (intermittent nav-return failures) | OPEN | Low | P3 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
 | [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
@@ -91,7 +92,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-ENG-012](#gh-eng-012--max-safe-rpm-heuristic-assumptions-task-4-audit-item) | Max-safe-RPM heuristic assumptions (Task 4 audit item) | OPEN | Unknown | P3 |
 | [GH-ENG-013](#gh-eng-013--trailer-sway-and-brake-controller-heuristic-labelling-task-4-audit-item) | Trailer-sway and brake-controller heuristic labelling (Task 4 audit item) | OPEN | Unknown | P3 |
 | [GH-ENG-014](#gh-eng-014--two-corrected-formulas-dewpoint-distanceconverter-have-new-fingerprints-the-production-formulaversions-table-has-no-rows-for-them) | Two corrected formulas (`dew_point`, `distance_converter`) have new fingerprints: the production `formula_versions` table has no rows for them | OPEN | Medium | P2 |
-| [GH-FUT-001](#gh-fut-001--batch-11-structural--mechanical--machining--nvh-37-calculators) | Batch 11: Structural / Mechanical / Machining + NVH (37 calculators) | IN PROGRESS | n/a | P1 once authorized |
+| [GH-FUT-001](#gh-fut-001--batch-11-structural--mechanical--machining--nvh-37-calculators) | Batch 11: Structural / Mechanical / Machining + NVH (37 calculators) | VERIFIED CLOSED | n/a | P1 once authorized |
 | [GH-FUT-002](#gh-fut-002--batch-13-two-stroke-4-calculators) | Batch 13: Two-Stroke (4 calculators) | APPROVED | n/a | P2 |
 | [GH-FUT-003](#gh-fut-003--batch-14-ev--hybrid-6-calculators) | Batch 14: EV / Hybrid (6 calculators) | APPROVED | n/a | P2 |
 | [GH-FUT-004](#gh-fut-004--batch-16-workbenches-6) | Batch 16: Workbenches (6) | APPROVED | n/a | P3 |
@@ -776,6 +777,23 @@ This is the **single authoritative register** of known defects, deferred improve
   3. Check `bolt_stretch` and the metric grade options for the same cause.
   4. Then, with an approved fix, show the corrected values against tabulated references, with Imperial and Metric unchanged elsewhere.
 - **History:** 2026-10-14 — observed during Batch 11b planning (commit `53c7792`, catalogue observation); logged as OPEN on the owner's instruction, with the reproduction figures above and the two possibly related places in the code. No change made.
+
+### GH-DEF-035 — A navigation made in the same instant as a trip to the dashboard can be overwritten by the dashboard's deferred home-page swap (intermittent nav-return failures)
+- **Status:** OPEN
+- **Severity:** Low (no person can navigate within one timer tick; it shows up as an intermittent test failure under load)
+- **Priority:** P3
+- **Description:** `ghRender()` draws a page and then, in a `setTimeout(…, 0)`, replaces the calculator container with the home page when the page drawn was the dashboard. If another `renderCalc(id)` runs before that timer fires, the calculator is drawn and then wiped by the swap, so its result panel is empty. `premium/tests/nav-return.test.js` renders the dashboard and then the calculator in two quick `page.evaluate` calls, and on a heavily loaded machine the second call can arrive before the timer.
+- **Evidence:** In the full browser regression after Batch 11c (engine of `605196f`, 2026-10-14), `nav-return` failed for `stress`, `tow_trailer_capacity` and `roll_stiffness_distribution` ("back" result empty, "live" correct). Re-run on the same engine: those three alone 0 failures; the whole suite 733 checked, 0 failures. The same suite passed in the Batch 11a and 11b regressions. None of the three calculators was changed by Batch 11.
+- **Affected:** `ghRender` (the deferred home-page swap); `premium/tests/nav-return.test.js` (intermittently).
+- **Impact:** A flaky regression result; no realistic user impact.
+- **Decision:** Recorded only. Possible fixes, for a separate authorization: cancel the pending swap when another page is rendered, or have the test wait for the swap before navigating again.
+- **Dependencies:** None (related to the swap described in GH-DEF-026).
+- **Revisit:** When the owner schedules test-reliability work, or if it recurs.
+- **Commits:** None.
+- **Tests:** None yet; a deterministic reproduction would call `renderCalc('dashboard')` and `renderCalc(id)` in one task and check the page after the timer.
+- **Docs:** This entry; `docs/PREMIUM-CATALOG.md` ("Batch 11c", verification).
+- **Verification:** A fix must make the race impossible (or the test immune to it) and show `nav-return` passing repeatedly under load.
+- **History:** 2026-10-14 — observed in the Batch 11c full regression; re-run passed; recorded as OPEN.
 
 ## B. Deferred improvements
 
@@ -1596,18 +1614,18 @@ This is the **single authoritative register** of known defects, deferred improve
 ## D. Future development
 
 ### GH-FUT-001 — Batch 11: Structural / Mechanical / Machining + NVH (37 calculators)
-- **Status:** IN PROGRESS
+- **Status:** VERIFIED CLOSED
 - **Severity:** n/a
 - **Priority:** P1 once authorized
 - **Description:** Chassis/Frame Torsional Stiffness, Press-Fit/Interference Fit, Recovery Strap/Rope Energy, Key/Keyway Torque Capacity, column buckling, stress analyses, fatigue, welds, bolts, threads, drilling, bending, bearing/gear/NVH frequencies and machining (full list in the project plan).
 - **Evidence:** Project plan `claude/premium-expansion-batch-plan.md`.
-- **Affected:** 37 new Premium calculators; the 15 of 11a and the 13 of 11b exist (`docs/PREMIUM-CATALOG.md`, "Batch 11a" and "Batch 11b"), the 9 of 11c do not.
+- **Affected:** 37 new Premium calculators; all 37 exist (`docs/PREMIUM-CATALOG.md`, "Batch 11a", "Batch 11b", "Batch 11c").
 - **Impact:** Largest remaining batch.
-- **Decision:** Split into 11a (Structure, stress and fatigue, 15), 11b (Joints and fabrication, 13) and 11c (NVH and machining, 9). **11a and 11b authorized and done 2026-10-14; 11c AWAITING AUTHORIZATION, not started.**
+- **Decision:** Split into 11a (Structure, stress and fatigue, 15), 11b (Joints and fabrication, 13) and 11c (NVH and machining, 9). **All three authorized and done 2026-10-14 (11a, 11b, 11c): the 37 calculators of Batch 11 are built and verified.**
 - **Dependencies:** The shared unit-handling fixes of this pass should land first so the new batch is built on a reliable helper. **Landed (2026-10-13):** GH-DEF-008 (clean self-test baseline), GH-DEF-019, GH-DEF-020, GH-DEF-022 and GH-IMP-001 are VERIFIED CLOSED. Not blocking the batch but to be decided with it: GH-IMP-014 (how the new torque, inertia and stress units are registered; recommended order in `docs/IMP-014-UNREGISTERED-UNITS.md`), GH-IMP-013 (kg versus N for weights), GH-IMP-002 (inertia units), GH-ENG-014 (before any deployment).
 - **Revisit:** On authorization.
-- **Commits:** 11a: `f9cbdae` (code and tests), docs `f6f6a89`. 11b: `ff7d826` (B1), `06343d4` (B2), `2d05b9a` (B3), docs in the following commit.
-- **Tests:** 11a: `premium/tests/structural-11a.test.js` (new) and 15 new cases in `premium/tests/unit-system.test.js`; unit tables in `unit-factors`, `unit-census`, `mass-force` (inventory) and `performance-census` (ADDED rows). 11b: `premium/tests/structural-11b.test.js` (new), 13 new `unit-system` cases, 18 engine self-test assertions.
+- **Commits:** 11a: `f9cbdae` (code and tests), docs `f6f6a89`. 11b: `ff7d826` (B1), `06343d4` (B2), `2d05b9a` (B3), docs `d2e82c0`. 11c: `ff2101b` (C1), `44df31a` (C2), `605196f` (C3), docs in the following commit.
+- **Tests:** 11a: `premium/tests/structural-11a.test.js` (new) and 15 new cases in `premium/tests/unit-system.test.js`; unit tables in `unit-factors`, `unit-census`, `mass-force` (inventory) and `performance-census` (ADDED rows). 11b: `premium/tests/structural-11b.test.js` (new), 13 new `unit-system` cases, 18 engine self-test assertions. 11c: `premium/tests/structural-11c.test.js` (new), 9 new `unit-system` cases, 16 engine self-test assertions.
 - **Docs:** Project plan; `docs/PREMIUM-CATALOG.md` "Remaining".
 - **Verification:** The batch workflow of the project plan (implement, test, regression, catalog validation, commit, push, checkpoint).
 - **History:** 2026-10-12 — entry created; hard stop recorded.
@@ -1615,6 +1633,7 @@ This is the **single authoritative register** of known defects, deferred improve
   2026-10-14 — Batch 11a (15 calculators) implemented test-first, verified and pushed; status IN PROGRESS. 11b and 11c not started (need their own authorization).
   2026-10-14 — Batch 11a follow-ups F-11A-01 to F-11A-04 recorded in `docs/PREMIUM-CATALOG.md` ("Batch 11a follow-ups"); Batch 11b plan proposed there ("Batch 11b — Joints and Fabrication (13): proposed plan"), AWAITING AUTHORIZATION. The authoritative 11b list has 13 names: Bolt Tensile Capacity and Bolt Shear Capacity are two calculators (the Chapter 10 closeout wrote them as one item). Nothing implemented.
   2026-10-14 — Batch 11b authorized by the owner (all 13, with D-11B-1 to D-11B-4 and F-11A-01 approved) and done: test-first per sub-group, each committed separately, full browser regression passed (see `docs/PREMIUM-CATALOG.md`, "Batch 11b"). The Bolt Torque Spec concern is GH-DEF-034 (OPEN, not fixed). 11c not started.
+  2026-10-14 — Batch 11c authorized and done (9 calculators, test-first, one commit per sub-group). With 11a and 11b, all 37 Batch 11 calculators are built; entry closed on the evidence of the full browser regression after 11c (see `docs/PREMIUM-CATALOG.md`, "Batch 11c"). GH-DEF-034 stays OPEN and untouched.
 
 ### GH-FUT-002 — Batch 13: Two-Stroke (4 calculators)
 - **Status:** APPROVED
