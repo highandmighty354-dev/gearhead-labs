@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Gearhead Labs — Batch 14 stage 1 (EV / Hybrid): Regenerative Braking Energy Recovery (E1A) and Battery Pack Heat Balance (E1B). Closed-form, independent-method, unit-label,
+/* Gearhead Labs — Batch 14 (EV / Hybrid), stages 1 and 2: Regenerative Braking Energy Recovery (E1A) and Battery Pack Heat Balance (E1B); stage 2: Motor Thermal Limit (E2A) and Inverter Thermal Load, Mode A (E2B). Closed-form, independent-method, unit-label,
    Metric/Imperial and invalid-input checks (docs/PREMIUM-CATALOG.md, "Batch 14, stage 1"; the model specification is batch-14-specification.md in the project).
 
    WHAT THIS PROVES, for each calculator it lists, in a real Chromium page with real typing:
@@ -32,7 +32,8 @@ const U = {
   '': ['', '', 1], '%': ['%', '%', 1], g: ['g', 'g', 1], kW: ['kW', 'kW', 1], kWh: ['kWh', 'kWh', 1], Wh: ['Wh', 'Wh', 1], kJ: ['kJ', 'kJ', 1], W: ['W', 'W', 1],
   sec: ['sec', 'sec', 1], min: ['min', 'min', 1], A: ['A', 'A', 1], V: ['V', 'V', 1], ohm: ['ohm', 'ohm', 1], 'V/K': ['V/K', 'V/K', 1], 'W/K': ['W/K', 'W/K', 1], 'J/kg·K': ['J/kg·K', 'J/kg·K', 1],
   lbs: ['lbs', 'kg', LB], mph: ['mph', 'km/h', MI / 1000], 'lbs/min': ['lbs/min', 'kg/min', LB],
-  '°F': ['°F', '°C', f => (f - 32) * 5 / 9], 'Δ°F': ['Δ°F', 'Δ°C', 5 / 9]
+  '°F': ['°F', '°C', f => (f - 32) * 5 / 9], 'Δ°F': ['Δ°F', 'Δ°C', 5 / 9],
+  'K/W': ['K/W', 'K/W', 1], 'J/K': ['J/K', 'J/K', 1], RPM: ['RPM', 'RPM', 1], 'lb-ft': ['lb-ft', 'lb-ft', 1]   // EV motor torque: lb-ft in both systems under Auto (GH-IMP-019 P2)
 };
 const toM = (u, v) => typeof U[u][2] === 'function' ? U[u][2](v) : v * U[u][2];
 const approx = (got, want, rel, textDecimals) => Math.abs(got - want) <= 0.5 * Math.pow(10, -textDecimals) + rel * Math.abs(want);
@@ -148,6 +149,40 @@ const BEX = { I: 250, R: 0.08, tin: 25, mdot: 0.15, cp: 3500, UA: 500, M: 450, c
 { const o = { ...BEX, UA: 2000, mdot: 0.2 }, s = packSim(o);
   add({ g: 'E1B', id: 'battery_pack_heat_balance', title: 'UA above twice m_dot c_p is flagged', sel: { bphb_mode: 'current' }, inputs: BIN(o), want: { 'Steady Pack Temperature': [C2F(s.Tss), '°F'] }, notes: [/twice the coolant/i], rel: 2e-4 }); }
 
+/* ======================================================= E2A MOTOR THERMAL LIMIT ======================================================= */
+/* Single-node model (specification §2.2): C dT/dt = P_loss − (T − T_c) / R_th, C = τ / R_th (τ is the input), P_loss = P_out (1/η − 1).
+   Independent oracles: the time to the winding limit by EULER integration of that equation; the continuous output by BISECTION on P for a steady temperature equal to the limit. */
+function motorSim({ P, eta, R, tau, tc, t0, tl }) {                                                        // W, fraction, K/W, s, °C
+  const C = tau / R, Pl = P * (1 / eta - 1), Tss = tc + Pl * R;
+  let tlim = NaN; if (t0 < tl && Tss > tl) { let T = t0, t = 0; const dt = 1e-3; while (T < tl) { T += dt * (Pl - (T - tc) / R) / C; t += dt; } tlim = t; }
+  let lo = 0, hi = 1e7; for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2; (tc + m * (1 / eta - 1) * R < tl) ? lo = m : hi = m; }
+  return { C, Pl, Tss, tlim, Plc: (tl - tc) / R, Pc: lo };
+}
+const MIN = (o, torque) => ({ ...(torque ? { mtl_t: [torque[0], 'lb-ft'], mtl_n: [torque[1], 'RPM'] } : { mtl_p: [o.P / 1000, 'kW'] }), mtl_e: [o.eta * 100, '%'], mtl_r: [o.R, 'K/W'], mtl_tau: [o.tau, 'sec'],
+  mtl_tc: [C2F(o.tc), '°F'], mtl_t0: [C2F(o.t0), '°F'], mtl_tl: [C2F(o.tl), '°F'] });
+const MWANT = m => ({ 'Heat Loss at This Point': [m.Pl, 'W'], 'Thermal Capacitance C (τ ÷ R_th)': [m.C, 'J/K'], 'Steady Winding Temperature at This Point': [C2F(m.Tss), '°F'],
+  'Continuous Loss Capacity (to the limit)': [m.Plc, 'W'], 'Continuous Output if Efficiency Stayed the Same (extrapolation, not a rating)': [m.Pc / 1000, 'kW'] });
+/* a) the approved example: 150 kW at 94 %, R_th 0.012 K/W, τ 180 s, coolant 65 °C, start 90 °C, limit 150 °C. C = 15 000 J/K; loss 9 574.47 W; steady 179.89 °C (above the limit:
+      TIME-LIMITED, never continuous); 198.18 s to 150 °C; continuous loss 7 083.33 W; continuous output at 94 % (extrapolation) 110.972 kW. */
+const MEX = { P: 150e3, eta: 0.94, R: 0.012, tau: 180, tc: 65, t0: 90, tl: 150 };
+{ const m = motorSim(MEX);
+  add({ g: 'E2A', id: 'motor_thermal_limit', title: 'approved example (power input): time-limited', sel: { mtl_mode: 'power' }, inputs: MIN(MEX),
+    want: { ...MWANT(m), 'Shaft Output Power': [150, 'kW'], 'Time to Reach the Winding Limit': [m.tlim, 'sec'] },
+    literal: { 'Heat Loss at This Point': 9574.5, 'Thermal Capacitance C (τ ÷ R_th)': 15000, 'Time to Reach the Winding Limit': 198.2, 'Continuous Loss Capacity (to the limit)': 7083.3, 'Continuous Output if Efficiency Stayed the Same (extrapolation, not a rating)': 110.97 },
+    notes: [/time-limited/i], noNotes: [/continuous at this point/i], rel: 2e-5 });
+  /* twice the time constant: twice the time to the limit (the logarithm is unchanged) */
+  add({ g: 'E2A', id: 'motor_thermal_limit', title: 'twice τ: twice the time to the limit', sel: { mtl_mode: 'power' }, inputs: MIN({ ...MEX, tau: 360 }),
+    want: { 'Time to Reach the Winding Limit': [2 * m.tlim, 'sec'], 'Thermal Capacitance C (τ ÷ R_th)': [30000, 'J/K'] }, rel: 2e-5 }); }
+/* b) torque + speed: 221.3 lb-ft at 4 775 RPM = 150.032 kW (P = T ω, T in N·m from the exact lb-ft) */
+{ const P = 221.3 * FT * LB * G0 * 4775 * 2 * Math.PI / 60, o = { ...MEX, P }, m = motorSim(o);
+  add({ g: 'E2A', id: 'motor_thermal_limit', title: 'torque input: 221.3 lb-ft at 4 775 RPM', sel: { mtl_mode: 'torque' }, inputs: MIN(o, [221.3, 4775]),
+    want: { ...MWANT(m), 'Shaft Output Power': [P / 1000, 'kW'], 'Time to Reach the Winding Limit': [m.tlim, 'sec'] }, literal: { 'Shaft Output Power': 150.03 }, rel: 2e-5 }); }
+/* c) a point the cooling can hold: 100 kW -> loss 6 382.98 W, steady 141.60 °C < 150 °C: continuous, no time to the limit */
+{ const o = { ...MEX, P: 100e3 }, m = motorSim(o);
+  add({ g: 'E2A', id: 'motor_thermal_limit', title: '100 kW: continuous at this point', sel: { mtl_mode: 'power' }, inputs: MIN(o), want: MWANT(m), blank: ['Time to Reach the Winding Limit'], notes: [/continuous at this point/i], rel: 2e-5 }); }
+/* d) a winding already at or above its limit at the start */
+add({ g: 'E2A', id: 'motor_thermal_limit', title: 'start above the limit', sel: { mtl_mode: 'power' }, inputs: MIN({ ...MEX, t0: 160 }), want: {}, blank: ['Time to Reach the Winding Limit'], notes: [/already at or above/i] });
+
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    INVALID INPUT.
    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -168,6 +203,15 @@ for (const [label, over] of [['zero resistance', { bphb_r: '0' }], ['zero coolan
   ['specific heat below 300', { bphb_c: '200' }], ['zero coolant specific heat', { bphb_cp: '0' }], ['limit not above the coolant inlet', { bphb_tl: '70' }], ['current above 3 000 A', { bphb_i: '3500' }],
   ['|dU/dT| above 1 V/K', { bphb_du: '1.5' }], ['an entropic term with no steady state (heating grows faster than cooling)', { bphb_i: '2000', bphb_du: '-0.9' }]])
   bad('E1B', 'battery_pack_heat_balance', BASE.battery_pack_heat_balance, label, over, SEL.battery_pack_heat_balance);
+
+BASE.motor_thermal_limit = flat(MIN(MEX)); SEL.motor_thermal_limit = { mtl_mode: 'power' };
+sweepBad('E2A', 'motor_thermal_limit', Object.keys(BASE.motor_thermal_limit), ['mtl_tc', 'mtl_t0', 'mtl_tl']);
+for (const [label, over] of [['efficiency above 99.9 %', { mtl_e: '99.95' }], ['efficiency below 50 %', { mtl_e: '40' }], ['zero thermal resistance', { mtl_r: '0' }], ['zero time constant', { mtl_tau: '0' }],
+  ['limit not above the coolant', { mtl_tl: '140' }], ['zero power', { mtl_p: '0' }]])
+  bad('E2A', 'motor_thermal_limit', BASE.motor_thermal_limit, label, over, SEL.motor_thermal_limit);
+BASE.motor_thermal_limit_tq = flat(MIN(MEX, [221.3, 4775]));
+for (const [label, over] of [['zero torque', { mtl_t: '0' }], ['zero speed', { mtl_n: '0' }], ['negative torque', { mtl_t: '-5' }], ['torque empty', { mtl_t: '' }], ['speed text', { mtl_n: 'abc' }]])
+  bad('E2A', 'motor_thermal_limit', BASE.motor_thermal_limit_tq, label, over, { mtl_mode: 'torque' });
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    HARNESS
@@ -233,7 +277,7 @@ async function runInvalid(page, b) {
 }
 
 (async () => {
-  const groups = (process.env.GROUP || 'E1A,E1B').split(',');
+  const groups = (process.env.GROUP || 'E1A,E1B,E2A').split(',');
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });
   const page = await (await browser.newContext()).newPage(); page.setDefaultTimeout(8000);
   const pageErrors = []; page.on('pageerror', e => pageErrors.push(String(e)));

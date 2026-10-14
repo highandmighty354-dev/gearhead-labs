@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "7a33b674b5d1b5fda366b7fb3f6c4f19b6e3358b7390aed073c74b5488c9aefa"
+      "sha256": "3e3265f4b02567aa20c9e924dddd32181367ef1d03475686c9a719211c443e49"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -12,7 +12,7 @@
     },
     "models": {
       "file": "premium/models.js",
-      "sha256": "6da1b862e97806f2fcfed068556fab119d17467603794a3f32080513b02c813b"
+      "sha256": "a63f809b2bca7227f63ae8837f782c31acbb30b5512108a30d151d20a42f0758"
     },
     "engineering": {
       "file": "engineering-expansion-v1.js",
@@ -22,10 +22,10 @@
   "counts": {
     "free_public_calculators": 585,
     "migrated_premium_calculators": 21,
-    "premium_expansion_calculators": 133,
+    "premium_expansion_calculators": 134,
     "engineering_lab_tools": 14,
-    "premium_only_tools": 168,
-    "premium_total_access": 753,
+    "premium_only_tools": 169,
+    "premium_total_access": 754,
     "aliases_not_counted": 6,
     "free_by_lab": {
       "universal": 315,
@@ -35,22 +35,22 @@
       "ev": 39
     },
     "premium_by_kind": {
-      "calculator": 154,
+      "calculator": 155,
       "workbench": 4,
       "analyzer": 10
     },
     "save": {
       "eligible": 577,
-      "excluded": 162,
+      "excluded": 163,
       "saveable": 14
     },
-    "premium_expansion_validated": 147,
+    "premium_expansion_validated": 148,
     "approved_future_tools": 0
   },
   "decisions": [
-    "Owner decision 2026-10-06: the 162 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
+    "Owner decision 2026-10-06: the 163 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
     "Owner decision 2026-10-06: 21 existing Free calculators are migrated to Premium, cutting the originally-proposed 70-item list to the 21 the audit actually recommended (Gearhead_Labs_Premium_Migration_AUDIT.xlsx; 49 rejected as Engineering Lab duplicates, SEO/on-ramp anchors, or workbook-arithmetic errors). Free drops from 606 to 585; the Engineering Lab (E01-E14) is unaffected. The 147-item future roadmap remains unimplemented and uncounted.",
-    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 133 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
+    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 134 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
   ],
   "premium_migration": {
     "rule": "A Free calculator moves to Premium only from an owner-approved audit in this repository (Gearhead_Labs_Premium_Migration_AUDIT.xlsx). Each migrated calculator keeps a named Free companion as its on-ramp and stays visible (not hidden) in the Free calculator navigation with a Premium indicator.",
@@ -186,7 +186,7 @@
   },
   "premium_expansion": {
     "rule": "A Premium tool enters this catalog only from approved engineering/product work in this repository, after QA. No count target (the historical ~140 / 752 figures are not used).",
-    "validated": 147,
+    "validated": 148,
     "sources": [
       {
         "source": "ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)",
@@ -202,11 +202,11 @@
       },
       {
         "source": "Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list from the Phase 1 reconciliation and exception resolution)",
-        "outcome": "133 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 10 remain"
+        "outcome": "134 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 9 remain"
       }
     ],
     "premium_calculators": {
-      "validated": 133,
+      "validated": 134,
       "tools": [
         {
           "id": "ac_power_factor",
@@ -587,6 +587,11 @@
           "id": "mohr_circle",
           "name": "Mohr's Circle",
           "category": "UNIVERSAL / MATERIALS & STRUCTURES"
+        },
+        {
+          "id": "motor_thermal_limit",
+          "name": "Motor Thermal Limit",
+          "category": "EV / THERMAL"
         },
         {
           "id": "npsh_available",
@@ -1577,6 +1582,7 @@
     {"id":"master_cylinder","name":"Master Cylinder Sizing","category":"SUSPENSION, TIRES & GEOMETRY","lab":"universal","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-a07ce7ac","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"brake_torque","promotion":"Use the free Brake Torque calculator to establish the baseline. Premium’s Master Cylinder Sizing turns that into a complete bore-sizing and pedal-ratio workflow."},
     {"id":"minimum_bend_radius","name":"Minimum Bend Radius","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Minimum Bend Radius — a ductility-based estimate of the tightest bend, with its limits stated."},
     {"id":"mohr_circle","name":"Mohr's Circle","category":"UNIVERSAL / MATERIALS & STRUCTURES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Mohr's Circle — the drawn circle and the stresses on any rotated plane."},
+    {"id":"motor_thermal_limit","name":"Motor Thermal Limit","category":"EV / THERMAL","lab":"ev","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Motor Thermal Limit — whether a motor operating point is continuous or time-limited, and the time to its winding limit."},
     {"id":"npsh_available","name":"NPSH Available","category":"HYDRAULICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks NPSH Available — the standard pump-cavitation design metric for fuel, oil, coolant, or power-steering pump systems."},
     {"id":"npsh_safety_margin","name":"NPSH Safety Margin","category":"HYDRAULICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the NPSH Safety Margin analyzer — compares NPSH Available against a pump’s rated NPSH Required with a safety-margin classification."},
     {"id":"oil_clearance_flow","name":"Idealized Oil Clearance Flow","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Idealized Oil Clearance Flow — a first-principles estimate of oil flow through a bearing’s running clearance."},

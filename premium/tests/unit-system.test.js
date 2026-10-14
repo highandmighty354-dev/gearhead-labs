@@ -151,6 +151,7 @@ const OUT = {
   watts:  { fromSI: (s, x) => x, unit: s => 'W' },                                                                                      // base W (heat, RETAIN-ACCESSORY)
   amps:   { fromSI: (s, x) => x, unit: s => 'A' },
   seconds:{ fromSI: (s, x) => x, unit: s => 'sec' },
+  jperk:  { fromSI: (s, x) => x, unit: s => 'J/K' },                                                                                    // Batch 14 stage 2: a thermal capacitance
   tempabs:{ fromSI: (s, x) => s === 'metric' ? x - 273.15 : (x - 273.15) * 9 / 5 + 32, unit: s => s === 'metric' ? '°C' : '°F' }       // base K                                                                                                  // base degrees: the same number and symbol in both systems
 };
 
@@ -523,7 +524,14 @@ const CASES = [
       return { 'Joule Heat (I²R)': ['watts', I * I * R], 'Reversible (Entropic) Heat at the Steady Temperature': ['watts', -b * Tss], 'Total Heat Generated (steady)': ['watts', Q],
                'Coolant Temperature Rise (steady)': ['tempdiff', Q / mc], 'Coolant Outlet Temperature (steady)': ['tempabs', Tin + Q / mc], 'Steady Pack Temperature': ['tempabs', Tss],
                'Thermal Time Constant': ['minutes', tau / 60], 'Pack Temperature after the Elapsed Time': ['tempabs', Tt], 'Continuous Heat Rejection to the Limit': ['watts', Qmax],
-               'Continuous Current to the Limit': ['amps', Imax] }; }, rel: 2e-3 }
+               'Continuous Current to the Limit': ['amps', Imax] }; }, rel: 2e-3 },
+  /* ---- Batch 14 stage 2, E2A: Motor Thermal Limit, power input (structural-14 checks the torque input and an Euler-integrated time to the limit). Limit last (0.9x stays above the coolant). ---- */
+  { id: 'motor_thermal_limit', fields: [['mtl_p', 'none', 120], ['mtl_e', 'none', 93], ['mtl_r', 'none', 0.015], ['mtl_tau', 'none', 200], ['mtl_tc', 'tempabs', 333.15], ['mtl_t0', 'tempabs', 353.15], ['mtl_tl', 'tempabs', 433.15]],
+    compute: v => { const R = v.mtl_r, C = v.mtl_tau / R, Pl = v.mtl_p * 1000 * (100 / v.mtl_e - 1), Tss = v.mtl_tc + Pl * R, Plc = (v.mtl_tl - v.mtl_tc) / R;
+      const out = { 'Shaft Output Power': ['kw', v.mtl_p], 'Heat Loss at This Point': ['watts', Pl], 'Thermal Capacitance C (τ ÷ R_th)': ['jperk', C], 'Steady Winding Temperature at This Point': ['tempabs', Tss],
+        'Continuous Loss Capacity (to the limit)': ['watts', Plc], 'Continuous Output if Efficiency Stayed the Same (extrapolation, not a rating)': ['kw', Plc / (100 / v.mtl_e - 1) / 1000] };
+      if (v.mtl_t0 < v.mtl_tl && Tss > v.mtl_tl) out['Time to Reach the Winding Limit'] = ['seconds', v.mtl_tau * Math.log((Tss - v.mtl_t0) / (Tss - v.mtl_tl))];
+      return out; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

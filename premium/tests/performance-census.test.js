@@ -66,6 +66,12 @@ const ADDED = [
   ['battery_pack_heat_balance', 'OUT|Reversible (Entropic) Heat at the Steady Temperature|W', 'RETAIN-ACCESSORY', 'Batch 14 stage 1: battery heat in W'],
   ['battery_pack_heat_balance', 'OUT|Total Heat Generated (steady)|W', 'RETAIN-ACCESSORY', 'Batch 14 stage 1: battery heat in W'],
   ['battery_pack_heat_balance', 'OUT|Continuous Heat Rejection to the Limit|W', 'RETAIN-ACCESSORY', 'Batch 14 stage 1: coolant heat capacity in W'],
+  ['motor_thermal_limit', 'IN|mtl_p|kW', 'EV_POWER', 'Batch 14 stage 2: motor shaft output power (native kW box)'],
+  ['motor_thermal_limit', 'IN|mtl_t|lb-ft', 'EV_TORQUE', 'Batch 14 stage 2: motor torque, lb-ft under Auto (owner decision S2-2, GH-IMP-019 P2)'],
+  ['motor_thermal_limit', 'OUT|Shaft Output Power|kW', 'EV_POWER', 'Batch 14 stage 2: motor shaft output power'],
+  ['motor_thermal_limit', 'OUT|Continuous Output if Efficiency Stayed the Same (extrapolation, not a rating)|kW', 'EV_POWER', 'Batch 14 stage 2: extrapolated continuous motor output'],
+  ['motor_thermal_limit', 'OUT|Heat Loss at This Point|W', 'RETAIN-ACCESSORY', 'Batch 14 stage 2: motor heat loss in W (owner decision S2-1)'],
+  ['motor_thermal_limit', 'OUT|Continuous Loss Capacity (to the limit)|W', 'RETAIN-ACCESSORY', 'Batch 14 stage 2: continuous loss capacity in W'],
 ];
 /* inventory rows the table does not carry: [calc, kind, key, why] */
 const DROPPED = [];
