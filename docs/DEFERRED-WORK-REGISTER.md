@@ -786,9 +786,9 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Evidence:** In the full browser regression after Batch 11c (engine of `605196f`, 2026-10-14), `nav-return` failed for `stress`, `tow_trailer_capacity` and `roll_stiffness_distribution` ("back" result empty, "live" correct). Re-run on the same engine: those three alone 0 failures; the whole suite 733 checked, 0 failures. The same suite passed in the Batch 11a and 11b regressions. None of the three calculators was changed by Batch 11.
 - **Affected:** `ghRender` (the deferred home-page swap); `premium/tests/nav-return.test.js` (intermittently).
 - **Impact:** A flaky regression result; no realistic user impact.
-- **Decision:** Recorded only. Possible fixes, for a separate authorization: cancel the pending swap when another page is rendered, or have the test wait for the swap before navigating again.
+- **Decision:** Owner decision 2026-10-14: keep OPEN. The re-run that passed does not resolve it; the timing race is to be investigated and reproduced deterministically as separate work, then fixed under its own authorization. Possible fixes: cancel the pending swap when another page is rendered, or have the test wait for the swap before navigating again.
 - **Dependencies:** None (related to the swap described in GH-DEF-026).
-- **Revisit:** When the owner schedules test-reliability work, or if it recurs.
+- **Revisit:** In the separately authorized investigation (reproduce first, then fix with a test that fails before the fix).
 - **Commits:** None.
 - **Tests:** None yet; a deterministic reproduction would call `renderCalc('dashboard')` and `renderCalc(id)` in one task and check the page after the timer.
 - **Docs:** This entry; `docs/PREMIUM-CATALOG.md` ("Batch 11c", verification).
@@ -796,6 +796,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-10-14 — observed in the Batch 11c full regression; re-run passed; recorded as OPEN.
 
 ## B. Deferred improvements
+  2026-10-14 — owner decision: stays OPEN (Low) pending a separate investigation and reproduction; not dismissed because the re-run passed.
 
 ### GH-IMP-001 — Energy in ft-lb is labelled "N·m" rather than "J" in Metric
 - **Status:** VERIFIED CLOSED
@@ -1644,13 +1645,24 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Affected:** 4 new Premium calculators.
 - **Impact:** Catalog expansion.
 - **Decision:** Approved set; sequenced after Batch 11.
-- **Dependencies:** E05–E07 (existing 2-stroke analyzers) must not be duplicated.
-- **Revisit:** After Batch 11.
+- **Dependencies:** E05–E07 (Engineering Lab: port time-area, blowdown, expansion-chamber reverse analysis) must not be duplicated; Tuned-Pipe Length is the forward sibling of E07 (reconciliation #133). Port Timing reuses the crank-slider geometry already used by the Batch 1 piston calculators. No dependency on another batch.
+- **Revisit:** Readiness review done 2026-10-14 (see History); recommended as the next batch, awaiting authorization.
 - **Commits:** None.
 - **Tests:** None.
 - **Docs:** Project plan.
 - **Verification:** Batch workflow.
 - **History:** 2026-10-12 — entry created.
+  2026-10-14 — readiness review after Batch 11 (no implementation):
+  - **Scope:** 4 named items (reconciliation #132–135), all BUILD. Two were classed "Analyzer" in the reconciliation (Scavenging / Charging Efficiency, Port Timing from Measured Geometry).
+  - **Defined well enough to build:**
+    - Crankcase Compression Ratio: (swept + crankcase volume) ÷ crankcase volume.
+    - Port Timing from Measured Geometry: crank-slider geometry from port height, stroke and rod length to open and close angles and duration.
+  - **Owner decisions needed:**
+    - Tuned-Pipe Length: which published model to use and its constants. The speed of sound must come from an exhaust-temperature input, not a fixed constant.
+    - Scavenging / Charging Efficiency: the definitions (delivery ratio, trapping, scavenging and charging efficiency from measured or entered mass ratios) and whether ideal perfect-displacement and perfect-mixing reference curves are included.
+    - Classification of the two "Analyzer" items: proposed as calculators, as in Batch 11.
+  - **Units:** volumes cc ↔ ci, lengths, temperature, RPM and degrees are all registered or neutral. No new power or torque rows are expected; mass-force only if a mass flow is added.
+  - **Risk:** the lowest of the three remaining batches.
 
 ### GH-FUT-003 — Batch 14: EV / Hybrid (6 calculators)
 - **Status:** APPROVED
@@ -1661,13 +1673,27 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Affected:** 6 new Premium calculators.
 - **Impact:** Catalog expansion.
 - **Decision:** Approved set.
-- **Dependencies:** The existing EV calculators carry kW unit defects (GH-DEF-001, GH-DEF-002, GH-ENG-001); the new batch should not copy their pattern.
-- **Revisit:** After Batch 13.
+- **Dependencies:**
+  - The kW unit defects noted at creation (GH-DEF-001, GH-DEF-002, GH-ENG-001) are VERIFIED CLOSED.
+  - New power and torque rows must be classified under the GH-IMP-019 policy (EV_POWER, HYBRID_SYSTEM_POWER, EV_TORQUE, ENGINE_POWER) with `PERF_ROWS` and census entries. The policy questions still open in GH-IMP-020 (EV motor torque and the rest) may affect them.
+  - Related existing calculators: `hybrid_regen_energy`, `hybrid_power_split`, `ev_charge_time`, `ev_battery_heat`, `ev_coolant_flow`, `ev_motor_*` and Batch 7's `planetary_gearset_ratio`. Each needs a cross-link and an overlap check.
+- **Revisit:** After Batch 13 (readiness review 2026-10-14, see History).
 - **Commits:** None.
 - **Tests:** None.
 - **Docs:** Project plan.
 - **Verification:** Batch workflow.
 - **History:** 2026-10-12 — entry created.
+  2026-10-14 — readiness review after Batch 11 (no implementation):
+  - **Defined in the Phase 1 documents:**
+    - Hybrid Power-Split Device Kinematics: the Willis equation on a planetary set; promoted from MERGE.
+    - Regenerative Braking Energy Recovery: ΔKE capped by min(ΔKE × η, P_max × t); resolved from NEEDS SPECIFICATION.
+  - **Underspecified, owner decisions needed:**
+    - DC Fast-Charge Time with CC-CV Taper: the taper model (CC to a state-of-charge breakpoint, then which taper law) and the source of its parameters, with no invented charge curves.
+    - Motor Thermal Limit: the thermal model (steady-state thermal resistance or a first-order time constant) and continuous versus peak.
+    - Inverter Thermal Load: loss model (P × (1 − η) or conduction plus switching losses).
+    - Battery Pack Heat Balance: I²R generation against coolant capacity; its inputs need defining.
+  - **Shared risk:** many power, torque and energy rows touch the performance-unit policy. kWh and other electrical units are unregistered (neutral or SI), and Metric/Imperial handling of these rows needs care.
+  - **Complexity:** medium to high, the heaviest of the remaining calculator batches.
 
 ### GH-FUT-004 — Batch 16: Workbenches (6)
 - **Status:** APPROVED
@@ -1679,12 +1705,27 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Impact:** Catalog expansion.
 - **Decision:** Built last, after the calculators each depends on.
 - **Dependencies:** Earlier batches (Engine Balance needs Batch 1; SAE Coast-Down needs Batch 10 and resolves GH-IMP-012).
-- **Revisit:** After Batch 14.
+- **Revisit:** After Batch 14 (readiness review 2026-10-14, see History).
 - **Commits:** None.
 - **Tests:** None.
 - **Docs:** Project plan.
 - **Verification:** Batch workflow plus each workbench reproducing its constituent calculators.
 - **History:** 2026-10-12 — entry created.
+  2026-10-14 — readiness review after Batch 11 (no implementation):
+  - **Prerequisites:** the constituent calculators now exist:
+    - Batch 1: balance and piston calculators.
+    - Batches 7 and 11: driveline, shaft and torsional calculators.
+    - Batch 9: brake thermal calculators.
+    - Batch 6: cooling calculators.
+    - Batch 10: `cda_from_coast_down`.
+    - The sim_* simulators.
+  - **Not defined:** none of the six has an inputs, outputs and model specification in the project documents (the plan names them only).
+  - **Owner decisions needed:**
+    - Where a workbench lives: the GH_ENGINE calculator frame, or the Engineering Lab module whose E01 and E10–E14 are catalogued as kind `workbench` (see GH-FUT-009).
+    - The scope of each workbench and how it reuses its constituent calculators. The register's verification rule is that each workbench must reproduce them.
+    - The overlap with E11 (Driveline Dynamics) for Drivetrain Torsional and with E12–E14 for Cooling System.
+    - The two-parameter fit method of SAE Coast-Down (resolves GH-IMP-012).
+  - **Complexity:** the highest of the remaining batches. Not ready to implement without specification work.
 
 ### GH-FUT-005 — Batches 12 (Diesel) and 15 (Performance / Simulation) have no approved items
 - **Status:** DEFERRED
