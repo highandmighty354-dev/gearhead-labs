@@ -57,6 +57,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-031](#gh-def-031--the-shells-compact-units-menu-did-nothing-it-called-setunits-which-does-not-exist-the-engines-setunit-could-not-run-without-the-buttons-the-shell-removed-and-the-legacy-unit-hider-could-hide-the-control) | The shell's compact UNITS menu did nothing: it called `setUnits`, which does not exist, the engine's `setUnit` could not run without the buttons the shell removed, and the legacy-unit hider could hide the control | VERIFIED CLOSED | High | P1 |
 | [GH-DEF-032](#gh-def-032--a-simulators-first-draw-runs-at-50--drivetrain-efficiency-its-fallback-is-085-where-the-box-holds-85) | A simulator's first draw runs at 50 % drivetrain efficiency (its fallback is 0.85 where the box holds 85) | VERIFIED CLOSED | High | P2 |
 | [GH-DEF-033](#gh-def-033--the-acceleration-simulators-default-60-mph-target-is-also-one-of-its-distance-marks-60-ft-so-it-reports-the-60-foot-time-as-the-target-time) | The Acceleration simulator's default 60 mph target is also one of its distance marks (60 ft), so it reports the 60-foot time as the Target Time | VERIFIED CLOSED | High | P2 |
+| [GH-DEF-034](#gh-def-034--bolt-torque-spec-by-grade-estimates-the-tensile-stress-area-with-16-threads-per-inch-for-every-bolt-above-03-in-reported-needs-investigation) | Bolt Torque Spec by Grade estimates the tensile stress area with 16 threads per inch for every bolt above 0.3 in (reported; needs investigation) | OPEN | Unknown until investigated | P2 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
 | [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
@@ -737,6 +738,44 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Docs:** This entry; header of `premium/tests/run-browser-tests.sh`; the final-pass section of `docs/PREMIUM-CATALOG.md`.
 - **Verification:** Met. The target speed and the distance marks are independent: Target Time is the time to the Target Speed for the default 60 mph and for 100 and 132 mph, the Dragstrip's marker times and trap speed are unchanged and agree with the Acceleration simulator on the same trajectory, and the labels and units are consistent. Limitations: (1) the output tiles of the simulators keep their Imperial unit text in Metric (mph, ft, sec) and agree with it; this was observed here and not changed, since the unit policy for simulator tiles is outside this defect; (2) a target the vehicle cannot reach in the 60-second limit reports the limit and the speed reached (unchanged; before the fix a 60 mph target the vehicle could not reach showed the 60-foot time instead); (3) the Dragstrip still passes its distance as `target:1320` (a speed it never reaches) next to `distanceFt:1320`; the behaviour is correct and was left alone.
 - **History:** 2026-10-13 — found during the GH-DEF-030 test (a result that changed with a Metric press and a torque preference change), traced to the shared `crossed` object, recorded only. 2026-10-13 (final simulator pass) — closed: the test written first, 18 of 39 checks fail on the engine of `caa45c8`, fixed in `9e4877b`, 0 of 39 fail, 4 of 5 injected faults caught (the fifth equivalent), the default page now shows 10.270 s / 60.0 mph / 456 ft, neighbour suites pass.
+
+### GH-DEF-034 — Bolt Torque Spec by Grade estimates the tensile stress area with 16 threads per inch for every bolt above 0.3 in (reported; needs investigation)
+- **Status:** OPEN
+- **Severity:** Unknown until investigated. If confirmed, probably Medium: the target clamp load and recommended torque would be a few percent to about 13 % off for common coarse threads, high for most sizes, which means overtightening.
+- **Priority:** P2
+- **Description:** Reported 2026-10-14 while preparing Batch 11b, recorded on the owner's instruction. `bolt_torque_spec` (Free, "Bolt Torque Spec by Grade") computes the tensile stress area as `0.7854 × (d − 0.9743 ÷ n)²` with `n = 16` threads per inch when `d > 0.3 in` and `n = 20` otherwise, whatever the bolt's real thread. The calculator has no thread-pitch input. The UN formula itself is the standard one (ASME B1.1 / FED-STD-H28); the suspected fault is the fixed `n`. The stress area feeds the target clamp load (75 % of proof load) and the recommended torque `T = K × D × F`.
+- **Evidence:** Source reading only (engine `53c7792`, `RENDERS.bolt_torque_spec`, the line `stress_area = 0.7854*Math.pow(dia_bt-(0.9743/(dia_bt>0.3?16:20)),2)`).
+  - Reproduction case: 1/2 in bolt, Grade 5, dry. The code uses n = 16 and gets 0.7854 × (0.5 − 0.060894)² = 0.1514 sq in. A 1/2-13 UNC bolt (n = 13) has 0.7854 × (0.5 − 0.074946)² = 0.1419 sq in, the value tabulated in ASME B1.1 and SAE J429. The difference is 6.7 % high, and the clamp load and torque inherit it.
+  - Same arithmetic for other UNC sizes (code area ÷ UNC area − 1):
+    - 1/4-20: 0 %
+    - 5/16-18: −5.2 %
+    - 3/8-16: 0 %
+    - 7/16-14: +4.8 %
+    - 1/2-13: +6.7 %
+    - 9/16-12: +8.6 %
+    - 5/8-11: +10.6 %
+    - 3/4-10: +11.5 %
+    - 7/8-9: +12.7 %
+    - 1-8: +14.4 %
+  - For UNF threads the error has the other sign or is different again. The page was not opened for this entry and nothing was changed; the figures are to be reproduced on the page as part of the investigation.
+- **Affected:** `bolt_torque_spec` (Target Clamp Load, Recommended Torque). Possibly also:
+  - `bolt_stretch` ("Bolt Stretch / Clamp Load"), which uses the same expression with n = 16 for every diameter (`stress_area_bs`) for its clamp-load estimate.
+  - the metric grade choices of `bolt_torque_spec` (8.8, 10.9), whose diameter is an inch box and whose area uses the same inch thread rule rather than an ISO pitch.
+  - Both are to be confirmed in the investigation.
+  - Not affected: the Batch 11b fastener calculators, which take the thread pitch (UN threads per inch or ISO pitch) as an input and do not reuse this estimate.
+- **Impact:** For coarse threads from 7/16 to 1 in, the clamp load and torque the calculator recommends would be about 5 to 14 % high, toward overtightening. A 5/16-18 bolt would be about 5 % under-torqued. The calculator already advises verifying critical fasteners against manufacturer specs.
+- **Decision:** OPEN / NEEDS INVESTIGATION: not verified. The owner approved logging it (2026-10-14); no fix is authorized. A separate correction task, with tests written first, is to be planned after the investigation.
+- **Dependencies:** None. Kept separate from the Batch 11b implementation commits.
+- **Revisit:** When the owner schedules the investigation.
+- **Commits:** None (this entry only).
+- **Tests:** None yet. The investigation must add an independent test before any change: tabulated stress areas, proof loads and K × D × F torques for several UNC and UNF sizes, plus the metric choices.
+- **Docs:** This entry; `docs/PREMIUM-CATALOG.md` (Batch 11b plan, observation).
+- **Verification:** Required before this entry can move on:
+  1. Reproduce on the page (Imperial and Metric) for 1/2 in Grade 5 dry and lubricated, and for at least 5/16, 7/16, 5/8 and 3/4 in.
+  2. Confirm the governing thread geometry: the ASME B1.1 thread series and the stress-area formula, and how the calculator should know the pitch (a thread input or a coarse/fine choice).
+  3. Check `bolt_stretch` and the metric grade options for the same cause.
+  4. Then, with an approved fix, show the corrected values against tabulated references, with Imperial and Metric unchanged elsewhere.
+- **History:** 2026-10-14 — observed during Batch 11b planning (commit `53c7792`, catalogue observation); logged as OPEN on the owner's instruction, with the reproduction figures above and the two possibly related places in the code. No change made.
 
 ## B. Deferred improvements
 
