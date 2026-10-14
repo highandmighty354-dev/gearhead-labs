@@ -70,13 +70,15 @@ async function timedFetch(url, { method = 'GET', headers = {}, body } = {}) {
 export function resolveMode(env = process.env) {
   const forced = (env.HEALTH_MODE || '').trim();
   if (forced === 'keepalive' || forced === 'full') return { mode: forced, why: `requested (${forced})` };
-  if (env.GITHUB_EVENT_NAME === 'schedule') {
+  // HEALTH_EVENT is set by the workflow; GitHub does not let a step override GITHUB_EVENT_NAME.
+  const event = env.HEALTH_EVENT || env.GITHUB_EVENT_NAME || '';
+  if (event === 'schedule') {
     const s = (env.EVENT_SCHEDULE || '').trim();
     if (s === DAILY_CRON) return { mode: 'keepalive', why: `daily schedule (${s})` };
     if (s === AUDIT_CRON) return { mode: 'full', why: `4-day audit schedule (${s})` };
     return { mode: 'full', why: `unrecognised schedule "${s}" — running the full audit to be safe`, unknown: true };
   }
-  return { mode: 'full', why: `${env.GITHUB_EVENT_NAME || 'manual'} run` };
+  return { mode: 'full', why: `${event || 'manual'} run` };
 }
 
 // ---------------------------------------------------------------- config

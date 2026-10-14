@@ -35,7 +35,7 @@ const key = () => (readFileSync(join(ROOT, 'supabase-config.js'), 'utf8').match(
 
 test('daily schedule runs the keep-alive only, never the full audit', () => {
   const d = sandbox();
-  const r = run(d, { GITHUB_EVENT_NAME: 'schedule', EVENT_SCHEDULE: DAILY });
+  const r = run(d, { HEALTH_EVENT: 'schedule', EVENT_SCHEDULE: DAILY });
   assert.match(r.out, /MODE keepalive/);
   assert.match(r.out, /OVERALL PASS \| mode keepalive \| checks 1 /);
   assert.doesNotMatch(r.out, /Repository —|GitHub —|Auth API/);
@@ -45,7 +45,7 @@ test('daily schedule runs the keep-alive only, never the full audit', () => {
 
 test('4-day schedule runs the full audit and the clean repository passes', () => {
   const d = sandbox();
-  const r = run(d, { GITHUB_EVENT_NAME: 'schedule', EVENT_SCHEDULE: AUDIT });
+  const r = run(d, { HEALTH_EVENT: 'schedule', EVENT_SCHEDULE: AUDIT });
   assert.match(r.out, /MODE full/);
   for (const name of ['Project identity', 'Migration baseline', 'Frozen foundation files', 'Schedule configuration', 'No private keys'])
     assert.match(r.out, new RegExp(`\\[PASS\\] Repository — ${name}`));
@@ -54,16 +54,24 @@ test('4-day schedule runs the full audit and the clean repository passes', () =>
   rmSync(d, { recursive: true });
 });
 
+test('routing follows HEALTH_EVENT even when GitHub sets GITHUB_EVENT_NAME to something else', () => {
+  const d = sandbox();
+  const r = run(d, { GITHUB_EVENT_NAME: 'pull_request', HEALTH_EVENT: 'schedule', EVENT_SCHEDULE: DAILY });
+  assert.match(r.out, /MODE keepalive/);
+  assert.doesNotMatch(r.out, /Repository —|Auth API/);
+  rmSync(d, { recursive: true });
+});
+
 test('manual and pull-request runs default to the full audit; manual keepalive is honoured', () => {
   const d = sandbox();
-  assert.match(run(d, { GITHUB_EVENT_NAME: 'pull_request' }).out, /MODE full/);
-  assert.match(run(d, { GITHUB_EVENT_NAME: 'workflow_dispatch', HEALTH_MODE: 'keepalive' }).out, /MODE keepalive/);
+  assert.match(run(d, { HEALTH_EVENT: 'pull_request' }).out, /MODE full/);
+  assert.match(run(d, { HEALTH_EVENT: 'workflow_dispatch', HEALTH_MODE: 'keepalive' }).out, /MODE keepalive/);
   rmSync(d, { recursive: true });
 });
 
 test('an unrecognised schedule falls back to the full audit with a warning', () => {
   const d = sandbox();
-  const r = run(d, { GITHUB_EVENT_NAME: 'schedule', EVENT_SCHEDULE: '0 0 * * *' });
+  const r = run(d, { HEALTH_EVENT: 'schedule', EVENT_SCHEDULE: '0 0 * * *' });
   assert.match(r.out, /MODE full/);
   assert.match(r.out, /::warning::\[WARNING\] Run — Schedule routing/);
   rmSync(d, { recursive: true });
@@ -73,7 +81,7 @@ test('wrong project ID is a FAIL with exit code 1', () => {
   const d = sandbox();
   const f = join(d, 'supabase-config.js');
   writeFileSync(f, readFileSync(f, 'utf8').replace(REF, 'aaaaaaaaaaaaaaaaaaaa'));
-  const r = run(d, { GITHUB_EVENT_NAME: 'schedule', EVENT_SCHEDULE: AUDIT });
+  const r = run(d, { HEALTH_EVENT: 'schedule', EVENT_SCHEDULE: AUDIT });
   assert.match(r.out, /::error::\[FAIL\] Repository — Project identity/);
   assert.equal(r.code, 1);
   rmSync(d, { recursive: true });
@@ -82,14 +90,14 @@ test('wrong project ID is a FAIL with exit code 1', () => {
 test('an edited approved migration is a FAIL; a new unapproved one is a WARNING', () => {
   const d = sandbox();
   appendFileSync(join(d, 'supabase/migrations/0405_premium_saved_calculations.sql'), '\n-- tamper\n');
-  let r = run(d, { GITHUB_EVENT_NAME: 'schedule', EVENT_SCHEDULE: AUDIT });
+  let r = run(d, { HEALTH_EVENT: 'schedule', EVENT_SCHEDULE: AUDIT });
   assert.match(r.out, /::error::\[FAIL\] Repository — Migration baseline: Changed since approval: 0405_premium_saved_calculations\.sql/);
   assert.equal(r.code, 1);
   rmSync(d, { recursive: true });
 
   const d2 = sandbox();
   writeFileSync(join(d2, 'supabase/migrations/0408_new.sql'), 'select 1;');
-  r = run(d2, { GITHUB_EVENT_NAME: 'schedule', EVENT_SCHEDULE: AUDIT });
+  r = run(d2, { HEALTH_EVENT: 'schedule', EVENT_SCHEDULE: AUDIT });
   assert.match(r.out, /::warning::\[WARNING\] Repository — Migration baseline: .*0408_new\.sql/);
   assert.equal(r.code, 0);
   rmSync(d2, { recursive: true });
@@ -98,7 +106,7 @@ test('an edited approved migration is a FAIL; a new unapproved one is a WARNING'
 test('an edited frozen foundation file is a FAIL', () => {
   const d = sandbox();
   appendFileSync(join(d, 'supabase/rollback/0201_value_write_boundary.rollback.sql'), '\n-- tamper\n');
-  const r = run(d, { GITHUB_EVENT_NAME: 'schedule', EVENT_SCHEDULE: AUDIT });
+  const r = run(d, { HEALTH_EVENT: 'schedule', EVENT_SCHEDULE: AUDIT });
   assert.match(r.out, /\[FAIL\] Repository — Frozen foundation files/);
   assert.equal(r.code, 1);
   rmSync(d, { recursive: true });
@@ -108,7 +116,7 @@ test('cron lines that drift from the script are a FAIL', () => {
   const d = sandbox();
   const f = join(d, '.github/workflows/supabase-keepalive.yml');
   writeFileSync(f, readFileSync(f, 'utf8').replace(`cron: '${AUDIT}'`, "cron: '47 13 * * *'"));
-  const r = run(d, { GITHUB_EVENT_NAME: 'workflow_dispatch' });
+  const r = run(d, { HEALTH_EVENT: 'workflow_dispatch' });
   assert.match(r.out, /\[FAIL\] Repository — Schedule configuration/);
   assert.equal(r.code, 1);
   rmSync(d, { recursive: true });
@@ -118,7 +126,7 @@ test('a private key in public config is a FAIL and its value is never printed', 
   const d = sandbox();
   const secret = 'sb_secret_DO_NOT_PRINT_1234567890';
   appendFileSync(join(d, 'premium/config.js'), `\n// ${secret}\n`);
-  const r = run(d, { GITHUB_EVENT_NAME: 'workflow_dispatch' });
+  const r = run(d, { HEALTH_EVENT: 'workflow_dispatch' });
   assert.match(r.out, /\[FAIL\] Repository — No private keys in public config/);
   assert.ok(!r.out.includes(secret), 'secret value leaked into output');
   rmSync(d, { recursive: true });
@@ -127,7 +135,7 @@ test('a private key in public config is a FAIL and its value is never printed', 
 test('missing configuration makes even the daily keep-alive FAIL (failure email fires)', () => {
   const d = sandbox();
   writeFileSync(join(d, 'supabase-config.js'), 'window.GH_SUPABASE_CONFIG = {};');
-  const r = run(d, { GITHUB_EVENT_NAME: 'schedule', EVENT_SCHEDULE: DAILY });
+  const r = run(d, { HEALTH_EVENT: 'schedule', EVENT_SCHEDULE: DAILY });
   assert.match(r.out, /::error::\[FAIL\] Keep-alive — Database requests/);
   assert.equal(r.code, 1);
   rmSync(d, { recursive: true });
@@ -137,7 +145,7 @@ test('the publishable key never appears in output, in either mode', () => {
   const k = key();
   assert.ok(k && k.length > 20);
   const d = sandbox();
-  for (const env of [{ GITHUB_EVENT_NAME: 'schedule', EVENT_SCHEDULE: DAILY }, { GITHUB_EVENT_NAME: 'schedule', EVENT_SCHEDULE: AUDIT }])
+  for (const env of [{ HEALTH_EVENT: 'schedule', EVENT_SCHEDULE: DAILY }, { HEALTH_EVENT: 'schedule', EVENT_SCHEDULE: AUDIT }])
     assert.ok(!run(d, env).out.includes(k));
   rmSync(d, { recursive: true });
 });

@@ -74,13 +74,14 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           EXPECTED_PROJECT_REF: jmztpjudwzjvrcdtjynd
-          GITHUB_EVENT_NAME: schedule
+          HEALTH_EVENT: schedule        # GITHUB_EVENT_NAME cannot be overridden in a step
           EVENT_SCHEDULE: '17 13 * * *'
         run: node .github/scripts/supabase-health.mjs
 
       - name: Keep-alive / health audit
         env:
           EXPECTED_PROJECT_REF: jmztpjudwzjvrcdtjynd
+          HEALTH_EVENT: ${{ github.event_name }}
           EVENT_SCHEDULE: ${{ github.event.schedule }}
           HEALTH_MODE: ${{ inputs.mode }}
           GITHUB_TOKEN: ${{ github.token }}
