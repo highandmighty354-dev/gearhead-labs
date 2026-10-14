@@ -931,6 +931,22 @@ The other four categories are unchanged. Open for the owner among the defects: G
 
 **Decisions the owner needs to make:** GH-ENG-014 (approve the two rows; sequencing; the catalogue tooling; then the separate authorizations A and B, still required before any merge or deployment); GH-IMP-020 (U1 to U9); GH-DEF-026 (timing, now low priority), GH-DEF-028 and GH-DEF-029; GH-IMP-013 Q1-Q3; GH-IMP-014; GH-IMP-016; GH-IMP-018; and authorization to start Batch 11 (every new power or torque row will need a table entry; the census fails on a row without one). **Nothing was merged, deployed or migrated and Batch 11 is not started.**
 
+### Chapter 10 closeout: GH-DEF-031 and GH-DEF-026 (2026-10-13)
+
+Branch `premium/full-calculator-expansion`, from `5fdfd37`; code and tests in `b51b500` (GH-DEF-031) and `834314f` (GH-DEF-026). No merge, no deployment, no database migration, no change to the unit-policy table, Batch 11 not started.
+
+- **GH-DEF-031 (the shell's UNITS menu), fixed.** The menu called `setUnits`, which no file defines; the engine's `setUnit` also threw when the shell had removed the two buttons it updates; and the legacy-unit hider could hide the control (and the profile button, or on a phone the whole header). The menu now calls `setUnit`, `setUnit` tolerates absent buttons, and the shell clears the hider's class on the old toggle and its ancestors. `premium/tests/shell-units.test.js` (new, real clicks on the integrated `index.html`; desktop, phone and a forced hider-first order): 77 checks, 33 fail on `5fdfd37`, 0 on the fix. **The production site was not tested**; it could not be reached from the working environment.
+- **GH-DEF-026 (dashboard summary line), fixed.** The earlier "not reachable" disposition was re-checked by measurement: the wrong Metric line ("275.909 HP · 1,152.4453 lb-ft · 3,401.9428 lbs") was in the page for 1 to 5 rendering updates at a time before the home page replaced it. Every name now comes from `metricUnit()`, as in the stat cards beside it (Metric: "275.909 kW · 1,152.4453 N·m · 3,401.9428 kg · 6,685.9 cc"; Imperial unchanged). `premium/tests/dashboard-summary.test.js`: 2 of 12 checks fail on the unfixed engine, 0 on the fix, the swap-removed mutant is still caught. Whether the dashboard's engine figures should follow the Power / Torque preferences is not decided by this fix.
+- **Verified:** the **full browser regression, run once on the tree of `834314f` (one comment in `premium/tests/dashboard-summary.test.js` was reworded afterwards and that test re-run, 12 of 12): 29 suites, 0 failures, about 71 minutes** (engine self-test 679/679, browser-smoke 19/19, unit-system 1,619, temperature-units 1,108 + 990, toggle-sweep 696 calculators, nav-return 696, converters 2,064, label-consistency 696, native-units 29 cases, remembered-values 371, dew-point 688, mass-force 703, unit-factors 514, unit-census 2,622, airflow-readers 131, legacy-fixes 61, negative-zero 696 + 696, profile-shortcut 80 with its mutants, dashboard-summary 12, performance-units 95, performance-census 15, curve-editor-mode 107, range-warnings 2,469, curve-persistence 262, acceleration-target 39, simulator-first-draw 59, shell-units 77, with every injected fault caught) and `bash premium/tests/run-tests.sh` (catalogue OK, register OK, frontend 55/55, schema 26/26).
+
+**Register status after the Chapter 10 closeout.** 78 entries.
+
+| Category | Entries | Status |
+|---|---|---|
+| Defects (`GH-DEF`) | 32 | 31 VERIFIED CLOSED (GH-DEF-026 and GH-DEF-031 closed in this pass), 1 SUPERSEDED (GH-DEF-007 by GH-IMP-014), 0 OPEN |
+
+The other four categories are unchanged. **No defect is open.** What stands between the branch and a release is not a defect: GH-ENG-014 (the `formula_versions` migration for `dew_point` and `distance_converter` is proven on a throwaway database and not applied; the separate authorizations A and B are still required before any merge or deployment), the owner decisions GH-IMP-020 U1 to U9 and the others listed above, and two release notes: the `?v=` cache strings in `index.html` have not been bumped since the engine fixes of this branch (a browser that cached `app-shell.js` or the engine under the same string keeps the old copy), and the production site has not been looked at since the unit control was fixed. **Nothing was merged, deployed or migrated and Batch 11 is not started.**
+
 ## Premium-only tools (Engineering Lab)
 
 | Code | id | Name | Category | Kind |
