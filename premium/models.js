@@ -488,7 +488,9 @@
     { id: 'battery_pack_heat_balance', name: 'Battery Pack Heat Balance',
       promo: 'Gearhead Labs Premium unlocks Battery Pack Heat Balance — pack heat, steady and transient temperature against the coolant, and the continuous current to a limit.' },
     { id: 'motor_thermal_limit', name: 'Motor Thermal Limit',
-      promo: 'Gearhead Labs Premium unlocks Motor Thermal Limit — whether a motor operating point is continuous or time-limited, and the time to its winding limit.' }
+      promo: 'Gearhead Labs Premium unlocks Motor Thermal Limit — whether a motor operating point is continuous or time-limited, and the time to its winding limit.' },
+    { id: 'inverter_thermal_load', name: 'Inverter Thermal Load',
+      promo: 'Gearhead Labs Premium unlocks Inverter Thermal Load — inverter heat loss, coolant rise and heatsink temperature at an operating point.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */

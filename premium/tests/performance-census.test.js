@@ -72,6 +72,9 @@ const ADDED = [
   ['motor_thermal_limit', 'OUT|Continuous Output if Efficiency Stayed the Same (extrapolation, not a rating)|kW', 'EV_POWER', 'Batch 14 stage 2: extrapolated continuous motor output'],
   ['motor_thermal_limit', 'OUT|Heat Loss at This Point|W', 'RETAIN-ACCESSORY', 'Batch 14 stage 2: motor heat loss in W (owner decision S2-1)'],
   ['motor_thermal_limit', 'OUT|Continuous Loss Capacity (to the limit)|W', 'RETAIN-ACCESSORY', 'Batch 14 stage 2: continuous loss capacity in W'],
+  ['inverter_thermal_load', 'IN|itl_p|kW', 'EV_POWER', 'Batch 14 stage 2: inverter AC output power (native kW box)'],
+  ['inverter_thermal_load', 'OUT|DC Input Power|kW', 'EV_POWER', 'Batch 14 stage 2: inverter DC input power'],
+  ['inverter_thermal_load', 'OUT|Inverter Heat Loss|W', 'RETAIN-ACCESSORY', 'Batch 14 stage 2: inverter heat loss in W (owner decision S2-1)'],
 ];
 /* inventory rows the table does not carry: [calc, kind, key, why] */
 const DROPPED = [];

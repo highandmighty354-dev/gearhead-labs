@@ -531,7 +531,12 @@ const CASES = [
       const out = { 'Shaft Output Power': ['kw', v.mtl_p], 'Heat Loss at This Point': ['watts', Pl], 'Thermal Capacitance C (τ ÷ R_th)': ['jperk', C], 'Steady Winding Temperature at This Point': ['tempabs', Tss],
         'Continuous Loss Capacity (to the limit)': ['watts', Plc], 'Continuous Output if Efficiency Stayed the Same (extrapolation, not a rating)': ['kw', Plc / (100 / v.mtl_e - 1) / 1000] };
       if (v.mtl_t0 < v.mtl_tl && Tss > v.mtl_tl) out['Time to Reach the Winding Limit'] = ['seconds', v.mtl_tau * Math.log((Tss - v.mtl_t0) / (Tss - v.mtl_tl))];
-      return out; }, rel: 2e-3 }
+      return out; }, rel: 2e-3 },
+  /* ---- Batch 14 stage 2, E2B: Inverter Thermal Load, Mode A. Heat balance: the rise is the loss carried by the coolant. ---- */
+  { id: 'inverter_thermal_load', fields: [['itl_p', 'none', 120], ['itl_e', 'none', 96], ['itl_mf', 'massflowmin', 0.2], ['itl_cp', 'none', 3600], ['itl_tin', 'tempabs', 340.15], ['itl_r', 'none', 0.015]],
+    compute: v => { const Pin = v.itl_p / (v.itl_e / 100), L = (Pin - v.itl_p) * 1000, rise = L / (v.itl_mf * v.itl_cp), Tm = v.itl_tin + rise / 2;
+      return { 'DC Input Power': ['kw', Pin], 'Inverter Heat Loss': ['watts', L], 'Coolant Temperature Rise': ['tempdiff', rise], 'Coolant Outlet Temperature': ['tempabs', v.itl_tin + rise],
+               'Mean Coolant Temperature': ['tempabs', Tm], 'Heatsink (Baseplate) Temperature': ['tempabs', Tm + L * v.itl_r] }; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

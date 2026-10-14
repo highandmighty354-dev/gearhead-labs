@@ -40,7 +40,7 @@ const approx = (got, want, rel, textDecimals) => Math.abs(got - want) <= 0.5 * M
 const decimals = t => { const m = String(t).replace(/,/g, '').match(/\.(\d+)/); return m ? m[1].length : 0; };
 const C2F = c => c * 9 / 5 + 32, F2C = f => (f - 32) * 5 / 9;
 
-const CASES = [];
+const CASES = [], LATE = [];
 const add = c => CASES.push(c);
 
 /* ======================================================= E1A REGENERATIVE BRAKING ENERGY RECOVERY ======================================================= */
@@ -183,6 +183,32 @@ const MEX = { P: 150e3, eta: 0.94, R: 0.012, tau: 180, tc: 65, t0: 90, tl: 150 }
 /* d) a winding already at or above its limit at the start */
 add({ g: 'E2A', id: 'motor_thermal_limit', title: 'start above the limit', sel: { mtl_mode: 'power' }, inputs: MIN({ ...MEX, t0: 160 }), want: {}, blank: ['Time to Reach the Winding Limit'], notes: [/already at or above/i] });
 
+/* ======================================================= E2B INVERTER THERMAL LOAD, MODE A ======================================================= */
+/* Specification §2.3 Mode A (owner decisions S2-5, S2-8: no junction estimate, no mode selector). Independent route: loss = P_in − P_out with P_in = P_out / η (the page uses
+   P_out (1/η − 1)); the mean coolant temperature by AVERAGING a discretised coolant temperature profile under a uniform heat flux (the page uses (in + out) / 2); the heat
+   balance loss = m_dot c_p ΔT is checked by recomputing the rise from it. */
+function invSim({ P, eta, mdot, cp, tin, R }) {                                                             // W, fraction, kg/s, J/kg·K, °C, K/W
+  const Pin = P / eta, L = Pin - P, rise = L / (mdot * cp), N = 100000; let sum = 0; for (let k = 0; k < N; k++) sum += tin + rise * (k + 0.5) / N;
+  const Tm = sum / N; return { Pin, L, rise, tout: tin + rise, Tm, Ths: Tm + L * R };
+}
+const IIN = o => ({ itl_p: [o.P / 1000, 'kW'], itl_e: [o.eta * 100, '%'], itl_mf: [o.mdot * 60 / LB, 'lbs/min'], itl_cp: [o.cp, 'J/kg·K'], itl_tin: [C2F(o.tin), '°F'], itl_r: [o.R, 'K/W'] });
+const IWANT = v => ({ 'DC Input Power': [v.Pin / 1000, 'kW'], 'Inverter Heat Loss': [v.L, 'W'], 'Coolant Temperature Rise': [v.rise * 9 / 5, 'Δ°F'], 'Coolant Outlet Temperature': [C2F(v.tout), '°F'],
+  'Mean Coolant Temperature': [C2F(v.Tm), '°F'], 'Heatsink (Baseplate) Temperature': [C2F(v.Ths), '°F'] });
+/* a) the approved example: 100 kW AC output at 97 %, coolant 0.15 kg/s of c_p 3 500 at 65 °C, R_th heatsink-to-coolant 0.01 K/W.
+      Loss 3 092.78 W (3.09 kW); coolant rise 5.891 K; outlet 70.891 °C; mean 67.946 °C; heatsink 98.873 °C (209.97 °F). */
+const IEX = { P: 100e3, eta: 0.97, mdot: 0.15, cp: 3500, tin: 65, R: 0.01 };
+{ const v = invSim(IEX);
+  add({ g: 'E2B', id: 'inverter_thermal_load', title: 'approved example: 100 kW AC out at 97 %', inputs: IIN(IEX), want: IWANT(v),
+    literal: { 'Inverter Heat Loss': 3092.8, 'DC Input Power': 103.09, 'Heatsink (Baseplate) Temperature': C2F(98.873) }, noNotes: [/junction temperature (is|=)\s*\d/i], rel: 2e-5 });
+  /* heat balance: the loss the coolant carries equals the loss generated */
+  LATE.push(() => check('inverter example heat balance of the reference (m_dot c_p rise = loss)', Math.abs(v.rise * 0.15 * 3500 - v.L) < 1e-9, `${v.rise * 525} vs ${v.L}`)); }
+/* b) twice the coolant flow: half the rise, same loss, heatsink lower by a quarter of the old rise */
+{ const o = { ...IEX, mdot: 0.3 }, v = invSim(o);
+  add({ g: 'E2B', id: 'inverter_thermal_load', title: 'twice the coolant flow: half the rise', inputs: IIN(o), want: IWANT(v), rel: 2e-5 }); }
+/* c) 95 % efficiency at 150 kW, R_th 0.02 K/W */
+{ const o = { ...IEX, P: 150e3, eta: 0.95, R: 0.02 }, v = invSim(o);
+  add({ g: 'E2B', id: 'inverter_thermal_load', title: '150 kW at 95 %, R_th 0.02 K/W', inputs: IIN(o), want: IWANT(v), rel: 2e-5 }); }
+
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    INVALID INPUT.
    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -212,6 +238,12 @@ for (const [label, over] of [['efficiency above 99.9 %', { mtl_e: '99.95' }], ['
 BASE.motor_thermal_limit_tq = flat(MIN(MEX, [221.3, 4775]));
 for (const [label, over] of [['zero torque', { mtl_t: '0' }], ['zero speed', { mtl_n: '0' }], ['negative torque', { mtl_t: '-5' }], ['torque empty', { mtl_t: '' }], ['speed text', { mtl_n: 'abc' }]])
   bad('E2A', 'motor_thermal_limit', BASE.motor_thermal_limit_tq, label, over, { mtl_mode: 'torque' });
+
+BASE.inverter_thermal_load = flat(IIN(IEX));
+sweepBad('E2B', 'inverter_thermal_load', Object.keys(BASE.inverter_thermal_load), ['itl_tin']);
+for (const [label, over] of [['zero power', { itl_p: '0' }], ['efficiency above 99.9 %', { itl_e: '100' }], ['efficiency below 50 %', { itl_e: '45' }], ['zero coolant flow', { itl_mf: '0' }],
+  ['zero coolant specific heat', { itl_cp: '0' }], ['zero thermal resistance', { itl_r: '0' }], ['power above 2 000 kW', { itl_p: '2500' }]])
+  bad('E2B', 'inverter_thermal_load', BASE.inverter_thermal_load, label, over);
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    HARNESS
@@ -277,7 +309,7 @@ async function runInvalid(page, b) {
 }
 
 (async () => {
-  const groups = (process.env.GROUP || 'E1A,E1B,E2A').split(',');
+  const groups = (process.env.GROUP || 'E1A,E1B,E2A,E2B').split(',');
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });
   const page = await (await browser.newContext()).newPage(); page.setDefaultTimeout(8000);
   const pageErrors = []; page.on('pageerror', e => pageErrors.push(String(e)));
@@ -285,6 +317,7 @@ async function runInvalid(page, b) {
   await page.waitForTimeout(300);
   for (const c of CASES.filter(c => groups.includes(c.g))) { try { await runCase(page, c); } catch (e) { check(`${c.id} ${c.title}`, false, 'test error: ' + String(e.message || e).split('\n')[0]); } }
   for (const b of INVALID.filter(b => groups.includes(b.g))) { try { await runInvalid(page, b); } catch (e) { check(`${b.id} ${b.label}`, false, 'test error: ' + String(e.message || e).split('\n')[0]); } }
+  if (groups.includes('E2B')) LATE.forEach(f => f());
   check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
   await browser.close();
   console.log(log.join('\n'));
