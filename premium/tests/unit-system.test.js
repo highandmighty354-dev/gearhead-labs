@@ -410,7 +410,24 @@ const CASES = [
       return { 'Effective Throat': ['length', th], 'Throat Area': ['sqin', th * v.wfs_l], 'Allowable Throat Shear Stress': ['stress', tau], 'Allowable Load per Inch of Weld': ['springrate', th * tau], 'Allowable Weld Load': ['forcelbf', th * tau * v.wfs_l] }; }, rel: 2e-3 },
   { id: 'weld_heat_input', fields: [['whi_v', 'none', 28], ['whi_i', 'none', 240], ['whi_s', 'feedrate', 0.3], ['whi_k', 'none', 0.8]],
     compute: v => { const ae = v.whi_v * v.whi_i * 60 / v.whi_s;   // J per metre: V x A = W, travel speed in m/min
-      return { 'Arc Energy': ['heatin', ae], 'Heat Input (arc energy × k)': ['heatin', ae * v.whi_k] }; }, rel: 2e-3 }
+      return { 'Arc Energy': ['heatin', ae], 'Heat Input (arc energy × k)': ['heatin', ae * v.whi_k] }; }, rel: 2e-3 },
+
+  /* ---- Batch 11b, B3 holes and sheet metal (angles in degrees, the same number in both systems) ---- */
+  { id: 'drill_point_depth', fields: [['dpd_d', 'length', 0.012], ['dpd_a', 'none', 135], ['dpd_f', 'length', 0.03]],
+    compute: v => { const pl = v.dpd_a >= 180 ? 0 : (v.dpd_d / 2) / Math.tan(v.dpd_a * Math.PI / 360);
+      return { 'Drill Point Length': ['length', pl], 'Point Length ÷ Diameter': ['ratio', pl / v.dpd_d], 'Total Depth to Point Tip': ['length', v.dpd_f + pl] }; }, rel: 2e-3 },
+  { id: 'blind_hole_depth', fields: [['bhd_d', 'length', 0.012], ['bhd_tpi', 'none', 13], ['bhd_ft', 'length', 0.02], ['bhd_cl', 'length', 0.0015], ['bhd_td', 'length', 0.0105], ['bhd_nc', 'none', 3.5], ['bhd_a', 'none', 135]],
+    compute: v => { const ch = v.bhd_nc * K.in_m / v.bhd_tpi, pl = (v.bhd_td / 2) / Math.tan(v.bhd_a * Math.PI / 360), dr = v.bhd_ft + ch + v.bhd_cl;
+      return { 'Incomplete-Thread (Tap Chamfer) Length': ['length', ch], 'Minimum Tapped Depth': ['length', v.bhd_ft + ch], 'Minimum Full-Diameter Drill Depth': ['length', dr], 'Drill Point Length': ['length', pl], 'Drill Depth to Point Tip': ['length', dr + pl] }; }, rel: 2e-3 },
+  { id: 'bend_k_factor', fields: [['bkf_t', 'length', 0.002], ['bkf_r', 'length', 0.003], ['bkf_a', 'none', 90], ['bkf_lf', 'length', 0.0858], ['bkf_la', 'length', 0.05], ['bkf_lb', 'length', 0.04]],
+    compute: v => { const th = v.bkf_a * Math.PI / 180, ossb = Math.tan(th / 2) * (v.bkf_r + v.bkf_t), ba = v.bkf_lf - (v.bkf_la - ossb) - (v.bkf_lb - ossb), k = (ba / th - v.bkf_r) / v.bkf_t;
+      return { 'Outside Setback (OSSB)': ['length', ossb], 'Measured Bend Allowance': ['length', ba], 'K-Factor': ['ratio', k], 'Neutral Axis Distance from Inside Surface': ['length', k * v.bkf_t] }; }, rel: 3e-3 },
+  { id: 'bend_deduction', fields: [['bd_t', 'length', 0.002], ['bd_r', 'length', 0.003], ['bd_a', 'none', 100], ['bd_k', 'none', 0.38], ['bd_la', 'length', 0.05], ['bd_lb', 'length', 0.04]],
+    compute: v => { const th = v.bd_a * Math.PI / 180, ba = th * (v.bd_r + v.bd_k * v.bd_t), ossb = Math.tan(th / 2) * (v.bd_r + v.bd_t), bd = 2 * ossb - ba;
+      return { 'Bend Allowance': ['length', ba], 'Outside Setback (OSSB)': ['length', ossb], 'Bend Deduction': ['length', bd], 'Flat Blank Length': ['length', v.bd_la + v.bd_lb - bd] }; }, rel: 2e-3 },
+  { id: 'minimum_bend_radius', fields: [['mbr_t', 'length', 0.004], ['mbr_ra', 'none', 45], ['mbr_r', 'length', 0.006]],
+    compute: v => { const ra = v.mbr_ra, rt = ra < 20 ? 50 / ra - 1 : (100 - ra) ** 2 / (200 * ra - ra * ra), rmin = rt * v.mbr_t;
+      return { 'Minimum R/t (estimate)': ['ratio', rt], 'Minimum Inside Bend Radius (estimate)': ['length', rmin], 'Outer-Fiber Strain at Planned Radius': ['pct', 100 / (2 * v.mbr_r / v.mbr_t + 1)], 'Planned Radius ÷ Estimated Minimum': ['ratio', v.mbr_r / rmin] }; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

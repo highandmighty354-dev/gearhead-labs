@@ -445,7 +445,17 @@
     { id: 'weld_fillet_strength', name: 'Weld Fillet Strength',
       promo: 'Gearhead Labs Premium unlocks Weld Fillet Strength — throat, allowable stress and load of a fillet weld on the AWS / AISC basis.' },
     { id: 'weld_heat_input', name: 'Weld Heat Input',
-      promo: 'Gearhead Labs Premium unlocks Weld Heat Input — arc energy and process heat input from voltage, current and travel speed.' }
+      promo: 'Gearhead Labs Premium unlocks Weld Heat Input — arc energy and process heat input from voltage, current and travel speed.' },
+    { id: 'drill_point_depth', name: 'Drill Point Depth',
+      promo: 'Gearhead Labs Premium unlocks Drill Point Depth — the drill point length and the depth to the tip for any point angle.' },
+    { id: 'blind_hole_depth', name: 'Blind Hole Depth',
+      promo: 'Gearhead Labs Premium unlocks Blind Hole Depth — tapped depth, drill depth and point allowance for a blind tapped hole.' },
+    { id: 'bend_k_factor', name: 'Bend K-Factor',
+      promo: 'Gearhead Labs Premium unlocks Bend K-Factor — the neutral-axis K-factor measured from a test bend.' },
+    { id: 'bend_deduction', name: 'Bend Deduction',
+      promo: 'Gearhead Labs Premium unlocks Bend Deduction — outside setback, bend deduction and flat blank length.' },
+    { id: 'minimum_bend_radius', name: 'Minimum Bend Radius',
+      promo: 'Gearhead Labs Premium unlocks Minimum Bend Radius — a ductility-based estimate of the tightest bend, with its limits stated.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */

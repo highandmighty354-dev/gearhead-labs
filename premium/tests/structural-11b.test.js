@@ -146,6 +146,54 @@ add({ g: 'B2', id: 'weld_heat_input', title: '25 V, 200 A, 10 in/min, k 0.8', in
   want: { 'Arc Energy': [30, 'kJ/in'], 'Heat Input (arc energy × k)': [24, 'kJ/in'] }, literal: { 'Arc Energy': 30, 'Heat Input (arc energy × k)': 24 }, rel: 1e-5 });
 add({ g: 'B2', id: 'weld_heat_input', title: 'half the travel speed doubles the heat input', inputs: { whi_v: [25, 'V'], whi_i: [200, 'A'], whi_s: [5, 'in/min'], whi_k: [1, ''] },
   want: { 'Arc Energy': [60, 'kJ/in'], 'Heat Input (arc energy × k)': [60, 'kJ/in'] }, rel: 1e-5 });
+
+/* ======================================================= B3 HOLES AND SHEET METAL ======================================================= */
+const ptLen = (d, a) => a >= 180 ? 0 : (d / 2) / Math.tan(rad(a / 2));
+/* 9. Drill Point Depth. 1/2 in, 118°: 0.25 / tan 59° = 0.150215 in (0.3004 d); 1 in to full diameter -> tip at 1.150215 in. 135°: 0.5 / tan 67.5° = 0.207107 d (= (sqrt 2 - 1) / 2, EXACT). 180°: 0. */
+add({ g: 'B3', id: 'drill_point_depth', title: '1/2 in drill, 118°, 1 in full-diameter depth', inputs: { dpd_d: [0.5, 'in'], dpd_a: [118, '°'], dpd_f: [1, 'in'] },
+  want: { 'Drill Point Length': [ptLen(0.5, 118), 'in'], 'Point Length ÷ Diameter': [ptLen(1, 118), ''], 'Total Depth to Point Tip': [1 + ptLen(0.5, 118), 'in'] }, literal: { 'Drill Point Length': 0.15022, 'Point Length ÷ Diameter': 0.3004 }, rel: 2e-4 });
+add({ g: 'B3', id: 'drill_point_depth', title: '135° split point: (sqrt 2 - 1)/2 x d', inputs: { dpd_d: [1, 'in'], dpd_a: [135, '°'], dpd_f: [0, 'in'] },
+  want: { 'Point Length ÷ Diameter': [(Math.SQRT2 - 1) / 2, ''], 'Total Depth to Point Tip': [(Math.SQRT2 - 1) / 2, 'in'] }, rel: 2e-4 });
+add({ g: 'B3', id: 'drill_point_depth', title: '180° flat-bottom drill: no point', inputs: { dpd_d: [0.5, 'in'], dpd_a: [180, '°'], dpd_f: [1, 'in'] },
+  want: { 'Drill Point Length': [0, 'in'], 'Total Depth to Point Tip': [1, 'in'] }, rel: 1e-6 });
+/* 10. Blind Hole Depth. 1/2-13, 0.75 in full thread, plug tap 4 pitches (4/13 = 0.307692 in), 1/16 in clearance, 27/64 tap drill (0.421875), 118°:
+       tapped 1.057692; full-diameter drill 1.120192; point 0.126744; tip 1.246936 in. M10 x 1.5 (typed in mm): 19 mm thread, 4 x 1.5 = 6 mm chamfer, 1.5 mm clearance, 8.5 mm drill. */
+{
+  const ch = 4 / 13, pl = ptLen(0.421875, 118);
+  add({ g: 'B3', id: 'blind_hole_depth', title: '1/2-13, 0.75 in of full thread, plug tap', sel: { bhd_std: 'un' },
+    inputs: { ...thr('bhd', UN12), bhd_ft: [0.75, 'in'], bhd_cl: [0.0625, 'in'], bhd_td: [0.421875, 'in'], bhd_nc: [4, ''], bhd_a: [118, '°'] },
+    want: { 'Incomplete-Thread (Tap Chamfer) Length': [ch, 'in'], 'Minimum Tapped Depth': [0.75 + ch, 'in'], 'Minimum Full-Diameter Drill Depth': [0.8125 + ch, 'in'], 'Drill Point Length': [pl, 'in'], 'Drill Depth to Point Tip': [0.8125 + ch + pl, 'in'] },
+    literal: { 'Minimum Tapped Depth': 1.0577, 'Drill Depth to Point Tip': 1.2469 }, rel: 2e-4 });
+  const plm = ptLen(8.5, 118) / 25.4;
+  add({ g: 'B3', id: 'blind_hole_depth', title: 'M10 x 1.5, 19 mm of full thread (typed in mm)', sel: { bhd_std: 'iso' },
+    inputs: { bhd_dm: [10, 'mmN'], bhd_p: [1.5, 'mmN'], bhd_ftm: [19, 'mmN'], bhd_clm: [1.5, 'mmN'], bhd_tdm: [8.5, 'mmN'], bhd_nc: [4, ''], bhd_a: [118, '°'] },
+    want: { 'Incomplete-Thread (Tap Chamfer) Length': [6 / 25.4, 'in'], 'Minimum Tapped Depth': [25 / 25.4, 'in'], 'Minimum Full-Diameter Drill Depth': [26.5 / 25.4, 'in'], 'Drill Depth to Point Tip': [26.5 / 25.4 + plm, 'in'] }, rel: 2e-4 });
+}
+/* 11-12. Bends. t = R = 0.0625 in, 90°, K 0.4448: BA = (pi/2)(0.0625 + 0.4448 x 0.0625) = 0.141843; OSSB = tan 45° x 0.125 = 0.125 (EXACT); BD = 0.25 - 0.141843 = 0.108157;
+       flat for 1 in + 1 in = 1.891843. Reverse: a 1.891843 in blank with 1 in flanges gives K = 0.4448. A 120° bend: OSSB = tan 60° x 0.125 = 0.216506. */
+{
+  const ba = (PI / 2) * (0.0625 + 0.4448 * 0.0625), ossb = 0.125, lf = 2 - (2 * ossb - ba);
+  add({ g: 'B3', id: 'bend_deduction', title: '1/16 in sheet, 1/16 in radius, 90°, K 0.4448, 1 in flanges', inputs: { bd_t: [0.0625, 'in'], bd_r: [0.0625, 'in'], bd_a: [90, '°'], bd_k: [0.4448, ''], bd_la: [1, 'in'], bd_lb: [1, 'in'] },
+    want: { 'Bend Allowance': [ba, 'in'], 'Outside Setback (OSSB)': [ossb, 'in'], 'Bend Deduction': [2 * ossb - ba, 'in'], 'Flat Blank Length': [lf, 'in'] },
+    literal: { 'Bend Allowance': 0.1418, 'Bend Deduction': 0.1082, 'Flat Blank Length': 1.8918 }, rel: 2e-4 });
+  const ba2 = rad(120) * (0.0625 + 0.4448 * 0.0625), o2 = Math.tan(rad(60)) * 0.125;
+  add({ g: 'B3', id: 'bend_deduction', title: '120° bend: OSSB = tan 60° x (R + t)', inputs: { bd_t: [0.0625, 'in'], bd_r: [0.0625, 'in'], bd_a: [120, '°'], bd_k: [0.4448, ''], bd_la: [1, 'in'], bd_lb: [1, 'in'] },
+    want: { 'Outside Setback (OSSB)': [o2, 'in'], 'Bend Deduction': [2 * o2 - ba2, 'in'] }, literal: { 'Outside Setback (OSSB)': 0.2165 }, rel: 2e-4 });
+  add({ g: 'B3', id: 'bend_k_factor', title: 'the bend-deduction case run backwards recovers K = 0.4448', inputs: { bkf_t: [0.0625, 'in'], bkf_r: [0.0625, 'in'], bkf_a: [90, '°'], bkf_lf: [+lf.toFixed(7), 'in'], bkf_la: [1, 'in'], bkf_lb: [1, 'in'] },
+    want: { 'Outside Setback (OSSB)': [ossb, 'in'], 'Measured Bend Allowance': [ba, 'in'], 'K-Factor': [0.4448, ''], 'Neutral Axis Distance from Inside Surface': [0.4448 * 0.0625, 'in'] }, noNotes: [/outside 0 to 0.5/], rel: 5e-4 });
+  /* a short blank gives a K above 0.5: reported as calculated, with a warning, never limited */
+  add({ g: 'B3', id: 'bend_k_factor', title: 'K above 0.5 is reported, with a warning', inputs: { bkf_t: [0.0625, 'in'], bkf_r: [0.0625, 'in'], bkf_a: [90, '°'], bkf_lf: [1.92, 'in'], bkf_la: [1, 'in'], bkf_lb: [1, 'in'] },
+    want: { 'K-Factor': [((1.92 - 1.75) / (PI / 2) - 0.0625) / 0.0625, ''] }, notes: [/outside 0 to 0.5/], rel: 5e-4 });
+}
+/* 13. Minimum Bend Radius (Datsko-Yang). t 0.125 in, Ar 30 %: R/t = 70^2 / (6000 - 900) = 4900 / 5100 = 0.960784; Rmin = 0.120098 in; planned 0.25 in (R/t = 2): outer strain 1/(2 x 2 + 1) = 20 % (EXACT); ratio 2.0816.
+       Ar 10 %: R/t = 50/10 - 1 = 4 (EXACT), Rmin 0.5 in > planned 0.25 in -> warning. */
+add({ g: 'B3', id: 'minimum_bend_radius', title: '1/8 in plate, Ar 30 %, planned 1/4 in radius', inputs: { mbr_t: [0.125, 'in'], mbr_ra: [30, '%'], mbr_r: [0.25, 'in'] },
+  want: { 'Minimum R/t (estimate)': [4900 / 5100, ''], 'Minimum Inside Bend Radius (estimate)': [0.125 * 4900 / 5100, 'in'], 'Outer-Fiber Strain at Planned Radius': [20, '%'], 'Planned Radius ÷ Estimated Minimum': [0.25 / (0.125 * 4900 / 5100), ''] },
+  literal: { 'Minimum R/t (estimate)': 0.961, 'Outer-Fiber Strain at Planned Radius': 20 }, notes: [/Relation used: R\/t = \(100 − Ar\)²/], noNotes: [/cracking on the outside/], rel: 2e-4 });
+add({ g: 'B3', id: 'minimum_bend_radius', title: 'Ar 10 %: R/t = 4, a 1/4 in radius is too tight (warning)', inputs: { mbr_t: [0.125, 'in'], mbr_ra: [10, '%'], mbr_r: [0.25, 'in'] },
+  want: { 'Minimum R/t (estimate)': [4, ''], 'Minimum Inside Bend Radius (estimate)': [0.5, 'in'] }, notes: [/Relation used: R\/t = 50 ÷ Ar − 1/, /cracking on the outside/], rel: 1e-5 });
+add({ g: 'B3', id: 'minimum_bend_radius', title: 'Ar 20 % sits on the published discontinuity (stated)', inputs: { mbr_t: [0.125, 'in'], mbr_ra: [20, '%'], mbr_r: [0.25, 'in'] },
+  want: { 'Minimum R/t (estimate)': [6400 / 3600, ''] }, notes: [/disagree/], rel: 1e-5 });
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    INVALID INPUT.
    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -191,6 +239,27 @@ bad('B2', 'weld_fillet_strength', BASE.weld_fillet_strength, 'filler strength be
 sweepBad('B2', 'weld_heat_input', Object.keys(BASE.weld_heat_input));
 bad('B2', 'weld_heat_input', BASE.weld_heat_input, 'zero travel speed', { whi_s: '0' });
 bad('B2', 'weld_heat_input', BASE.weld_heat_input, 'efficiency above 1', { whi_k: '1.2' });
+BASE.drill_point_depth = { dpd_d: 0.5, dpd_a: 118, dpd_f: 1 };
+BASE.blind_hole_depth = flat({ ...thr('bhd', UN12), bhd_ft: 0.75, bhd_cl: 0.0625, bhd_td: 0.421875, bhd_nc: 4, bhd_a: 118 }); SEL.blind_hole_depth = { bhd_std: 'un' };
+BASE.bend_k_factor = { bkf_t: 0.0625, bkf_r: 0.0625, bkf_a: 90, bkf_lf: 1.8918, bkf_la: 1, bkf_lb: 1 };
+BASE.bend_deduction = { bd_t: 0.0625, bd_r: 0.0625, bd_a: 90, bd_k: 0.4448, bd_la: 1, bd_lb: 1 };
+BASE.minimum_bend_radius = { mbr_t: 0.125, mbr_ra: 30, mbr_r: 0.25 };
+sweepBad('B3', 'drill_point_depth', Object.keys(BASE.drill_point_depth));
+bad('B3', 'drill_point_depth', BASE.drill_point_depth, 'point angle above 180°', { dpd_a: '190' });
+bad('B3', 'drill_point_depth', BASE.drill_point_depth, 'zero diameter', { dpd_d: '0' });
+sweepBad('B3', 'blind_hole_depth', Object.keys(BASE.blind_hole_depth));
+bad('B3', 'blind_hole_depth', BASE.blind_hole_depth, 'tap drill as large as the thread', { bhd_td: '0.5' }, SEL.blind_hole_depth);
+bad('B3', 'blind_hole_depth', BASE.blind_hole_depth, 'zero full-thread depth', { bhd_ft: '0' }, SEL.blind_hole_depth);
+sweepBad('B3', 'bend_k_factor', Object.keys(BASE.bend_k_factor));
+bad('B3', 'bend_k_factor', BASE.bend_k_factor, 'a 180° bend (setback undefined)', { bkf_a: '180' });
+bad('B3', 'bend_k_factor', BASE.bend_k_factor, 'a blank shorter than the straight flanges (negative bend allowance)', { bkf_lf: '1.7' });
+bad('B3', 'bend_k_factor', BASE.bend_k_factor, 'a flange shorter than the setback', { bkf_la: '0.1' });
+sweepBad('B3', 'bend_deduction', Object.keys(BASE.bend_deduction));
+bad('B3', 'bend_deduction', BASE.bend_deduction, 'K above 0.5', { bd_k: '0.7' });
+bad('B3', 'bend_deduction', BASE.bend_deduction, 'zero bend angle', { bd_a: '0' });
+sweepBad('B3', 'minimum_bend_radius', Object.keys(BASE.minimum_bend_radius));
+bad('B3', 'minimum_bend_radius', BASE.minimum_bend_radius, 'reduction of area 100 %', { mbr_ra: '100' });
+bad('B3', 'minimum_bend_radius', BASE.minimum_bend_radius, 'zero planned radius', { mbr_r: '0' });
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    HARNESS

@@ -51,7 +51,7 @@ const PAIRS = {
   'kJ/in': ['kJ/mm', 1 / (IN * 1000)]   // Batch 11b: weld heat input
 };
 const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
-const N_CALCS = 719;                                                                   // 696 + Batch 11a
+const N_CALCS = 724;                                                                   // 696 + Batch 11a
 
 (async () => {
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });

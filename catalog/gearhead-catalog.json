@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "3deaf87f2c29f01d3caa4d633101d123862ce36dbf0712bb74e16e22ec3d2d95"
+      "sha256": "5ea931859cff12e1a565afcdb8d1f6ee43f3e1defbc16ba9c442cca8ade90365"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -12,7 +12,7 @@
     },
     "models": {
       "file": "premium/models.js",
-      "sha256": "859d67b3c4bb05d3fc556cc2a0ba21577668532a3c98295034d0bc66fcdd94f4"
+      "sha256": "be5afc867b4131dbb9e284d9f3e7a5d23e71b38c791de1c0d1c4854945d5abb4"
     },
     "engineering": {
       "file": "engineering-expansion-v1.js",
@@ -22,10 +22,10 @@
   "counts": {
     "free_public_calculators": 585,
     "migrated_premium_calculators": 21,
-    "premium_expansion_calculators": 113,
+    "premium_expansion_calculators": 118,
     "engineering_lab_tools": 14,
-    "premium_only_tools": 148,
-    "premium_total_access": 733,
+    "premium_only_tools": 153,
+    "premium_total_access": 738,
     "aliases_not_counted": 6,
     "free_by_lab": {
       "universal": 315,
@@ -35,22 +35,22 @@
       "ev": 39
     },
     "premium_by_kind": {
-      "calculator": 134,
+      "calculator": 139,
       "workbench": 4,
       "analyzer": 10
     },
     "save": {
       "eligible": 577,
-      "excluded": 142,
+      "excluded": 147,
       "saveable": 14
     },
-    "premium_expansion_validated": 127,
+    "premium_expansion_validated": 132,
     "approved_future_tools": 0
   },
   "decisions": [
-    "Owner decision 2026-10-06: the 142 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
+    "Owner decision 2026-10-06: the 147 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
     "Owner decision 2026-10-06: 21 existing Free calculators are migrated to Premium, cutting the originally-proposed 70-item list to the 21 the audit actually recommended (Gearhead_Labs_Premium_Migration_AUDIT.xlsx; 49 rejected as Engineering Lab duplicates, SEO/on-ramp anchors, or workbook-arithmetic errors). Free drops from 606 to 585; the Engineering Lab (E01-E14) is unaffected. The 147-item future roadmap remains unimplemented and uncounted.",
-    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 113 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
+    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 118 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
   ],
   "premium_migration": {
     "rule": "A Free calculator moves to Premium only from an owner-approved audit in this repository (Gearhead_Labs_Premium_Migration_AUDIT.xlsx). Each migrated calculator keeps a named Free companion as its on-ramp and stays visible (not hidden) in the Free calculator navigation with a Premium indicator.",
@@ -186,7 +186,7 @@
   },
   "premium_expansion": {
     "rule": "A Premium tool enters this catalog only from approved engineering/product work in this repository, after QA. No count target (the historical ~140 / 752 figures are not used).",
-    "validated": 127,
+    "validated": 132,
     "sources": [
       {
         "source": "ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)",
@@ -202,11 +202,11 @@
       },
       {
         "source": "Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list from the Phase 1 reconciliation and exception resolution)",
-        "outcome": "113 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 30 remain"
+        "outcome": "118 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 25 remain"
       }
     ],
     "premium_calculators": {
-      "validated": 113,
+      "validated": 118,
       "tools": [
         {
           "id": "ac_power_factor",
@@ -239,9 +239,24 @@
           "category": "UNIVERSAL / ENGINE MECHANICAL DESIGN"
         },
         {
+          "id": "bend_deduction",
+          "name": "Bend Deduction",
+          "category": "UNIVERSAL / MANUFACTURING"
+        },
+        {
+          "id": "bend_k_factor",
+          "name": "Bend K-Factor",
+          "category": "UNIVERSAL / MANUFACTURING"
+        },
+        {
           "id": "bernoulli_equation",
           "name": "Bernoulli Equation",
           "category": "HYDRAULICS"
+        },
+        {
+          "id": "blind_hole_depth",
+          "name": "Blind Hole Depth",
+          "category": "UNIVERSAL / MANUFACTURING"
         },
         {
           "id": "bolt_preload_from_torque",
@@ -384,6 +399,11 @@
           "category": "UNIVERSAL / AERODYNAMICS"
         },
         {
+          "id": "drill_point_depth",
+          "name": "Drill Point Depth",
+          "category": "UNIVERSAL / MANUFACTURING"
+        },
+        {
           "id": "driveshaft_diameter_sizing",
           "name": "Driveshaft Diameter Sizing",
           "category": "DRIVETRAIN & GEARING"
@@ -522,6 +542,11 @@
           "id": "main_bearing_load",
           "name": "Main Bearing Load (Screening Estimate)",
           "category": "UNIVERSAL / ENGINE MECHANICAL DESIGN"
+        },
+        {
+          "id": "minimum_bend_radius",
+          "name": "Minimum Bend Radius",
+          "category": "UNIVERSAL / MANUFACTURING"
         },
         {
           "id": "mohr_circle",
@@ -1382,7 +1407,10 @@
     {"id":"axle_shaft_torque_capacity","name":"Axle Shaft Torque Capacity","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Axle Shaft Torque Capacity — the same shaft-torsion strength limit as Driveshaft Torque Capacity, framed the way axle specs are quoted: yield torque and safe working torque after a safety factor."},
     {"id":"bearing_preload","name":"Bearing Preload Calculator","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Bearing Preload Calculator — the same torque-to-clamp-force method as the Free Bolt Torque Spec calculator, applied to a preload/spindle nut instead of a structural bolt."},
     {"id":"bearing_surface_speed","name":"Bearing Journal Surface Speed","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Bearing Journal Surface Speed — the velocity term every bearing PV and oil-film check depends on."},
+    {"id":"bend_deduction","name":"Bend Deduction","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Bend Deduction — outside setback, bend deduction and flat blank length."},
+    {"id":"bend_k_factor","name":"Bend K-Factor","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Bend K-Factor — the neutral-axis K-factor measured from a test bend."},
     {"id":"bernoulli_equation","name":"Bernoulli Equation","category":"HYDRAULICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Bernoulli Equation calculator — solve for pressure change across a fluid-line transition in elevation, diameter, or velocity."},
+    {"id":"blind_hole_depth","name":"Blind Hole Depth","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Blind Hole Depth — tapped depth, drill depth and point allowance for a blind tapped hole."},
     {"id":"bolt_preload_from_torque","name":"Bolt Preload from Torque","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Bolt Preload from Torque — clamp force, preload stress and percent of proof from a tightening torque."},
     {"id":"bolt_shear_capacity","name":"Bolt Shear Capacity","category":"UNIVERSAL / MATERIALS & STRUCTURES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Bolt Shear Capacity — single or double shear through the shank or the threads."},
     {"id":"bolt_tensile_capacity","name":"Bolt Tensile Capacity","category":"UNIVERSAL / MATERIALS & STRUCTURES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Bolt Tensile Capacity — tensile stress area, proof and ultimate loads for UN or ISO metric threads."},
@@ -1414,6 +1442,7 @@
     {"id":"diffuser_angle_expansion","name":"Diffuser Angle / Expansion","category":"UNIVERSAL / AERODYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Diffuser Angle / Expansion — ramp angle, area expansion ratio and ideal pressure recovery for an underbody diffuser."},
     {"id":"drag_coefficient","name":"Drag Coefficient","category":"UNIVERSAL / AERODYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Drag Coefficient — extracts Cd (and CdA) from a measured drag force, the reverse of the Free Aerodynamic Drag Force calculator."},
     {"id":"drag_downforce_tradeoff","name":"Drag / Downforce Tradeoff","category":"UNIVERSAL / AERODYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Drag / Downforce Tradeoff — compares two aero setups for downforce gained, drag and horsepower paid, and the grip it could buy."},
+    {"id":"drill_point_depth","name":"Drill Point Depth","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Drill Point Depth — the drill point length and the depth to the tip for any point angle."},
     {"id":"driveshaft_diameter_sizing","name":"Driveshaft Diameter Sizing","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Driveshaft Diameter Sizing — the strength-based sizing question the Free Driveshaft Critical Speed calculator doesn’t answer: the minimum diameter a solid shaft needs for a given torque and allowable stress."},
     {"id":"driveshaft_torque_capacity","name":"Driveshaft Torque Capacity","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Driveshaft Torque Capacity — the forward direction of Driveshaft Diameter Sizing’s torsion equation: the maximum torque an actual shaft or tube can carry."},
     {"id":"dynamic_compression","name":"Dynamic Compression Ratio","category":"ENGINE","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-7927a709","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"static_compression","promotion":"Use the free Static Compression Ratio calculator to get your baseline CR. Premium’s Dynamic Compression Ratio accounts for cam timing to show what the engine actually sees."},
@@ -1464,6 +1493,7 @@
     {"id":"lsd_bias_lock_effect","name":"Limited-Slip Bias/Lock % Effect","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Limited-Slip Bias/Lock % Effect calculator — model exactly how a clutch-type or Torsen-style LSD splits torque once a wheel loses traction, from its rated Torque Bias Ratio."},
     {"id":"main_bearing_load","name":"Main Bearing Load (Screening Estimate)","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Main Bearing Load — a combined gas-and-centrifugal screening estimate for main bearing loading."},
     {"id":"master_cylinder","name":"Master Cylinder Sizing","category":"SUSPENSION, TIRES & GEOMETRY","lab":"universal","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-a07ce7ac","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"brake_torque","promotion":"Use the free Brake Torque calculator to establish the baseline. Premium’s Master Cylinder Sizing turns that into a complete bore-sizing and pedal-ratio workflow."},
+    {"id":"minimum_bend_radius","name":"Minimum Bend Radius","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Minimum Bend Radius — a ductility-based estimate of the tightest bend, with its limits stated."},
     {"id":"mohr_circle","name":"Mohr's Circle","category":"UNIVERSAL / MATERIALS & STRUCTURES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Mohr's Circle — the drawn circle and the stresses on any rotated plane."},
     {"id":"npsh_available","name":"NPSH Available","category":"HYDRAULICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks NPSH Available — the standard pump-cavitation design metric for fuel, oil, coolant, or power-steering pump systems."},
     {"id":"npsh_safety_margin","name":"NPSH Safety Margin","category":"HYDRAULICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the NPSH Safety Margin analyzer — compares NPSH Available against a pump’s rated NPSH Required with a safety-margin classification."},
