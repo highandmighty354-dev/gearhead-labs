@@ -478,7 +478,11 @@
     { id: 'port_timing_from_geometry', name: 'Port Timing from Measured Geometry',
       promo: 'Gearhead Labs Premium unlocks Port Timing from Measured Geometry — two-stroke port opening angles, durations and exhaust lead from measured port heights.' },
     { id: 'crankcase_compression_ratio', name: 'Crankcase Compression Ratio',
-      promo: 'Gearhead Labs Premium unlocks Crankcase Compression Ratio — the primary compression ratio of a crankcase-scavenged two-stroke.' }
+      promo: 'Gearhead Labs Premium unlocks Crankcase Compression Ratio — the primary compression ratio of a crankcase-scavenged two-stroke.' },
+    { id: 'tuned_pipe_length', name: 'Tuned-Pipe Length',
+      promo: 'Gearhead Labs Premium unlocks Tuned-Pipe Length — the effective expansion-chamber length for a tuning speed from exhaust duration and gas temperature.' },
+    { id: 'scavenging_charging_efficiency', name: 'Scavenging / Charging Efficiency',
+      promo: 'Gearhead Labs Premium unlocks Scavenging / Charging Efficiency — delivery ratio, charging efficiency and the ideal scavenging references for a two-stroke.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */

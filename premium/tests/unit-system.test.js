@@ -88,7 +88,8 @@ const IN = {
   /* --- Batch 11c --- */
   inertia:{ toSI: (s, x) => s === 'metric' ? x : x * K.lb_kg * K.ft_m * K.ft_m, fromSI: (s, x) => s === 'metric' ? x : x / (K.lb_kg * K.ft_m * K.ft_m) },  // lb·ft² <-> kg·m², base kg·m²
   /* --- Batch 13 --- */
-  cubicin:{ toSI: (s, x) => s === 'metric' ? x * 1e-6 : x * K.in_m ** 3, fromSI: (s, x) => s === 'metric' ? x * 1e6 : x / K.in_m ** 3 }   // ci <-> cc, base m^3
+  cubicin:{ toSI: (s, x) => s === 'metric' ? x * 1e-6 : x * K.in_m ** 3, fromSI: (s, x) => s === 'metric' ? x * 1e6 : x / K.in_m ** 3 },  // ci <-> cc, base m^3
+  massflow: { toSI: (s, x) => s === 'metric' ? x : x * K.lb_kg, fromSI: (s, x) => s === 'metric' ? x : x / K.lb_kg }                       // lb/hr <-> kg/hr, base kg/h
 };
 /* output kinds: SI -> display, plus the unit text the page must show */
 const OUT = {
@@ -141,7 +142,8 @@ const OUT = {
   minutes:{ fromSI: (s, x) => x, unit: s => 'min' },                                                                                     // Batch 11c: a time in minutes, both systems
   cuinmin:{ fromSI: (s, x) => x / K.in_m ** 3, unit: s => 'in³/min' },                                                                  // Batch 11c: unregistered (imperial-only, like material_removal), base m^3/min
   heatin: { fromSI: (s, x) => s === 'metric' ? x / 1e6 : x * K.in_m / 1000, unit: s => s === 'metric' ? 'kJ/mm' : 'kJ/in' },
-  cubicin:{ fromSI: (s, x) => s === 'metric' ? x * 1e6 : x / K.in_m ** 3, unit: s => s === 'metric' ? 'cc' : 'ci' }                    // Batch 13: a volume, base m^3                                                                                                  // base degrees: the same number and symbol in both systems
+  cubicin:{ fromSI: (s, x) => s === 'metric' ? x * 1e6 : x / K.in_m ** 3, unit: s => s === 'metric' ? 'cc' : 'ci' },                   // Batch 13: a volume, base m^3
+  density:{ fromSI: (s, x) => s === 'metric' ? x : x * K.ft_m ** 3 / K.lb_kg, unit: s => s === 'metric' ? 'kg/m³' : 'lb/ft³' }        // Batch 13: a density, base kg/m^3                                                                                                  // base degrees: the same number and symbol in both systems
 };
 
 /* ---- cases: fields = [id, input kind, SI edit value used for the re-entry steps]; compute(inSI) -> {label: [outKind, SI value]} ---- */
@@ -482,7 +484,16 @@ const CASES = [
       return { 'Exhaust Opens (after TDC)': ['angle', eo], 'Exhaust Duration': ['angle', ed], 'Transfer Opens (after TDC)': ['angle', to], 'Transfer Duration': ['angle', td], 'Exhaust Lead (blowdown angle)': ['angle', (ed - td) / 2] }; }, rel: 2e-3 },
   { id: 'crankcase_compression_ratio', fields: [['ccr_b', 'length', 0.056], ['ccr_s', 'length', 0.054], ['ccr_v', 'cubicin', 4.2e-4]],
     compute: v => { const vs = Math.PI / 4 * v.ccr_b ** 2 * v.ccr_s;
-      return { 'Swept Volume': ['cubicin', vs], 'Crankcase Volume at TDC': ['cubicin', v.ccr_v + vs], 'Crankcase Compression Ratio': ['ratio', (v.ccr_v + vs) / v.ccr_v] }; }, rel: 2e-3 }
+      return { 'Swept Volume': ['cubicin', vs], 'Crankcase Volume at TDC': ['cubicin', v.ccr_v + vs], 'Crankcase Compression Ratio': ['ratio', (v.ccr_v + vs) / v.ccr_v] }; }, rel: 2e-3 },
+  /* ---- Batch 13, D2 two-stroke gas exchange (R = 287.058 J/kg·K). Engine speed is the last field (the harness re-types it at 0.9x). ---- */
+  { id: 'tuned_pipe_length', fields: [['tpl_ed', 'none', 185], ['tpl_egt', 'tempabs', 800], ['tpl_g', 'none', 1.36], ['tpl_rpm', 'none', 8500]],
+    compute: v => { const a = Math.sqrt(v.tpl_g * 287.058 * v.tpl_egt), t = v.tpl_ed / (6 * v.tpl_rpm);
+      return { 'Speed of Sound in the Exhaust': ['velocity', a], 'Tuned Length (port to reflection point)': ['length', a * t / 2], 'Round-Trip Wave Path (2 × tuned length)': ['length', a * t],
+               'Tuned Length at a Fixed 1,700 ft/sec (E07 assumption, for comparison)': ['length', 1700 * K.ft_m * t / 2] }; }, rel: 2e-3 },
+  { id: 'scavenging_charging_efficiency', fields: [['sce_v', 'cubicin', 2.5e-4], ['sce_m', 'massflow', 95], ['sce_p', 'pressure', 1.0e5], ['sce_t', 'tempabs', 295], ['sce_te', 'none', 70], ['sce_rpm', 'none', 7500]],
+    compute: v => { const rho = v.sce_p / (287.058 * v.sce_t), dr = v.sce_m / 3600 / (v.sce_rpm / 60) / (rho * v.sce_v), pm = 1 - Math.exp(-dr);
+      return { 'Ambient Air Density': ['density', rho], 'Delivery Ratio (DR)': ['ratio', dr], 'Charging Efficiency (CE = TE × DR)': ['pct', v.sce_te * dr], 'Ideal Scavenging Efficiency, Perfect Displacement': ['pct', Math.min(dr, 1) * 100],
+               'Ideal Scavenging Efficiency, Perfect Mixing': ['pct', pm * 100], 'Ideal Trapping Efficiency, Perfect Mixing': ['pct', pm / dr * 100] }; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

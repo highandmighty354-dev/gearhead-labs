@@ -7,9 +7,11 @@
         acos(r / 2l), a crankcase of four swept volumes gives exactly 1.25) are written as literals.
      2. METRIC EQUIVALENCE. The same physical case typed in Metric (every input converted with a factor written here from the exact definitions of the inch, pound and pound-force;
         a temperature with its offset) gives the same physical answer, every row converted with the factor of its unit.
-     3. UNITS. Every row prints the unit it should in each system: a length in / mm, a volume ci / cc, an angle ° in both, a ratio with no unit.
+     3. UNITS. Every row prints the unit it should in each system: a length in / mm, a volume ci / cc, a speed ft/sec / m/s, a density lb/ft³ / kg/m³, an angle ° in both,
+        a percentage and a ratio the same in both.
      4. INVALID AND OUT-OF-DOMAIN INPUT. An empty box, text, zero, a negative number and a relationship that cannot hold (a rod no longer than the crank throw, a port edge below the
-        crown at BDC, a transfer port above the exhaust port ...) give the "Validation required" panel with a reason and no result row; nothing is clamped into a number.
+        crown at BDC, a transfer port above the exhaust port, a trapping efficiency above 100 % ...) give the "Validation required" panel with a reason and no result row; nothing is clamped into a number.
+     5. NOTES. A charging efficiency above 100 % (only possible with a pressurised delivery) is stated on the page beside the unchanged number.
 
    unit-system.test.js adds the SI-formula comparison through random values, per-field re-entry and repeated Metric <-> Imperial toggles.
 
@@ -77,6 +79,45 @@ add({ g: 'D1', id: 'crankcase_compression_ratio', title: '2 x 2 in, crankcase fo
     want: { 'Swept Volume': [vs, 'ci'], 'Crankcase Volume at TDC': [vs + vc, 'ci'], 'Crankcase Compression Ratio': [(vs + vc) / vc, ''] }, literal: { 'Crankcase Compression Ratio': 1.3120 }, rel: 1e-5 });
 }
 
+/* ======================================================= D2 TWO-STROKE GAS EXCHANGE ======================================================= */
+/* R = 287.058 J/(kg·K) (dry air; the engine's own value for air density) in both D2 calculators. */
+const RAIR = 287.058, K_ = f => (f - 32) * 5 / 9 + 273.15;
+/* 3. Tuned-Pipe Length. L_t = a t / 2, a = sqrt(gamma R T), t = ED / (6 RPM).
+      a) The published worked example (190° exhaust, 10 000 RPM, 550 °C = 1 022 °F, gamma 1.4): a = 575.16 m/s (1 887.0 ft/sec); t = 3.1667 ms; L_t = 910.67 mm = 35.853 in
+         (the source, with R = 287, gives 575.1 m/s and 910.6 mm). Fixed 1 700 ft/sec (E07): 1 700 x 12 x 0.0031667 / 2 = 32.30 in (EXACT).
+      b) Twice the RPM: half the length. c) Four times the absolute temperature (400 K -> 1 600 K): twice the length. */
+const tp = (ed, f, g, rpm) => { const a = Math.sqrt(g * RAIR * K_(f)), t = ed / (6 * rpm), L = a * t / 2 / IN;
+  return { 'Speed of Sound in the Exhaust': [a / FT, 'ft/sec'], 'Tuned Length (port to reflection point)': [L, 'in'], 'Round-Trip Wave Path (2 × tuned length)': [2 * L, 'in'], 'Tuned Length at a Fixed 1,700 ft/sec (E07 assumption, for comparison)': [1700 * 12 * t / 2, 'in'] }; };
+add({ g: 'D2', id: 'tuned_pipe_length', title: 'published example: 190°, 10 000 RPM, 550 °C, gamma 1.4', inputs: { tpl_ed: [190, '°'], tpl_egt: [1022, '°F'], tpl_g: [1.4, ''], tpl_rpm: [10000, 'RPM'] },
+  want: tp(190, 1022, 1.4, 10000), literal: { 'Speed of Sound in the Exhaust': 1887.0, 'Tuned Length (port to reflection point)': 35.85, 'Tuned Length at a Fixed 1,700 ft/sec (E07 assumption, for comparison)': 32.30 }, rel: 1e-5 });
+add({ g: 'D2', id: 'tuned_pipe_length', title: 'twice the RPM: half the length', inputs: { tpl_ed: [190, '°'], tpl_egt: [1022, '°F'], tpl_g: [1.4, ''], tpl_rpm: [20000, 'RPM'] },
+  want: { 'Tuned Length (port to reflection point)': [tp(190, 1022, 1.4, 10000)['Tuned Length (port to reflection point)'][0] / 2, 'in'] }, rel: 1e-5 });
+{
+  const fOf = k => (k - 273.15) * 9 / 5 + 32, L400 = tp(180, fOf(400), 1.35, 8000)['Tuned Length (port to reflection point)'][0];
+  add({ g: 'D2', id: 'tuned_pipe_length', title: 'four times the absolute gas temperature: twice the length', inputs: { tpl_ed: [180, '°'], tpl_egt: [fOf(1600), '°F'], tpl_g: [1.35, ''], tpl_rpm: [8000, 'RPM'] },
+    want: { 'Tuned Length (port to reflection point)': [2 * L400, 'in'], 'Speed of Sound in the Exhaust': [Math.sqrt(1.35 * RAIR * 1600) / FT, 'ft/sec'] }, rel: 1e-5 });
+}
+/* 4. Scavenging / Charging Efficiency. Reference mass = rho_amb x V_s, rho = P / (R T); air per cycle = mass flow / RPM; DR = air per cycle / reference mass; CE = TE x DR;
+      ideal SE: perfect displacement min(DR, 1), perfect mixing 1 - e^-DR; ideal TE (mixing) = SE / DR.
+      a) 250 cc, 100 kg/h, 101 325 Pa, 20 °C (68 °F), TE 75 %, 8 000 RPM: rho = 1.20408 kg/m³ (0.075169 lb/ft³); air per cycle 0.20833 g; reference 0.30102 g;
+         DR = 0.69209; CE = 51.907 %; perfect displacement 69.209 %; perfect mixing 49.947 %; ideal TE 72.169 %.
+      b) Air flow chosen so DR = 1 exactly: perfect displacement 100 %, perfect mixing 1 - 1/e = 63.212 % (EXACT forms).
+      c) DR 2 with TE 75 %: CE 150 %, stated on the page as only possible with a pressurised delivery. */
+const sc = (cc, kgh, pa, f, te, rpm) => { const rho = pa / (RAIR * K_(f)), dr = kgh / 3600 / (rpm / 60) / (rho * cc * 1e-6), pm = 1 - Math.exp(-dr);
+  return { 'Ambient Air Density': [rho * FT ** 3 / LB, 'lb/ft³'], 'Delivery Ratio (DR)': [dr, ''], 'Charging Efficiency (CE = TE × DR)': [te * dr, '%'], 'Ideal Scavenging Efficiency, Perfect Displacement': [Math.min(dr, 1) * 100, '%'],
+           'Ideal Scavenging Efficiency, Perfect Mixing': [pm * 100, '%'], 'Ideal Trapping Efficiency, Perfect Mixing': [pm / dr * 100, '%'] }; };
+const scIn = (cc, kgh, pa, f, te, rpm) => ({ sce_v: [cc / (IN ** 3 * 1e6), 'ci'], sce_m: [kgh / LB, 'lb/hr'], sce_p: [pa / PSI, 'psi'], sce_t: [f, '°F'], sce_te: [te, '%'], sce_rpm: [rpm, 'RPM'] });
+add({ g: 'D2', id: 'scavenging_charging_efficiency', title: '250 cc, 100 kg/h at 8 000 RPM, sea level 20 °C, TE 75 %', inputs: scIn(250, 100, 101325, 68, 75, 8000), want: sc(250, 100, 101325, 68, 75, 8000),
+  literal: { 'Delivery Ratio (DR)': 0.6921, 'Charging Efficiency (CE = TE × DR)': 51.91, 'Ideal Scavenging Efficiency, Perfect Mixing': 49.95, 'Ideal Trapping Efficiency, Perfect Mixing': 72.17 }, noNotes: [/above 100 %/], rel: 2e-5 });
+{
+  const kgh1 = 101325 / (RAIR * 293.15) * 250e-6 * 8000 * 60;                          // the flow that delivers exactly one reference mass per cycle
+  add({ g: 'D2', id: 'scavenging_charging_efficiency', title: 'DR = 1: perfect displacement 100 %, perfect mixing 1 - 1/e', inputs: scIn(250, kgh1, 101325, 68, 80, 8000),
+    want: { 'Delivery Ratio (DR)': [1, ''], 'Charging Efficiency (CE = TE × DR)': [80, '%'], 'Ideal Scavenging Efficiency, Perfect Displacement': [100, '%'], 'Ideal Scavenging Efficiency, Perfect Mixing': [100 * (1 - 1 / Math.E), '%'], 'Ideal Trapping Efficiency, Perfect Mixing': [100 * (1 - 1 / Math.E), '%'] },
+    literal: { 'Ideal Scavenging Efficiency, Perfect Mixing': 63.21 }, rel: 2e-5 });
+  add({ g: 'D2', id: 'scavenging_charging_efficiency', title: 'DR = 2, TE 75 %: CE 150 % is flagged', inputs: scIn(250, 2 * kgh1, 101325, 68, 75, 8000),
+    want: { 'Delivery Ratio (DR)': [2, ''], 'Charging Efficiency (CE = TE × DR)': [150, '%'], 'Ideal Scavenging Efficiency, Perfect Displacement': [100, '%'] }, notes: [/above 100 %/], rel: 2e-5 });
+}
+
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    INVALID INPUT.
    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -97,6 +138,22 @@ sweepBad('D1', 'crankcase_compression_ratio', Object.keys(BASE.crankcase_compres
 bad('D1', 'crankcase_compression_ratio', BASE.crankcase_compression_ratio, 'zero crankcase volume', { ccr_v: '0' });
 bad('D1', 'crankcase_compression_ratio', BASE.crankcase_compression_ratio, 'zero bore', { ccr_b: '0' });
 bad('D1', 'crankcase_compression_ratio', BASE.crankcase_compression_ratio, 'zero stroke', { ccr_s: '0' });
+
+BASE.tuned_pipe_length = { tpl_ed: 190, tpl_egt: 1000, tpl_g: 1.4, tpl_rpm: 9000 };
+sweepBad('D2', 'tuned_pipe_length', Object.keys(BASE.tuned_pipe_length));
+bad('D2', 'tuned_pipe_length', BASE.tuned_pipe_length, 'zero speed', { tpl_rpm: '0' });
+bad('D2', 'tuned_pipe_length', BASE.tuned_pipe_length, 'an exhaust duration above 260°', { tpl_ed: '300' });
+bad('D2', 'tuned_pipe_length', BASE.tuned_pipe_length, 'an exhaust-gas temperature below 200 °F', { tpl_egt: '100' });
+bad('D2', 'tuned_pipe_length', BASE.tuned_pipe_length, 'gamma above 1.67', { tpl_g: '2' });
+BASE.scavenging_charging_efficiency = { sce_v: 15.26, sce_m: 220, sce_p: 14.696, sce_t: 68, sce_te: 75, sce_rpm: 8000 };
+sweepBad('D2', 'scavenging_charging_efficiency', Object.keys(BASE.scavenging_charging_efficiency), ['sce_t']);
+bad('D2', 'scavenging_charging_efficiency', BASE.scavenging_charging_efficiency, 'zero air flow', { sce_m: '0' });
+bad('D2', 'scavenging_charging_efficiency', BASE.scavenging_charging_efficiency, 'zero trapping efficiency', { sce_te: '0' });
+bad('D2', 'scavenging_charging_efficiency', BASE.scavenging_charging_efficiency, 'trapping efficiency above 100 %', { sce_te: '120' });
+bad('D2', 'scavenging_charging_efficiency', BASE.scavenging_charging_efficiency, 'a gauge-like pressure below 5 psi absolute', { sce_p: '2' });
+bad('D2', 'scavenging_charging_efficiency', BASE.scavenging_charging_efficiency, 'an ambient temperature above 150 °F', { sce_t: '200' });
+bad('D2', 'scavenging_charging_efficiency', BASE.scavenging_charging_efficiency, 'zero speed', { sce_rpm: '0' });
+bad('D2', 'scavenging_charging_efficiency', BASE.scavenging_charging_efficiency, 'zero displacement', { sce_v: '0' });
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    HARNESS
