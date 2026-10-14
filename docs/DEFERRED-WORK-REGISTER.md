@@ -1601,19 +1601,20 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Priority:** P1 once authorized
 - **Description:** Chassis/Frame Torsional Stiffness, Press-Fit/Interference Fit, Recovery Strap/Rope Energy, Key/Keyway Torque Capacity, column buckling, stress analyses, fatigue, welds, bolts, threads, drilling, bending, bearing/gear/NVH frequencies and machining (full list in the project plan).
 - **Evidence:** Project plan `claude/premium-expansion-batch-plan.md`.
-- **Affected:** 37 new Premium calculators; the 15 of 11a exist (`docs/PREMIUM-CATALOG.md`, "Batch 11a"), 22 do not.
+- **Affected:** 37 new Premium calculators; the 15 of 11a and the 13 of 11b exist (`docs/PREMIUM-CATALOG.md`, "Batch 11a" and "Batch 11b"), the 9 of 11c do not.
 - **Impact:** Largest remaining batch.
-- **Decision:** Split into 11a (Structure, stress and fatigue, 15), 11b (Joints and fabrication, 13) and 11c (NVH and machining, 9). **11a authorized and done 2026-10-14; 11b and 11c AWAITING AUTHORIZATION, not started.**
+- **Decision:** Split into 11a (Structure, stress and fatigue, 15), 11b (Joints and fabrication, 13) and 11c (NVH and machining, 9). **11a and 11b authorized and done 2026-10-14; 11c AWAITING AUTHORIZATION, not started.**
 - **Dependencies:** The shared unit-handling fixes of this pass should land first so the new batch is built on a reliable helper. **Landed (2026-10-13):** GH-DEF-008 (clean self-test baseline), GH-DEF-019, GH-DEF-020, GH-DEF-022 and GH-IMP-001 are VERIFIED CLOSED. Not blocking the batch but to be decided with it: GH-IMP-014 (how the new torque, inertia and stress units are registered; recommended order in `docs/IMP-014-UNREGISTERED-UNITS.md`), GH-IMP-013 (kg versus N for weights), GH-IMP-002 (inertia units), GH-ENG-014 (before any deployment).
 - **Revisit:** On authorization.
-- **Commits:** 11a: `f9cbdae` (code and tests); docs in the following commit.
-- **Tests:** 11a: `premium/tests/structural-11a.test.js` (new) and 15 new cases in `premium/tests/unit-system.test.js`; unit tables in `unit-factors`, `unit-census`, `mass-force` (inventory) and `performance-census` (ADDED rows).
+- **Commits:** 11a: `f9cbdae` (code and tests), docs `f6f6a89`. 11b: `ff7d826` (B1), `06343d4` (B2), `2d05b9a` (B3), docs in the following commit.
+- **Tests:** 11a: `premium/tests/structural-11a.test.js` (new) and 15 new cases in `premium/tests/unit-system.test.js`; unit tables in `unit-factors`, `unit-census`, `mass-force` (inventory) and `performance-census` (ADDED rows). 11b: `premium/tests/structural-11b.test.js` (new), 13 new `unit-system` cases, 18 engine self-test assertions.
 - **Docs:** Project plan; `docs/PREMIUM-CATALOG.md` "Remaining".
 - **Verification:** The batch workflow of the project plan (implement, test, regression, catalog validation, commit, push, checkpoint).
 - **History:** 2026-10-12 — entry created; hard stop recorded.
   2026-10-13 — closeout phase: dependency note updated; status unchanged. **Batch 11 is still AWAITING AUTHORIZATION; none of its 37 calculators was started.**
   2026-10-14 — Batch 11a (15 calculators) implemented test-first, verified and pushed; status IN PROGRESS. 11b and 11c not started (need their own authorization).
   2026-10-14 — Batch 11a follow-ups F-11A-01 to F-11A-04 recorded in `docs/PREMIUM-CATALOG.md` ("Batch 11a follow-ups"); Batch 11b plan proposed there ("Batch 11b — Joints and Fabrication (13): proposed plan"), AWAITING AUTHORIZATION. The authoritative 11b list has 13 names: Bolt Tensile Capacity and Bolt Shear Capacity are two calculators (the Chapter 10 closeout wrote them as one item). Nothing implemented.
+  2026-10-14 — Batch 11b authorized by the owner (all 13, with D-11B-1 to D-11B-4 and F-11A-01 approved) and done: test-first per sub-group, each committed separately, full browser regression passed (see `docs/PREMIUM-CATALOG.md`, "Batch 11b"). The Bolt Torque Spec concern is GH-DEF-034 (OPEN, not fixed). 11c not started.
 
 ### GH-FUT-002 — Batch 13: Two-Stroke (4 calculators)
 - **Status:** APPROVED

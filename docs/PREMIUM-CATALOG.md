@@ -84,7 +84,7 @@ Saving is not being extended to new tools while the catalog is incomplete. The e
 - **Decided (2026-10-06):** the 29 public calculators without a formula fingerprint were **excluded** from saved calculations (now 119 with the 90 expansion calculators added the same way). Their behavior and the Free count are unchanged. The production database already refuses to save them, because they have no `calculators` row. Making one saveable later needs a new engine formula plus a new, reviewed catalog migration.
 - **Decided (2026-10-07):** a Phase 1 reconciliation and exception-resolution pass re-examined the 147-candidate future roadmap against the live code and approved **143 candidates** for implementation as the Premium Calculator Expansion (1 held for a follow-up merge decision, 3 rejected). Batch 1, "Engine/Bottom End" (10 calculators: piston kinematics, reciprocating balance, bobweight, bearing PV/surface-speed/clearance-flow), Batch 2, "Valvetrain" (4 calculators: valve motion velocity/acceleration, cam motion profile, cam area/time-area), Batch 3, "Airflow/Cylinder Head" (3 calculators: intake throat diameter sizing, exhaust throat diameter sizing, port/throat area → HP estimator), Batch 4, "Forced Induction" (1 calculator: corrected compressor mass flow & speed), Batch 5, "Fuel/Ignition + Electrical Fundamentals" (9 calculators: coil dwell & spark energy, total timing helper, spark duration, RC/RL time constants, inductive/capacitive reactance, impedance, AC power factor), Batch 6, "Cooling/Thermal + Hydraulics" (20 calculators: cooling system pressure & boil point, electric fan CFM requirement, intercooler/oil/transmission/radiator core sizing, radiator airflow vs vehicle speed, thermal resistance network, conduction/convection/radiation heat transfer, fan static pressure, fan shroud effectiveness, Reynolds number, Bernoulli equation, pipe/hose pressure drop, hydraulic flow coefficient, NPSH available, NPSH safety margin, pump power requirement), Batch 7, "Drivetrain/Transmission" (12 calculators: optimal gear ratio set, limited-slip bias/lock % effect, differential/final drive selector, planetary gearset ratio, bearing preload, shaft angular deflection, driveshaft diameter sizing, driveshaft torque capacity, axle shaft torque capacity, gear tooth bending stress, gear tooth contact stress, gearbox efficiency by gear), Batch 8, "Chassis/Suspension" (8 calculators: front/rear roll stiffness distribution, anti-roll bar wheel rate, damping coefficient from target ratio, damper velocity from wheel travel, bump stop rate, anti-squat from link coordinates, bump steer curve, roll couple distribution), Batch 9, "Brakes/Tires/Vehicle Dynamics" (14 calculators: brake rotor sizing, brake fluid boiling margin, brake duct CFM, rotor cooling rate, brake fade prediction, tire contact patch, tire deflection, tire vertical stiffness, tire slip ratio, tire rolling resistance, tire heat generation, yaw inertia estimate, combined slip, load transfer distribution), and Batch 10, "Aerodynamics" (9 calculators: CdA from coast-down data, frontal area from dimensions, lift coefficient, drag coefficient, wing aspect ratio, wing center of pressure, ground effect estimate, drag/downforce tradeoff, diffuser angle/expansion), are built and QA'd; see "Premium Calculator Expansion" below. 53 candidates remain across 4 further batches, implemented and counted here only as each batch ships.
 - **Open: further Premium tools beyond the approved 143.** None is approved in the repository. The planning lists from earlier work (a 39-item "Coming Soon" queue and a 791-item master list) are not in the repository and are not designated Premium. They are counted only once they are provided, reviewed and approved.
-- **Proposed, awaiting owner decision (F-11A-01, 2026-10-14):** keep Mohr's Circle, Fatigue Goodman Analysis and Fatigue Soderberg Analysis as calculators, as the Batch 11 plan counts them and as they were built in Batch 11a (the Phase 1 reconciliation had classed them "Analyzer"). Any Analyzer-oriented enhancement would be separate scope. This is a proposal, not an approved decision; see "Batch 11a follow-ups" below.
+- **Decided (2026-10-14, owner approval, F-11A-01):** Mohr's Circle, Fatigue Goodman Analysis and Fatigue Soderberg Analysis stay calculators, as the Batch 11 plan counts them and as Batch 11a built them (the Phase 1 reconciliation had classed them "Analyzer"); Joint Separation (Batch 11b) is built as a calculator on the same basis. Any Analyzer-oriented enhancement is separate scope.
 - **Open: E01–E14 QA counting.** They are live in the Premium Engineering Lab, but ENGINEERING_EXPANSION_CATALOG_V1.md says they are not counted as public calculators until QA sign-off.
 
 ### Calculators excluded from saving (119)
@@ -247,7 +247,7 @@ Note on `turbo_sizing`: its promotion copy explicitly distinguishes it from the 
 
 Access is gated client-side only (same approach as the Engineering Lab, `premium/engineering-bridge.js`): `premium-calculator-gating.js` wraps each of these 21 ids' render function and nav entry, checking `GHP.services.entitlements.isPremium()` fresh on every render. It grants no access and talks to no database — these calculators are entirely client-side math, same as every Free calculator, so there is nothing for Supabase RLS to enforce here. What Supabase enforces is Premium status itself (`entitlement_grants`, `pf_has_feature`; see `PREMIUM_ARCHITECTURE.md`), which this gate reads but never decides.
 
-## Premium Calculator Expansion (105 of 143 approved, batch by batch)
+## Premium Calculator Expansion (118 of 143 approved, batch by batch)
 
 Decided 2026-10-07, from a Phase 1 reconciliation and exception-resolution pass that re-examined the 147-candidate future roadmap (left unapproved by the original Premium Migration Audit, above) against the live code. **143 candidates** were approved for implementation as net-new Premium-only calculators; 1 was held for a follow-up merge decision and 3 were rejected (duplicates or out of scope — see `claude/premium-expansion-phase1-exceptions-resolved.md` and `claude/premium-expansion-batch-plan.md` in the project). Implementation proceeds in 16 named engineering-family batches on the `premium/full-calculator-expansion` branch; each batch is implemented, QA'd (unit/formula tests, catalog validation, browser smoke tests, Premium gating tests, metric/imperial tests, NaN/Infinity/undefined scan) and committed before the next begins. `main` is untouched until the expansion is reviewed and merged.
 
@@ -502,73 +502,68 @@ Batch 11a itself is complete (code and tests `f9cbdae`, docs `f6f6a89`). These a
 
 | id | item | status | disposition |
 |---|---|---|---|
-| F-11A-01 | Calculator classification of Mohr's Circle, Fatigue Goodman Analysis and Fatigue Soderberg Analysis (classed "Analyzer" in the Phase 1 reconciliation, built as calculators) | **AWAITING OWNER DECISION** | Proposed: keep all three as calculators, consistent with the Batch 11 plan. An Analyzer-oriented enhancement (for example an interactive Goodman diagram) would be separate, separately authorized scope. Not approved until the owner says so. |
-| F-11A-02 | No engine self-test assertions (`GH_SELFTEST_SUITE`) were added for the 15 Batch 11a calculators (Batch 10 added 46 for its 9) | **DEFERRED** (future QA improvement) | Batch 11a is not reopened for this: its independent suites (`structural-11a` 793 checks, `unit-system` 15 cases) and the full 30-suite browser regression passed. Proposed: add a small set of self-test assertions for the 11a calculators alongside the first authorized engine change after this, and add them for every Batch 11b calculator as part of 11b (see the plan below). |
-| F-11A-03 | Commit granularity: Groups A and B of Batch 11a share one code commit (`f9cbdae`, which also holds Group C) | **DEFERRED** (traceability / process improvement) | Git history is not rewritten. Proposed for future batches: one code-and-tests commit per sub-group, then one docs commit. |
-| F-11A-04 | Release controls | **AWAITING AUTHORIZATION** | Batch 11a is complete at `f6f6a89` on `premium/full-calculator-expansion`; `main` is still `a4203cd`. No merge, deployment or migration has been authorized. GH-ENG-014 remains unapplied and separately gated (authorizations A and B). Batch 11b and Batch 11c must not begin without explicit owner authorization. |
+| F-11A-01 | Calculator classification of Mohr's Circle, Fatigue Goodman Analysis and Fatigue Soderberg Analysis (classed "Analyzer" in the Phase 1 reconciliation, built as calculators) | **CLOSED** (owner-approved 2026-10-14) | Kept as calculators, consistent with the Batch 11 plan. An Analyzer-oriented enhancement (for example an interactive Goodman diagram) would be separate, separately authorized scope. |
+| F-11A-02 | No engine self-test assertions (`GH_SELFTEST_SUITE`) were added for the 15 Batch 11a calculators (Batch 10 added 46 for its 9) | **DEFERRED** (future QA improvement) | Batch 11a is not reopened for this: its independent suites (`structural-11a` 793 checks, `unit-system` 15 cases) and the full 30-suite browser regression passed. Batch 11b did add self-test assertions for all 13 of its calculators (18 assertions); the 11a ones remain to be added with a later authorized engine change. |
+| F-11A-03 | Commit granularity: Groups A and B of Batch 11a share one code commit (`f9cbdae`, which also holds Group C) | **DEFERRED** (traceability / process improvement; history not rewritten) | Applied from Batch 11b on: one code-and-tests commit per sub-group (`ff7d826` B1, `06343d4` B2, `2d05b9a` B3), the defect entry in its own commit (`bb40ff1`), then one docs commit. |
+| F-11A-04 | Release controls | **AWAITING AUTHORIZATION** | Batch 11a is complete at `f6f6a89` and Batch 11b (authorized 2026-10-14) at `2d05b9a` plus the docs commit, on `premium/full-calculator-expansion`; `main` is still `a4203cd`. No merge, deployment or migration has been authorized. GH-ENG-014 remains unapplied and separately gated (authorizations A and B). Batch 11c must not begin without explicit owner authorization. |
 
-### Batch 11b — Joints and Fabrication (13): proposed plan, AWAITING AUTHORIZATION
+### Batch 11b — Joints and Fabrication (13, done 2026-10-14)
 
-**Nothing in this section is implemented.** It is a plan for the owner to authorize, change or reject.
+Authorized by the owner on 2026-10-14 (all 13, sub-groups B1–B3). The same message approved:
+- keeping Mohr's Circle, Goodman and Soderberg as calculators (F-11A-01);
+- building Joint Separation as a calculator (D-11B-3);
+- the explicit thread-standard selection (D-11B-1);
+- the Machinery's Handbook / FED-STD-H28 stripping method (D-11B-2);
+- the ductility-based minimum bend radius with its limits stated (D-11B-4);
+- logging the Bolt Torque Spec concern as a defect, not fixed here (GH-DEF-034).
 
-**Authoritative list.** Checked against the Batch 11 plan (`claude/premium-expansion-batch-plan.md`) and the Phase 1 reconciliation (rows 52–64). The 13 are listed below.
+**Authoritative list.** The 13 are the Batch 11 plan's names (Phase 1 reconciliation rows 52–64). Bolt Tensile Capacity and Bolt Shear Capacity are two calculators.
 
-The Chapter 10 closeout listed only 12 names because it wrote "Bolt Tensile and Shear Capacity" as one item. In the authoritative plan these are two separate calculators: Bolt Tensile Capacity (row 53) and Bolt Shear Capacity (row 54). So the 13th calculator is Bolt Shear Capacity, and the scope is unchanged. Three plan names are also longer than the shorthand used in the closeout:
-- Thread Stripping Strength
-- Thread Engagement Required
-- Weld Fillet Strength
+| sub-group | id | name | category | governing relationship |
+|---|---|---|---|---|
+| B1 | `bolt_tensile_capacity` | Bolt Tensile Capacity | `UNIVERSAL / MATERIALS & STRUCTURES` | Tensile stress area (UN, ASME B1.1: π/4 (d − 0.9743/n)²; ISO 898-1: π/4 (d − 0.9382 P)²) × proof and minimum tensile strength; allowable = proof ÷ safety factor |
+| B1 | `bolt_shear_capacity` | Bolt Shear Capacity | `UNIVERSAL / MATERIALS & STRUCTURES` | planes × area (shank π d²/4, or tensile stress area with threads in the plane, the Eurocode 3 basis) × shear-to-tensile ratio (0.6 default, editable) × ultimate strength |
+| B1 | `thread_stripping_strength` | Thread Stripping Strength | `UNIVERSAL / MATERIALS & STRUCTURES` | FED-STD-H28/2B shear areas (as in Machinery's Handbook) from thread-table diameters typed by the user: A_s = π n L_e Kn,max [1/(2n) + 0.57735 (Es,min − Kn,max)], A_n = π n L_e Ds,min [1/(2n) + 0.57735 (Ds,min − En,max)]; stripping loads against the bolt's breaking load; the weakest link is named |
+| B1 | `thread_engagement_required` | Thread Engagement Required | `UNIVERSAL / MANUFACTURING` | L_e = A_t ÷ (ratio × A_s/L_e), which with the default ratio 0.5 is the handbook's L_e = 2 A_t ÷ (π Kn,max [1/2 + 0.57735 n (Es,min − Kn,max)]); J = (A_s × TS_ext) ÷ (A_n × TS_int); Q = L_e × J when J > 1 |
+| B1 | `bolt_preload_from_torque` | Bolt Preload from Torque | `UNIVERSAL / MANUFACTURING` | F = T ÷ (K D), the reverse of `bolt_torque_spec` with its nut-factor convention (0.20 dry / 0.15 lubricated, editable); preload stress and percent of proof from the specified thread's own stress area (not `bolt_torque_spec`'s estimate, GH-DEF-034) |
+| B1 | `joint_separation` | Joint Separation | `UNIVERSAL / MANUFACTURING` | Shigley joint constant C = k_b ÷ (k_b + k_m); bolt load F_i + C P, clamp F_i − (1 − C) P, separation load F_i ÷ (1 − C), separation safety factor; after separation the bolt carries P and the clamp is 0, with a note |
+| B2 | `weld_fillet_strength` | Weld Fillet Strength | `UNIVERSAL / MATERIALS & STRUCTURES` | AWS D1.1 / AISC allowable stress: throat 0.707 × leg, 0.30 × filler strength (editable); load per inch and total |
+| B2 | `weld_heat_input` | Weld Heat Input | `UNIVERSAL / MANUFACTURING` | arc energy 60 V I ÷ (1000 S) kJ/in (AWS), × ISO/TR 17671-1 thermal efficiency k (editable; 1.0 = arc energy) |
+| B3 | `drill_point_depth` | Drill Point Depth | `UNIVERSAL / MANUFACTURING` | (d/2) ÷ tan(point angle ÷ 2); 180° gives 0 |
+| B3 | `blind_hole_depth` | Blind Hole Depth | `UNIVERSAL / MANUFACTURING` | full thread + tap-chamfer pitches (pitch from the explicit thread standard) + clearance + drill point |
+| B3 | `bend_k_factor` | Bend K-Factor | `UNIVERSAL / MANUFACTURING` | K = (BA ÷ θ − R) ÷ t from a measured test bend, BA = flat − (A − OSSB) − (B − OSSB), OSSB = tan(θ/2)(R + t); K outside 0–0.5 reported with a warning |
+| B3 | `bend_deduction` | Bend Deduction | `UNIVERSAL / MANUFACTURING` | BD = 2 OSSB − BA, BA = θ (R + K t); flat blank = A + B − BD |
+| B3 | `minimum_bend_radius` | Minimum Bend Radius | `UNIVERSAL / MANUFACTURING` | Datsko–Yang ductility correlation: R/t = 50/Ar − 1 (Ar < 20 %), (100 − Ar)² ÷ (200 Ar − Ar²) (Ar ≥ 20 %); outer-fiber strain 1/(2R/t + 1) |
 
-| # | plan name | proposed id | proposed category | governing relationship (to be confirmed against the cited reference before coding) | related existing calculator (reconciliation) |
-|---|---|---|---|---|---|
-| 1 | Weld Fillet Strength | `weld_fillet_strength` | `UNIVERSAL / MATERIALS & STRUCTURES` | Throat shear: throat = 0.707 × leg; capacity = 0.707 × leg × length × allowable shear, allowable shear = 0.30 × filler tensile strength (AWS D1.1 / AISC basis), with the 0.30 factor an editable input | none |
-| 2 | Bolt Tensile Capacity | `bolt_tensile_capacity` | `UNIVERSAL / MATERIALS & STRUCTURES` | Tensile stress area (UN: π/4 (d − 0.9743/n)²; ISO: π/4 (d − 0.9382 P)²) × proof or ultimate strength | `bolt_stretch`, `bolt_torque_spec` (different outputs) |
-| 3 | Bolt Shear Capacity | `bolt_shear_capacity` | `UNIVERSAL / MATERIALS & STRUCTURES` | Shear planes × area (shank or thread root, chosen by the user) × shear strength (0.6 × ultimate as an editable estimate) | none |
-| 4 | Thread Stripping Strength | `thread_stripping_strength` | `UNIVERSAL / MATERIALS & STRUCTURES` | Stripping force = thread shear area × shear strength of the weaker thread material; the shear-area method is an owner decision (D-11B-2) | `thread_engagement` (percent engagement, not strength) |
-| 5 | Joint Separation | `joint_separation` | `UNIVERSAL / MANUFACTURING` | Joint constant C = k_b ÷ (k_b + k_m); bolt load F_i + C·P; clamp F_i − (1 − C)·P; separation load P₀ = F_i ÷ (1 − C); separation safety factor (Shigley) | none |
-| 6 | Bolt Preload from Torque | `bolt_preload_from_torque` | `UNIVERSAL / MANUFACTURING` | F = T ÷ (K × D), the reverse of `bolt_torque_spec`'s T = K D F; K defaults to the same 0.20 dry / 0.15 lubricated that `bolt_torque_spec` uses, editable; preload as a percent of proof load | `bolt_torque_spec` (forward direction) |
-| 7 | Thread Engagement Required | `thread_engagement_required` | `UNIVERSAL / MANUFACTURING` | Engagement length at which thread stripping strength equals bolt tensile strength, with the internal-to-external material strength ratio (same shear-area method as #4) | `thread_engagement` (geometric percent; the new id avoids that id) |
-| 8 | Drill Point Depth | `drill_point_depth` | `UNIVERSAL / MANUFACTURING` | Point length = (d ÷ 2) ÷ tan(point angle ÷ 2) (0.3 d at 118°) | `countersink_depth`, `drill_decimal` (different outputs) |
-| 9 | Blind Hole Depth | `blind_hole_depth` | `UNIVERSAL / MANUFACTURING` | Drill depth = full-thread depth + tap chamfer / incomplete-thread allowance (in pitches, user input) + clearance + drill point length | `countersink_depth` |
-| 10 | Bend K-Factor | `bend_k_factor` | `UNIVERSAL / MANUFACTURING` | K from a measured bend: K = (BA ÷ θ − R) ÷ t, with BA from the measured flat length and leg lengths | `bend_allowance` (takes K as an input; does not compute it) |
-| 11 | Bend Deduction | `bend_deduction` | `UNIVERSAL / MANUFACTURING` | BD = 2 × OSSB − BA, OSSB = tan(θ ÷ 2) × (R + t), BA = θ (R + K t) | `bend_allowance` |
-| 12 | Minimum Bend Radius | `minimum_bend_radius` | `UNIVERSAL / MANUFACTURING` | Ductility rule R_min ÷ t = 50 ÷ r − 1, r = tensile reduction of area in percent (Kalpakjian); no invented material table (D-11B-4) | `bend_allowance` |
-| 13 | Weld Heat Input | `weld_heat_input` | `UNIVERSAL / MANUFACTURING` | H = η × V × I × 60 ÷ travel speed (AWS / ISO 1011-1), η the process efficiency (editable) | none (`heat_input_per_cycle` is combustion) |
+All 13 are Premium-only (`premium/models.js`, no `free_companion`) and calculator kind. None of the ids existed; `thread_engagement_required` is separate from the Free `thread_engagement` (Thread Engagement %).
 
-None of the proposed ids exists in the engine today, including `thread_engagement_required`, which is distinct from the existing `thread_engagement`.
+**Threads.** Every fastener and the blind-hole calculator have a **Thread Standard** drop-down:
+- **UN inch series:** the major diameter is a length (inches, millimetres in Metric) and the threads per inch are a count (`TPI`, the same number in both systems; already classified in the unit census).
+- **ISO metric:** the major diameter, pitch and any thread-table diameters are typed in millimetres in both systems (native boxes).
+- Threads per inch and pitch are never converted into each other. Internally an ISO thread is carried in inches with n = 25.4 ÷ P, which keeps every equation dimensionally the same.
+- Thread-table diameters (Es,min, Kn,max, Ds,min, En,max) are inputs, with the 1/2-13 UNC 2A/2B (ASME B1.1) and M10 × 1.5 6g/6H (ISO 965) values as defaults. There is no built-in table.
 
-The categories follow Batch 11a:
-- strength checks go under `UNIVERSAL / MATERIALS & STRUCTURES`;
-- shop and fabrication tools go under `UNIVERSAL / MANUFACTURING`.
+**Units.** One unit was added: `kJ/in` → kJ/mm (exactly ÷ 25.4) for heat input. Everything else uses existing units:
+- forces lbf (N)
+- stresses ksi (MPa)
+- line load lb/in (N/mm)
+- lengths in (mm)
+- travel speed in/min (mm/min)
+- V, A and angles unchanged
 
-**Proposed sub-groups, each ending with its focused tests, unit inventory, diff review and its own code-and-tests commit (F-11A-03):**
-- **B1 Fasteners (6):** Bolt Tensile Capacity, Bolt Shear Capacity, Thread Stripping Strength, Thread Engagement Required, Bolt Preload from Torque, Joint Separation.
-- **B2 Welds (2):** Weld Fillet Strength, Weld Heat Input.
-- **B3 Holes and sheet metal (5):** Drill Point Depth, Blind Hole Depth, Bend K-Factor, Bend Deduction, Minimum Bend Radius.
+**Torque.** The Bolt Preload from Torque input is `RETAIN-COMPONENT` (fastener torque, lb-ft / N·m by system), the same category as `bolt_torque_spec`'s Recommended Torque. It is listed with its reason in `performance-census.test.js`.
 
-**Engineering requirements (unchanged from Batch 11a):**
-- **Tests first:** an independent closed-form test file (`structural-11b.test.js`, same harness as `structural-11a`) and new `unit-system` cases, written and seen to fail before the engine code exists. Expected values come from hand calculation or short independent formulas, never from the page.
-- **Each calculator's tests cover:** a closed-form case in both systems, unit labels, and invalid / out-of-domain inputs.
-- **Units:** the existing unit machinery and validation guards. Stresses are ksi (MPa), forces lbf (N), lengths in (mm). Ratings stated as a mass follow GH-IMP-013. Nothing is clamped; regime changes are stated beside the number.
-- **New unit expected:** heat input (`kJ/in` → `kJ/mm`, or J/in → J/mm), to be added to the unit table with an exact factor. It is a unit-table change and needs the `unit-factors` and `unit-census` tables extended.
-- **Torque and power rows:** the torque input of Bolt Preload from Torque needs a `PERF_ROWS` entry. Proposed: `RETAIN-COMPONENT`, matching `bolt_torque_spec`'s fastener torque, which the census already classifies that way. The new entry is also listed in `performance-census.test.js` with its reason. Weld Heat Input is planned with no power row (V × I is not displayed as a power). If a power row is added, it needs its own classification.
-- **Census:** run the unit, mass-force (forces added to `force-unit-rows.json`), declared-metric-units and performance censuses after each sub-group.
-- **Catalogue:** after engine edits, run `node catalog/build-catalog.js`, the catalogue check and `run-tests.sh` (catalogue, register, frontend, schema).
-- **Self-tests:** a small set of engine self-test assertions per calculator (F-11A-02).
-- **Counts:** 711 → 724 calculator-kind tools; 126 → 139 Premium calculators.
-- **Final verification:** one full browser regression after all three sub-groups, then docs, commit and push.
-- **Boundaries:** no schema change and no ENG-014 migration unless separately authorized. All work stays on `premium/full-calculator-expansion`; no merge, no deployment, `main` untouched.
+**Assumptions stated on the pages.**
+- **Fasteners:** bending, prying and fatigue are not included; neither is the plate side (bearing, tear-out, block shear) or slip-critical joints. The stripping areas assume full-form threads, a uniform load share and no nut dilation.
+- **Bolt Preload from Torque:** preload from torque is commonly uncertain by ±25 % or more because of K.
+- **Joint Separation:** the linear joint model assumes no prying, embedding or thermal change.
+- **Weld Fillet Strength:** weld metal only (base metal, the transverse-load increase, eccentricity and fatigue are not included).
+- **Weld Heat Input:** V × I averages do not apply to pulsed or waveform-controlled processes.
+- **Drill point:** the sharp-cone geometry.
+- **Bends:** K must be measured for each material, thickness, radius and tooling combination.
+- **Minimum bend radius:** an estimate only. Reduction of area is not a universal predictor; width, edges, rolling direction, cold work, thickness and method matter. The two published relations disagree at 20 % (noted when Ar is 15–25 %). Specification and supplier minimums and test bends govern.
 
-**Owner decisions needed before or at the start of 11b:**
-- **D-11B-1 (thread input):** how a thread is entered. The unit layer converts by a factor, so threads per inch cannot simply convert to a metric pitch (a reciprocal). Proposed: a thread-standard drop-down, with UN in inches and threads per inch and ISO metric in millimetres and pitch, each typed in its own native unit in both systems.
-- **D-11B-2 (thread stripping):** which shear-area method Thread Stripping Strength and Thread Engagement Required use. Options:
-  - the full FED-STD-H28 / Machinery's Handbook equations, which need the minimum pitch and minor diameters for the thread class, entered from the user's thread table;
-  - the common simplified approximation, which needs fewer inputs and is less exact.
-  - Proposed: the full equations, with the table values as inputs and no built-in tables.
-- **D-11B-3 (Joint Separation):** classed "Analyzer" in the reconciliation, like the three items of F-11A-01. Proposed: build it as a calculator, consistent with F-11A-01.
-- **D-11B-4 (Minimum Bend Radius):** proposed basis is the ductility rule from the material's reduction of area, with no invented per-material table. If the owner wants a material table, it needs published sources.
-
-**Observation made while preparing this plan (an existing Free calculator; recorded here, not fixed, outside 11b scope unless the owner says otherwise):**
-- **`bolt_torque_spec`:** estimates the tensile stress area with 16 threads per inch for every diameter above 0.3 in. For a 1/2-13 UNC bolt this gives about 0.151 sq in instead of the tabulated 0.1419 sq in (about 7 % high), so its clamp load and torque run high for coarse threads above 3/8 in. This is a candidate defect to triage and register before Bolt Preload from Torque reuses any of it. The new calculators would take the thread pitch as an input and not reuse this estimate.
+**Verification:** Tests first, per sub-group: `premium/tests/structural-11b.test.js` (new) and 13 new `unit-system` cases were run against the engine before each sub-group existed and failed (B1 145 of 146 checks, B2 33 of 34, B3 98 of 99), then passed. `structural-11b`: 30 closed-form cases whose expected values were derived by hand or by short independent formulas, each run in Imperial and again typed in Metric (ISO threads typed in mm in both), with unit labels checked; 246 invalid-input cases; 730 checks, 0 failures. Hand-derived literals the page reproduces include 1/2-13 UNC A_t 0.1419 sq in (ASME B1.1 table), 1/2-20 UNF 0.1599, M10 × 1.5 proof load 33 634 N (ISO 898-1 tabulates 33 700 from a rounded 58.0 mm²), FED-STD-H28 shear areas 0.389472 / 0.561743 sq in, engagement Le 0.36434 in and J 1.38665, preload 6 000 lbf, joint constant 0.2 and separation load 7 500 lbf, E70 fillet 0.928 kip/in per 1/16 in, arc energy 30 kJ/in, 118° point 0.3004 d, BD 0.1082 in, Datsko–Yang R/t 0.961 and 4. `unit-system` (SI formulas through re-entry and repeated toggles): B1 717, B2 147, B3 468 checks, 0 failures; whole suite 4,754. Engine self-test: 18 new assertions, 697 / 697. Census: mass-force 280 pound-unit rows (16 new force rows), 809 checks; unit-census 724 calculators, 2,856 checks; unit-factors 46 units, 562 checks; declared-metric-units 0 unprotected; performance-census 0 failed. One census finding during B1, fixed before its commit: a Joint Separation stiffness default of 8,000,000 lb/in shows as a 7-digit number in N/mm that the input box rounds to 6 significant digits; the defaults were changed to 1,250,000 / 5,000,000 lb/in (C = 0.2). Full browser regression once after all three sub-groups (31 suites, including both structural suites): 0 failures (smoke 19/19 with 724 calculator-kind tools, toggle-sweep 724 swept, label-consistency 724 consistent, nav-return 720 consistent, negative-zero 724 + 724, range-warnings 2,469). `run-tests.sh`: catalog OK (118 expansion), register OK, frontend 55/55, schema 26/26. Commits: `bb40ff1` (GH-DEF-034 entry only), `ff7d826` (B1), `06343d4` (B2), `2d05b9a` (B3).
 
 ## Reliability pass (2026-10-12, between Batch 10 and Batch 11)
 
