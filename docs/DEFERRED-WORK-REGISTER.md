@@ -90,7 +90,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-ENG-012](#gh-eng-012--max-safe-rpm-heuristic-assumptions-task-4-audit-item) | Max-safe-RPM heuristic assumptions (Task 4 audit item) | OPEN | Unknown | P3 |
 | [GH-ENG-013](#gh-eng-013--trailer-sway-and-brake-controller-heuristic-labelling-task-4-audit-item) | Trailer-sway and brake-controller heuristic labelling (Task 4 audit item) | OPEN | Unknown | P3 |
 | [GH-ENG-014](#gh-eng-014--two-corrected-formulas-dewpoint-distanceconverter-have-new-fingerprints-the-production-formulaversions-table-has-no-rows-for-them) | Two corrected formulas (`dew_point`, `distance_converter`) have new fingerprints: the production `formula_versions` table has no rows for them | OPEN | Medium | P2 |
-| [GH-FUT-001](#gh-fut-001--batch-11-structural--mechanical--machining--nvh-37-calculators) | Batch 11: Structural / Mechanical / Machining + NVH (37 calculators) | AWAITING AUTHORIZATION | n/a | P1 once authorized |
+| [GH-FUT-001](#gh-fut-001--batch-11-structural--mechanical--machining--nvh-37-calculators) | Batch 11: Structural / Mechanical / Machining + NVH (37 calculators) | IN PROGRESS | n/a | P1 once authorized |
 | [GH-FUT-002](#gh-fut-002--batch-13-two-stroke-4-calculators) | Batch 13: Two-Stroke (4 calculators) | APPROVED | n/a | P2 |
 | [GH-FUT-003](#gh-fut-003--batch-14-ev--hybrid-6-calculators) | Batch 14: EV / Hybrid (6 calculators) | APPROVED | n/a | P2 |
 | [GH-FUT-004](#gh-fut-004--batch-16-workbenches-6) | Batch 16: Workbenches (6) | APPROVED | n/a | P3 |
@@ -1557,22 +1557,23 @@ This is the **single authoritative register** of known defects, deferred improve
 ## D. Future development
 
 ### GH-FUT-001 — Batch 11: Structural / Mechanical / Machining + NVH (37 calculators)
-- **Status:** AWAITING AUTHORIZATION
+- **Status:** IN PROGRESS
 - **Severity:** n/a
 - **Priority:** P1 once authorized
 - **Description:** Chassis/Frame Torsional Stiffness, Press-Fit/Interference Fit, Recovery Strap/Rope Energy, Key/Keyway Torque Capacity, column buckling, stress analyses, fatigue, welds, bolts, threads, drilling, bending, bearing/gear/NVH frequencies and machining (full list in the project plan).
 - **Evidence:** Project plan `claude/premium-expansion-batch-plan.md`.
-- **Affected:** 37 new Premium calculators (none exist yet).
+- **Affected:** 37 new Premium calculators; the 15 of 11a exist (`docs/PREMIUM-CATALOG.md`, "Batch 11a"), 22 do not.
 - **Impact:** Largest remaining batch.
-- **Decision:** **Not started.** Requires explicit authorization after the reliability-pass report.
+- **Decision:** Split into 11a (Structure, stress and fatigue, 15), 11b (Joints and fabrication, 13) and 11c (NVH and machining, 9). **11a authorized and done 2026-10-14; 11b and 11c AWAITING AUTHORIZATION, not started.**
 - **Dependencies:** The shared unit-handling fixes of this pass should land first so the new batch is built on a reliable helper. **Landed (2026-10-13):** GH-DEF-008 (clean self-test baseline), GH-DEF-019, GH-DEF-020, GH-DEF-022 and GH-IMP-001 are VERIFIED CLOSED. Not blocking the batch but to be decided with it: GH-IMP-014 (how the new torque, inertia and stress units are registered; recommended order in `docs/IMP-014-UNREGISTERED-UNITS.md`), GH-IMP-013 (kg versus N for weights), GH-IMP-002 (inertia units), GH-ENG-014 (before any deployment).
 - **Revisit:** On authorization.
-- **Commits:** None.
-- **Tests:** None.
+- **Commits:** 11a: `f9cbdae` (code and tests); docs in the following commit.
+- **Tests:** 11a: `premium/tests/structural-11a.test.js` (new) and 15 new cases in `premium/tests/unit-system.test.js`; unit tables in `unit-factors`, `unit-census`, `mass-force` (inventory) and `performance-census` (ADDED rows).
 - **Docs:** Project plan; `docs/PREMIUM-CATALOG.md` "Remaining".
 - **Verification:** The batch workflow of the project plan (implement, test, regression, catalog validation, commit, push, checkpoint).
 - **History:** 2026-10-12 — entry created; hard stop recorded.
   2026-10-13 — closeout phase: dependency note updated; status unchanged. **Batch 11 is still AWAITING AUTHORIZATION; none of its 37 calculators was started.**
+  2026-10-14 — Batch 11a (15 calculators) implemented test-first, verified and pushed; status IN PROGRESS. 11b and 11c not started (need their own authorization).
 
 ### GH-FUT-002 — Batch 13: Two-Stroke (4 calculators)
 - **Status:** APPROVED
