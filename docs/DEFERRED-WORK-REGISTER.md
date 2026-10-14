@@ -93,7 +93,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-ENG-013](#gh-eng-013--trailer-sway-and-brake-controller-heuristic-labelling-task-4-audit-item) | Trailer-sway and brake-controller heuristic labelling (Task 4 audit item) | OPEN | Unknown | P3 |
 | [GH-ENG-014](#gh-eng-014--two-corrected-formulas-dewpoint-distanceconverter-have-new-fingerprints-the-production-formulaversions-table-has-no-rows-for-them) | Two corrected formulas (`dew_point`, `distance_converter`) have new fingerprints: the production `formula_versions` table has no rows for them | OPEN | Medium | P2 |
 | [GH-FUT-001](#gh-fut-001--batch-11-structural--mechanical--machining--nvh-37-calculators) | Batch 11: Structural / Mechanical / Machining + NVH (37 calculators) | VERIFIED CLOSED | n/a | P1 once authorized |
-| [GH-FUT-002](#gh-fut-002--batch-13-two-stroke-4-calculators) | Batch 13: Two-Stroke (4 calculators) | APPROVED | n/a | P2 |
+| [GH-FUT-002](#gh-fut-002--batch-13-two-stroke-4-calculators) | Batch 13: Two-Stroke (4 calculators) | VERIFIED CLOSED | n/a | P2 |
 | [GH-FUT-003](#gh-fut-003--batch-14-ev--hybrid-6-calculators) | Batch 14: EV / Hybrid (6 calculators) | APPROVED | n/a | P2 |
 | [GH-FUT-004](#gh-fut-004--batch-16-workbenches-6) | Batch 16: Workbenches (6) | APPROVED | n/a | P3 |
 | [GH-FUT-005](#gh-fut-005--batches-12-diesel-and-15-performance--simulation-have-no-approved-items) | Batches 12 (Diesel) and 15 (Performance / Simulation) have no approved items | DEFERRED | n/a | Deferred |
@@ -794,9 +794,10 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Docs:** This entry; `docs/PREMIUM-CATALOG.md` ("Batch 11c", verification).
 - **Verification:** A fix must make the race impossible (or the test immune to it) and show `nav-return` passing repeatedly under load.
 - **History:** 2026-10-14 — observed in the Batch 11c full regression; re-run passed; recorded as OPEN.
+  2026-10-14 — owner decision: stays OPEN (Low) pending a separate investigation and reproduction; not dismissed because the re-run passed.
+  2026-10-14 — seen again in the full regression after Batch 13 (engine of `3dfa4e3`), on other older calculators each run and never on a Batch 13 one: `clutch_hydraulic_ratio`, `newton_to_kgf`, `timing_mark` (3 failures); a whole-suite re-run failed `brake_controller_gain`, `breakover_angle`, `milling_heads`, `wastegate_flow` (4); each set passed alone, and a second whole-suite re-run passed (733 consistent, 0 failures). Same symptom (one of "back" / "live" empty). Not investigated or fixed here (Batch 13 scope); still OPEN. This history line was also moved back under the entry: it had been left below the "B. Deferred improvements" heading.
 
 ## B. Deferred improvements
-  2026-10-14 — owner decision: stays OPEN (Low) pending a separate investigation and reproduction; not dismissed because the re-run passed.
 
 ### GH-IMP-001 — Energy in ft-lb is labelled "N·m" rather than "J" in Metric
 - **Status:** VERIFIED CLOSED
@@ -1637,19 +1638,19 @@ This is the **single authoritative register** of known defects, deferred improve
   2026-10-14 — Batch 11c authorized and done (9 calculators, test-first, one commit per sub-group). With 11a and 11b, all 37 Batch 11 calculators are built; entry closed on the evidence of the full browser regression after 11c (see `docs/PREMIUM-CATALOG.md`, "Batch 11c"). GH-DEF-034 stays OPEN and untouched.
 
 ### GH-FUT-002 — Batch 13: Two-Stroke (4 calculators)
-- **Status:** APPROVED
+- **Status:** VERIFIED CLOSED
 - **Severity:** n/a
 - **Priority:** P2
 - **Description:** Two-Stroke Scavenging/Charging Efficiency, Tuned-Pipe Length, Port Timing from Measured Geometry, Crankcase Compression Ratio.
 - **Evidence:** Project plan.
-- **Affected:** 4 new Premium calculators.
+- **Affected:** 4 new Premium calculators; all 4 exist: `port_timing_from_geometry`, `crankcase_compression_ratio`, `tuned_pipe_length`, `scavenging_charging_efficiency` (`docs/PREMIUM-CATALOG.md`, "Batch 13").
 - **Impact:** Catalog expansion.
-- **Decision:** Approved set; sequenced after Batch 11.
+- **Decision:** Approved set; sequenced after Batch 11. **Authorized and done 2026-10-14** in two sub-groups (D1 geometry, D2 gas exchange). The two reconciliation "Analyzer" items are calculators (owner direction). Formula decisions: tuned length L_t = a t_ep ÷ 2 with a = √(γ R T) from an explicit exhaust-gas temperature (the fixed-constant shortcut shown only for comparison with E07); scavenging DR, TE (entered), CE = TE × DR, and the perfect-displacement and perfect-mixing ideal curves; crankcase compression ratio (V_cc + V_s) ÷ V_cc with V_cc measured at BDC; port timing by exact slider-crank inversion. Full record in the Batch 13 section of `docs/PREMIUM-CATALOG.md`.
 - **Dependencies:** E05–E07 (Engineering Lab: port time-area, blowdown, expansion-chamber reverse analysis) must not be duplicated; Tuned-Pipe Length is the forward sibling of E07 (reconciliation #133). Port Timing reuses the crank-slider geometry already used by the Batch 1 piston calculators. No dependency on another batch.
-- **Revisit:** Readiness review done 2026-10-14 (see History); recommended as the next batch, awaiting authorization.
-- **Commits:** None.
-- **Tests:** None.
-- **Docs:** Project plan.
+- **Revisit:** None (closed).
+- **Commits:** `82638eb` (D1), `3dfa4e3` (D2), docs in the following commit.
+- **Tests:** `premium/tests/structural-13.test.js` (new, 251 checks), 4 new cases in `premium/tests/unit-system.test.js` (new `cubicin`, `massflow` input and `cubicin`, `density` output kinds), 5 engine self-test assertions; census suites at 737 calculators; full browser regression after D2.
+- **Docs:** Project plan; `docs/PREMIUM-CATALOG.md`, "Batch 13" (formula decision record, references, results).
 - **Verification:** Batch workflow.
 - **History:** 2026-10-12 — entry created.
   2026-10-14 — readiness review after Batch 11 (no implementation):
@@ -1663,6 +1664,7 @@ This is the **single authoritative register** of known defects, deferred improve
     - Classification of the two "Analyzer" items: proposed as calculators, as in Batch 11.
   - **Units:** volumes cc ↔ ci, lengths, temperature, RPM and degrees are all registered or neutral. No new power or torque rows are expected; mass-force only if a mass flow is added.
   - **Risk:** the lowest of the three remaining batches.
+  2026-10-14 — Batch 13 authorized by the owner and done: formula decisions recorded, test-first per sub-group (new tests failed before the code), D1 `82638eb` and D2 `3dfa4e3` committed separately, full browser regression after D2: 32 of 33 suites clean; `nav-return` hit the GH-DEF-035 race on older calculators (none from Batch 13), passed alone and on a second whole-suite re-run. Closed on that evidence, with GH-DEF-035 still OPEN. GH-DEF-034 and GH-DEF-035 stay OPEN and untouched; Batch 14 and 16 not started.
 
 ### GH-FUT-003 — Batch 14: EV / Hybrid (6 calculators)
 - **Status:** APPROVED

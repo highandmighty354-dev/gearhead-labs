@@ -20,17 +20,19 @@ The early $1.99 Garage / $3.99 additional-profile concept is retired and impleme
 |---|---|
 | Free public calculators (F1.12.4; F1.12.3 is the frozen baseline) | **585** |
 | Calculators migrated from Free to Premium (owner-approved audit, 2026-10-06) | **21** |
-| Premium Calculator Expansion calculators (net-new, no Free counterpart; owner-approved brief, 2026-10-07-) | **90** (of 143 approved; see below) |
+| Premium Calculator Expansion calculators (net-new, no Free counterpart; owner-approved brief, 2026-10-07-) | **131** (of 143 approved; see below) |
 | Premium-only tools: the Engineering Lab, E01–E14 (10 analyzers, 4 workbenches) | **14** |
-| Premium-only tools total (21 migrated + 90 expansion calculators + 14 Engineering Lab) | **125** |
-| Tools available in Premium (Free + Premium-only) | **710** |
-| Premium expansion tools validated from approved work (E01–E14 + expansion calculators) | **104** |
+| Premium-only tools total (21 migrated + 131 expansion calculators + 14 Engineering Lab) | **166** |
+| Tools available in Premium (Free + Premium-only) | **751** |
+| Premium expansion tools validated from approved work (E01–E14 + expansion calculators) | **145** |
 | Approved future Premium tools (not yet built) | **0** |
 | Aliases (alternate ids, never counted) | 6 |
 
 Free calculators by lab: universal 315, gasoline 162, diesel 42, EV 39, towing 27 (585 total; see "Calculators migrated from Free to Premium" below for the 21 that moved out of these lab counts on 2026-10-06; the Premium Calculator Expansion's calculators were never Free and so never counted in these lab totals).
 
-**710 is the current Premium catalog, not the final one.** The Premium catalog is still incomplete, implemented batch by batch. The historical target of about 752 tools (612 Free plus about 140 Premium expansion tools) is still not used here, for two reasons:
+*Table updated 2026-10-14 after Batch 13 (it had last been updated after Batch 10, at 90 expansion calculators; the narrative paragraphs below still describe that point, and the batch sections hold the detail). The figures match `catalog/build-catalog.js` and `run-tests.sh`'s catalog check: 131 expansion, 166 Premium-only, 751 in Premium, 145 validated.*
+
+**751 is the current Premium catalog, not the final one.** The Premium catalog is still incomplete, implemented batch by batch. The historical target of about 752 tools (612 Free plus about 140 Premium expansion tools) is still not used here, for two reasons:
 - the authoritative baseline for calculator-kind tools before the expansion began was 606 (585 Free + 21 migrated to Premium), not 612;
 - the Premium Calculator Expansion is implementing a specific, owner-approved 143-item BUILD list (from the Phase 1 reconciliation and exception resolution of the 147-candidate future roadmap below), not an open-ended target — 90 are built so far (Batch 1 "Engine/Bottom End" + Batch 2 "Valvetrain" + Batch 3 "Airflow/Cylinder Head" + Batch 4 "Forced Induction" + Batch 5 "Fuel/Ignition + Electrical Fundamentals" + Batch 6 "Cooling/Thermal + Hydraulics" + Batch 7 "Drivetrain/Transmission" + Batch 8 "Chassis/Suspension" + Batch 9 "Brakes/Tires/Vehicle Dynamics" + Batch 10 "Aerodynamics"), 53 remain across 4 further batches.
 
@@ -87,7 +89,8 @@ Saving is not being extended to new tools while the catalog is incomplete. The e
 - **Decided (2026-10-14, owner approval, F-11A-01):** Mohr's Circle, Fatigue Goodman Analysis and Fatigue Soderberg Analysis stay calculators, as the Batch 11 plan counts them and as Batch 11a built them (the Phase 1 reconciliation had classed them "Analyzer"); Joint Separation (Batch 11b) is built as a calculator on the same basis. Any Analyzer-oriented enhancement is separate scope.
 - **Decided (2026-10-14, owner approval):** Torsional Resonance Speed (Batch 11c) stays a calculator, keeping its stated limits: a simplified, undamped, single-mode lumped model, never presented as a full torsional-dynamics simulation. This closes the classification question; all four reconciliation "Analyzer" items of Batch 11 and Joint Separation are calculators.
 - **Decided (2026-10-14, owner approval), example-default policy:** Cutting Force (specific cutting force k_c) and Tool Life (Taylor n and C) keep their example material constants as defaults. They are labelled as examples on the page and in the box labels, the user can replace them, and nothing states or implies that they are validated for the user's material or cutting conditions. The same applies to any future calculator whose empirical constant needs a starting value.
-- **Open: next batch.** Batch 11 is complete (37 of 37). 16 approved items remain: Batch 13 Two-Stroke (4), Batch 14 EV / Hybrid (6), Batch 16 Workbenches (6). The readiness review of 2026-10-14 is in GH-FUT-002 to GH-FUT-004 of the register. Recommended next: Batch 13, after the owner decisions listed in GH-FUT-002. No batch starts without explicit authorization.
+- **Decided (2026-10-14, owner authorization for Batch 13):** Scavenging / Charging Efficiency and Port Timing from Measured Geometry (classed "Analyzer" in the reconciliation) are built as calculators, with their limits stated on the page. The Batch 13 formula decisions (tuned-pipe model with an explicit exhaust-gas temperature, scavenging definitions and the two ideal reference curves, crankcase compression ratio convention) are recorded in the Batch 13 section.
+- **Open: next batch.** Batch 11 (37) and Batch 13 (4) are complete. 12 approved items remain: Batch 14 EV / Hybrid (6) and Batch 16 Workbenches (6), both unauthorized (readiness review in GH-FUT-003 and GH-FUT-004 of the register). No batch starts without explicit authorization.
 - **Open: E01–E14 QA counting.** They are live in the Premium Engineering Lab, but ENGINEERING_EXPANSION_CATALOG_V1.md says they are not counted as public calculators until QA sign-off.
 
 ### Calculators excluded from saving (119)
@@ -250,7 +253,7 @@ Note on `turbo_sizing`: its promotion copy explicitly distinguishes it from the 
 
 Access is gated client-side only (same approach as the Engineering Lab, `premium/engineering-bridge.js`): `premium-calculator-gating.js` wraps each of these 21 ids' render function and nav entry, checking `GHP.services.entitlements.isPremium()` fresh on every render. It grants no access and talks to no database — these calculators are entirely client-side math, same as every Free calculator, so there is nothing for Supabase RLS to enforce here. What Supabase enforces is Premium status itself (`entitlement_grants`, `pf_has_feature`; see `PREMIUM_ARCHITECTURE.md`), which this gate reads but never decides.
 
-## Premium Calculator Expansion (127 of 143 approved, batch by batch)
+## Premium Calculator Expansion (131 of 143 approved, batch by batch)
 
 Decided 2026-10-07, from a Phase 1 reconciliation and exception-resolution pass that re-examined the 147-candidate future roadmap (left unapproved by the original Premium Migration Audit, above) against the live code. **143 candidates** were approved for implementation as net-new Premium-only calculators; 1 was held for a follow-up merge decision and 3 were rejected (duplicates or out of scope — see `claude/premium-expansion-phase1-exceptions-resolved.md` and `claude/premium-expansion-batch-plan.md` in the project). Implementation proceeds in 16 named engineering-family batches on the `premium/full-calculator-expansion` branch; each batch is implemented, QA'd (unit/formula tests, catalog validation, browser smoke tests, Premium gating tests, metric/imperial tests, NaN/Infinity/undefined scan) and committed before the next begins. `main` is untouched until the expansion is reviewed and merged.
 
@@ -508,7 +511,7 @@ Batch 11a itself is complete (code and tests `f9cbdae`, docs `f6f6a89`). These a
 | F-11A-01 | Calculator classification of Mohr's Circle, Fatigue Goodman Analysis and Fatigue Soderberg Analysis (classed "Analyzer" in the Phase 1 reconciliation, built as calculators) | **CLOSED** (owner-approved 2026-10-14) | Kept as calculators, consistent with the Batch 11 plan. An Analyzer-oriented enhancement (for example an interactive Goodman diagram) would be separate, separately authorized scope. |
 | F-11A-02 | No engine self-test assertions (`GH_SELFTEST_SUITE`) were added for the 15 Batch 11a calculators (Batch 10 added 46 for its 9) | **DEFERRED** (future QA improvement) | Batch 11a is not reopened for this: its independent suites (`structural-11a` 793 checks, `unit-system` 15 cases) and the full 30-suite browser regression passed. Batch 11b did add self-test assertions for all 13 of its calculators (18 assertions); the 11a ones remain to be added with a later authorized engine change. |
 | F-11A-03 | Commit granularity: Groups A and B of Batch 11a share one code commit (`f9cbdae`, which also holds Group C) | **DEFERRED** (traceability / process improvement; history not rewritten) | Applied from Batch 11b on: one code-and-tests commit per sub-group (`ff7d826` B1, `06343d4` B2, `2d05b9a` B3), the defect entry in its own commit (`bb40ff1`), then one docs commit. |
-| F-11A-04 | Release controls | **AWAITING AUTHORIZATION** | Batch 11a is complete at `f6f6a89`, Batch 11b at `2d05b9a` (docs `d2e82c0`) and Batch 11c (authorized 2026-10-14) at `605196f` plus its docs commit, on `premium/full-calculator-expansion`; `main` is still `a4203cd`. No merge, deployment or migration has been authorized. GH-ENG-014 remains unapplied and separately gated (authorizations A and B). No further batch may begin without explicit owner authorization. |
+| F-11A-04 | Release controls | **AWAITING AUTHORIZATION** | Batch 11a is complete at `f6f6a89`, Batch 11b at `2d05b9a` (docs `d2e82c0`), Batch 11c (authorized 2026-10-14) at `605196f` (docs `f83411b`) and Batch 13 (authorized 2026-10-14) at `3dfa4e3` plus its docs commit, on `premium/full-calculator-expansion`; `main` is still `a4203cd`. No merge, deployment or migration has been authorized. GH-ENG-014 remains unapplied and separately gated (authorizations A and B). No further batch may begin without explicit owner authorization. |
 
 ### Batch 11b — Joints and Fabrication (13, done 2026-10-14)
 
@@ -597,6 +600,125 @@ The reconciliation also noted that the Free `natural_frequency` calculator might
 **Power.** The two cutting-power rows are `RETAIN-ACCESSORY`: machine-tool shaft power, HP / kW by system, the same category as `pump_power_requirement`. They are listed with reasons in `performance-census.test.js`. There are no new torque rows.
 
 **Verification:** Tests first, per sub-group: `premium/tests/structural-11c.test.js` (new) and 9 new `unit-system` cases were run before each sub-group's engine code existed and failed (C1 55 of 56 checks, C2 32 of 33, C3 73 of 74), then passed. `structural-11c`: 19 closed-form cases derived by hand or by short independent formulas (for example BPFO 106.875 Hz, BPFI 163.125 Hz, BSF 68.875 Hz and FTF 11.875 Hz exactly; GMF 1,150 Hz and hunting tooth 1.21951 Hz; two-mass torsional frequency 216.09 Hz, cross-checked in slug-ft² units; mount bounce 12.509 Hz from √(g ÷ δ); transmissibility 1/3 at r = 2 undamped and exactly 1 at r = √2; tool tip deflection 0.0028973 in; F_c 290 lbf and 4.394 HP; Taylor life 16 min; threading 1,146 RPM and 88.15 in/min), each run in Imperial and again in Metric with unit labels checked; 141 invalid-input cases; 429 checks, 0 failures. `unit-system` (SI formulas, re-entry and repeated toggles): C1 367, C2 160, C3 366 checks, 0 failures; whole suite 5,647. One harness interaction fixed in the test, not the engine: the harness re-types the last box at 0.9 ×, which made a gear tooth count fractional (correctly rejected by the calculator), so the gear-mesh case lists the speed box last. Engine self-test: 14 new assertions, 711 / 711. Census: unit-census 733 calculators, 2,919 checks; unit-factors 47 units, 574 checks; mass-force 283 pound-unit rows, 825 checks (2 force rows and 1 mass row added); declared-metric-units 0 unprotected; performance-census 0 failed (2 RETAIN-ACCESSORY rows added). Full browser regression once after all three sub-groups (32 suites, including all three structural suites): 31 suites with 0 failures (self-test 711/711, smoke 19/19 with 733 calculator-kind tools, unit-system 5,647, toggle-sweep 733 swept, label-consistency 733 consistent, negative-zero 733 + 733, range-warnings 2,469, structural-11a 793, structural-11b 730, structural-11c 429); `nav-return` reported 3 failures on three older Free calculators (Normal Stress, Tow Trailer Capacity, Roll Stiffness Distribution: the result panel was empty right after returning). Re-run on the same engine, those three passed alone and the whole suite passed (733 checked, 729 consistent, 0 failures). The cause is a timing race between the dashboard's deferred home-page swap and the test's next navigation on a loaded machine, not a Batch 11c change; it is recorded as GH-DEF-035 (OPEN, not fixed). `run-tests.sh`: catalog OK (127 expansion), register OK, frontend 55/55, schema 26/26. Commits: `ff2101b` (C1), `44df31a` (C2), `605196f` (C3).
+
+### Batch 13 — Two-Stroke (4, done 2026-10-14)
+
+Authorized by the owner on 2026-10-14. These are the four Batch 13 items of the batch plan (Phase 1 reconciliation rows 132–135). The plan names them but gives no ids, so they follow the snake-case convention of earlier batches; none existed before. No new category was added (it would change the navigation): the two geometry calculators sit with the Batch 1 piston calculators in `UNIVERSAL / ENGINE MECHANICAL DESIGN`, and the two gas-exchange calculators in `GASOLINE / ENGINE AIRFLOW & VALVETRAIN`.
+
+The reconciliation classed Scavenging / Charging Efficiency and Port Timing from Measured Geometry as "Analyzer". As the owner directed, both are built as calculators (the Batch 11 approach), and each page says what it does not establish.
+
+**Relationship to the Engineering Lab two-stroke tools (E05–E07), checked in `engineering-expansion-v1.js`.**
+- **E05 (Port Time-Area Analyzer)** takes a port area, an open-to-close angle, RPM and displacement and gives the port time, time-area and specific time-area. Port Timing does not repeat that; it supplies the open-to-close angle that E05 takes as an input, from measured heights.
+- **E06 (2-Stroke Blowdown Analyzer)** takes the blowdown angle as an input. Port Timing's "Exhaust Lead" row is that angle.
+- **E07 (Expansion-Chamber Reverse Analyzer)** checks an existing chamber: it compares a measured path with c × 12 × (exhaust duration ÷ (6 × RPM)) inches, using a fixed wave speed of 1,700 ft/sec. Tuned-Pipe Length is its forward sibling (reconciliation #133). It sizes a new chamber from an explicit exhaust-gas temperature, shows the round-trip path that E07 compares, and shows the length at E07's fixed 1,700 ft/sec for comparison only.
+- Neither new gas-exchange calculator computes a time-area or a blowdown figure, so nothing in E05–E07 is duplicated.
+
+| sub-group | id | name | category | model |
+|---|---|---|---|---|
+| D1 | `port_timing_from_geometry` | Port Timing from Measured Geometry | `UNIVERSAL / ENGINE MECHANICAL DESIGN` | Crank-slider travel from TDC x(θ) = r(1 − cos θ) + l − √(l² − r² sin² θ), inverted exactly: cos θ = (A² − l² + r²) ÷ (2 A r), A = r + l − x, with x = (deck-to-port-edge) − (deck clearance). Exhaust and transfer open θ ATDC, duration 2(180° − θ), exhaust lead = half the duration difference |
+| D1 | `crankcase_compression_ratio` | Crankcase Compression Ratio | `UNIVERSAL / ENGINE MECHANICAL DESIGN` | CCR = (V_cc + V_s) ÷ V_cc, V_cc = measured crankcase volume at BDC, V_s = π/4 × bore² × stroke |
+| D2 | `tuned_pipe_length` | Tuned-Pipe Length | `GASOLINE / ENGINE AIRFLOW & VALVETRAIN` | L_t = a × t_ep ÷ 2, a = √(γ R T_exhaust), t_ep = ED ÷ (6 × RPM) |
+| D2 | `scavenging_charging_efficiency` | Scavenging / Charging Efficiency | `GASOLINE / ENGINE AIRFLOW & VALVETRAIN` | DR = (ṁ ÷ RPM) ÷ (ρ_amb V_s), ρ_amb = P ÷ (R T); CE = TE × DR with TE entered; ideal SE: perfect displacement min(DR, 1), perfect mixing 1 − e^(−DR) |
+
+#### Formula decision record
+
+**1. Port Timing from Measured Geometry.**
+- **Model:** the slider-crank relation already used by the Batch 1 piston kinematics calculators (crank radius r = stroke ÷ 2, centre-to-centre rod length l, piston travel measured from TDC). A port's top edge is uncovered when the crown has travelled x = (deck to port edge) − (deck clearance at TDC). The forward equation is inverted in closed form: with A = r + l − x (the pin-to-crank-centre distance), the law of cosines gives cos θ = (A² − l² + r²) ÷ (2 A r). The port closes at the same angle before TDC, so its duration is 2(180° − θ).
+- **Independent verification:** the tests find θ by bisection on the forward equation, not by the closed form. For a port edge at exactly half stroke, A = l and cos θ = r ÷ 2l, an exact special case (stroke 2 in, rod 4 in: acos(1/8) = 82.8192° ATDC, 194.3616° duration).
+- **Units and inputs:** lengths in in ↔ mm; angles in degrees in both systems. The deck clearance may be negative (crown proud of the deck).
+- **Expected values:**
+  - 54.5 mm stroke, 110 mm rod, exhaust edge 26 mm, flush crown: opens 80.3235° ATDC, duration 199.3531°; substituting back gives x = 26.000 mm.
+  - Page defaults (2.125 in stroke, 4.33 in rod, 0.020 in clearance, exhaust 1.050 in, transfer 1.400 in): exhaust 81.24° / 197.51°, transfer 100.27° / 159.46°, lead 19.03°.
+- **Invalid inputs:**
+  - stroke outside 0.2–10 in;
+  - rod not longer than half the stroke (or above 40 in);
+  - clearance beyond ±1 in;
+  - an edge above the crown at TDC or below it at BDC;
+  - a transfer edge at or above the exhaust edge.
+- **Limits stated on the page:** it assumes a flat, square crown edge, no pin offset and no crank or bore distortion, and uses the port edge as cut, measured parallel to the bore. It is geometry only, with no prediction of flow or power.
+
+**2. Crankcase Compression Ratio.**
+- **Model:** the primary compression ratio as defined for crankcase-scavenged engines (Blair, *Design and Simulation of Two-Stroke Engines*, SAE 1996): the largest crankcase volume (piston at TDC, V_cc + V_s) divided by the smallest (piston at BDC, V_cc).
+- **Not the cylinder ratio:** it is not the cylinder (combustion-chamber) compression ratio. That ratio uses the volume above the piston, and the page says so.
+- **Convention:** V_cc is a measured input (oil fill from a burette or CAD), including the transfer passages up to the cylinder. Because published practice differs on whether the passages count, the page asks the user to state the convention used.
+- **Expected values:**
+  - Bore 2 in × stroke 2 in: V_s = 2π = 6.28319 ci, and a crankcase of 4 V_s gives exactly 1.25.
+  - 54 × 54.5 mm (124.817 cc swept) with a 400 cc crankcase gives 1.31204.
+- **Invalid inputs:** bore outside 0.5–8 in, stroke outside 0.2–10 in, or a volume of 0 or less (up to 2,000 ci).
+
+**3. Tuned-Pipe Length.**
+- **Models compared:**
+  - **RPM-only approximation:** L_t = ED × 42,545 ÷ RPM mm, with a fixed sound speed. This is the "basic" form in the Jennings-derived tuned-pipe write-ups, and E07 uses the same kind of constant (1,700 ft/sec).
+  - **Temperature-corrected form (selected):** L_t = a × t_ep ÷ 2 = 83.3 × a × ED ÷ RPM mm, with a = √(γ R T) from the exhaust-gas temperature. This is the form the same write-ups and the Blair-style procedures use.
+- **Why the temperature-corrected form:** the owner required the temperature as an explicit input, and the fixed constant implies one particular gas temperature (about 375 °C for 42,545) without saying so.
+- **Wave model:** the pressure wave leaves the port when it opens, reflects and must return while the port is still open, so the one-way effective length is half the path a wave covers in the exhaust-open period.
+- **Constants:**
+  - R = 287.058 J/kg·K, the engine's existing dry-air constant.
+  - γ is an input, defaulting to 1.4 (the value in the published worked examples; hot exhaust is about 1.33–1.36, which the page notes).
+- **Reference point:** published procedures disagree on where the effective reflection point is (the middle or end of the diffuser, or the start of the baffle cone). The page measures from the port and tells the user to keep to the reference point of the layout procedure they follow.
+- **Expected values:**
+  - Published example (ED 190°, 10,000 RPM, 550 °C): the source gives 910 mm with R = 287, and 808 mm by the fixed-constant form. With γ 1.4 and R 287.058: a = 575.16 m/s (1,887.0 ft/sec), L_t = 910.67 mm (35.853 in).
+  - The E07-constant row gives exactly 32.30 in for the same case.
+  - Twice the RPM gives half the length; four times the absolute gas temperature gives twice the length.
+- **Invalid inputs:** ED outside 100–260°, EGT outside 200–2,500 °F, γ outside 1.1–1.67, RPM outside 500–30,000.
+- **Limits stated on the page:** a first-order acoustic estimate. The length goes with √T, and T varies along the pipe and with load. It does not model wave amplitude, cone angles, the stinger or the plugging pulse, and it does not replace a 1-D gas-dynamic exhaust simulation; the pipe is still tuned on the dyno.
+
+**4. Scavenging / Charging Efficiency.**
+- **Definitions** (Heywood, *Internal Combustion Engine Fundamentals*, ch. 6; Blair, ch. 3; MIT 2.61 lecture 8):
+  - **Delivery ratio:** DR = air delivered per cycle ÷ reference mass (swept volume × ambient density).
+  - **Trapping efficiency:** TE = delivered air retained ÷ air delivered.
+  - **Charging efficiency:** CE = trapped air ÷ reference mass = TE × DR.
+  - **Scavenging efficiency:** SE = trapped fresh air ÷ total trapped charge.
+- **What is entered and what is computed:**
+  - TE cannot be found from the delivered flow, so it is an input (measured by tracer gas or exhaust sampling, or simulated).
+  - SE needs the total trapped mass, so it is not computed from the inputs.
+- **Ideal reference curves:** included, because both are standard, closed-form and verifiable.
+  - **Perfect displacement:** SE = DR up to 1, with no loss until the cylinder is full.
+  - **Perfect mixing** (Benson–Brandham isothermal model): SE = 1 − e^(−DR), with its implied TE = SE ÷ DR.
+  - Both assume the trapped charge equals the reference mass at ambient density. Under that assumption SE = CE, which the page states.
+  - The page also says that real engines usually fall between the two curves, and that heavy short-circuiting can fall below perfect mixing.
+- **Units and constants:** R = 287.058 J/kg·K. Inputs: displacement ci ↔ cc, mass flow lb/hr ↔ kg/hr, absolute pressure psi ↔ bar, temperature °F ↔ °C, TE in %, RPM. The density row is lb/ft³ ↔ kg/m³.
+- **Expected values:**
+  - 250 cc, 100 kg/h, 101,325 Pa, 20 °C, TE 75 %, 8,000 RPM: ρ = 1.20408 kg/m³; DR = 0.69209; CE = 51.907 %; perfect displacement 69.209 %; perfect mixing 49.947 %; ideal TE 72.169 %.
+  - At DR = 1: perfect mixing gives 1 − 1/e = 63.212 %.
+- **Invalid inputs and flags:**
+  - Rejected: displacement outside 0.5–500 ci, a flow of 0 or less (up to 20,000 lb/hr), pressure outside 5–40 psi absolute, temperature outside −40 to 150 °F, TE of 0 or above 100 %, RPM outside 100–30,000.
+  - Flagged beside the unchanged number: CE above 100 % (possible only with a pressurised delivery) and DR above 3.
+
+**Remaining ambiguity.** None blocks the batch; both points are stated on the pages:
+- whether the crankcase volume includes the transfer passages (a measurement convention);
+- where the tuned pipe's reflection point is (a layout-procedure convention).
+
+**Units.** No new unit was added. Registered units used: in ↔ mm, ci ↔ cc, °F ↔ °C, psi ↔ bar, lb/hr ↔ kg/hr, lb/ft³ ↔ kg/m³, ft/sec ↔ m/s. Degrees, RPM, % and ratios are the same in both systems.
+
+**Power and torque.** None: there are no new power or torque rows, and the performance census is unchanged.
+
+**Mass-force.** No lb, lbf or lbs rows were added; `lb/hr` and `lb/ft³` are a flow and a density.
+
+**Verification.** Tests were written first, per sub-group, and run before each sub-group's engine code existed:
+- **Before the code:** `premium/tests/structural-13.test.js` (new) failed D1 38 of 39 and D2 46 of 47 checks (only "no page errors" passed). The new `unit-system` cases failed 10 of 10 per sub-group.
+- **structural-13:** 12 closed-form cases, each run in Imperial and in Metric with unit labels checked; 72 invalid-input cases; 251 checks, 0 failures.
+- **unit-system** (SI formulas, re-entry and repeated toggles): D1 172 and D2 234 checks, 0 failures.
+- **Engine self-test:** 5 new assertions, 716 / 716.
+- **Census after each sub-group:**
+  - unit-census: 737 calculators, 2,952 checks;
+  - unit-factors: 574 checks;
+  - mass-force: 825 checks, no rows added;
+  - declared-metric-units: 0 unprotected;
+  - performance-census: 0 failed.
+- **One test-side error,** found by the self-test before the D2 commit: the DR = 1 self-test assertion used a mass flow 1,000 × too small (0.12 for 120 kg/h). The test was corrected; the engine formula was unchanged and already matched the independent structural case.
+- **Counts:** 733 → 737 calculator-kind tools, 148 → 152 Premium calculators, 127 → 131 expansion.
+- **run-tests.sh:** catalog OK (131 expansion), register OK, frontend 55/55, schema 26/26.
+- **Full browser regression** (33 suites, after both sub-groups): 32 of 33 suites passed with 0 failures: self-test 716/716; smoke 19/19 with 737 calculator-kind tools; unit-system 6,053; temperature-units; toggle-sweep 737 swept (1 known-open); label-consistency 737 consistent; native-units 29/29; declared-metric-units 0 unprotected; negative-zero 737 + 737; range-warnings 2,469; structural-11a 793, 11b 730, 11c 429 and 13 251. `nav-return` failed 3 older Free calculators (`clutch_hydraulic_ratio`, `newton_to_kgf`, `timing_mark`): in each, one of the "back" and "live" result panels was empty. Those three passed alone. A whole-suite re-run failed 4 other older calculators, which also passed alone; a second whole-suite re-run passed (733 consistent, 0 failures). No Batch 13 calculator was involved. This is the GH-DEF-035 timing race (still OPEN, evidence added to its entry, not fixed here). So the regression is clean apart from that known intermittent defect, not unconditionally clean.
+- **Commits:** `82638eb` (D1), `3dfa4e3` (D2).
+
+**References.**
+- G. P. Blair, *Design and Simulation of Two-Stroke Engines*, SAE, 1996: crankcase compression ratio, ch. 3 (scavenging definitions and the Benson–Brandham models), and the tuned-exhaust design guidance.
+- J. B. Heywood, *Internal Combustion Engine Fundamentals*, McGraw-Hill: ch. 6 (gas exchange, including two-stroke scavenging: delivery ratio, trapping, scavenging and charging efficiency, the perfect-displacement and perfect-mixing models).
+- [MIT 2.61 Internal Combustion Engines, lecture 8](https://mitocw.ups.edu.ec/courses/mechanical-engineering/2-61-internal-combustion-engines-spring-2017/lecture-notes/MIT2_61S17_lec8.pdf): delivery ratio, trapping efficiency, and the perfect-displacement and perfect-mixing curves.
+- [Scooterotica, "Exhaust theory Pt1"](https://www.scooterotica.org/forum/viewtopic.php?p=48): L_t = ED × 42,545 ÷ RPM, a = √(401.8 (T + 273)), L_t = 83.3 × a × ED ÷ RPM; worked example 190°, 10,000 RPM, 550 °C → 910 mm.
+- [MPBA, "Tuned Pipes"](https://www.mpba.org.uk/?p=10656): L = ED × K ÷ RPM, with K calibrated from a known-good pipe (an implicit fixed gas temperature) and L measured from the manifold face (or, it notes, the plug) to the widest part of the front cone; an example of the reference-point variation between sources.
+- [LCGB forum, primary compression measurement](https://www.ilambretta.co.uk/forum/viewtopic.php?p=132326): crankcase volume filled with oil at BDC; the open question of what the fill includes.
 
 ## Reliability pass (2026-10-12, between Batch 10 and Batch 11)
 
