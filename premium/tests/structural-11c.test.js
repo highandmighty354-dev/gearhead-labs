@@ -86,6 +86,30 @@ add({ g: 'C1', id: 'gear_mesh_frequency', title: '20 / 40 teeth (common factor 2
     want: { 'Torsional Natural Frequency': [fOne, 'Hz'], 'Resonance Speed for This Order': [15 * fOne, 'RPM'] }, literal: { 'Torsional Natural Frequency': 176.43 }, rel: 1e-4 });
 }
 
+
+/* ======================================================= C2 VIBRATION ISOLATION ======================================================= */
+/* 4. Engine Mount Natural Frequency. 500 lbs on 4 mounts of 2 000 lb/in: k 8 000 lb/in; static deflection 500 / 8 000 = 0.0625 in (EXACT);
+      f = (1/2 pi) sqrt(g / delta) with g = 386.0886 in/s^2: sqrt(6 177.42) / 2 pi = 12.509 Hz (750.6 RPM). Same f from SI: sqrt(1 400 945 N/m / 226.796 kg) / 2 pi. */
+{
+  const g = G0 / IN, f = Math.sqrt(g / 0.0625) / (2 * PI);
+  add({ g: 'C2', id: 'engine_mount_natural_frequency', title: '500 lbs on four 2 000 lb/in mounts', inputs: { emnf_m: [500, 'lbs'], emnf_n: [4, ''], emnf_k: [2000, 'lb/in'] },
+    want: { 'Total Mount Stiffness': [8000, 'lb/in'], 'Static Deflection under the Powertrain Weight': [0.0625, 'in'], 'Bounce Natural Frequency': [f, 'Hz'], 'Natural Frequency as Speed (60 × f)': [60 * f, 'RPM'] },
+    literal: { 'Bounce Natural Frequency': 12.509 }, rel: 1e-5 });
+  /* four times the stiffness doubles the frequency */
+  add({ g: 'C2', id: 'engine_mount_natural_frequency', title: 'four times the stiffness: twice the frequency', inputs: { emnf_m: [500, 'lbs'], emnf_n: [4, ''], emnf_k: [8000, 'lb/in'] },
+    want: { 'Bounce Natural Frequency': [2 * f, 'Hz'], 'Static Deflection under the Powertrain Weight': [0.015625, 'in'] }, rel: 1e-5 });
+}
+/* 5. Isolation Efficiency. fn 12.5 Hz, 750 RPM x order 2 = 25 Hz, r = 2. Undamped: T = 1 / |1 - 4| = 1/3, isolation 66.667 % (EXACT).
+      zeta 0.1: T = sqrt(1.16 / 9.16) = 0.355862, isolation 64.414 %. Resonance (375 RPM, r = 1) with zeta 0.1: T = sqrt(1.04) / 0.2 = 5.09902 -> isolation -409.9 % (amplification, shown, not clamped).
+      r = sqrt 2 (fn 12.5, f = 17.6777 Hz): T = 1 exactly for any damping -> 0 %. */
+add({ g: 'C2', id: 'isolation_efficiency', title: 'r = 2, undamped: T = 1/3, 66.7 % isolation', inputs: { ie_fn: [12.5, 'Hz'], ie_rpm: [750, 'RPM'], ie_q: [2, ''], ie_z: [0, ''] },
+  want: { 'Excitation Frequency': [25, 'Hz'], 'Frequency Ratio (r = f ÷ fn)': [2, ''], 'Transmissibility (T, force out ÷ force in)': [1 / 3, ''], 'Isolation Efficiency ((1 − T) × 100)': [200 / 3, '%'] }, notes: [/Isolating: 33.3 % of the force is transmitted/], rel: 1e-5 });
+add({ g: 'C2', id: 'isolation_efficiency', title: 'r = 2, zeta 0.1', inputs: { ie_fn: [12.5, 'Hz'], ie_rpm: [750, 'RPM'], ie_q: [2, ''], ie_z: [0.1, ''] },
+  want: { 'Transmissibility (T, force out ÷ force in)': [Math.sqrt(1.16 / 9.16), ''], 'Isolation Efficiency ((1 − T) × 100)': [(1 - Math.sqrt(1.16 / 9.16)) * 100, '%'] }, literal: { 'Transmissibility (T, force out ÷ force in)': 0.3559 }, rel: 1e-5 });
+add({ g: 'C2', id: 'isolation_efficiency', title: 'at resonance with zeta 0.1: amplification 5.1 x, isolation negative (not clamped)', inputs: { ie_fn: [12.5, 'Hz'], ie_rpm: [375, 'RPM'], ie_q: [2, ''], ie_z: [0.1, ''] },
+  want: { 'Frequency Ratio (r = f ÷ fn)': [1, ''], 'Transmissibility (T, force out ÷ force in)': [Math.sqrt(1.04) / 0.2, ''], 'Isolation Efficiency ((1 − T) × 100)': [(1 - Math.sqrt(1.04) / 0.2) * 100, '%'] }, notes: [/Not isolating/], rel: 1e-5 });
+add({ g: 'C2', id: 'isolation_efficiency', title: 'r = sqrt 2: T = 1 exactly, 0 %', inputs: { ie_fn: [12.5, 'Hz'], ie_rpm: [12.5 * Math.SQRT2 * 30, 'RPM'], ie_q: [2, ''], ie_z: [0.3, ''] },
+  want: { 'Transmissibility (T, force out ÷ force in)': [1, ''], 'Isolation Efficiency ((1 − T) × 100)': [0, '%'] }, rel: 1e-5 });
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    INVALID INPUT.
    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -110,6 +134,15 @@ sweepBad('C1', 'torsional_resonance_speed', Object.keys(BASE.torsional_resonance
 bad('C1', 'torsional_resonance_speed', BASE.torsional_resonance_speed, 'zero stiffness', { trs_k: '0' }, SEL.torsional_resonance_speed);
 bad('C1', 'torsional_resonance_speed', BASE.torsional_resonance_speed, 'zero inertia', { trs_j2: '0' }, SEL.torsional_resonance_speed);
 bad('C1', 'torsional_resonance_speed', BASE.torsional_resonance_speed, 'zero order', { trs_q: '0' }, SEL.torsional_resonance_speed);
+BASE.engine_mount_natural_frequency = { emnf_m: 500, emnf_n: 4, emnf_k: 2000 };
+sweepBad('C2', 'engine_mount_natural_frequency', Object.keys(BASE.engine_mount_natural_frequency));
+bad('C2', 'engine_mount_natural_frequency', BASE.engine_mount_natural_frequency, 'a fractional number of mounts', { emnf_n: '3.5' });
+bad('C2', 'engine_mount_natural_frequency', BASE.engine_mount_natural_frequency, 'zero stiffness', { emnf_k: '0' });
+BASE.isolation_efficiency = { ie_fn: 12.5, ie_rpm: 750, ie_q: 2, ie_z: 0.1 };
+sweepBad('C2', 'isolation_efficiency', Object.keys(BASE.isolation_efficiency));
+bad('C2', 'isolation_efficiency', BASE.isolation_efficiency, 'undamped at resonance (unbounded, no finite answer)', { ie_rpm: '375', ie_z: '0' });
+bad('C2', 'isolation_efficiency', BASE.isolation_efficiency, 'damping ratio 1 or more', { ie_z: '1' });
+bad('C2', 'isolation_efficiency', BASE.isolation_efficiency, 'zero natural frequency', { ie_fn: '0' });
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    HARNESS

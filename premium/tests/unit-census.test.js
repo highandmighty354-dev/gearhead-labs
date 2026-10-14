@@ -52,7 +52,7 @@ const PAIRS = {
   'lb·ft²': ['kg·m²', LB * FT * FT]   // Batch 11c: mass moment of inertia
 };
 const NEVER_DECLARED = ['qt', 'L/min', 'm/min'];
-const N_CALCS = 727;                                                                   // 696 + Batch 11a
+const N_CALCS = 729;                                                                   // 696 + Batch 11a
 
 (async () => {
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });

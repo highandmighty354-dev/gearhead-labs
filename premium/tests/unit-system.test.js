@@ -443,7 +443,15 @@ const CASES = [
   /* K typed per degree; omega^2 = K(per radian) (1/J1 + 1/J2) */
   { id: 'torsional_resonance_speed', fields: [['trs_k', 'tstiff', 2000], ['trs_j1', 'inertia', 0.05], ['trs_j2', 'inertia', 0.2], ['trs_q', 'none', 3], ['trs_op', 'none', 5000]],
     compute: v => { const Kr = v.trs_k * 180 / Math.PI, f = Math.sqrt(Kr * (1 / v.trs_j1 + 1 / v.trs_j2)) / (2 * Math.PI), n = 60 * f / v.trs_q;
-      return { 'Torsional Natural Frequency': ['hz', f], 'Natural Frequency as Shaft Speed (order 1)': ['rpm', 60 * f], 'Resonance Speed for This Order': ['rpm', n], 'Operating Speed ÷ Resonance Speed': ['ratio', v.trs_op / n] }; }, rel: 2e-3 }
+      return { 'Torsional Natural Frequency': ['hz', f], 'Natural Frequency as Shaft Speed (order 1)': ['rpm', 60 * f], 'Resonance Speed for This Order': ['rpm', n], 'Operating Speed ÷ Resonance Speed': ['ratio', v.trs_op / n] }; }, rel: 2e-3 },
+
+  /* ---- Batch 11c, C2 vibration isolation. The supported mass is a mass (lbs <-> kg); the mount stiffness lb/in <-> N/mm ---- */
+  { id: 'engine_mount_natural_frequency', fields: [['emnf_n', 'none', 3], ['emnf_k', 'springrate', 500000], ['emnf_m', 'mass', 180]],
+    compute: v => { const kt = v.emnf_n * v.emnf_k, f = Math.sqrt(kt / v.emnf_m) / (2 * Math.PI);
+      return { 'Total Mount Stiffness': ['springrate', kt], 'Static Deflection under the Powertrain Weight': ['length', v.emnf_m * K.g0 / kt], 'Bounce Natural Frequency': ['hz', f], 'Natural Frequency as Speed (60 × f)': ['rpm', 60 * f] }; }, rel: 2e-3 },
+  { id: 'isolation_efficiency', fields: [['ie_fn', 'none', 9], ['ie_q', 'none', 3], ['ie_z', 'none', 0.15], ['ie_rpm', 'none', 900]],
+    compute: v => { const f = v.ie_rpm * v.ie_q / 60, r = f / v.ie_fn, T = Math.sqrt((1 + (2 * v.ie_z * r) ** 2) / ((1 - r * r) ** 2 + (2 * v.ie_z * r) ** 2));
+      return { 'Excitation Frequency': ['hz', f], 'Frequency Ratio (r = f ÷ fn)': ['ratio', r], 'Transmissibility (T, force out ÷ force in)': ['ratio', T], 'Isolation Efficiency ((1 − T) × 100)': ['pct', (1 - T) * 100] }; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

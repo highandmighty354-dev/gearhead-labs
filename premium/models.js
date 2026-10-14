@@ -462,7 +462,11 @@
     { id: 'gear_mesh_frequency', name: 'Gear Mesh Frequency',
       promo: 'Gearhead Labs Premium unlocks Gear Mesh Frequency — mesh, shaft and hunting-tooth frequencies of a gear pair.' },
     { id: 'torsional_resonance_speed', name: 'Torsional Resonance Speed',
-      promo: 'Gearhead Labs Premium unlocks Torsional Resonance Speed — the speed at which an excitation order meets a torsional natural frequency.' }
+      promo: 'Gearhead Labs Premium unlocks Torsional Resonance Speed — the speed at which an excitation order meets a torsional natural frequency.' },
+    { id: 'engine_mount_natural_frequency', name: 'Engine Mount Natural Frequency',
+      promo: 'Gearhead Labs Premium unlocks Engine Mount Natural Frequency — the bounce frequency and static sag of a powertrain on its mounts.' },
+    { id: 'isolation_efficiency', name: 'Isolation Efficiency',
+      promo: 'Gearhead Labs Premium unlocks Isolation Efficiency — transmissibility and percent isolation of a mount at a given engine speed.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */

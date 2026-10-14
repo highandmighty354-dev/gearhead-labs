@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "a354eab21ea2274cc2a3f444cb4fcd7a3cb141b5da070b43c0a2bc6f369da79f"
+      "sha256": "9f85da050c4deb8143fc740c4ca6caf372a83e2e3ad15b46c1de7954d1d22b12"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -12,7 +12,7 @@
     },
     "models": {
       "file": "premium/models.js",
-      "sha256": "77f2535c320f54c5ee2d052a1063851fe01cde35df2067ceb205a09ebd165789"
+      "sha256": "1cb25e13f38023766d143efb8d768ad3ca6d093fd0869aa75bc5bb3308ef66c1"
     },
     "engineering": {
       "file": "engineering-expansion-v1.js",
@@ -22,10 +22,10 @@
   "counts": {
     "free_public_calculators": 585,
     "migrated_premium_calculators": 21,
-    "premium_expansion_calculators": 121,
+    "premium_expansion_calculators": 123,
     "engineering_lab_tools": 14,
-    "premium_only_tools": 156,
-    "premium_total_access": 741,
+    "premium_only_tools": 158,
+    "premium_total_access": 743,
     "aliases_not_counted": 6,
     "free_by_lab": {
       "universal": 315,
@@ -35,22 +35,22 @@
       "ev": 39
     },
     "premium_by_kind": {
-      "calculator": 142,
+      "calculator": 144,
       "workbench": 4,
       "analyzer": 10
     },
     "save": {
       "eligible": 577,
-      "excluded": 150,
+      "excluded": 152,
       "saveable": 14
     },
-    "premium_expansion_validated": 135,
+    "premium_expansion_validated": 137,
     "approved_future_tools": 0
   },
   "decisions": [
-    "Owner decision 2026-10-06: the 150 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
+    "Owner decision 2026-10-06: the 152 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
     "Owner decision 2026-10-06: 21 existing Free calculators are migrated to Premium, cutting the originally-proposed 70-item list to the 21 the audit actually recommended (Gearhead_Labs_Premium_Migration_AUDIT.xlsx; 49 rejected as Engineering Lab duplicates, SEO/on-ramp anchors, or workbook-arithmetic errors). Free drops from 606 to 585; the Engineering Lab (E01-E14) is unaffected. The 147-item future roadmap remains unimplemented and uncounted.",
-    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 121 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
+    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 123 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
   ],
   "premium_migration": {
     "rule": "A Free calculator moves to Premium only from an owner-approved audit in this repository (Gearhead_Labs_Premium_Migration_AUDIT.xlsx). Each migrated calculator keeps a named Free companion as its on-ramp and stays visible (not hidden) in the Free calculator navigation with a Premium indicator.",
@@ -186,7 +186,7 @@
   },
   "premium_expansion": {
     "rule": "A Premium tool enters this catalog only from approved engineering/product work in this repository, after QA. No count target (the historical ~140 / 752 figures are not used).",
-    "validated": 135,
+    "validated": 137,
     "sources": [
       {
         "source": "ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)",
@@ -202,11 +202,11 @@
       },
       {
         "source": "Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list from the Phase 1 reconciliation and exception resolution)",
-        "outcome": "121 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 22 remain"
+        "outcome": "123 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 20 remain"
       }
     ],
     "premium_calculators": {
-      "validated": 121,
+      "validated": 123,
       "tools": [
         {
           "id": "ac_power_factor",
@@ -424,6 +424,11 @@
           "category": "UNIVERSAL / ENGINE MECHANICAL DESIGN"
         },
         {
+          "id": "engine_mount_natural_frequency",
+          "name": "Engine Mount Natural Frequency",
+          "category": "UNIVERSAL / NVH"
+        },
+        {
           "id": "euler_column_buckling",
           "name": "Euler Column Buckling",
           "category": "UNIVERSAL / MATERIALS & STRUCTURES"
@@ -517,6 +522,11 @@
           "id": "intercooler_core_sizing",
           "name": "Intercooler Core Sizing",
           "category": "UNIVERSAL / THERMAL & HVAC"
+        },
+        {
+          "id": "isolation_efficiency",
+          "name": "Isolation Efficiency",
+          "category": "UNIVERSAL / NVH"
         },
         {
           "id": "johnson_column_buckling",
@@ -1477,6 +1487,7 @@
     {"id":"e13_intercooler_thermal","code":"E13","name":"Intercooler Thermal / Pressure-Drop Analyzer","category":"Thermal","lab":"engineering","tier":"premium","kind":"analyzer","save":"saveable","formula":null,"vehicle_link":"optional","status":"current","qa":"qualified for engineering design/QA; not counted as public calculators (ENGINEERING_EXPANSION_CATALOG_V1.md)","module_group":"ENGINEERING / THERMAL","aliases":[]},
     {"id":"e14_heat_exchanger_matching","code":"E14","name":"Heat-Exchanger Matching Workbench","category":"Thermal","lab":"engineering","tier":"premium","kind":"workbench","save":"saveable","formula":null,"vehicle_link":"optional","status":"current","qa":"qualified for engineering design/QA; not counted as public calculators (ENGINEERING_EXPANSION_CATALOG_V1.md)","module_group":"ENGINEERING / THERMAL","aliases":[]},
     {"id":"engine_bobweight","name":"Engine Bobweight","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Engine Bobweight — the exact combined mass your balancer needs for a correct crank balance job."},
+    {"id":"engine_mount_natural_frequency","name":"Engine Mount Natural Frequency","category":"UNIVERSAL / NVH","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Engine Mount Natural Frequency — the bounce frequency and static sag of a powertrain on its mounts."},
     {"id":"euler_column_buckling","name":"Euler Column Buckling","category":"UNIVERSAL / MATERIALS & STRUCTURES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Euler Column Buckling — elastic critical load of a bar or tube with a slenderness check."},
     {"id":"exhaust_port_cfm","name":"CYLINDER HEAD / FLOW · Exhaust Port CFM","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-a8507398","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"cfm_velocity_csa","promotion":"Use the free CFM ↔ Velocity ↔ CSA calculator to establish the baseline relationship. Premium’s Exhaust Port CFM analyzes the complete exhaust-side flow picture."},
     {"id":"exhaust_throat_diameter_sizing","name":"CYLINDER HEAD / FLOW · Exhaust Throat Diameter Sizing","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Exhaust Throat Diameter Sizing — the exhaust-side sizing target, defaulted to the higher velocity exhaust ports are conventionally run at."},
@@ -1502,6 +1513,7 @@
     {"id":"intake_port_cfm","name":"CYLINDER HEAD / FLOW · Intake Port CFM","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-80d7c590","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"cfm_velocity_csa","promotion":"Use the free CFM ↔ Velocity ↔ CSA calculator to establish the baseline relationship. Premium’s Intake Port CFM analyzes the complete intake-side flow picture."},
     {"id":"intake_throat_diameter_sizing","name":"CYLINDER HEAD / FLOW · Intake Throat Diameter Sizing","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Intake Throat Diameter Sizing — turns a target CFM and velocity straight into an actual throat diameter to size or machine to."},
     {"id":"intercooler_core_sizing","name":"Intercooler Core Sizing","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Intercooler Core Sizing — go beyond the Free Intercooler Efficiency calculator’s check to the actual core heat-transfer surface area your setup requires."},
+    {"id":"isolation_efficiency","name":"Isolation Efficiency","category":"UNIVERSAL / NVH","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Isolation Efficiency — transmissibility and percent isolation of a mount at a given engine speed."},
     {"id":"johnson_column_buckling","name":"Johnson Column Buckling","category":"UNIVERSAL / MATERIALS & STRUCTURES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Johnson Column Buckling — inelastic critical load, with the Euler/Johnson regime chosen and stated."},
     {"id":"joint_separation","name":"Joint Separation","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Joint Separation — bolt and clamp loads under an external load and the load that opens the joint."},
     {"id":"key_keyway_torque_capacity","name":"Key/Keyway Torque Capacity","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Key/Keyway Torque Capacity — shear and bearing torque limits and the minimum key length."},
