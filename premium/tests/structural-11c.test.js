@@ -110,6 +110,36 @@ add({ g: 'C2', id: 'isolation_efficiency', title: 'at resonance with zeta 0.1: a
   want: { 'Frequency Ratio (r = f ÷ fn)': [1, ''], 'Transmissibility (T, force out ÷ force in)': [Math.sqrt(1.04) / 0.2, ''], 'Isolation Efficiency ((1 − T) × 100)': [(1 - Math.sqrt(1.04) / 0.2) * 100, '%'] }, notes: [/Not isolating/], rel: 1e-5 });
 add({ g: 'C2', id: 'isolation_efficiency', title: 'r = sqrt 2: T = 1 exactly, 0 %', inputs: { ie_fn: [12.5, 'Hz'], ie_rpm: [12.5 * Math.SQRT2 * 30, 'RPM'], ie_q: [2, ''], ie_z: [0.3, ''] },
   want: { 'Transmissibility (T, force out ÷ force in)': [1, ''], 'Isolation Efficiency ((1 − T) × 100)': [0, '%'] }, rel: 1e-5 });
+
+/* ======================================================= C3 MACHINING ======================================================= */
+/* 6. Tool Deflection (solid round cantilever, tip load). 100 lbf, 2 in stick-out, 0.5 in, 30 Mpsi: I = pi 0.5^4 / 64 = 0.0030680 in^4; delta = 100 x 8 / (3 x 30e6 x 0.0030680) = 0.0028973 in;
+      k = 34 515 lb/in; sigma = 100 x 2 x 0.25 / 0.0030680 = 16.30 ksi. Twice the stick-out: 8 x the deflection. */
+{
+  const I = PI * 0.5 ** 4 / 64, dl = 800 / (3 * 30e6 * I);
+  add({ g: 'C3', id: 'tool_deflection', title: '1/2 in HSS tool, 2 in stick-out, 100 lbf', inputs: { tdf_f: [100, 'lbf'], tdf_l: [2, 'in'], tdf_d: [0.5, 'in'], tdf_e: [30, 'Mpsi'] },
+    want: { 'Tool Tip Deflection': [dl, 'in'], 'Tip Stiffness': [100 / dl, 'lb/in'], 'Bending Stress at the Holder Face': [100 * 2 * 0.25 / I / 1000, 'ksi'] }, literal: { 'Tool Tip Deflection': 0.0028973, 'Bending Stress at the Holder Face': 16.30 }, rel: 2e-4 });
+  add({ g: 'C3', id: 'tool_deflection', title: 'twice the stick-out: eight times the deflection', inputs: { tdf_f: [100, 'lbf'], tdf_l: [4, 'in'], tdf_d: [0.5, 'in'], tdf_e: [30, 'Mpsi'] },
+    want: { 'Tool Tip Deflection': [8 * dl, 'in'] }, rel: 2e-4 });
+}
+/* 7. Cutting Force. kc 290 ksi, 0.1 in deep, 0.010 in/rev, 500 SFM, 80 %: area 0.001 sq in; Fc 290 lbf; power 290 x 500 / 33 000 = 4.3939 HP; spindle 5.4924 HP; MRR 0.001 x 500 x 12 = 6 in³/min (EXACT). */
+add({ g: 'C3', id: 'cutting_force', title: 'kc 290 ksi, 0.1 in x 0.010 in/rev at 500 SFM', inputs: { cf_kc: [290, 'ksi'], cf_ap: [0.1, 'in'], cf_f: [0.01, 'in'], cf_v: [500, 'SFM'], cf_eta: [0.8, ''] },
+  want: { 'Uncut Chip Area (a_p × f)': [0.001, 'sq in'], 'Main Cutting Force (Fc)': [290, 'lbf'], 'Cutting Power at the Tool': [290 * 500 / 33000, 'HP'], 'Spindle Power Required (÷ efficiency)': [290 * 500 / 33000 / 0.8, 'HP'], 'Material Removal Rate': [6, 'in³/min'] },
+  literal: { 'Cutting Power at the Tool': 4.394 }, rel: 2e-4 });
+/* 8. Tool Life (Taylor). V 500, n 0.25, C 1 000 SFM: T = 2^4 = 16 min (EXACT); target 30 min -> V = 1 000 / 30^0.25 = 427.28 SFM; +10 % speed -> 16 / 1.1^4 = 10.928 min. */
+add({ g: 'C3', id: 'tool_life', title: 'V 500 SFM, n 0.25, C 1 000 SFM', inputs: { tl_v: [500, 'SFM'], tl_n: [0.25, ''], tl_c: [1000, 'SFM'], tl_t: [30, 'min'] },
+  want: { 'Predicted Tool Life': [16, 'min'], 'Speed for the Target Life': [1000 / 30 ** 0.25, 'SFM'], 'Tool Life if Speed Rises 10 %': [16 / 1.1 ** 4, 'min'] }, literal: { 'Speed for the Target Life': 427.28 }, rel: 2e-4 });
+/* 9. Thread Cutting Speed. 1/2-13 at 150 SFM: RPM = 150 x 12 / (pi x 0.5) = 1 145.9; lead 1/13 = 0.076923 in; feed 88.147 in/min; 1 in -> 0.011345 min per pass; 10 passes 0.11345 min.
+      M10 x 1.5, typed in mm: RPM = 150 x 12 / (pi x 10/25.4) = 1 455.3; lead 1.5 mm; 25 mm thread. A two-start 1/2-13: lead 2/13. */
+add({ g: 'C3', id: 'thread_cutting_speed', title: '1/2-13 UNC at 150 SFM, 1 in long, 10 passes', sel: { tcs_std: 'un' }, inputs: { ...thr('tcs', UN12), tcs_l: [1, 'in'], tcs_v: [150, 'SFM'], tcs_s: [1, ''], tcs_np: [10, ''] },
+  want: { 'Spindle Speed': [1800 / (PI * 0.5), 'RPM'], 'Lead (axial advance per revolution)': [1 / 13, 'in'], 'Carriage Feed Rate': [1800 / (PI * 0.5) / 13, 'in/min'], 'Time per Pass': [13 * PI * 0.5 / 1800, 'min'], 'Total Cutting Time (all passes)': [130 * PI * 0.5 / 1800, 'min'] },
+  literal: { 'Spindle Speed': 1146, 'Carriage Feed Rate': 88.15 }, rel: 2e-4 });
+{
+  const d = 10 / 25.4, rpm = 1800 / (PI * d), lead = 1.5 / 25.4;
+  add({ g: 'C3', id: 'thread_cutting_speed', title: 'M10 x 1.5, 25 mm long (typed in mm)', sel: { tcs_std: 'iso' }, inputs: { tcs_dm: [10, 'mmN'], tcs_p: [1.5, 'mmN'], tcs_lm: [25, 'mmN'], tcs_v: [150, 'SFM'], tcs_s: [1, ''], tcs_np: [8, ''] },
+    want: { 'Spindle Speed': [rpm, 'RPM'], 'Lead (axial advance per revolution)': [lead, 'in'], 'Carriage Feed Rate': [rpm * lead, 'in/min'], 'Time per Pass': [(25 / 25.4) / (rpm * lead), 'min'] }, rel: 2e-4 });
+}
+add({ g: 'C3', id: 'thread_cutting_speed', title: 'two starts: twice the lead and feed', sel: { tcs_std: 'un' }, inputs: { ...thr('tcs', UN12), tcs_l: [1, 'in'], tcs_v: [150, 'SFM'], tcs_s: [2, ''], tcs_np: [10, ''] },
+  want: { 'Lead (axial advance per revolution)': [2 / 13, 'in'], 'Carriage Feed Rate': [2 * 1800 / (PI * 0.5) / 13, 'in/min'] }, rel: 2e-4 });
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    INVALID INPUT.
    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -143,6 +173,23 @@ sweepBad('C2', 'isolation_efficiency', Object.keys(BASE.isolation_efficiency));
 bad('C2', 'isolation_efficiency', BASE.isolation_efficiency, 'undamped at resonance (unbounded, no finite answer)', { ie_rpm: '375', ie_z: '0' });
 bad('C2', 'isolation_efficiency', BASE.isolation_efficiency, 'damping ratio 1 or more', { ie_z: '1' });
 bad('C2', 'isolation_efficiency', BASE.isolation_efficiency, 'zero natural frequency', { ie_fn: '0' });
+BASE.tool_deflection = { tdf_f: 100, tdf_l: 2, tdf_d: 0.5, tdf_e: 30 };
+sweepBad('C3', 'tool_deflection', Object.keys(BASE.tool_deflection));
+bad('C3', 'tool_deflection', BASE.tool_deflection, 'zero force', { tdf_f: '0' });
+bad('C3', 'tool_deflection', BASE.tool_deflection, 'modulus below 1 Mpsi', { tdf_e: '0.5' });
+BASE.cutting_force = { cf_kc: 290, cf_ap: 0.1, cf_f: 0.01, cf_v: 500, cf_eta: 0.8 };
+sweepBad('C3', 'cutting_force', Object.keys(BASE.cutting_force));
+bad('C3', 'cutting_force', BASE.cutting_force, 'efficiency above 1', { cf_eta: '1.2' });
+bad('C3', 'cutting_force', BASE.cutting_force, 'zero feed', { cf_f: '0' });
+BASE.tool_life = { tl_v: 500, tl_n: 0.25, tl_c: 1000, tl_t: 30 };
+sweepBad('C3', 'tool_life', Object.keys(BASE.tool_life));
+bad('C3', 'tool_life', BASE.tool_life, 'exponent above 1', { tl_n: '1.5' });
+bad('C3', 'tool_life', BASE.tool_life, 'zero speed', { tl_v: '0' });
+BASE.thread_cutting_speed = flat({ ...thr('tcs', UN12), tcs_l: 1, tcs_v: 150, tcs_s: 1, tcs_np: 10 }); SEL.thread_cutting_speed = { tcs_std: 'un' };
+sweepBad('C3', 'thread_cutting_speed', Object.keys(BASE.thread_cutting_speed));
+bad('C3', 'thread_cutting_speed', BASE.thread_cutting_speed, 'a fractional number of starts', { tcs_s: '1.5' }, SEL.thread_cutting_speed);
+bad('C3', 'thread_cutting_speed', BASE.thread_cutting_speed, 'a pitch larger than half the diameter', { tcs_tpi: '3' }, SEL.thread_cutting_speed);
+bad('C3', 'thread_cutting_speed', BASE.thread_cutting_speed, 'zero surface speed', { tcs_v: '0' }, SEL.thread_cutting_speed);
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    HARNESS

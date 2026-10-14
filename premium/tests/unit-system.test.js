@@ -135,6 +135,9 @@ const OUT = {
   tstiff: { fromSI: (s, x) => s === 'metric' ? x : x / K.ftlbf_J, unit: s => s === 'metric' ? 'N·m/deg' : 'lb-ft/deg' },                          // base N.m/deg (a torque per angle: NOT an energy and NOT a torque)
   angle:  { fromSI: (s, x) => x, unit: s => '°' },
   /* Batch 11b: a weld heat input (energy per length of weld): kJ/in <-> kJ/mm, base J/m */
+  sfm:    { fromSI: (s, x) => s === 'metric' ? x : x / K.ft_m, unit: s => s === 'metric' ? 'm/min' : 'SFM' },                                  // Batch 11c: a surface speed, base m/min
+  minutes:{ fromSI: (s, x) => x, unit: s => 'min' },                                                                                     // Batch 11c: a time in minutes, both systems
+  cuinmin:{ fromSI: (s, x) => x / K.in_m ** 3, unit: s => 'in³/min' },                                                                  // Batch 11c: unregistered (imperial-only, like material_removal), base m^3/min
   heatin: { fromSI: (s, x) => s === 'metric' ? x / 1e6 : x * K.in_m / 1000, unit: s => s === 'metric' ? 'kJ/mm' : 'kJ/in' }                                                                                                  // base degrees: the same number and symbol in both systems
 };
 
@@ -451,7 +454,21 @@ const CASES = [
       return { 'Total Mount Stiffness': ['springrate', kt], 'Static Deflection under the Powertrain Weight': ['length', v.emnf_m * K.g0 / kt], 'Bounce Natural Frequency': ['hz', f], 'Natural Frequency as Speed (60 × f)': ['rpm', 60 * f] }; }, rel: 2e-3 },
   { id: 'isolation_efficiency', fields: [['ie_fn', 'none', 9], ['ie_q', 'none', 3], ['ie_z', 'none', 0.15], ['ie_rpm', 'none', 900]],
     compute: v => { const f = v.ie_rpm * v.ie_q / 60, r = f / v.ie_fn, T = Math.sqrt((1 + (2 * v.ie_z * r) ** 2) / ((1 - r * r) ** 2 + (2 * v.ie_z * r) ** 2));
-      return { 'Excitation Frequency': ['hz', f], 'Frequency Ratio (r = f ÷ fn)': ['ratio', r], 'Transmissibility (T, force out ÷ force in)': ['ratio', T], 'Isolation Efficiency ((1 − T) × 100)': ['pct', (1 - T) * 100] }; }, rel: 2e-3 }
+      return { 'Excitation Frequency': ['hz', f], 'Frequency Ratio (r = f ÷ fn)': ['ratio', r], 'Transmissibility (T, force out ÷ force in)': ['ratio', T], 'Isolation Efficiency ((1 − T) × 100)': ['pct', (1 - T) * 100] }; }, rel: 2e-3 },
+
+  /* ---- Batch 11c, C3 machining ---- */
+  { id: 'tool_deflection', fields: [['tdf_f', 'force', 600], ['tdf_l', 'length', 0.045], ['tdf_d', 'length', 0.012], ['tdf_e', 'modulus', 6.0e11]],
+    compute: v => { const I = Math.PI * v.tdf_d ** 4 / 64, d = v.tdf_f * v.tdf_l ** 3 / (3 * v.tdf_e * I);
+      return { 'Tool Tip Deflection': ['length', d], 'Tip Stiffness': ['springrate', v.tdf_f / d], 'Bending Stress at the Holder Face': ['stress', v.tdf_f * v.tdf_l * (v.tdf_d / 2) / I] }; }, rel: 2e-3 },
+  { id: 'cutting_force', fields: [['cf_kc', 'stress', 1.8e9], ['cf_ap', 'length', 0.002], ['cf_f', 'length', 0.0002], ['cf_v', 'sfm', 180], ['cf_eta', 'none', 0.85]],
+    compute: v => { const a = v.cf_ap * v.cf_f, fc = v.cf_kc * a, p = fc * v.cf_v / 60;   // W = N x m/s
+      return { 'Uncut Chip Area (a_p × f)': ['sqin', a], 'Main Cutting Force (Fc)': ['forcelbf', fc], 'Cutting Power at the Tool': ['power', p], 'Spindle Power Required (÷ efficiency)': ['power', p / v.cf_eta], 'Material Removal Rate': ['cuinmin', a * v.cf_v] }; }, rel: 2e-3 },
+  { id: 'tool_life', fields: [['tl_v', 'sfm', 150], ['tl_n', 'none', 0.3], ['tl_c', 'sfm', 400], ['tl_t', 'none', 20]],
+    compute: v => { const t = (v.tl_c / v.tl_v) ** (1 / v.tl_n);
+      return { 'Predicted Tool Life': ['minutes', t], 'Speed for the Target Life': ['sfm', v.tl_c / v.tl_t ** v.tl_n], 'Tool Life if Speed Rises 10 %': ['minutes', t * (1 / 1.1) ** (1 / v.tl_n)] }; }, rel: 2e-3 },
+  { id: 'thread_cutting_speed', fields: [['tcs_d', 'length', 0.016], ['tcs_tpi', 'none', 11], ['tcs_l', 'length', 0.03], ['tcs_s', 'none', 2], ['tcs_np', 'none', 12], ['tcs_v', 'sfm', 60]],
+    compute: v => { const rpm = v.tcs_v / (Math.PI * v.tcs_d), lead = v.tcs_s * K.in_m / v.tcs_tpi, feed = rpm * lead;   // m/min over m
+      return { 'Spindle Speed': ['rpm', rpm], 'Lead (axial advance per revolution)': ['length', lead], 'Carriage Feed Rate': ['feedrate', feed], 'Time per Pass': ['minutes', v.tcs_l / feed], 'Total Cutting Time (all passes)': ['minutes', v.tcs_np * v.tcs_l / feed] }; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

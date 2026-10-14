@@ -55,6 +55,8 @@ const ADDED = [
   ['key_keyway_torque_capacity', 'OUT|Torque Capacity (Governing Limit)|lb-ft', 'DRIVELINE_TORQUE', 'Batch 11a: the governing key torque capacity'],
   ['combined_axial_bending_stress', 'IN|cab_m|lb-ft', 'RETAIN-COMPONENT', 'Batch 11a: a bending moment in a structural member'],
   ['bolt_preload_from_torque', 'IN|bpt_t|lb-ft', 'RETAIN-COMPONENT', 'Batch 11b: a tightening torque, the same fastener-torque category as bolt_torque_spec'],
+  ['cutting_force', 'OUT|Cutting Power at the Tool|HP', 'RETAIN-ACCESSORY', 'Batch 11c: machine-tool power at the cutting edge, the same category as pump_power_requirement shaft power'],
+  ['cutting_force', 'OUT|Spindle Power Required (÷ efficiency)|HP', 'RETAIN-ACCESSORY', 'Batch 11c: machine-tool spindle power'],
 ];
 /* inventory rows the table does not carry: [calc, kind, key, why] */
 const DROPPED = [];

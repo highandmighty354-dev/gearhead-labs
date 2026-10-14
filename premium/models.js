@@ -466,7 +466,15 @@
     { id: 'engine_mount_natural_frequency', name: 'Engine Mount Natural Frequency',
       promo: 'Gearhead Labs Premium unlocks Engine Mount Natural Frequency — the bounce frequency and static sag of a powertrain on its mounts.' },
     { id: 'isolation_efficiency', name: 'Isolation Efficiency',
-      promo: 'Gearhead Labs Premium unlocks Isolation Efficiency — transmissibility and percent isolation of a mount at a given engine speed.' }
+      promo: 'Gearhead Labs Premium unlocks Isolation Efficiency — transmissibility and percent isolation of a mount at a given engine speed.' },
+    { id: 'tool_deflection', name: 'Tool Deflection',
+      promo: 'Gearhead Labs Premium unlocks Tool Deflection — tip deflection, stiffness and stress of a cutting tool as a cantilever.' },
+    { id: 'cutting_force', name: 'Cutting Force',
+      promo: 'Gearhead Labs Premium unlocks Cutting Force — turning force, cutting and spindle power and removal rate from the specific cutting force.' },
+    { id: 'tool_life', name: 'Tool Life',
+      promo: 'Gearhead Labs Premium unlocks Tool Life — Taylor tool life, the speed for a target life and the cost of running faster.' },
+    { id: 'thread_cutting_speed', name: 'Thread Cutting Speed',
+      promo: 'Gearhead Labs Premium unlocks Thread Cutting Speed — spindle speed, lead, carriage feed and pass time for UN or ISO threads.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */
