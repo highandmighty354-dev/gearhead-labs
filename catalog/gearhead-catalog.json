@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "305af0370dc39a3b93929188a59054c56f81c3d8f8a2e0a65810753909f6149f"
+      "sha256": "31def8e4cb4d6a470b09ad10f3d53a622c87937af893574061ae5154fb5f6349"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -12,7 +12,7 @@
     },
     "models": {
       "file": "premium/models.js",
-      "sha256": "81725c61f3fdc8469d9bcecca8beb04cdc4ba68d5f2d9979909968ccdd512f64"
+      "sha256": "449300a3433181acef500ef38d1e5c3b0a8a50f03d316d11dc93116753221255"
     },
     "engineering": {
       "file": "engineering-expansion-v1.js",
@@ -22,10 +22,10 @@
   "counts": {
     "free_public_calculators": 585,
     "migrated_premium_calculators": 21,
-    "premium_expansion_calculators": 131,
+    "premium_expansion_calculators": 132,
     "engineering_lab_tools": 14,
-    "premium_only_tools": 166,
-    "premium_total_access": 751,
+    "premium_only_tools": 167,
+    "premium_total_access": 752,
     "aliases_not_counted": 6,
     "free_by_lab": {
       "universal": 315,
@@ -35,22 +35,22 @@
       "ev": 39
     },
     "premium_by_kind": {
-      "calculator": 152,
+      "calculator": 153,
       "workbench": 4,
       "analyzer": 10
     },
     "save": {
       "eligible": 577,
-      "excluded": 160,
+      "excluded": 161,
       "saveable": 14
     },
-    "premium_expansion_validated": 145,
+    "premium_expansion_validated": 146,
     "approved_future_tools": 0
   },
   "decisions": [
-    "Owner decision 2026-10-06: the 160 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
+    "Owner decision 2026-10-06: the 161 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
     "Owner decision 2026-10-06: 21 existing Free calculators are migrated to Premium, cutting the originally-proposed 70-item list to the 21 the audit actually recommended (Gearhead_Labs_Premium_Migration_AUDIT.xlsx; 49 rejected as Engineering Lab duplicates, SEO/on-ramp anchors, or workbook-arithmetic errors). Free drops from 606 to 585; the Engineering Lab (E01-E14) is unaffected. The 147-item future roadmap remains unimplemented and uncounted.",
-    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 131 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
+    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 132 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
   ],
   "premium_migration": {
     "rule": "A Free calculator moves to Premium only from an owner-approved audit in this repository (Gearhead_Labs_Premium_Migration_AUDIT.xlsx). Each migrated calculator keeps a named Free companion as its on-ramp and stays visible (not hidden) in the Free calculator navigation with a Premium indicator.",
@@ -186,7 +186,7 @@
   },
   "premium_expansion": {
     "rule": "A Premium tool enters this catalog only from approved engineering/product work in this repository, after QA. No count target (the historical ~140 / 752 figures are not used).",
-    "validated": 145,
+    "validated": 146,
     "sources": [
       {
         "source": "ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)",
@@ -202,11 +202,11 @@
       },
       {
         "source": "Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list from the Phase 1 reconciliation and exception resolution)",
-        "outcome": "131 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 12 remain"
+        "outcome": "132 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 11 remain"
       }
     ],
     "premium_calculators": {
-      "validated": 131,
+      "validated": 132,
       "tools": [
         {
           "id": "ac_power_factor",
@@ -682,6 +682,11 @@
           "id": "recovery_strap_energy",
           "name": "Recovery Strap/Rope Energy",
           "category": "TOWING / PHYSICS"
+        },
+        {
+          "id": "regen_braking_energy",
+          "name": "Regenerative Braking Energy Recovery",
+          "category": "EV / HYBRID & ALTERNATIVE ENERGY"
         },
         {
           "id": "reynolds_number",
@@ -1588,6 +1593,7 @@
     {"id":"radiator_core_sizing","name":"Radiator Core Sizing","category":"UNIVERSAL / THERMAL & HVAC","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Radiator Core Sizing — solves the sizing problem the Free Radiator Heat Rejection calculator doesn’t: how much core area you actually need."},
     {"id":"rc_time_constant","name":"RC Time Constant","category":"UNIVERSAL / ELECTRICAL","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the RC Time Constant calculator — a foundational circuit-theory tool for sensor filters, debounce circuits, and signal conditioning."},
     {"id":"recovery_strap_energy","name":"Recovery Strap/Rope Energy","category":"TOWING / PHYSICS","lab":"towing","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Recovery Strap/Rope Energy — stored energy, peak stretch and peak force against the strap rating."},
+    {"id":"regen_braking_energy","name":"Regenerative Braking Energy Recovery","category":"EV / HYBRID & ALTERNATIVE ENERGY","lab":"ev","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Regenerative Braking Energy Recovery — energy back to the battery from a stop, with motor and battery limits and the friction-brake share."},
     {"id":"reynolds_number","name":"Reynolds Number","category":"HYDRAULICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Reynolds Number calculator — classify flow as laminar, transitional, or turbulent in any coolant, oil, fuel, or hydraulic line."},
     {"id":"rl_time_constant","name":"RL Time Constant","category":"UNIVERSAL / ELECTRICAL","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the RL Time Constant calculator — the same relationship behind ignition coil charging, generalized to any solenoid, relay, or field winding."},
     {"id":"rod_bearing_pv","name":"Rod Bearing PV","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Rod Bearing PV — a pressure-velocity screening check against your bearing’s rated limit before you spin it up."},

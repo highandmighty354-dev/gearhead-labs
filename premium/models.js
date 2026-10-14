@@ -482,7 +482,9 @@
     { id: 'tuned_pipe_length', name: 'Tuned-Pipe Length',
       promo: 'Gearhead Labs Premium unlocks Tuned-Pipe Length — the effective expansion-chamber length for a tuning speed from exhaust duration and gas temperature.' },
     { id: 'scavenging_charging_efficiency', name: 'Scavenging / Charging Efficiency',
-      promo: 'Gearhead Labs Premium unlocks Scavenging / Charging Efficiency — delivery ratio, charging efficiency and the ideal scavenging references for a two-stroke.' }
+      promo: 'Gearhead Labs Premium unlocks Scavenging / Charging Efficiency — delivery ratio, charging efficiency and the ideal scavenging references for a two-stroke.' },
+    { id: 'regen_braking_energy', name: 'Regenerative Braking Energy Recovery',
+      promo: 'Gearhead Labs Premium unlocks Regenerative Braking Energy Recovery — energy back to the battery from a stop, with motor and battery limits and the friction-brake share.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */

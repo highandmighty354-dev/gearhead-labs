@@ -89,7 +89,9 @@ const IN = {
   inertia:{ toSI: (s, x) => s === 'metric' ? x : x * K.lb_kg * K.ft_m * K.ft_m, fromSI: (s, x) => s === 'metric' ? x : x / (K.lb_kg * K.ft_m * K.ft_m) },  // lb·ft² <-> kg·m², base kg·m²
   /* --- Batch 13 --- */
   cubicin:{ toSI: (s, x) => s === 'metric' ? x * 1e-6 : x * K.in_m ** 3, fromSI: (s, x) => s === 'metric' ? x * 1e6 : x / K.in_m ** 3 },  // ci <-> cc, base m^3
-  massflow: { toSI: (s, x) => s === 'metric' ? x : x * K.lb_kg, fromSI: (s, x) => s === 'metric' ? x : x / K.lb_kg }                       // lb/hr <-> kg/hr, base kg/h
+  massflow: { toSI: (s, x) => s === 'metric' ? x : x * K.lb_kg, fromSI: (s, x) => s === 'metric' ? x : x / K.lb_kg },                      // lb/hr <-> kg/hr, base kg/h
+  /* --- Batch 14 stage 1 --- */
+  massflowmin: { toSI: (s, x) => (s === 'metric' ? x : x * K.lb_kg) / 60, fromSI: (s, x) => (s === 'metric' ? x : x / K.lb_kg) * 60 }       // lbs/min <-> kg/min, base kg/s
 };
 /* output kinds: SI -> display, plus the unit text the page must show */
 const OUT = {
@@ -143,7 +145,13 @@ const OUT = {
   cuinmin:{ fromSI: (s, x) => x / K.in_m ** 3, unit: s => 'in³/min' },                                                                  // Batch 11c: unregistered (imperial-only, like material_removal), base m^3/min
   heatin: { fromSI: (s, x) => s === 'metric' ? x / 1e6 : x * K.in_m / 1000, unit: s => s === 'metric' ? 'kJ/mm' : 'kJ/in' },
   cubicin:{ fromSI: (s, x) => s === 'metric' ? x * 1e6 : x / K.in_m ** 3, unit: s => s === 'metric' ? 'cc' : 'ci' },                   // Batch 13: a volume, base m^3
-  density:{ fromSI: (s, x) => s === 'metric' ? x : x * K.ft_m ** 3 / K.lb_kg, unit: s => s === 'metric' ? 'kg/m³' : 'lb/ft³' }        // Batch 13: a density, base kg/m^3                                                                                                  // base degrees: the same number and symbol in both systems
+  density:{ fromSI: (s, x) => s === 'metric' ? x : x * K.ft_m ** 3 / K.lb_kg, unit: s => s === 'metric' ? 'kg/m³' : 'lb/ft³' },   // Batch 13: a density, base kg/m^3
+  /* Batch 14 stage 1: neutral energy / power / current / time rows, and a temperature reading */
+  kwh:    { fromSI: (s, x) => x / 3.6e6, unit: s => 'kWh' },                                                                            // base J
+  watts:  { fromSI: (s, x) => x, unit: s => 'W' },                                                                                      // base W (heat, RETAIN-ACCESSORY)
+  amps:   { fromSI: (s, x) => x, unit: s => 'A' },
+  seconds:{ fromSI: (s, x) => x, unit: s => 'sec' },
+  tempabs:{ fromSI: (s, x) => s === 'metric' ? x - 273.15 : (x - 273.15) * 9 / 5 + 32, unit: s => s === 'metric' ? '°C' : '°F' }       // base K                                                                                                  // base degrees: the same number and symbol in both systems
 };
 
 /* ---- cases: fields = [id, input kind, SI edit value used for the re-entry steps]; compute(inSI) -> {label: [outKind, SI value]} ---- */
@@ -493,7 +501,19 @@ const CASES = [
   { id: 'scavenging_charging_efficiency', fields: [['sce_v', 'cubicin', 2.5e-4], ['sce_m', 'massflow', 95], ['sce_p', 'pressure', 1.0e5], ['sce_t', 'tempabs', 295], ['sce_te', 'none', 70], ['sce_rpm', 'none', 7500]],
     compute: v => { const rho = v.sce_p / (287.058 * v.sce_t), dr = v.sce_m / 3600 / (v.sce_rpm / 60) / (rho * v.sce_v), pm = 1 - Math.exp(-dr);
       return { 'Ambient Air Density': ['density', rho], 'Delivery Ratio (DR)': ['ratio', dr], 'Charging Efficiency (CE = TE × DR)': ['pct', v.sce_te * dr], 'Ideal Scavenging Efficiency, Perfect Displacement': ['pct', Math.min(dr, 1) * 100],
-               'Ideal Scavenging Efficiency, Perfect Mixing': ['pct', pm * 100], 'Ideal Trapping Efficiency, Perfect Mixing': ['pct', pm / dr * 100] }; }, rel: 2e-3 }
+               'Ideal Scavenging Efficiency, Perfect Mixing': ['pct', pm * 100], 'Ideal Trapping Efficiency, Perfect Mixing': ['pct', pm / dr * 100] }; }, rel: 2e-3 },
+
+  /* ---- Batch 14 stage 1, E1A: Regenerative Braking Energy Recovery (closed form here; structural-14 checks it against a time-stepped stop). The field order keeps every
+     intermediate state valid (end speed edited while below the start speed; the start speed last, re-typed at 0.9x). ---- */
+  { id: 'regen_braking_energy', fields: [['rbe_m', 'mass', 1800], ['rbe_v2', 'speed', 3], ['rbe_a', 'none', 0.25], ['rbe_vmin', 'speed', 2.5], ['rbe_k', 'none', 1.03], ['rbe_f', 'none', 80],
+      ['rbe_pmg', 'none', 120], ['rbe_pb', 'none', 70], ['rbe_edt', 'none', 96], ['rbe_emi', 'none', 91], ['rbe_eb', 'none', 94], ['rbe_v1', 'speed', 30]],
+    compute: v => { const m = v.rbe_m, k = v.rbe_k, a = v.rbe_a * 9.80665, f = v.rbe_f / 100, edt = v.rbe_edt / 100, emi = v.rbe_emi / 100, eb = v.rbe_eb / 100, v1 = v.rbe_v1, v2 = v.rbe_v2;
+      const Pw = Math.min(v.rbe_pmg * 1000 / edt, v.rbe_pb * 1000 / (edt * emi)), vs = Pw / (f * k * m * a), lo = Math.max(v2, v.rbe_vmin);
+      let E = 0, hi = v1; if (hi > lo) { if (hi > vs) { const b = Math.max(vs, lo); E += Pw * (hi - b) / a; hi = b; } if (hi > lo) E += f * 0.5 * k * m * (hi * hi - lo * lo); }
+      const KE = 0.5 * k * m * (v1 * v1 - v2 * v2);
+      return { 'Kinetic Energy Released': ['kwh', KE], 'Regenerative Energy at the Wheels': ['kwh', E], 'Friction-Brake Energy': ['kwh', KE - E], 'Energy Delivered to the Battery Terminals': ['kwh', E * edt * emi],
+               'Energy Stored (after battery charging loss)': ['kwh', E * edt * emi * eb], 'Recovered at the Battery Terminals (share of kinetic energy)': ['pct', E * edt * emi / KE * 100],
+               'Wheel-Referred Regen Power Limit': ['kw', Pw / 1000], 'Stop Duration': ['seconds', (v1 - v2) / a] }; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

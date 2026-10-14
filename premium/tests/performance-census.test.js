@@ -57,6 +57,10 @@ const ADDED = [
   ['bolt_preload_from_torque', 'IN|bpt_t|lb-ft', 'RETAIN-COMPONENT', 'Batch 11b: a tightening torque, the same fastener-torque category as bolt_torque_spec'],
   ['cutting_force', 'OUT|Cutting Power at the Tool|HP', 'RETAIN-ACCESSORY', 'Batch 11c: machine-tool power at the cutting edge, the same category as pump_power_requirement shaft power'],
   ['cutting_force', 'OUT|Spindle Power Required (÷ efficiency)|HP', 'RETAIN-ACCESSORY', 'Batch 11c: machine-tool spindle power'],
+  ['regen_braking_energy', 'IN|rbe_pmg|kW', 'EV_POWER', 'Batch 14 stage 1: the motor/generator regen power limit (native kW box)'],
+  ['regen_braking_energy', 'IN|rbe_pb|kW', 'EV_POWER', 'Batch 14 stage 1: the battery charge-acceptance power limit (native kW box)'],
+  ['regen_braking_energy', 'OUT|Wheel-Referred Regen Power Limit|kW', 'EV_POWER', 'Batch 14 stage 1: the binding regen power cap referred to the wheels'],
+  ['regen_braking_energy', 'OUT|Peak Regen Power at the Wheels|kW', 'EV_POWER', 'Batch 14 stage 1: peak regen power at the wheels'],
 ];
 /* inventory rows the table does not carry: [calc, kind, key, why] */
 const DROPPED = [];
