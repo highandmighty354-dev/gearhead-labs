@@ -86,7 +86,9 @@ const IN = {
   modulus:{ toSI: (s, x) => s === 'metric' ? x * 1e9 : x * 1e6 * K.psi_Pa, fromSI: (s, x) => s === 'metric' ? x / 1e9 : x / (1e6 * K.psi_Pa) },          // Mpsi <-> GPa, base Pa
   tstiff: { toSI: (s, x) => s === 'metric' ? x : x * K.ftlbf_J, fromSI: (s, x) => s === 'metric' ? x : x / K.ftlbf_J },                                // lb-ft/deg <-> N.m/deg, base N.m/deg
   /* --- Batch 11c --- */
-  inertia:{ toSI: (s, x) => s === 'metric' ? x : x * K.lb_kg * K.ft_m * K.ft_m, fromSI: (s, x) => s === 'metric' ? x : x / (K.lb_kg * K.ft_m * K.ft_m) }  // lb·ft² <-> kg·m², base kg·m²
+  inertia:{ toSI: (s, x) => s === 'metric' ? x : x * K.lb_kg * K.ft_m * K.ft_m, fromSI: (s, x) => s === 'metric' ? x : x / (K.lb_kg * K.ft_m * K.ft_m) },  // lb·ft² <-> kg·m², base kg·m²
+  /* --- Batch 13 --- */
+  cubicin:{ toSI: (s, x) => s === 'metric' ? x * 1e-6 : x * K.in_m ** 3, fromSI: (s, x) => s === 'metric' ? x * 1e6 : x / K.in_m ** 3 }   // ci <-> cc, base m^3
 };
 /* output kinds: SI -> display, plus the unit text the page must show */
 const OUT = {
@@ -138,7 +140,8 @@ const OUT = {
   sfm:    { fromSI: (s, x) => s === 'metric' ? x : x / K.ft_m, unit: s => s === 'metric' ? 'm/min' : 'SFM' },                                  // Batch 11c: a surface speed, base m/min
   minutes:{ fromSI: (s, x) => x, unit: s => 'min' },                                                                                     // Batch 11c: a time in minutes, both systems
   cuinmin:{ fromSI: (s, x) => x / K.in_m ** 3, unit: s => 'in³/min' },                                                                  // Batch 11c: unregistered (imperial-only, like material_removal), base m^3/min
-  heatin: { fromSI: (s, x) => s === 'metric' ? x / 1e6 : x * K.in_m / 1000, unit: s => s === 'metric' ? 'kJ/mm' : 'kJ/in' }                                                                                                  // base degrees: the same number and symbol in both systems
+  heatin: { fromSI: (s, x) => s === 'metric' ? x / 1e6 : x * K.in_m / 1000, unit: s => s === 'metric' ? 'kJ/mm' : 'kJ/in' },
+  cubicin:{ fromSI: (s, x) => s === 'metric' ? x * 1e6 : x / K.in_m ** 3, unit: s => s === 'metric' ? 'cc' : 'ci' }                    // Batch 13: a volume, base m^3                                                                                                  // base degrees: the same number and symbol in both systems
 };
 
 /* ---- cases: fields = [id, input kind, SI edit value used for the re-entry steps]; compute(inSI) -> {label: [outKind, SI value]} ---- */
@@ -468,7 +471,18 @@ const CASES = [
       return { 'Predicted Tool Life': ['minutes', t], 'Speed for the Target Life': ['sfm', v.tl_c / v.tl_t ** v.tl_n], 'Tool Life if Speed Rises 10 %': ['minutes', t * (1 / 1.1) ** (1 / v.tl_n)] }; }, rel: 2e-3 },
   { id: 'thread_cutting_speed', fields: [['tcs_d', 'length', 0.016], ['tcs_tpi', 'none', 11], ['tcs_l', 'length', 0.03], ['tcs_s', 'none', 2], ['tcs_np', 'none', 12], ['tcs_v', 'sfm', 60]],
     compute: v => { const rpm = v.tcs_v / (Math.PI * v.tcs_d), lead = v.tcs_s * K.in_m / v.tcs_tpi, feed = rpm * lead;   // m/min over m
-      return { 'Spindle Speed': ['rpm', rpm], 'Lead (axial advance per revolution)': ['length', lead], 'Carriage Feed Rate': ['feedrate', feed], 'Time per Pass': ['minutes', v.tcs_l / feed], 'Total Cutting Time (all passes)': ['minutes', v.tcs_np * v.tcs_l / feed] }; }, rel: 2e-3 }
+      return { 'Spindle Speed': ['rpm', rpm], 'Lead (axial advance per revolution)': ['length', lead], 'Carriage Feed Rate': ['feedrate', feed], 'Time per Pass': ['minutes', v.tcs_l / feed], 'Total Cutting Time (all passes)': ['minutes', v.tcs_np * v.tcs_l / feed] }; }, rel: 2e-3 },
+
+  /* ---- Batch 13, D1 two-stroke geometry. The port angle is found by bisection on the forward crank-slider travel (the page inverts it in closed form). The rod is the last field
+     (re-typed at 0.9x by the harness), so the port edges stay in their valid order. ---- */
+  { id: 'port_timing_from_geometry', fields: [['ptg_s', 'length', 0.054], ['ptg_dc', 'length', 0.0005], ['ptg_de', 'length', 0.027], ['ptg_dt', 'length', 0.035], ['ptg_l', 'length', 0.11]],
+    compute: v => { const r = v.ptg_s / 2, l = v.ptg_l, x = th => r * (1 - Math.cos(th)) + l - Math.sqrt(l * l - (r * Math.sin(th)) ** 2);
+      const ang = h => { let lo = 0, hi = Math.PI; for (let i = 0; i < 100; i++) { const m = (lo + hi) / 2; if (x(m) < h) lo = m; else hi = m; } return lo * 180 / Math.PI; };
+      const eo = ang(v.ptg_de - v.ptg_dc), to = ang(v.ptg_dt - v.ptg_dc), ed = 2 * (180 - eo), td = 2 * (180 - to);
+      return { 'Exhaust Opens (after TDC)': ['angle', eo], 'Exhaust Duration': ['angle', ed], 'Transfer Opens (after TDC)': ['angle', to], 'Transfer Duration': ['angle', td], 'Exhaust Lead (blowdown angle)': ['angle', (ed - td) / 2] }; }, rel: 2e-3 },
+  { id: 'crankcase_compression_ratio', fields: [['ccr_b', 'length', 0.056], ['ccr_s', 'length', 0.054], ['ccr_v', 'cubicin', 4.2e-4]],
+    compute: v => { const vs = Math.PI / 4 * v.ccr_b ** 2 * v.ccr_s;
+      return { 'Swept Volume': ['cubicin', vs], 'Crankcase Volume at TDC': ['cubicin', v.ccr_v + vs], 'Crankcase Compression Ratio': ['ratio', (v.ccr_v + vs) / v.ccr_v] }; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

@@ -474,7 +474,11 @@
     { id: 'tool_life', name: 'Tool Life',
       promo: 'Gearhead Labs Premium unlocks Tool Life — Taylor tool life, the speed for a target life and the cost of running faster.' },
     { id: 'thread_cutting_speed', name: 'Thread Cutting Speed',
-      promo: 'Gearhead Labs Premium unlocks Thread Cutting Speed — spindle speed, lead, carriage feed and pass time for UN or ISO threads.' }
+      promo: 'Gearhead Labs Premium unlocks Thread Cutting Speed — spindle speed, lead, carriage feed and pass time for UN or ISO threads.' },
+    { id: 'port_timing_from_geometry', name: 'Port Timing from Measured Geometry',
+      promo: 'Gearhead Labs Premium unlocks Port Timing from Measured Geometry — two-stroke port opening angles, durations and exhaust lead from measured port heights.' },
+    { id: 'crankcase_compression_ratio', name: 'Crankcase Compression Ratio',
+      promo: 'Gearhead Labs Premium unlocks Crankcase Compression Ratio — the primary compression ratio of a crankcase-scavenged two-stroke.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */
