@@ -92,7 +92,7 @@ Saving is not being extended to new tools while the catalog is incomplete. The e
 - **Decided (2026-10-14, owner authorization for Batch 13):** Scavenging / Charging Efficiency and Port Timing from Measured Geometry (classed "Analyzer" in the reconciliation) are built as calculators, with their limits stated on the page. The Batch 13 formula decisions (tuned-pipe model with an explicit exhaust-gas temperature, scavenging definitions and the two ideal reference curves, crankcase compression ratio convention) are recorded in the Batch 13 section.
 - **Decided (2026-10-14, owner authorization, Batch 14 stage 1):** Regenerative Braking Energy Recovery and Battery Pack Heat Balance only, from the Batch 14 model specification; heat rows in W (RETAIN-ACCESSORY), EV power in native kW (EV_POWER), energies kWh / Wh / kJ on a page selector. The specification's battery transient was corrected (see the Batch 14 stage 1 section).
 - **Decided (2026-10-14, owner authorization, Batch 14 stage 2):** Motor Thermal Limit and Inverter Thermal Load (Mode A only), with decisions S2-1 to S2-8 (`claude/batch-14-stage2-decisions.md` in the project): loss rows in W (RETAIN-ACCESSORY), EV power in native kW, motor input power or torque + speed (torque EV_TORQUE, lb-ft under Auto), τ as the motor heat-storage input with C as a result, the extrapolated continuous output kept and labelled, copper-loss feedback left out, no inverter junction estimate and no Mode B selector.
-- **Open: next batch.** Batch 11 (37), Batch 13 (4) and Batch 14 (6 of 6) are complete. 6 approved items remain: Batch 16 Workbenches (6), unauthorized. Inverter Thermal Load's Mode B is also outstanding: it is not ready (its application-note equations and switching-loss scaling are unverified; D-14-4). No batch starts without explicit authorization. Per the owner (2026-10-15), the GH-DEF-034 investigation (Bolt Torque Spec stress area) comes before any further batch (see "Batch 14 closeout"). GH-DEF-034 was then corrected and closed (see "GH-DEF-034 fix"); its production formula row is a deferred action under GH-ENG-014.
+- **Open: next batch.** Batch 11 (37), Batch 13 (4) and Batch 14 (6 of 6) are complete. 6 approved items remain: Batch 16 Workbenches (6), unauthorized. Inverter Thermal Load's Mode B is also outstanding: it is not ready (its application-note equations and switching-loss scaling are unverified; D-14-4). No batch starts without explicit authorization. Per the owner (2026-10-15), the GH-DEF-034 investigation (Bolt Torque Spec stress area) comes before any further batch (see "Batch 14 closeout"). GH-DEF-034 was then corrected and closed (see "GH-DEF-034 fix"); its production formula row is a deferred action under GH-ENG-014. GH-DEF-036 (Bolt Stretch) was then corrected and closed (see "GH-DEF-036 fix"); the ENG-014 migration now has four rows (proposal Section 12).
 - **Open: E01–E14 QA counting.** They are live in the Premium Engineering Lab, but ENGINEERING_EXPANSION_CATALOG_V1.md says they are not counted as public calculators until QA sign-off.
 
 ### Calculators excluded from saving (119)
@@ -1148,6 +1148,45 @@ The owner authorized this correction on 2026-10-15. The full record is the GH-DE
 - 1/2-20 UNF: the formula gives 0.15995 in², and the sources print 0.1599.
 - Grade 2's 6-inch length condition is stated on the page, not checked.
 - Bolt Stretch applies the strain measured over the whole bolt to the threaded area (an observation outside this defect).
+
+### GH-DEF-036 fix — Bolt Stretch: shank and thread in series (2026-10-15)
+
+The owner authorized this correction on 2026-10-15. The full record is the GH-DEF-036 entry in [DEFERRED-WORK-REGISTER.md](DEFERRED-WORK-REGISTER.md).
+
+**Root cause.** `bolt_stretch` turned a stretch into a load as E × (stretch ÷ length) × A_t, which treats the bolt as one uniform bar of the thread's tensile stress area. A real bolt's loaded shank and loaded thread stretch in series (MechaniCalc, Bolted Joint Analysis). So the page:
+- read a bolt with a plain shank low, by up to about 30 % for 3/8-16;
+- read a reduced (waisted) shank high;
+- counted thread beyond the nut as if it were loaded.
+
+**Correction.**
+- **Three new boxes:**
+  - Plain Shank Length (default 0);
+  - Shank Diameter (blank = the nominal diameter; in mm for an ISO thread);
+  - Loaded Thread Length (blank = bolt length − shank length).
+- **Load:** clamp load = E δ ÷ (L_s ÷ A_s + L_t ÷ A_t). Length beyond L_s + L_t is unloaded.
+- **Stress rows:** Thread Stress and Shank Stress replace the single "Bolt Stress".
+- **Disclosed on the page:** head, engaged-thread, bending and temperature effects are not included. The 0.04 % default is stated as an example, not a recommended stretch; it is unchanged and has no source.
+- **Defaults and fully threaded bolts read exactly as before:** 899 lbf and 11,600 psi.
+- **Saved-calculation formula:** `GH_E1_FORMULAS.bolt_stretch` had the same uniform-bar model. It now computes the clamp load from the stretch through the same series model.
+  - Its fingerprint moved from `fv1-d48e7340` to `fv1-8e827c77`, recorded in `VERSIONED`.
+  - The production row is deferred to the ENG-014 migration, whose final four-row set is in its proposal, Section 12.
+
+**Representative results** (3/8-16, 2 in, 0.006 in stretch; the old page read 6,742 lbf for every one):
+
+| Bolt | Clamp load | Thread / shank stress |
+|---|---|---|
+| Fully threaded | 6,742 lbf | 87,000 psi / — |
+| 1 in shank + 1 in thread | 7,924 lbf | 102,256 / 71,743 psi |
+| 1.75 in shank + 0.25 in thread | 9,124 lbf | 117,742 / 82,608 psi |
+| 0.5 in of thread past the nut | 8,989 lbf | 116,000 psi / — |
+| 3/8-24, 0.300 in reduced shank 1.5 in + 0.5 in thread | 6,465 lbf (was 7,641) | 73,610 / 91,463 psi |
+
+**Verification.**
+- **Tests first:** `bolt-stretch-def036` failed 115 of 136 checks before the code; it passes 439 of 439 after.
+- **Self-test:** 736 / 736.
+- **Fingerprints:** 4 recorded corrections.
+- **`run-tests.sh`:** catalog OK, register OK, frontend 55/55, schema 26/26.
+- **Full browser regression:** **37 of 37 suites passed**, with the engine and test files checksum-frozen.
 
 ### Batch 14 closeout (2026-10-15)
 

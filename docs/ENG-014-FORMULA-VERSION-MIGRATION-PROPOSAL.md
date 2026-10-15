@@ -257,3 +257,85 @@ It also expects 580 formula versions instead of 579. Result: **22 run, 22 passed
 - **D5.** Add `bolt_torque_spec` as a third row in the same migration (recommended: one migration, not a `0408` + `0409` pair).
 - **D6.** A read-only production count of `calculation_records` for `bolt_torque_spec`, as was done for D2. It was not run here: this task does not authorize SQL against Supabase. The 2026-10-13 count covered only the two other calculators.
 - **D7.** Settle the Bolt Stretch question (GH-DEF-036) before the migration is prepared. If that fix changes the `bolt_stretch` registry formula (seed `fv1-d48e7340`), it needs a fourth row, and folding it into the same migration avoids a second production change.
+
+## 12. Addendum of 2026-10-15 (later): the fourth corrected formula (`bolt_stretch`, GH-DEF-036) and the final row set
+
+**Status: documentation only. NOT applied, and no migration file was created.**
+- Sections 1–11 are unchanged. Section 11 is kept as written, for the record of the three-row draft.
+- The Section 2 SQL block between the `PROPOSED-SQL` markers still has the original two rows, so `eng014-throwaway-db.sh` still passes 17 of 17.
+- **Owner decisions recorded (2026-10-15):** add `bolt_torque_spec` to the proposal (D5); wait for the Bolt Stretch correction before the final migration (D7). This section is that final row set.
+
+**Why a fourth row.**
+- The GH-DEF-036 correction replaced the `bolt_stretch` registry formula (`GH_E1_FORMULAS`).
+- **Old formula** (seed `fv1-d48e7340`): `f*l/(a*e)`, the stretch of one uniform bar from a load, with inputs `f`, `l`, `a`, `e` and output "Bolt Stretch" (in).
+- **New formula** (**`fv1-8e827c77`**): the page's model. The clamp load is calculated from a stretch through the loaded shank and loaded thread in series:
+  - inputs `bolt_len`, `target_stretch_pct`, `bst_d`, `bst_std` (categorical), `bst_tpi`, `bst_ls`, `bst_ds`, `bst_lt`;
+  - output "Estimated Clamp Load" (lbf).
+
+**The final row set:**
+
+| Calculator | Production row (kept) | New fingerprint | `engine_version` | `formula_registry` | `first_release` | Register |
+|---|---|---|---|---|---|---|
+| `dew_point` | `fv1-260e7f34` | `fv1-73ddeaf4` | `1.1.0` | `GH_LEGACY_FORMULAS` | `F1.12.4` | GH-DEF-005 |
+| `distance_converter` | `fv1-36d27af2` | `fv1-4001b424` | `1.1.0` | `GH_LEGACY_FORMULAS` | `F1.12.4` | GH-DEF-019 |
+| `bolt_torque_spec` | `fv1-f63ea4c8` | `fv1-25b1f973` | `1.1.0` | `GH_LEGACY_FORMULAS` | `F1.12.4` | GH-DEF-034 |
+| `bolt_stretch` | `fv1-d48e7340` (seed line 625) | `fv1-8e827c77` | `1.1.0` | **`GH_E1_FORMULAS`** | `F1.12.4` | GH-DEF-036 |
+
+Every value was checked against the engine at the commit that adds this section: `GH_ENGINE.describe()` and `formula-fingerprints.test.js` (577 seed formulas, 573 identical, 4 recorded corrections). Both calculators exist in `calculators` and are their own canonical id.
+
+**A change to the post-condition, not only to the rows.** The Section 2 post-condition checks every new row against one registry name, `GH_LEGACY_FORMULAS`. `bolt_stretch` is in `GH_E1_FORMULAS`, so that check would abort a correct four-row migration. The final draft therefore compares each row with its own metadata (a `VALUES` join).
+- **Negative control:** with `bolt_stretch` deliberately given the wrong registry, the migration aborted (exit code 3), wrote nothing, and the new fingerprint stayed refused.
+
+```sql
+INSERT INTO public.formula_versions (calculator_id, formula_version, engine_version, formula_registry, first_release) VALUES
+  ('dew_point',          'fv1-73ddeaf4', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4'),
+  ('distance_converter', 'fv1-4001b424', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4'),
+  ('bolt_torque_spec',   'fv1-25b1f973', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4'),
+  ('bolt_stretch',       'fv1-8e827c77', '1.1.0', 'GH_E1_FORMULAS',     'F1.12.4')
+ON CONFLICT (calculator_id, formula_version) DO NOTHING;
+-- post-condition 1: the four new rows, each with ITS OWN registry, engine 1.1.0, first release F1.12.4 (a VALUES join) -> n <> 4 aborts
+-- post-condition 2: the four original rows (dew_point fv1-260e7f34, distance_converter fv1-36d27af2, bolt_torque_spec fv1-f63ea4c8,
+--                   bolt_stretch fv1-d48e7340) still exist                                                             -> n <> 4 aborts
+```
+
+**Evidence (a throwaway local PostgreSQL, never a Supabase project; the repository script and Section 2 block not changed).** A scratch copy of `eng014-throwaway-db.sh` read the four-row draft and added:
+- B5–B8: old fingerprints accepted, new ones refused (`23503`), before the migration;
+- A12–A18: new fingerprints accepted, old rows and their records still resolving, the new `bolt_stretch` row carrying `GH_E1_FORMULAS`, and deletes refused, after the migration.
+
+It also expects 581 formula versions. Result: **28 run, 28 passed, 0 failed**, applied twice with exit codes 0/0.
+
+**Compatibility of the `bolt_stretch` change.**
+- **Old records are not reinterpreted.** A record made with `fv1-d48e7340` keeps its stored inputs (`f`, `l`, `a`, `e`) and its stored output, a stretch in inches. That row stays, because `formula_versions` and `calculation_records` are append-only.
+- **New records use new keys and a new output.** They carry the new input keys and the clamp load in lbf. The schema puts no constraint on input keys, and the front end only displays stored values.
+- **The direction of the saved formula changed** (load → stretch before; stretch → clamp load now), so the saved formula now records what the page shows. That is why the version changed rather than staying compatible.
+- **Two page-only details:** the page's blank boxes (shank diameter = nominal; loaded thread length = bolt length − shank length) are resolved by the page before anything is stored. The saved formula takes explicit values and refuses the same impossible inputs as the page.
+
+**What changes in the Section 10 checklist** (supersedes the Section 11 version):
+1. **The migration:** one file (placeholder `0408`) with the four-row SQL above and the per-row post-condition. The manifest is still 18 files.
+2. **`pf.test.js`:** `577` formula versions → **`581`**, plus an assertion that exactly the four new rows exist.
+3. **`eng014-throwaway-db.sh`:** the B5–B8 and A12–A18 checks, 579 → 581, 17 → **28** checks. The Section 2 block becomes the four-row text, with the per-row post-condition.
+4. **`formula-fingerprints.test.js` `VERSIONED`:** already lists all four. After the migration it should point at the migration rather than the seed (D3).
+5. **Unchanged:** the order of steps, the catalogue tooling (D3), and the two authorizations, except that authorization A names four rows.
+
+**D6 answered (2026-10-15).** The owner authorized one read-only count. It ran on the production project (`jmztpjudwzjvrcdtjynd`) through the project's Supabase connector:
+- **Result:** **0** `calculation_records` for `bolt_torque_spec`.
+- **Read-only:** inside `BEGIN TRANSACTION READ ONLY`, which the result confirms (`transaction_read_only = on`).
+- **Complete:** the connector's role bypasses row-level security (`rolbypassrls = true`), so the count covers every user.
+- **Nothing else read:** no record contents, inputs, outputs or personal data.
+- **Scope:** `bolt_stretch` was not counted; that count was not authorized.
+
+The connector is a full-privilege connection, not a least-privileged role. The read-only transaction and the aggregate-only query were the safeguards. The exact query:
+
+```sql
+BEGIN TRANSACTION READ ONLY;
+SELECT count(*) FILTER (WHERE canonical_id = 'bolt_torque_spec') AS bolt_torque_spec_records,
+       current_setting('transaction_read_only') AS transaction_read_only,
+       (SELECT rolbypassrls FROM pg_roles WHERE rolname = current_user) AS role_bypasses_rls
+FROM public.calculation_records;
+COMMIT;
+```
+
+**Decisions that remain:**
+- **D1:** approve the four rows and the per-row post-condition.
+- **D8 (new):** authorize a read-only count of `bolt_stretch` records, the same way.
+- **Then** the two separate authorizations of Section 10: A (prepare on the branch) and B (apply to production).

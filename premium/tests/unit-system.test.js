@@ -302,10 +302,13 @@ const CASES = [
   { id: 'valve_spring_rate', fields: [['d_vs', 'length', 0.0038], ['n_vs', 'none', 7], ['D_vs', 'length', 0.0229], ['seat_load', 'force', 580], ['lift_vs', 'length', 0.014]],
     compute: v => { const k = 11.5e6 * K.psi_Pa * Math.pow(v.d_vs, 4) / (8 * v.n_vs * Math.pow(v.D_vs, 3));              // k = G d^4 / (8 n D^3), G = 11.5e6 psi steel
       return { 'Spring Rate': ['springratelbs', k], 'Open Pressure': ['forcelbf', v.seat_load + k * v.lift_vs] }; }, rel: 6e-3 },       // open pressure = seat pressure + rate x lift, all newtons
-  { id: 'bolt_stretch', fields: [['bolt_len', 'length', 0.0508], ['bst_d', 'length', 0.0127], ['bst_tpi', 'none', 13], ['target_stretch_pct', 'none', 0.05]],
-    /* GH-DEF-034: the stress area of the thread entered (UN, ASME B1.1: pi/4 (d - 0.9743/n)^2; 1/2-13 = 0.1419 in^2), no longer a fixed 16 threads per inch */
-    compute: v => { const A_in2 = Math.PI / 4 * Math.pow(v.bst_d / K.in_m - 0.9743 / v.bst_tpi, 2);
-      return { 'Estimated Clamp Load': ['forcelbf', 29e6 * K.psi_Pa * (v.target_stretch_pct / 100) * A_in2 * K.in_m * K.in_m] }; }, rel: 6e-3 },   // F = E x strain x A
+  { id: 'bolt_stretch', fields: [['bolt_len', 'length', 0.0508], ['bst_d', 'length', 0.0127], ['bst_tpi', 'none', 13], ['bst_ls', 'length', 0.0254], ['bst_lt', 'length', 0.0254], ['target_stretch_pct', 'none', 0.05]],
+    /* GH-DEF-036: segments in series. A 1/2-13 bolt, 1 in plain shank (nominal area, the shank-diameter box left blank) and 1 in loaded thread (ASME B1.1 A_t):
+       F = E delta / (Ls/As + Lt/At), delta = length x %, all in SI (GH-DEF-034 before it: the stress area of the thread entered) */
+    /* the loaded-thread box starts blank (= bolt length - shank length) and this case never types 0 into it, so a 0 read from it is the blank box: apply the page's
+       rule. (verify() reads a blank box as 0; without this the expected value of the first steps would be infinite, which verify()'s relative tolerance cannot catch) */
+    compute: v => { const At = Math.PI / 4 * Math.pow(v.bst_d - 0.9743 * K.in_m / v.bst_tpi, 2), As = Math.PI / 4 * v.bst_d * v.bst_d, Lt = v.bst_lt > 0 ? v.bst_lt : v.bolt_len - v.bst_ls;
+      return { 'Estimated Clamp Load': ['forcelbf', 29e6 * K.psi_Pa * (v.bolt_len * v.target_stretch_pct / 100) / (v.bst_ls / As + Lt / At)] }; }, rel: 6e-3 },   // F = E x strain x A
 
   /* ---- D1 (approved 2026-10-13): load-transfer and corner-load results are read as the mass-equivalent scale reading, kg in Metric (the force divided by g0). ---- */
   { id: 'brake_bias', fields: [['wt_bb', 'mass', 1600], ['wb_bb', 'length', 2.75], ['cg_bb', 'length', 0.46], ['fpct_bb', 'none', 52], ['dec_bb', 'none', 1.0]],

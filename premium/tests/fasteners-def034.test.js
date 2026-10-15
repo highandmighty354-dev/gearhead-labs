@@ -191,7 +191,7 @@ const approx = (got, want, rel, dec) => Number.isFinite(got) && Math.abs(got - w
     }
     for (const [sys, stretch, load, stress] of [['imperial', '0.8', '899', '11,600'], ['metric', '0.0203', '3,998.9512', '799.7918']]) {
       const r = await show('bolt_stretch', sys);
-      check(`E bolt_stretch default [${sys}] stretch ${stretch}, clamp ${load}, stress ${stress}`, r.rows['Target Stretch'] && r.rows['Target Stretch'].text.startsWith(stretch) && r.rows['Estimated Clamp Load'] && r.rows['Estimated Clamp Load'].text === load && r.rows['Bolt Stress'] && r.rows['Bolt Stress'].text === stress, JSON.stringify(r.rows));
+      check(`E bolt_stretch default [${sys}] stretch ${stretch}, clamp ${load}, stress ${stress}`, r.rows['Target Stretch'] && r.rows['Target Stretch'].text.startsWith(stretch) && r.rows['Estimated Clamp Load'] && r.rows['Estimated Clamp Load'].text === load && r.rows['Thread Stress'] && r.rows['Thread Stress'].text === stress, JSON.stringify(r.rows));
       check(`E bolt_stretch default [${sys}] is 3/8-16 UN`, r.boxes[5] === 'un' && Math.abs(num(r.boxes[6]) - (sys === 'metric' ? 9.525 : 0.375)) < 1e-9 && r.boxes[7] === '16', JSON.stringify(r.boxes));
     }
     await ctx.close();
@@ -234,13 +234,15 @@ const approx = (got, want, rel, dec) => Number.isFinite(got) && Math.abs(got - w
     let r; try { r = await stretchCase(sys, th, lenIn, pct); } catch (e) { check(tag, false, String(e.message || e)); continue; }
     if (r.rows['Validation required']) { check(tag, false, 'validation error: ' + r.note.slice(0, 200)); continue; }
     const stretchThou = +(lenIn * (pct / 100) * 1000).toFixed(4), stress = +((stretchThou / 1000 / lenIn) * 29e6).toFixed(0), a = +areaOf(th).toFixed(5), load = +(stress * a).toFixed(0);
-    expectRows(tag, sys, r, { 'Estimated Clamp Load': [load, 'lbf'], 'Bolt Stress': [stress, 'psi'], 'Tensile Stress Area': [a, 'sq in'] });
+    /* GH-DEF-036: with only a thread entered the bolt is fully threaded and loaded, so the thread stress is E x strain, the old "Bolt Stress" */
+    expectRows(tag, sys, r, { 'Estimated Clamp Load': [load, 'lbf'], 'Thread Stress': [stress, 'psi'], 'Tensile Stress Area': [a, 'sq in'] });
   }
   for (const sys of ['imperial', 'metric']) for (const [what, th] of [['coarse pitch for the diameter (1/4-7)', { std: 'un', d: 0.25, n: 7 }], ['blank threads per inch', { std: 'un', d: 0.5, nText: '' }], ['ISO pitch 0', { std: 'iso', dm: 10, P: 0 }]]) {
     const tag = `G bolt_stretch [${sys}] ${what}`;
     let r; try { r = await stretchCase(sys, th, 2, 0.04); } catch (e) { check(tag, false, String(e.message || e)); continue; }
     check(`${tag}: Validation required and no clamp load`, !!r.rows['Validation required'] && !r.rows['Estimated Clamp Load'], JSON.stringify(Object.keys(r.rows)));
-    check(`${tag}: stretch and stress still shown (they do not use the thread)`, !!r.rows['Target Stretch'] && !!r.rows['Bolt Stress'] && num(r.rows['Bolt Stress'].text) === (sys === 'imperial' ? 11600 : num('799.7918')), JSON.stringify(r.rows));
+    /* GH-DEF-036 changed this: the stresses now come from the series model, which needs the thread's area, so an invalid thread leaves only the target stretch */
+    check(`${tag}: the target stretch is still shown (it does not use the thread); no stress without a valid thread`, !!r.rows['Target Stretch'] && !r.rows['Thread Stress'] && !r.rows['Shank Stress'], JSON.stringify(r.rows));
   }
 
   /* ---- H. saved-calculation formula parity ---- */
