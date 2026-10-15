@@ -958,6 +958,31 @@ The owner authorized these two calculators on 2026-10-14, after the Stage 2 deci
   - **Individual calculator results are clean; full-suite success is not.**
 - **Commits:** `67f45ae` (E2A), `3736b91` (E2B).
 
+### GH-DEF-035 fix — intermittent `nav-return` failures (2026-10-15)
+
+The owner authorized this investigation and fix on 2026-10-14. The full record is the GH-DEF-035 entry in [DEFERRED-WORK-REGISTER.md](DEFERRED-WORK-REGISTER.md), now **VERIFIED CLOSED**.
+
+**Effect on earlier results.** The Batch 11c, 13 and 14 regressions above reported `nav-return` failing with this signature. Their results stand as recorded; from commit `ca2f9b8` on, the full regression passes.
+
+**Root cause.** `ghRender()` does its follow-up one timer tick after a render: the dashboard's home-page swap, or a calculator's content decoration. Nothing cancelled that follow-up when a newer page was rendered first. So:
+- dashboard → calculator inside one tick ended on the home page, which is the empty result panel `nav-return` saw;
+- calculator X → Y inside one tick left X's content section on Y's page.
+
+`nav-return` renders in separate calls, so it hit the race only under load. That is why it failed intermittently, on different calculators each time (Free and Premium alike).
+
+**Fix (`ca2f9b8`, 6 lines in the engine).** A render sequence number. A superseded timer does nothing, and the newer render runs its own follow-up. One render alone behaves exactly as before. No calculator, formula, unit or saved state changed, and no test timing or assertion changed.
+
+**Evidence.**
+
+| | Unfixed engine (`a50079f`) | Fixed engine (`ca2f9b8`) |
+|---|---|---|
+| `render-race.test.js` (new, deterministic) | 50 of 95 checks fail | 95 / 95 |
+| nav-return sequence, instrumented, 2 in parallel | 14 late swaps, 13 inconsistent | 17 late swaps neutralised, 0 inconsistent |
+| real `nav-return.test.js` under parallel load | 2 of 2 runs fail (11 and 3 calculators) | 7 of 7 runs pass |
+| full browser regression (35 suites) | — | 2 of 2 runs pass, 35 / 35 suites each |
+
+**Remaining risk.** Two other wrappers (`enhance`, `d31EnhanceDashboard`) also run one tick after a render. No failure was traced to them, so they are unchanged.
+
 ## Reliability pass (2026-10-12, between Batch 10 and Batch 11)
 
 **Register.** Every defect, deferred improvement, open question and piece of future work found in or before this pass is tracked, with its status, evidence and the criteria for closing it, in [DEFERRED-WORK-REGISTER.md](DEFERRED-WORK-REGISTER.md) (IDs `GH-DEF-…`, `GH-IMP-…`, `GH-ENG-…`, `GH-FUT-…`, `GH-EXP-…`). This section is the narrative of the pass; **the register is authoritative for status**, and where the two differ the register wins. The pass had two stages. The first (the commit table, Items 1–4 and the status table that follow) found and fixed the aerodynamics, delta-temperature and brake/head-flow defects. The second (see "Second stage: change-controlled work items" at the end of this section) opened the register, worked the four authorized items through it and ran the closing regression. **Where the first stage's "Verified status" and "Open items" differ from the second stage, the second stage is current**; the earlier text is kept as history and marked.

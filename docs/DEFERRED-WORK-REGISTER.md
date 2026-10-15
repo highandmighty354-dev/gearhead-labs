@@ -58,7 +58,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-032](#gh-def-032--a-simulators-first-draw-runs-at-50--drivetrain-efficiency-its-fallback-is-085-where-the-box-holds-85) | A simulator's first draw runs at 50 % drivetrain efficiency (its fallback is 0.85 where the box holds 85) | VERIFIED CLOSED | High | P2 |
 | [GH-DEF-033](#gh-def-033--the-acceleration-simulators-default-60-mph-target-is-also-one-of-its-distance-marks-60-ft-so-it-reports-the-60-foot-time-as-the-target-time) | The Acceleration simulator's default 60 mph target is also one of its distance marks (60 ft), so it reports the 60-foot time as the Target Time | VERIFIED CLOSED | High | P2 |
 | [GH-DEF-034](#gh-def-034--bolt-torque-spec-by-grade-estimates-the-tensile-stress-area-with-16-threads-per-inch-for-every-bolt-above-03-in-reported-needs-investigation) | Bolt Torque Spec by Grade estimates the tensile stress area with 16 threads per inch for every bolt above 0.3 in (reported; needs investigation) | OPEN | Unknown until investigated | P2 |
-| [GH-DEF-035](#gh-def-035--a-navigation-made-in-the-same-instant-as-a-trip-to-the-dashboard-can-be-overwritten-by-the-dashboards-deferred-home-page-swap-intermittent-nav-return-failures) | A navigation made in the same instant as a trip to the dashboard can be overwritten by the dashboard's deferred home-page swap (intermittent nav-return failures) | OPEN | Low | P3 |
+| [GH-DEF-035](#gh-def-035--a-navigation-made-in-the-same-instant-as-a-trip-to-the-dashboard-can-be-overwritten-by-the-dashboards-deferred-home-page-swap-intermittent-nav-return-failures) | A navigation made in the same instant as a trip to the dashboard can be overwritten by the dashboard's deferred home-page swap (intermittent nav-return failures) | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
 | [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
@@ -779,23 +779,36 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-10-14 — observed during Batch 11b planning (commit `53c7792`, catalogue observation); logged as OPEN on the owner's instruction, with the reproduction figures above and the two possibly related places in the code. No change made.
 
 ### GH-DEF-035 — A navigation made in the same instant as a trip to the dashboard can be overwritten by the dashboard's deferred home-page swap (intermittent nav-return failures)
-- **Status:** OPEN
+- **Status:** VERIFIED CLOSED
 - **Severity:** Low (no person can navigate within one timer tick; it shows up as an intermittent test failure under load)
 - **Priority:** P3
-- **Description:** `ghRender()` draws a page and then, in a `setTimeout(…, 0)`, replaces the calculator container with the home page when the page drawn was the dashboard. If another `renderCalc(id)` runs before that timer fires, the calculator is drawn and then wiped by the swap, so its result panel is empty. `premium/tests/nav-return.test.js` renders the dashboard and then the calculator in two quick `page.evaluate` calls, and on a heavily loaded machine the second call can arrive before the timer.
+- **Description:** `ghRender()` draws a page and then, in a `setTimeout(…, 0)`, replaces the calculator container with the home page when the page drawn was the dashboard (and, for a calculator, decorates the page with that calculator's content section). If another `renderCalc(id)` runs before that timer fires, the calculator is drawn and then wiped by the swap, so its result panel is empty. `premium/tests/nav-return.test.js` renders the dashboard and then the calculator in two quick `page.evaluate` calls, and on a heavily loaded machine the second call can arrive before the timer.
 - **Evidence:** In the full browser regression after Batch 11c (engine of `605196f`, 2026-10-14), `nav-return` failed for `stress`, `tow_trailer_capacity` and `roll_stiffness_distribution` ("back" result empty, "live" correct). Re-run on the same engine: those three alone 0 failures; the whole suite 733 checked, 0 failures. The same suite passed in the Batch 11a and 11b regressions. None of the three calculators was changed by Batch 11.
-- **Affected:** `ghRender` (the deferred home-page swap); `premium/tests/nav-return.test.js` (intermittently).
+- **Affected:** `ghRender` (the deferred home-page swap and calculator decoration); `premium/tests/nav-return.test.js` (intermittently). Any calculator could be hit, Free or Premium: the failing ids in the investigation included `thread_stripping_strength` and `bearing_surface_speed`.
 - **Impact:** A flaky regression result; no realistic user impact.
 - **Decision:** Owner decision 2026-10-14: keep OPEN. The re-run that passed does not resolve it; the timing race is to be investigated and reproduced deterministically as separate work, then fixed under its own authorization. Possible fixes: cancel the pending swap when another page is rendered, or have the test wait for the swap before navigating again.
 - **Dependencies:** None (related to the swap described in GH-DEF-026).
 - **Revisit:** In the separately authorized investigation (reproduce first, then fix with a test that fails before the fix).
-- **Commits:** None.
-- **Tests:** None yet; a deterministic reproduction would call `renderCalc('dashboard')` and `renderCalc(id)` in one task and check the page after the timer.
-- **Docs:** This entry; `docs/PREMIUM-CATALOG.md` ("Batch 11c", verification).
+- **Commits:** `ca2f9b8` (fix and the deterministic test).
+- **Tests:** `premium/tests/render-race.test.js` (new, deterministic: two renders in one task, then the timers run; 20 calculators, 95 checks; in `run-browser-tests.sh`); `premium/tests/nav-return.test.js` (unchanged).
+- **Docs:** This entry; `docs/PREMIUM-CATALOG.md` ("Batch 11c", "Batch 13", "Batch 14" verification, and "GH-DEF-035 fix").
 - **Verification:** A fix must make the race impossible (or the test immune to it) and show `nav-return` passing repeatedly under load.
 - **History:** 2026-10-14 — observed in the Batch 11c full regression; re-run passed; recorded as OPEN.
   2026-10-14 — owner decision: stays OPEN (Low) pending a separate investigation and reproduction; not dismissed because the re-run passed.
   2026-10-14 — seen again in the full regression after Batch 13 (engine of `3dfa4e3`), on other older calculators each run and never on a Batch 13 one: `clutch_hydraulic_ratio`, `newton_to_kgf`, `timing_mark` (3 failures); a whole-suite re-run failed `brake_controller_gain`, `breakover_angle`, `milling_heads`, `wastegate_flow` (4); each set passed alone, and a second whole-suite re-run passed (733 consistent, 0 failures). Same symptom (one of "back" / "live" empty). Not investigated or fixed here (Batch 13 scope); still OPEN. This history line was also moved back under the entry: it had been left below the "B. Deferred improvements" heading.
+  2026-10-15 — **investigated and fixed under the owner's authorization (2026-10-14, "GH-DEF-035 investigation and controlled fix").**
+  - **Root cause:** confirmed as described. The deferred follow-up in `ghRender` was never cancelled by a newer render. Dashboard → calculator before the timer: the home page wiped the calculator (empty "back" panel; empty "live" panel when the timer fired one call later). It also had a second effect, calculator X → Y before the timer, where Y's page received X's content section as well as its own.
+  - **Deterministic reproduction:** the new `render-race.test.js` failed **50 of 95 checks** on the unfixed engine (`a50079f`), across 16 older Free and 4 Batch 14 calculators.
+  - **Timing evidence:** nav-return's exact sequence on an instrumented copy of the unfixed engine, two copies in parallel, recorded **14 late swaps and 13 inconsistent results**, each inconsistency on a calculator with a late swap. The real `nav-return.test.js`, two copies in parallel, **failed 2 of 2** (11 and 3 calculators, "back" empty).
+  - **Fix (`ca2f9b8`):** a render sequence number in `ghRender`. A timer whose render has been superseded returns without acting; the newer render schedules its own. One render alone behaves exactly as before. No sleep or timeout changed, no assertion weakened, no calculator changed.
+  - **Verified after the fix:**
+    - `render-race` 95/95;
+    - instrumented sequence: 17 late swaps neutralised, 0 inconsistent;
+    - the real `nav-return` under parallel load: **7 of 7 runs passed** (2 + 2 + 3 at once, 737 consistent each);
+    - **two full browser regressions passed, 35 of 35 suites each** (`nav-return` 737 consistent, `render-race` 95, self-test 725/725, `structural-14` 622).
+  - These meet the Verification criteria: the race can no longer change the screen, and `nav-return` passes repeatedly under load. **Closed.**
+  - **Remaining risk:** two other wrappers schedule `setTimeout(enhance, 0)` and `setTimeout(d31EnhanceDashboard, 0)` after every render without a sequence check. No failure was traced to them, and they were left unchanged (out of scope, no evidence).
+
 
 ## B. Deferred improvements
 
