@@ -24,7 +24,8 @@ const CHROMIUM = process.env.GH_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chr
 /* calculators whose formula was corrected after the seed was exported: the fingerprint the engine now computes, and the register entry that explains it */
 const VERSIONED = {
   dew_point: { version: 'fv1-73ddeaf4', seed: 'fv1-260e7f34', register: 'GH-DEF-005 / GH-ENG-014' },
-  distance_converter: { version: 'fv1-4001b424', seed: 'fv1-36d27af2', register: 'GH-DEF-019 / GH-ENG-014' }   // yards -> km constant 0.000914 corrected to 0.0009144
+  distance_converter: { version: 'fv1-4001b424', seed: 'fv1-36d27af2', register: 'GH-DEF-019 / GH-ENG-014' },  // yards -> km constant 0.000914 corrected to 0.0009144
+  bolt_torque_spec: { version: 'fv1-25b1f973', seed: 'fv1-f63ea4c8', register: 'GH-DEF-034 / GH-ENG-014' }      // the thread entered (was 16 or 20 TPI) and proof strength by size; production row deferred
 };
 
 (async () => {

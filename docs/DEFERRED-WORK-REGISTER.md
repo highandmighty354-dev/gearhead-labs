@@ -57,7 +57,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-031](#gh-def-031--the-shells-compact-units-menu-did-nothing-it-called-setunits-which-does-not-exist-the-engines-setunit-could-not-run-without-the-buttons-the-shell-removed-and-the-legacy-unit-hider-could-hide-the-control) | The shell's compact UNITS menu did nothing: it called `setUnits`, which does not exist, the engine's `setUnit` could not run without the buttons the shell removed, and the legacy-unit hider could hide the control | VERIFIED CLOSED | High | P1 |
 | [GH-DEF-032](#gh-def-032--a-simulators-first-draw-runs-at-50--drivetrain-efficiency-its-fallback-is-085-where-the-box-holds-85) | A simulator's first draw runs at 50 % drivetrain efficiency (its fallback is 0.85 where the box holds 85) | VERIFIED CLOSED | High | P2 |
 | [GH-DEF-033](#gh-def-033--the-acceleration-simulators-default-60-mph-target-is-also-one-of-its-distance-marks-60-ft-so-it-reports-the-60-foot-time-as-the-target-time) | The Acceleration simulator's default 60 mph target is also one of its distance marks (60 ft), so it reports the 60-foot time as the Target Time | VERIFIED CLOSED | High | P2 |
-| [GH-DEF-034](#gh-def-034--bolt-torque-spec-by-grade-estimates-the-tensile-stress-area-with-16-threads-per-inch-for-every-bolt-above-03-in-reported-needs-investigation) | Bolt Torque Spec by Grade estimates the tensile stress area with 16 threads per inch for every bolt above 0.3 in (reported; needs investigation) | OPEN | Medium, confirmed by the 2026-10-15 investigation | P2 |
+| [GH-DEF-034](#gh-def-034--bolt-torque-spec-by-grade-estimates-the-tensile-stress-area-with-16-threads-per-inch-for-every-bolt-above-03-in-reported-needs-investigation) | Bolt Torque Spec by Grade estimates the tensile stress area with 16 threads per inch for every bolt above 0.3 in (reported; needs investigation) | VERIFIED CLOSED | Medium, confirmed by the 2026-10-15 investigation | P2 |
 | [GH-DEF-035](#gh-def-035--a-navigation-made-in-the-same-instant-as-a-trip-to-the-dashboard-can-be-overwritten-by-the-dashboards-deferred-home-page-swap-intermittent-nav-return-failures) | A navigation made in the same instant as a trip to the dashboard can be overwritten by the dashboard's deferred home-page swap (intermittent nav-return failures) | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
@@ -741,7 +741,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-10-13 — found during the GH-DEF-030 test (a result that changed with a Metric press and a torque preference change), traced to the shared `crossed` object, recorded only. 2026-10-13 (final simulator pass) — closed: the test written first, 18 of 39 checks fail on the engine of `caa45c8`, fixed in `9e4877b`, 0 of 39 fail, 4 of 5 injected faults caught (the fifth equivalent), the default page now shows 10.270 s / 60.0 mph / 456 ft, neighbour suites pass.
 
 ### GH-DEF-034 — Bolt Torque Spec by Grade estimates the tensile stress area with 16 threads per inch for every bolt above 0.3 in (reported; needs investigation)
-- **Status:** OPEN
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium, confirmed by the 2026-10-15 investigation.
   - For common UNC sizes, 7/16 to 1 in, the recommended torque and clamp load are 4.8–14.3 % high, which means overtightening.
   - Two secondary causes, in the proof-strength constants, reach +10 % (ISO 10.9) and up to +88 % (SAE Grade 2 above 3/4 in).
@@ -834,10 +834,26 @@ This is the **single authoritative register** of known defects, deferred improve
     - (P2) size-dependent SAE J429 proof strengths.
     - (P3) ISO 898-1 proof strengths: 8.8 at 580/600 MPa by size, 10.9 at 830 MPa.
     - (P4) the registry formula follows P1–P3. This gives a new fingerprint, recorded under `VERSIONED` in `formula-fingerprints.test.js`, as for GH-DEF-005 and GH-DEF-019. The production `formula_versions` row for it is later, separately reviewed migration work, not part of the fix.
-- **Dependencies:** None. Kept separate from the Batch 11b implementation commits.
+  - **2026-10-15: P1–P4 authorized by the owner and done.**
+    - **Reference table, written before the code:** [`docs/GH-DEF-034-FASTENER-REFERENCES.md`](GH-DEF-034-FASTENER-REFERENCES.md), built from the four provisional sources (the standards themselves were not inspected).
+    - **Both pages use the thread entered:** the Batch 11b thread boxes, UN or ISO. Bolt Torque Spec's ids are `btq_*`, Bolt Stretch's `bst_*`; the old `dia_bt` / `bolt_dia` boxes are gone.
+    - **Proof strength by grade and size:** SAE J429 Grade 2 55/33 ksi, Grade 5 85/74 ksi, Grade 8 120 ksi; ISO 898-1 class 8.8 580 MPa (M5–M16) / 600 MPa (M18–M39), class 10.9 830 MPa.
+    - **No value where the sources print none.** The page shows a validation message instead:
+      - SAE outside 1/4–1-1/2 in;
+      - ISO outside M5–M39;
+      - 8.8 between 16 and 18 mm;
+      - an SAE grade on an ISO thread, or an ISO class on a UN thread.
+    - **New rows on Bolt Torque Spec:** Tensile Stress Area, Proof Strength Used and Proof Load.
+    - **Kept from the old page:** K, T = K D F, the 75 % target and the rounding chain, so the default results are unchanged.
+    - **Registry formula:** `GH_BACKFILL_FORMULAS.bolt_torque_spec` binds the same constants and refuses the same inputs. Its fingerprint changed from `fv1-f63ea4c8` to `fv1-25b1f973` (`VERSIONED`).
+    - **Production row:** deferred. It is recorded as a separate action under GH-ENG-014. No database, migration or Supabase change was made.
+- **Dependencies:** None. Kept separate from the Batch 11b implementation commits. The production `formula_versions` row for `fv1-25b1f973` is a deferred action under GH-ENG-014. It does not block this closure, as with GH-DEF-005 and GH-DEF-019.
 - **Revisit:** When the owner schedules the investigation. (2026-10-15: investigation done; revisit when the owner decides on the repair.)
-- **Commits:** None (this entry only). 2026-10-15: investigation record only, a documentation commit of its own; no code.
-- **Tests:** None yet. The investigation must add an independent test before any change: tabulated stress areas, proof loads and K × D × F torques for several UNC and UNF sizes, plus the metric choices.
+  2026-10-15: closed. Revisit if ASME B1.1, SAE J429 or ISO 898-1 is inspected directly and differs from the provisional references (for example, an ISO split stated as d > 16 mm, which would close the 16–18 mm gap).
+- **Commits:** the `fix(GH-DEF-034)` correction commit (engine, tests, reference table and docs in one commit; its SHA is recorded by the documentation commit that follows it).
+  Earlier: none at creation (this entry only); 2026-10-15 investigation record `a65c042` (documentation only).
+- **Tests:** `premium/tests/fasteners-def034.test.js` (811 checks; details below), 4 engine self-test assertions, the `unit-system` `bolt_stretch` case and the `formula-fingerprints` `VERSIONED` entry.
+  Earlier (2026-10-14): "None yet. The investigation must add an independent test before any change: tabulated stress areas, proof loads and K × D × F torques for several UNC and UNF sizes, plus the metric choices."
   - **Proposed, 2026-10-15:** a new `premium/tests/fasteners-def034.test.js`, written first and failing on the current engine. It checks:
     - the tabulated reference literals (R1, R3, R4) for UNC/UNF 1/4–1 in and ISO M6–M16;
     - torque = K D F and clamp load = 0.75 × proof × area, dry and lubricated, in both systems;
@@ -847,7 +863,13 @@ This is the **single authoritative register** of known defects, deferred improve
     - invalid threads rejected;
     - `GH_ENGINE.calculate` equal to the page;
     - the existing `unit-system` `bolt_stretch` case updated from "n = 16" to the thread entered.
-- **Docs:** This entry; `docs/PREMIUM-CATALOG.md` (Batch 11b plan, observation).
+  - **Added with the correction:**
+    - `premium/tests/fasteners-def034.test.js` (new; in `run-browser-tests.sh`): 811 checks. Before the code it failed 186 of 245 checks; on the final pre-fix control (`GH_ENGINE` = the committed engine before the fix) it failed 193 of 253.
+    - 4 engine self-test assertions (733 total).
+    - The `unit-system` `bolt_stretch` case (1/2-13; failed all 7 runs before the code).
+    - The `VERSIONED` entry in `formula-fingerprints.test.js`.
+    - The force row "Proof Load" in `force-unit-rows.json` (179 rows).
+- **Docs:** This entry; `docs/PREMIUM-CATALOG.md` (Batch 11b plan, observation; "GH-DEF-034 fix"); `docs/GH-DEF-034-FASTENER-REFERENCES.md`.
 - **Verification:** Required before this entry can move on:
   1. Reproduce on the page (Imperial and Metric) for 1/2 in Grade 5 dry and lubricated, and for at least 5/16, 7/16, 5/8 and 3/4 in.
   2. Confirm the governing thread geometry: the ASME B1.1 thread series and the stress-area formula, and how the calculator should know the pitch (a thread input or a coarse/fine choice).
@@ -855,6 +877,11 @@ This is the **single authoritative register** of known defects, deferred improve
   4. Then, with an approved fix, show the corrected values against tabulated references, with Imperial and Metric unchanged elsewhere.
 
   Steps 1–3 were done on 2026-10-15 (Evidence). Step 2's answer is a thread input; the proposal is P1. Step 4 waits for authorization.
+
+  **Step 4 done, 2026-10-15.**
+  - **Reference values:** `fasteners-def034` checks the page against the printed tables (UNC/UNF 1/4–1 in; ISO coarse and fine M5–M20) and the proof-strength boundaries of every grade, in both systems.
+  - **Before and after:** 17 representative fasteners were recalculated outside the engine and matched on the page, for example 1/2-13 Grade 5 dry 75.4 ft-lb and 9,046 lbf (was 80.5 and 9,654).
+  - **Unchanged elsewhere:** the defaults (43.6 ft-lb, 6,974 lbf; 59.1137 N·m, 31,021.8975 N; Bolt Stretch 899 lbf, 11,600 psi), and the full browser regression (36 of 36 suites).
 - **History:** 2026-10-14 — observed during Batch 11b planning (commit `53c7792`, catalogue observation); logged as OPEN on the owner's instruction, with the reproduction figures above and the two possibly related places in the code. No change made.
   2026-10-15 — investigated on the owner's instruction (after the Batch 14 closeout).
   - **Confirmed:** the fixed pitch on the page and in the registry formula, for Imperial and Metric, and in `bolt_stretch`'s clamp load.
@@ -862,6 +889,23 @@ This is the **single authoritative register** of known defects, deferred improve
   - Three of the logged percentages are corrected against tabulated areas.
   - A repair (P1–P4) and its tests are proposed.
   - Status stays OPEN; no code changed.
+  2026-10-15 — correction authorized by the owner and done, test-first; **closed** on this evidence.
+  - **Commit:** the `fix(GH-DEF-034)` commit (SHA in the following documentation commit).
+  - **Focused suite:** `fasteners-def034` 811 checks, 0 failures.
+  - **Engine self-test:** 733 / 733.
+  - **Other suites:**
+    - `formula-fingerprints`: 577 seed formulas, 574 identical, 3 recorded corrections;
+    - `unit-system` 7,690 checks, `unit-census` 743 calculators, `mass-force` 858 checks, `label-consistency` 743, `toggle-sweep` 743 (1 known-open), `nav-return` 739 consistent;
+    - `performance-census`: full run, 743 calculators.
+  - **`run-tests.sh`:** catalog OK, register OK, frontend 55/55, schema 26/26.
+  - **Full browser regression:** 36 of 36 suites, 0 failures. Engine and test files were checksum-frozen during the run.
+  - **Corrections to the investigation figures** (kept above as written): the torque change differs slightly from the area error. The 1-1/4-7 area (0.969) and the 7/8 Grade 2 reference (166.8) were formula- or printed-table-based, as noted in the reference document. The page now shows 166.7.
+  - **Limitations:**
+    - the standards were not inspected directly (the four sources are provisional);
+    - the 1/2-20 UNF printed 0.1599 against the formula's 0.15995;
+    - the 8.8 16–18 mm gap is refused;
+    - Grade 2's 6-inch length condition is stated on the page, not checked.
+  - **Deferred:** the production `formula_versions` row (GH-ENG-014).
 
 ### GH-DEF-035 — A navigation made in the same instant as a trip to the dashboard can be overwritten by the dashboard's deferred home-page swap (intermittent nav-return failures)
 - **Status:** VERIFIED CLOSED
@@ -1709,6 +1753,7 @@ This is the **single authoritative register** of known defects, deferred improve
   2026-10-13 — Metric-convention phase: migration review (fingerprints, schema, idempotency, rollback, consequences of applying before a merge), read-only production count (0 dew-point and 0 distance-converter records; no contents read; nothing changed), discovery that production migrations go through a pinned-commit, 17-file-manifest workflow, and the catalog-tooling recommendation, all in Section 9 of the proposal. Status unchanged (OPEN): the migration is not applied, not added to `supabase/migrations/`, and the workflow is not touched. Fingerprints re-verified at the final commit: 575 identical, 2 recorded.
   2026-10-13 — closeout phase: final decision brief for the owner added as Section 10 of the proposal (the SQL and schema/immutability review, migration and rollback behaviour, the latest-fingerprint catalogue tooling, what remains to be committed and verified before a merge, and the exact wording of the two separate authorizations: A prepares the package on the branch, B applies it to production through the gated workflow). Re-checked: `supabase/`, `premium-foundation/`, `.github/` and the throwaway script are byte-identical to `6f057cc`; the throwaway-database script re-run on the final text, 17 run, 17 passed, 0 failed, proposal exit codes 0/0; fingerprints 575 identical, 2 recorded. Found while writing the brief: the `0407`-alone rollback comparison in `pf.test.js` will need to stop at `0407` once `0408` exists (the rows cannot be rolled back), and the workflow header comment still says "16 file names". Status unchanged (OPEN): not applied, not added to `supabase/migrations/`, no workflow change, no deployment; this closeout is not an authorization.
 
+  2026-10-15 — **deferred action recorded, not done:** GH-DEF-034 corrected the `bolt_torque_spec` registry formula, so a third row is needed: `('bolt_torque_spec', 'fv1-25b1f973', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4')` (seed row `fv1-f63ea4c8`). It is recorded in `formula-fingerprints.test.js` `VERSIONED`; the catalogue keeps the seed fingerprint. The proposal document and its two-row SQL were **not** changed. Adding this row (and any migration, Supabase or production change) needs the owner's separate authorization, as for the other two.
 ---
 
 ## D. Future development

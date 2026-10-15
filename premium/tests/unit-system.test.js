@@ -302,8 +302,9 @@ const CASES = [
   { id: 'valve_spring_rate', fields: [['d_vs', 'length', 0.0038], ['n_vs', 'none', 7], ['D_vs', 'length', 0.0229], ['seat_load', 'force', 580], ['lift_vs', 'length', 0.014]],
     compute: v => { const k = 11.5e6 * K.psi_Pa * Math.pow(v.d_vs, 4) / (8 * v.n_vs * Math.pow(v.D_vs, 3));              // k = G d^4 / (8 n D^3), G = 11.5e6 psi steel
       return { 'Spring Rate': ['springratelbs', k], 'Open Pressure': ['forcelbf', v.seat_load + k * v.lift_vs] }; }, rel: 6e-3 },       // open pressure = seat pressure + rate x lift, all newtons
-  { id: 'bolt_stretch', fields: [['bolt_len', 'length', 0.0508], ['bolt_dia', 'length', 0.009525], ['target_stretch_pct', 'none', 0.05]],
-    compute: v => { const A_in2 = 0.7854 * Math.pow(v.bolt_dia / K.in_m - 0.9743 / 16, 2);                              // stress area, in^2 (the calculator's stated rule)
+  { id: 'bolt_stretch', fields: [['bolt_len', 'length', 0.0508], ['bst_d', 'length', 0.0127], ['bst_tpi', 'none', 13], ['target_stretch_pct', 'none', 0.05]],
+    /* GH-DEF-034: the stress area of the thread entered (UN, ASME B1.1: pi/4 (d - 0.9743/n)^2; 1/2-13 = 0.1419 in^2), no longer a fixed 16 threads per inch */
+    compute: v => { const A_in2 = Math.PI / 4 * Math.pow(v.bst_d / K.in_m - 0.9743 / v.bst_tpi, 2);
       return { 'Estimated Clamp Load': ['forcelbf', 29e6 * K.psi_Pa * (v.target_stretch_pct / 100) * A_in2 * K.in_m * K.in_m] }; }, rel: 6e-3 },   // F = E x strain x A
 
   /* ---- D1 (approved 2026-10-13): load-transfer and corner-load results are read as the mass-equivalent scale reading, kg in Metric (the force divided by g0). ---- */

@@ -92,7 +92,7 @@ Saving is not being extended to new tools while the catalog is incomplete. The e
 - **Decided (2026-10-14, owner authorization for Batch 13):** Scavenging / Charging Efficiency and Port Timing from Measured Geometry (classed "Analyzer" in the reconciliation) are built as calculators, with their limits stated on the page. The Batch 13 formula decisions (tuned-pipe model with an explicit exhaust-gas temperature, scavenging definitions and the two ideal reference curves, crankcase compression ratio convention) are recorded in the Batch 13 section.
 - **Decided (2026-10-14, owner authorization, Batch 14 stage 1):** Regenerative Braking Energy Recovery and Battery Pack Heat Balance only, from the Batch 14 model specification; heat rows in W (RETAIN-ACCESSORY), EV power in native kW (EV_POWER), energies kWh / Wh / kJ on a page selector. The specification's battery transient was corrected (see the Batch 14 stage 1 section).
 - **Decided (2026-10-14, owner authorization, Batch 14 stage 2):** Motor Thermal Limit and Inverter Thermal Load (Mode A only), with decisions S2-1 to S2-8 (`claude/batch-14-stage2-decisions.md` in the project): loss rows in W (RETAIN-ACCESSORY), EV power in native kW, motor input power or torque + speed (torque EV_TORQUE, lb-ft under Auto), τ as the motor heat-storage input with C as a result, the extrapolated continuous output kept and labelled, copper-loss feedback left out, no inverter junction estimate and no Mode B selector.
-- **Open: next batch.** Batch 11 (37), Batch 13 (4) and Batch 14 (6 of 6) are complete. 6 approved items remain: Batch 16 Workbenches (6), unauthorized. Inverter Thermal Load's Mode B is also outstanding: it is not ready (its application-note equations and switching-loss scaling are unverified; D-14-4). No batch starts without explicit authorization. Per the owner (2026-10-15), the GH-DEF-034 investigation (Bolt Torque Spec stress area) comes before any further batch (see "Batch 14 closeout").
+- **Open: next batch.** Batch 11 (37), Batch 13 (4) and Batch 14 (6 of 6) are complete. 6 approved items remain: Batch 16 Workbenches (6), unauthorized. Inverter Thermal Load's Mode B is also outstanding: it is not ready (its application-note equations and switching-loss scaling are unverified; D-14-4). No batch starts without explicit authorization. Per the owner (2026-10-15), the GH-DEF-034 investigation (Bolt Torque Spec stress area) comes before any further batch (see "Batch 14 closeout"). GH-DEF-034 was then corrected and closed (see "GH-DEF-034 fix"); its production formula row is a deferred action under GH-ENG-014.
 - **Open: E01–E14 QA counting.** They are live in the Premium Engineering Lab, but ENGINEERING_EXPANSION_CATALOG_V1.md says they are not counted as public calculators until QA sign-off.
 
 ### Calculators excluded from saving (119)
@@ -1096,6 +1096,58 @@ The owner authorized this investigation and fix on 2026-10-14. The full record i
 | full browser regression (35 suites) | — | 2 of 2 runs pass, 35 / 35 suites each |
 
 **Remaining risk.** Two other wrappers (`enhance`, `d31EnhanceDashboard`) also run one tick after a render. No failure was traced to them, so they are unchanged.
+
+### GH-DEF-034 fix — Bolt Torque Spec and Bolt Stretch thread and proof strength (2026-10-15)
+
+The owner authorized this correction on 2026-10-15. The full record is the GH-DEF-034 entry in [DEFERRED-WORK-REGISTER.md](DEFERRED-WORK-REGISTER.md). The reference values and every rule are in [GH-DEF-034-FASTENER-REFERENCES.md](GH-DEF-034-FASTENER-REFERENCES.md), written before the code.
+
+**Root causes (both confirmed).**
+1. **Fixed thread pitch.** The tensile stress area used a fixed 16 threads per inch above 0.3 in (20 below), and Bolt Stretch used 16 always, whatever the bolt's thread. Neither page had a thread input.
+2. **One proof strength per grade.** SAE J429 and ISO 898-1 give size-dependent values: Grade 2 is 33 ksi over 3/4 in and Grade 5 is 74 ksi over 1 in; class 8.8 is 580 MPa up to M16; class 10.9 is 830 MPa, not 130,000 psi (896 MPa).
+
+**Correction.**
+- **Thread boxes on both calculators** (`bolt_torque_spec`, `bolt_stretch`). They are the Batch 11b thread boxes: UN major diameter and threads per inch, or ISO diameter and pitch in mm. The area is A_t = π/4 (d − 0.9743/n)² for UN and A_s = π/4 (d − 0.9382 P)² for ISO.
+- **Proof strength by grade and size.** SAE J429 Grade 2 is 55 ksi from 1/4 to 3/4 in and 33 ksi over 3/4 to 1-1/2 in; Grade 5 is 85 ksi to 1 in and 74 ksi above, to 1-1/2 in; Grade 8 is 120 ksi. ISO 898-1 class 8.8 is 580 MPa for M5–M16 and 600 MPa for M18–M39; class 10.9 is 830 MPa for M5–M39.
+- **No proof strength outside the printed ranges.** In those cases the page shows a validation message:
+  - SAE grades outside 1/4–1-1/2 in;
+  - ISO classes outside M5–M39;
+  - 8.8 between 16 and 18 mm;
+  - an SAE grade on an ISO thread, or an ISO class on a UN thread.
+- **More rows on Bolt Torque Spec.** It now also shows the tensile stress area, the proof strength used and the proof load. Bolt Stretch shows the area.
+- **Unchanged:** K (0.20 dry / 0.15 lubricated), T = K D F, the 75 % clamp target, the old page's rounding, and the default results:
+  - Bolt Torque Spec, 3/8-16 Grade 8 dry: 43.6 ft-lb and 6,974 lbf (59.1137 N·m and 31,021.8975 N);
+  - Bolt Stretch: 899 lbf and 11,600 psi.
+- **Saved-calculation formula.** The formula (`GH_BACKFILL_FORMULAS.bolt_torque_spec`) now takes the thread, grade and condition, with the same constants and the same refusals. Its fingerprint changed from `fv1-f63ea4c8` (production seed) to `fv1-25b1f973`, which is recorded in `formula-fingerprints.test.js` `VERSIONED`. The production `formula_versions` row is a deferred, separately authorized action (GH-ENG-014). The catalogue keeps the seed fingerprint until then, as for the two earlier corrections.
+
+**Representative results** (dry; full table in the reference document):
+
+| Bolt | Before | After |
+|---|---|---|
+| 1/2-13 UNC Grade 5 | 80.5 ft-lb, 9,654 lbf | **75.4 ft-lb, 9,046 lbf** |
+| 1/2-20 UNF Grade 5 | 80.5, 9,654 | 85.0, 10,197 |
+| 3/4-10 UNC Grade 5 | 297.2, 23,776 | 266.5, 21,322 |
+| 7/8-9 UNC Grade 2 | 313.1, 21,472 | 166.7, 11,428 |
+| M12 × 1.75, 8.8 | 92.60 N·m, 38,610.6 N | 87.99 N·m, 36,653.3 N |
+| M12 × 1.75, 10.9 | 138.43 N·m, 57,689.0 N | 125.96 N·m, 52,453.4 N |
+
+**Verification** (2026-10-15).
+- **Tests first:** the new `fasteners-def034` failed 186 of 245 checks before the code; the 4 new engine self-test assertions and the updated `unit-system` `bolt_stretch` case also failed.
+- **After the code:**
+  - `fasteners-def034` 811 checks, 0 failures, against the printed reference values and an oracle written from them;
+  - self-test 733/733;
+  - `formula-fingerprints` 577 (3 recorded corrections);
+  - mass-force 858 (1 force row added, "Proof Load");
+  - unit-census, label-consistency, nav-return and toggle-sweep 743;
+  - full `performance-census`.
+- **`run-tests.sh`:** catalog OK, register OK, frontend 55/55, schema 26/26.
+- **Full browser regression:** **36 of 36 suites passed**, with the engine and test files checksum-frozen during the run.
+- **Independent check:** 17 representative fasteners were recalculated outside the engine and match the page.
+
+**Limitations.**
+- ASME B1.1, SAE J429 and ISO 898-1 were not inspected directly; four secondary sources were used as provisional references, as the owner authorized.
+- 1/2-20 UNF: the formula gives 0.15995 in², and the sources print 0.1599.
+- Grade 2's 6-inch length condition is stated on the page, not checked.
+- Bolt Stretch applies the strain measured over the whole bolt to the threaded area (an observation outside this defect).
 
 ### Batch 14 closeout (2026-10-15)
 
