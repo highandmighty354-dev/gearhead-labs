@@ -994,7 +994,7 @@ This is the **single authoritative register** of known defects, deferred improve
   - GH-ENG-014. If the registry formula is changed to the segmented form, `bolt_stretch` gets a new fingerprint and needs a fourth `formula_versions` row. That row is best folded into the same migration as the three in the ENG-014 proposal's Section 11 (D7).
   - Optionally, an inspected reference for head and engaged-thread compliance (for example VDI 2230), if the owner wants those included.
 - **Revisit:** After the owner decides on the correction, and before the ENG-014 migration is prepared. (2026-10-15: closed. Revisit if head and engaged-thread compliance are to be modelled, which needs an inspected reference such as VDI 2230.)
-- **Commits:** the `fix(GH-DEF-036)` correction commit (engine, tests and docs in one commit); its SHA is recorded by the documentation commit that follows it. Before that: none (this entry only, `1e753aa`).
+- **Commits:** `129464c` (`fix(GH-DEF-036)`: engine, tests and docs in one commit); its SHA was recorded by the documentation commit that follows it. Before that: none (this entry only, `1e753aa`).
 - **Tests:** `premium/tests/bolt-stretch-def036.test.js` (new; in `run-browser-tests.sh`): 439 checks. Before the code it failed 115 of 136 checks; the only passes were its 19 page-independent oracle checks, one incomplete-input check and "no page errors". Also 3 engine self-test assertions plus the replaced `bolt_stretch` formula reference entry; the `unit-system` `bolt_stretch` case (series model, 1/2-13 with 1 in shank and 1 in thread; failed 11 of 11 before the code); `formula-fingerprints` `VERSIONED`. Proposed before the code, all done:
   - cases 1–9 above as expected values from the series model, in both systems (mm lengths and N);
   - the default unchanged;
@@ -1010,7 +1010,7 @@ This is the **single authoritative register** of known defects, deferred improve
   3. Cases 1–9 are reproduced on the page in Imperial and Metric, with the defaults unchanged.
   4. The full browser regression passes.
 - **History:** 2026-10-15 — reported as a possible issue during the GH-DEF-034 correction. Investigated on the owner's instruction: series-compliance model derived and checked against the page, which reproduces the uniform-bar values. **Confirmed** as a modelling defect for bolts that are not threaded along their whole loaded length. Logged OPEN; no change made.
-  2026-10-15 — correction authorized by the owner and done, test-first; **closed** on this evidence.
+  2026-10-15 — correction authorized by the owner and done, test-first; **closed** on this evidence. Commit `129464c`.
   - **Model check:** independently re-derived before the code. All nine investigation cases were reproduced exactly from the equation.
     - Two stress figures in the case table above were computed with the unrounded area. The page's rounding chain gives 63,405 psi (not 63,404) for the case-2 shank and 102,256 psi (not 102,257) for the case-3 thread; the loads are unchanged.
     - 20,000 random fully threaded cases give exactly the old page's numbers.

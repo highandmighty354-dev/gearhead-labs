@@ -1149,7 +1149,7 @@ The owner authorized this correction on 2026-10-15. The full record is the GH-DE
 - Grade 2's 6-inch length condition is stated on the page, not checked.
 - Bolt Stretch applies the strain measured over the whole bolt to the threaded area (an observation outside this defect).
 
-### GH-DEF-036 fix — Bolt Stretch: shank and thread in series (2026-10-15)
+### GH-DEF-036 fix — Bolt Stretch: shank and thread in series (2026-10-15, `129464c`)
 
 The owner authorized this correction on 2026-10-15. The full record is the GH-DEF-036 entry in [DEFERRED-WORK-REGISTER.md](DEFERRED-WORK-REGISTER.md).
 
