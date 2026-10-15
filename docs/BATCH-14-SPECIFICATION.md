@@ -1,5 +1,15 @@
 # Batch 14 — EV / Hybrid: Model Specification Review
 
+**Revision 1.2, 2026-10-14 (final-pair review).** This revision revises §2.4 DC Fast-Charge Time and §2.5 Hybrid Power-Split, on the owner's direction after the final-pair decision review (`claude/batch-14-final-pair-decisions.md`).
+- **§2.4:** the approved model (c) with the start-in-CV case (DC-1), the stated conservative rule for a power-limited charger (DC-2), the capacity-window convention (DC-3) and three recalculated, model-derived examples.
+- **§2.5:**
+  - an independent derivation (planet contact velocities and a free body);
+  - a sign convention for powers;
+  - the electrical path corrected for power recirculation (PS-2: rev 1.1's single formula created energy);
+  - the stationary-ring case resolved (PS-3: no charge-sustaining solution exists);
+  - four worked examples.
+- Nothing in §2.1–§2.3 or §2.6 changed.
+
 **Revision 1.1, 2026-10-14 (documentation correction after Stage 1).** Revision 1.0 was the specification delivered to the owner on 2026-10-14. This revision corrects the Battery Pack Heat Balance transient (§2.1) and records how Stage 1 was implemented. Nothing else in the models changed.
 
 **Erratum, §2.1 Battery Pack Heat Balance transient.** Revision 1.0 used τ = C ÷ UA = 900 s and gave a time to 35 °C of 1,018.26 s. **That result is superseded.**
@@ -321,151 +331,197 @@ The parameter examples are labelled "example data-sheet values".
 
 ### 2.4 DC Fast-Charge Time with CC-CV Taper — `dc_fast_charge_time` (EV / CHARGING & RANGE)
 
-**Purpose.** Estimate the time from one state of charge to another on a DC charger, with the slowdown when the pack reaches its voltage limit. The page says: **estimate, not a prediction.**
+*Revised in 1.2: model (c) approved, the start-in-CV case added, the power-limited current rule and the capacity convention stated, and the examples recalculated.*
+
+**Purpose.** Estimate the time from one state of charge to another on a DC charger, including the slowdown once the pack reaches its voltage limit. The page says: **an engineering estimate from a simplified battery model, not a prediction for a particular vehicle.**
 
 **Candidate models compared.**
 
 | # | Model | Inputs | Verdict |
 |---|---|---|---|
-| a | Linear: ΔE ÷ P (existing `ev_charge_time`) | Energy, power | Rejected as the main answer, because it has no taper. Kept as a comparison row |
-| b | CC to a user-chosen SOC breakpoint, then exponential taper with a user time constant | Breakpoint SOC, τ | Rejected: both parameters are curve-fits the user rarely has, and the breakpoint really depends on C-rate and temperature [P: Shi et al. 2020] |
-| c | **Equivalent circuit (OCV + R) with linear OCV(SOC); CC until the terminal voltage reaches V_max, then CV** | Q (Ah), OCV at 0 % and 100 %, pack R, V_max, battery current limit, charger power limit | **Selected** [E]. The taper follows from physics (Abdollahi et al., ACC 2015 use the same OCV-R model). Every parameter is a pack datum or a measurement. It is closed-form and verifiable |
-| d | Manufacturer charging-curve table (kW versus SOC) interpolated | A published curve | Most accurate for a specific car. Rejected for v1 because the data are needed and often absent, and a table editor is a larger UI. Possible later mode (decision D-14-5) |
+| a | Linear: ΔE ÷ P (existing `ev_charge_time`) | Energy, power | Rejected as the main answer: no taper. Kept as a comparison row |
+| b | CC to a user-chosen SOC breakpoint, then exponential taper with a user time constant | Breakpoint SOC, τ | Rejected: both parameters are curve fits the user rarely has, and the breakpoint really depends on C-rate and temperature [P: Shi et al. 2020] |
+| c | **Equivalent circuit (OCV + R) with linear OCV(SOC); CC until the terminal voltage reaches V_max, then CV** | Q (Ah), OCV at 0 % and 100 %, pack R, V_max, current limit, charger power limit | **Selected; owner-approved for the specification (rev 1.2).** The taper follows from the circuit (Abdollahi et al., ACC 2015 use the same OCV-R model). Every parameter is a pack datum or a measurement. Closed form and verifiable |
+| d | Manufacturer charging-curve table (kW versus SOC), interpolated | A published curve | Not in v1. It needs data that is often absent, and a table editor. Possible later mode |
 
-**Equations for (c).**
-- OCV(s) = V₀ + k s, with k = V₁₀₀ − V₀.
-- CC current: I_cc = min(I_batt,max, P_chg,max ÷ V_max). Using V_max is conservative for a power-limited charger.
-- Breakpoint: s_b = (V_max − I_cc R − V₀) ÷ k.
-- Equilibrium: s_∞ = (V_max − V₀) ÷ k.
-- CC time: t_cc = (min(s_b, s₁) − s₀) Q ÷ I_cc.
-- CV phase:
-  - dI/dt follows from dS/dt = I/Q, with I = (V_max − V₀ − k s) ÷ R;
-  - this gives s(t) = s_∞ − (s_∞ − s_b)e^(−t/τ), with τ = R Q ÷ k (hours, with Q in Ah);
-  - CV time to the target: t_cv = τ ln((s_∞ − s_b) ÷ (s_∞ − s₁)).
-- Current at the target: I₁ = k(s_∞ − s₁) ÷ R.
-- Energy stored on an OCV basis: Q ∫ OCV ds.
-- Pack I²R loss: I_cc²R t_cc + I_b²R τ/2 (1 − e^(−2t_cv/τ)).
-- Terminal energy = stored + loss. Grid energy = terminal ÷ charger efficiency (optional input).
-- If s₁ ≥ s_∞, the target cannot be reached at that V_max: rejected with the reason.
+**Conventions (DC-2, DC-3).**
+- **Capacity window (DC-3).** Q is the charge in Ah between the 0 % and 100 % ends of the SOC scale the user enters: the usable, displayed window, not gross cell capacity. OCV₀ and OCV₁₀₀ are the open-circuit pack voltages at those two ends.
+- **Power-limited charger (DC-2).** The constant current is I_cc = min(I_lim, P_chg ÷ V_max), with I_lim the lower of the battery and charger current limits.
+  - Dividing by V_max (the highest terminal voltage in the CC phase) gives a current the charger can always supply, so a power-limited time is an **upper bound**.
+  - True constant power (I = P ÷ terminal voltage, higher at low SOC) is not modelled.
+
+**Equations.** SOC s is a fraction; Q is in Ah; R in Ω; time in hours unless stated.
+1. OCV(s) = V₀ + k s, where k = V₁₀₀ − V₀.
+2. Terminal voltage during charge: V_t = OCV(s) + I R.
+3. CC → CV switch, where V_t reaches V_max at I = I_cc: s_b = (V_max − I_cc R − V₀) ÷ k.
+4. CV equilibrium, where the current falls to zero: s_∞ = (V_max − V₀) ÷ k.
+5. CV starts at s_cv = max(s_b, s₀).
+   - If s₀ ≥ s_b, the charge starts already in CV (DC-1): t_cc = 0.
+6. CC time:
+   - if s_b ≥ s₁, the whole charge is CC: t_cc = (s₁ − s₀) Q ÷ I_cc;
+   - otherwise t_cc = max(0, s_b − s₀) Q ÷ I_cc.
+7. CV phase.
+   - The current is I = (V_max − OCV(s)) ÷ R, and dS/dt = I ÷ Q. So dS/dt = (s_∞ − s) ÷ τ with τ = R Q ÷ k (hours).
+   - Hence s(t) = s_∞ − (s_∞ − s_cv) e^(−t/τ), and t_cv = τ ln((s_∞ − s_cv) ÷ (s_∞ − s₁)).
+8. Current at the target: I₁ = k (s_∞ − s₁) ÷ R in CV; I₁ = I_cc if the target is reached in CC.
+9. Energy.
+   - Stored (OCV basis): E_st = Q ∫ OCV ds = Q [V₀(s₁ − s₀) + k(s₁² − s₀²)/2].
+   - Pack I²R loss: I_cc² R t_cc + I_b² R (τ/2)(1 − e^(−2 t_cv/τ)), with I_b = k(s_∞ − s_cv) ÷ R.
+   - Terminal energy = E_st + loss. Grid energy = terminal ÷ charger efficiency.
+10. Comparison row: "time if the CC current held to the target" = (s₁ − s₀) Q ÷ I_cc. This is the constant-current (linear) estimate.
 
 **Inputs.**
 
 | Input | Units | Example | Validation |
 |---|---|---|---|
-| Capacity Q | Ah | 200 | > 0 |
-| OCV at 0 % / 100 % | V | 330 / 410 | V₀ < V₁₀₀ |
-| Pack resistance | Ω | 0.10 | > 0 |
-| Max charge voltage | V | 410 | > OCV(s₀) + I_cc R (otherwise the charge starts in CV) |
-| Battery current limit | A | 400 | > 0 |
+| Usable capacity Q (DC-3) | Ah | 200 | > 0 |
+| OCV at 0 % / at 100 % of that window | V | 330 / 410 | 0 < V₀ < V₁₀₀ |
+| Pack DC resistance (at the charging temperature) | Ω | 0.10 | > 0 |
+| Maximum charge voltage V_max | V | 410 | > OCV(s₀). Otherwise no charge current flows |
+| Current limit (lower of battery and charger) | A | 400 | > 0 |
 | Charger power limit | kW (native, `EV_POWER`) | 350 | > 0 |
-| Start / target SOC | % | 10 / 80 | 0 ≤ s₀ < s₁ < 100 |
-| Charger efficiency | % | 95 | Optional |
+| Start / target SOC | % | 10 / 80 | 0 ≤ s₀ < s₁ ≤ 100, and s₁ < s_∞ (otherwise V_max cannot reach the target) |
+| Charger efficiency | % | 95 | 50–100 |
 
-All units are neutral, so the calculator is the same in both systems, apart from the power token.
+All inputs and outputs are electrical or time units that are the same in Metric and Imperial. The only exception is the charger power box (`EV_POWER`, native kW, which follows the Power preference).
 
-**Outputs.**
-- CC current (A); CC and CV phase times (min); total time (min).
-- SOC at the CC→CV switch (%); current at the target (A).
-- Energy stored and terminal energy (kWh); pack I²R loss (kWh); grid energy (kWh).
-- Linear-estimate comparison (min).
+**Outputs** (labels as they will appear).
+- CC Current (A).
+- Constant-Current Phase Time (min); Constant-Voltage Phase Time (min); Total Charge Time (min).
+- SOC at the Switch to Constant Voltage (%). If the charge starts in CV, the page says so.
+- Current at the Target SOC (A).
+- Energy Stored (kWh); Pack Resistive Loss (kWh); Energy at the Pack Terminals (kWh); Energy from the Grid (kWh).
+- Time if the CC Current Held to the Target (min), the linear comparison.
 
-**Worked example** [V by numerical integration of the ODE with a 1 µh step: 25.7444 min].
+**Worked examples.** These are **model-derived**. Each closed form was checked by forward integration of dS/dt = min(I_cc, (V_max − OCV)/R) ÷ Q with a 10⁻⁶ h step, which accumulates time, OCV·I and I²R independently. **None is a measured-vehicle validation**; see the limits below.
 
-| Result | Value |
-|---|---|
-| k | 80 V |
-| s_b / s_∞ | 0.50 / 1.00 |
-| τ | 0.25 h |
-| CC time | 12.000 min |
-| CV time | 13.7444 min |
-| **Total** | **25.7444 min** |
-| Current at 80 % | 160 A |
-| Energy stored | 51.240 kWh |
-| I²R loss, CC + CV | 3.200 + 1.680 kWh |
-| Terminal energy | 56.120 kWh |
-| Linear estimate | 21.00 min |
+Common inputs: Q 200 Ah, 330 / 410 V, R 0.1 Ω, V_max 410 V, current limit 400 A, efficiency 95 %. So k = 80 V, s_∞ = 1.00 and τ = 0.25 h (15 min).
 
-A 120 kW charger gives I_cc = 292.683 A, s_b = 0.63415 and a total of 30.9587 min [V].
+| Quantity | Ex 1: 350 kW charger, 10 → 80 % | Ex 2: 120 kW charger, 10 → 80 % | Ex 3: 350 kW, 60 → 80 % (starts in CV) |
+|---|---|---|---|
+| I_cc | 400 A (current-limited) | 292.683 A (power-limited, 120 kW ÷ 410 V) | 400 A |
+| SOC at the CV switch | 50.0 % | 63.415 % | 50.0 % (below start, so CV from 60 %) |
+| CC time | 12.0000 min | 21.9000 min | 0 |
+| CV time | 13.7444 min | 9.0587 min | 10.3972 min |
+| **Total** | **25.7444 min** | **30.9587 min** | **10.3972 min** |
+| Current at target | 160 A | 160 A | 160 A |
+| Energy stored | 51.240 kWh | 51.240 kWh | 15.440 kWh |
+| Resistive loss (CC + CV) | 3.200 + 1.680 = 4.880 kWh | 3.1267 + 0.7508 = 3.8775 kWh | 0 + 0.960 = 0.960 kWh |
+| Terminal energy | 56.120 kWh | 55.1175 kWh | 16.400 kWh |
+| Grid energy at 95 % | 59.0737 kWh | 58.0184 kWh | 17.2632 kWh |
+| Linear comparison | 21.00 min | 28.70 min | 6.00 min |
+| Numerical check (total; terminal energy) | 25.7444 min; 56.120 kWh | 30.9587 min; 55.1175 kWh | 10.3972 min; 16.400 kWh |
 
-**Stated limits** [P: Shi et al.]. Real fast-charge profiles are multi-step and depend on temperature: the BMS steps the current down with SOC, and the CC→CV switch depends on temperature and C-rate. Real Li-ion OCV is not linear. Resistance depends on temperature, so a cold pack charges slower. Charger power at low pack voltage, and preconditioning, are not modelled.
+**Validation status and stated limits.**
+- **Not validated against measured vehicle data.** The examples check the arithmetic of the model, not its realism.
+- The page names the simplifications:
+  - linear OCV (real Li-ion OCV is flat through the middle);
+  - one fixed resistance;
+  - no temperature model (a cold pack charges more slowly);
+  - no multi-step BMS current schedule [P: Shi et al.] or preconditioning;
+  - the conservative power-limited current (DC-2);
+  - no auxiliary loads (DC-4).
+- The page directs users to a manufacturer charging curve when they need a vehicle-specific time.
 
 ---
 
 ### 2.5 Hybrid Power-Split Device Kinematics — `power_split_device_kinematics` (EV / HYBRID & ALTERNATIVE ENERGY)
 
-**Purpose.** For a single planetary power-split device (Toyota THS layout as the default mapping): from two member speeds and the engine torque, find the third speed, the steady torque split and the mechanical/electrical power paths.
+*Revised in 1.2: equations re-derived independently. The electrical path is now correct when MG1 motors (power recirculation), and the stationary-ring case is resolved.*
+
+**Purpose.** For a single planetary power-split device in the Toyota THS input-split layout (PS-1; see §3): from the engine and ring speeds and the engine torque, find the MG1 speed, the steady torque split and the mechanical and electrical power paths. The battery is assumed to neither charge nor discharge.
 
 **Published facts.**
 - Prius PSD: sun 30, ring 78 (planets 23).
 - Members: sun = MG1, carrier = engine, ring = MG2 and output.
-- MG1 = 3.6 × ICE − 2.6 × MG2 [P: Graham Davies, "Understanding the Power Split Device"].
-- 3.6 = 108/30 and 2.6 = 78/30, which agrees with the Willis equation [V].
+- MG1 = 3.6 × ICE − 2.6 × MG2 [P: Graham Davies, "Understanding the Power Split Device"]. Note 3.6 = 108/30 and 2.6 = 78/30.
 
 **Conventions** [E].
-- Tooth counts: Z_s (sun) and Z_r (ring, internal teeth); 0 < Z_s < Z_r, both whole numbers.
-- Speeds: positive is the engine's direction of rotation.
-- Torques: positive is the direction that accelerates the member in its positive direction.
-- Steady state, lossless gearing, rigid members.
+- Tooth counts: Z_s (sun) and Z_r (ring, internal teeth), whole numbers, 0 < Z_s < Z_r.
+- Speeds: positive in the engine's direction of rotation. The engine speed and ring speed inputs are ≥ 0 (PS-4: no reverse in v1). The MG1 speed is computed and may be negative.
+- Torques: the engine torque input is ≥ 0 (no engine braking in v1).
+- Powers: **positive = mechanical power delivered by the member into the gearset or the driveline.** P_MG1 > 0 means MG1 *absorbs* shaft power and generates electricity; P_MG1 < 0 means MG1 *motors*. P_MG2 > 0 means MG2 motors and drives the ring; P_MG2 < 0 means MG2 generates.
+- Steady state, lossless gearing, rigid members, no battery net power (PS-5).
 
-**Equations.**
-- **Willis:** Z_s ω_s + Z_r ω_r = (Z_s + Z_r) ω_c [P, standard].
-- **Torque equilibrium:** with engine torque T_e on the carrier, the reactions are T_s = −T_e Z_s/(Z_s + Z_r) and T_r = −T_e Z_r/(Z_s + Z_r), as torques the sun and ring must resist.
-- **Reported as delivered magnitudes:**
-  - engine torque reaching the ring: T_e Z_r/(Z_s + Z_r);
-  - MG1 reaction torque: T_e Z_s/(Z_s + Z_r).
-- **Power:**
-  - P_ring,mech = T_e Z_r/(Z_s + Z_r) · ω_r;
-  - P_MG1 = T_e Z_s/(Z_s + Z_r) · ω_s, generating when ω_s > 0;
-  - **check: P_engine = P_ring,mech + P_MG1.**
-- **Optional charge-sustaining electrical path** (battery net zero) with an electrical efficiency η_e (MG1 generating × inverters × MG2 motoring):
-  - P_MG2 = η_e P_MG1;
-  - T_MG2 = P_MG2 ÷ ω_r;
-  - output torque = engine share + T_MG2.
-- **Ring speed:** a direct input, or from vehicle speed: n_ring = v ÷ (2π r_tire) × 60 × G (G = ring-to-wheel reduction).
+**Independent derivation** (rev 1.2; geometry and free body, not taken from the Willis formula).
+- **Geometry.** Pitch radii r_s = m Z_s/2, r_r = m Z_r/2, planet r_p = (r_r − r_s)/2, carrier radius r_c = r_s + r_p = (r_s + r_r)/2.
+- **Speed.**
+  - The planet point meshing the ring moves at ω_c r_c + (ω_p − ω_c) r_p = ω_r r_r.
+  - The point meshing the sun moves at ω_c r_c − (ω_p − ω_c) r_p = ω_s r_s.
+  - Adding the two: ω_s r_s + ω_r r_r = 2 ω_c r_c = ω_c (r_s + r_r). Hence **Z_s ω_s + Z_r ω_r = (Z_s + Z_r) ω_c** (the Willis equation).
+  - So ω_s = ((Z_s + Z_r) ω_c − Z_r ω_r) ÷ Z_s.
+- **Torque.**
+  - A planet carries equal tangential forces F at the sun and ring meshes, which its torque balance requires, and the carrier pushes it with 2F at radius r_c.
+  - So T_engine = 2F r_c = F(r_s + r_r), T_sun = F r_s and T_ring = F r_r. Hence **T_sun = T_e Z_s/(Z_s + Z_r)** (MG1 reaction torque) and **T_ring,e = T_e Z_r/(Z_s + Z_r)** (engine torque reaching the ring).
+- **Power.**
+  - P_e = T_e ω_c;
+  - P_ring,mech = T_ring,e ω_r;
+  - P_MG1 = T_sun ω_s.
+  - Substituting the Willis equation gives **P_e = P_ring,mech + P_MG1** identically, for any speeds.
+
+**Electrical path (PS-2 corrected).** η_e is the end-to-end efficiency from one machine's shaft to the other's (generator, both inverters, motor). With no battery net power, the electrical loss depends on which machine generates:
+- **MG1 generating (P_MG1 ≥ 0):** P_MG2 = η_e × P_MG1 (MG2 motors); loss = P_MG1 − P_MG2.
+- **MG1 motoring, power recirculation (P_MG1 < 0):** MG2 must generate the power MG1 consumes plus the loss: P_MG2 = P_MG1 ÷ η_e (negative); loss = |P_MG2| − |P_MG1|.
+- In both cases: **T_MG2 = P_MG2 ÷ ω_r; output torque = T_ring,e + T_MG2; output power = P_ring,mech + P_MG2 = P_e − loss.**
+- *Revision 1.1 used P_MG2 = η_e P_MG1 in both directions. In recirculation that creates energy. Example: 1,000 RPM engine, 3,000 RPM ring, 100 N·m gave 12.30 kW out from 10.47 kW in. Superseded.*
+- If the output power is ≤ 0, the electrical losses consume all the engine power. The page then flags the point as not a usable driving point.
+
+**Stationary ring (PS-3, resolved against the no-battery-power assumption).**
+- With ω_r = 0, P_ring,mech = 0, so **all engine power passes through MG1: P_MG1 = P_e.**
+- MG2 cannot take power at zero speed (P = T ω = 0). The MG1 power therefore has nowhere to go except the battery, which this model excludes.
+- So with T_e > 0 and ω_r = 0 **there is no steady charge-sustaining solution.** The page:
+  - still shows the kinematics (MG1 speed), the torque split (the ring reaction T_ring,e is held by MG2, the brakes or the wheels) and P_MG1 = P_e;
+  - shows MG2 power, MG2 torque, output torque and output power as "—";
+  - states that this point requires charging the battery.
+- With T_e = 0 everything is zero and consistent.
+- **Engine stopped** (ω_c = 0, T_e = 0): kinematics only (MG1 = −(Z_r/Z_s) ω_r). Driving on MG2 alone needs battery power, which is outside this model.
+
+**Ring-speed input (PS-6).** Either ring RPM directly, or vehicle speed: n_ring = v ÷ (2π r_tire) × 60 × G, with G the ring-to-wheel reduction. **The G = 3.267 used below is an illustrative value, not a cited Prius figure.**
 
 **Inputs.**
 
 | Input | Units | Example | Validation |
 |---|---|---|---|
-| Z_s / Z_r | teeth | 30 / 78 | Integers, Z_s < Z_r |
+| Z_s / Z_r | teeth | 30 / 78 (published Prius) | Integers, 0 < Z_s < Z_r |
 | Engine speed (carrier) | RPM | 2,000 | ≥ 0 |
-| Ring speed | RPM | 1,500 | ≥ 0 |
-| *or* vehicle speed | mph ↔ km/h | — | — |
-| *with* tire radius | in ↔ mm | — | — |
-| *with* reduction G | — | — | — |
-| Engine torque | `ENGINE_TORQUE` (lb-ft ↔ N·m) | 100 N·m (73.76 lb-ft) | ≥ 0 |
-| η_e | % | 85 | Optional |
-| MG1 speed limit | RPM | — | Optional, flags an overspeed |
+| Ring speed (direct) | RPM | 1,500 | ≥ 0 |
+| *or* vehicle speed + tire radius + G | mph ↔ km/h; in ↔ mm; — | — | ≥ 0; > 0; > 0 |
+| Engine torque | `ENGINE_TORQUE` (lb-ft ↔ N·m by preference) | 100 N·m (73.76 lb-ft) | ≥ 0 |
+| Electrical path efficiency η_e | % | 85 (illustrative) | 50–100 |
+| MG1 speed limit | RPM | none (no cited default) | Optional; flags an overspeed |
 
 **Outputs.**
-- MG1 (sun) speed, RPM, with sign.
-- Engine torque to the ring and MG1 reaction torque (torque rows: decision D-14-2/-6).
-- Engine power, ring mechanical power, MG1 power, MG2 power, output torque (power rows: decision D-14-6).
-- Fraction of engine power through the mechanical path (%).
-- Mode notes:
-  - "MG1 generating" or "MG1 motoring (power recirculation)" when ω_s < 0;
-  - "engine stopped (EV mode)" when ω_c = 0.
+- MG1 Speed (RPM, signed), with a note "generating" or "motoring (power recirculation)".
+- Engine Torque to the Ring and MG1 Reaction Torque (torque rows; D-14-2).
+- Engine Power, Ring Mechanical Power, MG1 Power (signed), MG2 Power (signed) and Output Power (power rows; D-14-6 recommended option iii adds a one-line balance in a single unit).
+- MG2 Torque (signed) and Output Torque.
+- Electrical Path Loss.
+- Share of Engine Power through the Mechanical Path (P_ring,mech ÷ P_e, %).
 
-**Worked example** [V by the power balance, and against the Prius relation].
+**Worked examples** (Z_s 30, Z_r 78, T_e 100 N·m, η_e 85 %). Model-derived. The MG1 speed was checked three independent ways (planet contact velocities, Willis, the published 3.6/2.6 relation), and every power balance was checked to ≤ 2 × 10⁻¹² W. **No measured vehicle data.**
 
-| Input | Value | Result | Value |
-|---|---|---|---|
-| Z_s / Z_r | 30 / 78 | MG1 speed | **3,300 RPM** (3.6 × 2,000 − 2.6 × 1,500 = 3,300) |
-| Engine | 2,000 RPM, 100 N·m | Engine torque to the ring | 72.2222 N·m |
-| Ring | 1,500 RPM | MG1 reaction | 27.7778 N·m |
-| — | — | Engine power | 20,943.95 W |
-| — | — | Ring mechanical power | 11,344.64 W |
-| — | — | MG1 generated | 9,599.31 W (sum 20,943.95 W ✓) |
+| Quantity | A: 2,000 / 1,500 RPM (MG1 generating) | B: 1,000 / 3,000 RPM (recirculation) | C: 2,000 / 0 RPM (ring stationary) | D: 0 / 1,500 RPM, T_e 0 (engine stopped) |
+|---|---|---|---|---|
+| MG1 speed | +3,300 RPM | −4,200 RPM | +7,200 RPM | −3,900 RPM |
+| MG1 reaction / engine torque to ring | 27.7778 / 72.2222 N·m | 27.7778 / 72.2222 N·m | 27.7778 / 72.2222 N·m | 0 / 0 |
+| Engine power | 20,943.95 W | 10,471.98 W | 20,943.95 W | 0 |
+| Ring mechanical power | 11,344.64 W | 22,689.28 W | 0 | 0 |
+| MG1 power | +9,599.31 W (generating) | −12,217.30 W (motoring) | +20,943.95 W (= engine) | 0 |
+| MG2 power | +8,159.41 W (η_e × P_MG1) | −14,373.30 W (P_MG1 ÷ η_e) | — (needs battery) | 0 |
+| MG2 torque | +51.9444 N·m | −45.7516 N·m | — | 0 |
+| Output torque | 124.1667 N·m | 26.4706 N·m | — | 0 |
+| Output power | 19,504.05 W (93.125 %) | 8,315.98 W (79.412 %) | — | 0 |
+| Electrical path loss | 1,439.90 W | 2,156.00 W | — | 0 |
+| Balance: engine − output − loss | 0 | 0 | not applicable (no charge-sustaining solution) | 0 |
 
-- **With η_e = 85 %:** P_MG2 = 8,159.41 W; T_MG2 = 51.9444 N·m; output torque 124.1667 N·m; output ÷ engine power = 93.125 %.
-- **Engine stopped, ring 1,500 RPM:** MG1 = −3,900 RPM.
-- **Ring held** (ω_r = 0): ω_s/ω_c = 108/30 = 1 + 78/30, which equals `planetary_gearset_ratio` ring-fixed [V].
-- **From vehicle speed:** 100 km/h, r = 0.3 m, G = 3.267 gives a ring speed of 2,888.662 RPM.
+- **Ring held is the same configuration as `planetary_gearset_ratio` ring-fixed:** ω_s/ω_c = 108/30 = 3.6 = 1 + 78/30. Case C reproduces it (7,200 ÷ 2,000).
+- **Vehicle-speed mode:** 100 km/h, r = 0.3 m, G = 3.267 (illustrative) gives a ring speed of 2,888.662 RPM.
 
 **Not valid for.**
-- Compound or multi-mode devices (GM two-mode, Gen-4 Prius, Ford variants with an extra reduction) unless the user maps them.
-- Gear and bearing losses.
-- Transients (member inertias).
+- Compound or multi-mode devices (GM two-mode, Gen-4 Prius, Ford variants with an extra reduction).
+- Gear and bearing losses; transients (member inertias).
+- Battery charge or assist (PS-5).
+- Reverse driving or engine braking (PS-4).
 
 The page states each.
 
@@ -576,6 +632,7 @@ Proposal [E]: every **heat or loss** row in Batch 14 (battery heat, motor loss, 
 - Under U3 (lb-ft by default), the Motor Thermal torque input and the MG2 torque are `EV_TORQUE`.
 - MG1 reaction torque: `EV_TORQUE` or `DRIVELINE_TORQUE`?
 - Ring/output torque: `DRIVELINE_TORQUE` (recommended) or `WHEEL_TORQUE`?
+- *Rev 1.2:* the MG torque rows follow the confirmed `EV_TORQUE` convention (S2-2), and the engine torque is `ENGINE_TORQUE`. The ring/output torque category still awaits the owner's decision.
 
 **D-14-3.** Motor thermal capacitance input: C (J/K) or a time constant τ (s), or both through a selector.
 
@@ -587,13 +644,17 @@ Proposal [E]: every **heat or loss** row in Batch 14 (battery heat, motor loss, 
 **D-14-5.** DC fast charge:
 - approve model (c);
 - decide whether a manufacturer-curve table mode (d) is wanted later.
+- *Rev 1.2:* model (c) approved for the specification by the owner's direction, with DC-1 (start in CV), DC-2 (conservative power-limited current) and DC-3 (capacity window); see §2.4. Mode (d) is not in v1. DC-4 (no auxiliary loads) and DC-5 (one combined current limit) are recommendations awaiting confirmation.
 
 **D-14-6. Power-split power rows.** Under P1/P2, engine power shows hp and MG power kW under Auto. The calculator's defining check, P_engine = P_ring + P_MG1, would then read in two units on one page, as `hybrid_power_split` already does. Options:
 - (i) per-row categories (engine `ENGINE_POWER` hp; MG1, MG2 and ring `EV_POWER` kW);
 - (ii) all split powers `HYBRID_SYSTEM_POWER` (kW, one unit) — clearer arithmetic, but it departs from P1 for the engine row;
 - (iii) as (i), plus a one-line "balance" note in a single unit.
 
-Recommended: (iii) [E].
+Recommended: (iii) [E]. *Rev 1.2:* still awaiting the owner's decision.
+- Under (i)/(iii), the ring mechanical power, MG1 power, MG2 power and output power are `EV_POWER` (native kW). The engine power is `ENGINE_POWER` (hp under Auto).
+- The electrical path loss is a loss row, W `RETAIN-ACCESSORY` (the confirmed S2-1 rule).
+- §2.5's worked examples are given in W and N·m; on the page each row shows its category's unit.
 
 **D-14-7.** Energy units: kWh only (neutral), or also Wh / J for single-stop regen energies, which are small, e.g. 0.183 kWh.
 
@@ -616,8 +677,8 @@ All are labelled as examples.
 | Battery heat balance | Example above; Q_rev sign flip charge/discharge; T_ss ≤ limit gives "does not reach"; T₀ ≥ limit | Euler ODE | Empty/text/negative per box; R = 0; ṁ = 0; UA = 0; limit ≤ inlet; outlet > pack flag | current/resistance neutral; tempabs; tempdiff; mass; massflow-min*; neutral J/kg·K, W/K | t_lim = 1,503.15 s (tol 0.1; revision 1.0's 1,018.26 s is superseded); I_max = 205.764 A |
 | Motor thermal limit | Example; continuous case (P small); torque mode equals power mode; already-at-limit case | Euler ODE | η ≤ 50 or ≥ 100; R_th ≤ 0; C ≤ 0; limit ≤ coolant; speed 0 in torque mode | tempabs; EV_POWER native; EV_TORQUE perf token | t_lim = 198.177 s; P_cont = 110.972 kW |
 | Inverter thermal load | Mode A example; Mode B example; m = 0 gives symmetric conduction | Numeric PWM integral (conduction); half-period average (switching) | m > 1; cos φ > 1; Î ≤ 0; f_sw ≤ 0; negative diode bracket flag | tempabs; massflow-min*; neutral V, Ω, J, Hz, K/W | Mode B IGBT 153.491 W; inverter 1,146.40 W |
-| DC fast charge | Example; target before breakpoint (pure CC); power-limited charger; s₀ ≥ s_b (pure CV) | ODE integration | s₁ ≥ s_∞; V₀ ≥ V₁₀₀; s₀ ≥ s₁; V_max ≤ OCV(s₀) + I R; Q ≤ 0 | all neutral plus EV_POWER native | total 25.7444 min; I₁ = 160 A |
-| Power-split | Example; EV mode (engine stopped); ring held equals `planetary_gearset_ratio`; vehicle-speed mode | Power balance; Prius 3.6/2.6 relation | Z_s ≥ Z_r; fractional teeth; negative speeds; tire radius 0 | rpm; ENGINE_TORQUE token; speed; length | n_s = 3,300 RPM; T_ring = 72.2222 N·m |
+| DC fast charge | Ex 1 (350 kW, current-limited); Ex 2 (120 kW, power-limited); Ex 3 (starts in CV); target reached in CC; s₀ = s_b | Forward integration of dS/dt with I = min(I_cc, (V_max − OCV)/R) | s₁ ≥ s_∞; V₀ ≥ V₁₀₀; s₀ ≥ s₁; V_max ≤ OCV(s₀); Q, R, I_lim, P ≤ 0 | all neutral plus EV_POWER native | totals 25.7444 / 30.9587 / 10.3972 min; I₁ = 160 A |
+| Power-split | A (MG1 generating), B (recirculation), C (ring stationary: MG2 and output "—"), D (engine stopped); ring held equals `planetary_gearset_ratio`; vehicle-speed mode | Planet contact-velocity geometry; Prius 3.6/2.6 relation; engine = output + loss | Z_s ≥ Z_r; fractional teeth; negative speeds or torque (PS-4); tire radius 0; η_e outside 50–100 | rpm; ENGINE_TORQUE and EV_TORQUE tokens; speed; length | n_s = 3,300 / −4,200 RPM; output power 19,504.05 / 8,315.98 W |
 | Regen energy | Example; no cap reached (small mass); all below the cutout gives 0; f = 0 gives all friction | Time-stepped integration | v₂ ≥ v₁; a ≤ 0; η > 100; share > 100 | mass; speed; g raw; EV_POWER native | E_batt = 0.183142 kWh; friction 32,797 J |
 
 **Common to all.**
@@ -636,8 +697,8 @@ All are labelled as examples.
 | Regenerative Braking Energy Recovery | **Ready to implement** | Model, limits and examples defined and verified. D-14-7 can follow the default (kWh, plus J in the help text) |
 | Battery Pack Heat Balance | **Ready to implement** | Follows the `ev_battery_heat` precedent for the heat rows. D-14-1 confirms the heat-row category, and the existing precedent applies if the owner is silent |
 | Motor Thermal Limit | **Ready after owner decision** | D-14-2 (torque category, only if torque mode is included), D-14-3, D-14-8 |
-| Hybrid Power-Split Device Kinematics | **Ready after owner decision** | Kinematics verified. D-14-2 and D-14-6 decide how the power and torque rows display |
-| DC Fast-Charge Time | **Ready after owner decision** | D-14-5 (approve model c; table mode later or never) |
+| Hybrid Power-Split Device Kinematics | **Ready after owner decision** | Rev 1.2: derivation, signs, recirculation (PS-2) and the stationary ring (PS-3) settled in the specification. Still open: PS-1 (architecture), D-14-6 (power rows), D-14-2 (ring torque row) and implementation authorization |
+| DC Fast-Charge Time | **Ready after implementation authorization** | Rev 1.2: model (c) with DC-1 to DC-3 approved for the specification. DC-4 (no auxiliary loads) and DC-5 (one combined current limit) are recommendations awaiting confirmation |
 | Inverter Thermal Load | **Mode A ready after D-14-1. Mode B not ready** | The application-note equations must be checked against the original PDF, the switching-scaling assumption confirmed, and the device scope decided (D-14-4). Mode A can ship alone if the owner prefers |
 
 **Shared dependencies.**
