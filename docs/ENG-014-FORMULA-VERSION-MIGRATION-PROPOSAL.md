@@ -339,3 +339,102 @@ COMMIT;
 - **D1:** approve the four rows and the per-row post-condition.
 - **D8 (new):** authorize a read-only count of `bolt_stretch` records, the same way.
 - **Then** the two separate authorizations of Section 10: A (prepare on the branch) and B (apply to production).
+
+## 13. Prepared migration `0408` (2026-10-15)
+
+**Status: PREPARED ON THE BRANCH, NOT APPLIED.** The owner approved, on 2026-10-15:
+- the four-row proposal (Section 12, decision D1 with D5 and D7);
+- a read-only count of `bolt_stretch` records (D8);
+- preparing and validating the migration on `premium/full-calculator-expansion`.
+
+Applying it to production is **not** authorized; that is authorization B of Section 10.
+
+**The file.** `supabase/migrations/0408_formula_versions_corrected_formulas.sql`.
+- Its text is the block below, byte for byte. `premium/tests/eng014-throwaway-db.sh` fails if they differ.
+- The Section 2 block is kept unchanged, as the record of the original two-row proposal. The proof script no longer runs it: it runs the committed file.
+
+**Metadata.** Each value was verified at this commit:
+- **Engine:** `GH_ENGINE.describe()` for the four calculators gives the canonical id, fingerprint and registry name; `GH_ENGINE.version` is `1.1.0`.
+- **Seed:** `0005_reference_seed.sql`, lines 41, 42, 137 and 181 for the calculators (each its own canonical id), and lines 625, 626, 720 and 764 for the original rows.
+
+| Calculator | New `formula_version` | `engine_version` | `formula_registry` | `first_release` | Original row (kept) |
+|---|---|---|---|---|---|
+| `dew_point` | `fv1-73ddeaf4` | `1.1.0` | `GH_LEGACY_FORMULAS` | `F1.12.4` | `fv1-260e7f34` (F1.12.3) |
+| `distance_converter` | `fv1-4001b424` | `1.1.0` | `GH_LEGACY_FORMULAS` | `F1.12.4` | `fv1-36d27af2` (F1.12.3) |
+| `bolt_torque_spec` | `fv1-25b1f973` | `1.1.0` | `GH_LEGACY_FORMULAS` | `F1.12.4` | `fv1-f63ea4c8` (F1.12.3) |
+| `bolt_stretch` | `fv1-8e827c77` | `1.1.0` | `GH_E1_FORMULAS` | `F1.12.4` | `fv1-d48e7340` (F1.12.3) |
+
+**The first two rows are unchanged** from Section 2: the same calculator, fingerprint, engine version, registry and first release. Two things differ from Section 2:
+- the post-condition now compares each row with its own registry;
+- the header comment now describes a prepared migration rather than a proposal.
+
+**Production counts (read-only, both through `BEGIN TRANSACTION READ ONLY`, count only, role `postgres`).**
+
+| Calculator | Records | Answered |
+|---|---|---|
+| `dew_point` | **0** | 2026-10-13 |
+| `distance_converter` | **0** | 2026-10-13 |
+| `bolt_torque_spec` | **0** | 2026-10-15 |
+| `bolt_stretch` | **0** | 2026-10-15 |
+
+- Row-level security on `calculation_records` is enabled and forced, and the `postgres` role bypasses it, so each count covers every user.
+- A role without `BYPASSRLS` would see only the rows its policies allow, so it could not give a complete count.
+- No record contents were read.
+
+<!-- MIGRATION-0408-SQL-BEGIN -->
+```sql
+-- PREMIUM-FOUNDATION 1.1.0 · 0408 formula_versions rows for the four registry formulas corrected after the 0005 seed was exported
+--
+-- Owner approval (2026-10-15): the four-row GH-ENG-014 proposal (docs/ENG-014-FORMULA-VERSION-MIGRATION-PROPOSAL.md, Sections 12-13).
+-- Prepared on premium/full-calculator-expansion; applying it to production is a separate authorization.
+--
+--   calculator          new fingerprint  registry            corrected by   original row (kept)
+--   dew_point           fv1-73ddeaf4     GH_LEGACY_FORMULAS  GH-DEF-005     fv1-260e7f34
+--   distance_converter  fv1-4001b424     GH_LEGACY_FORMULAS  GH-DEF-019     fv1-36d27af2
+--   bolt_torque_spec    fv1-25b1f973     GH_LEGACY_FORMULAS  GH-DEF-034     fv1-f63ea4c8
+--   bolt_stretch        fv1-8e827c77     GH_E1_FORMULAS      GH-DEF-036     fv1-d48e7340
+--
+-- Additive only: four inserts, no update, no delete. Formula versions are history (df_never_changed / df_no_truncate), so the
+-- original rows and every calculation_records row that references them stay exactly as they are. No rollback file by design:
+-- a formula_versions row cannot be deleted; reverting the engine leaves the new rows unreferenced, which is harmless.
+-- Idempotent (ON CONFLICT DO NOTHING). Single transaction. Each new row is checked against ITS OWN registry (bolt_stretch is in
+-- GH_E1_FORMULAS, the other three in GH_LEGACY_FORMULAS); any other state aborts the whole transaction and writes nothing.
+BEGIN;
+
+INSERT INTO public.formula_versions (calculator_id, formula_version, engine_version, formula_registry, first_release) VALUES
+  ('dew_point',          'fv1-73ddeaf4', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4'),
+  ('distance_converter', 'fv1-4001b424', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4'),
+  ('bolt_torque_spec',   'fv1-25b1f973', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4'),
+  ('bolt_stretch',       'fv1-8e827c77', '1.1.0', 'GH_E1_FORMULAS',     'F1.12.4')
+ON CONFLICT (calculator_id, formula_version) DO NOTHING;
+
+DO $$
+DECLARE n int;
+BEGIN
+  SELECT count(*) INTO n FROM public.formula_versions f
+    JOIN (VALUES ('dew_point', 'fv1-73ddeaf4', 'GH_LEGACY_FORMULAS'), ('distance_converter', 'fv1-4001b424', 'GH_LEGACY_FORMULAS'),
+                 ('bolt_torque_spec', 'fv1-25b1f973', 'GH_LEGACY_FORMULAS'), ('bolt_stretch', 'fv1-8e827c77', 'GH_E1_FORMULAS'))
+         AS v (calculator_id, formula_version, formula_registry)
+      ON f.calculator_id = v.calculator_id AND f.formula_version = v.formula_version AND f.formula_registry = v.formula_registry
+   WHERE f.engine_version = '1.1.0' AND f.first_release = 'F1.12.4';
+  IF n <> 4 THEN
+    RAISE EXCEPTION 'PF_0408_POSTCONDITION: expected all four corrected formula versions with their own registry, found %', n;
+  END IF;
+  SELECT count(*) INTO n FROM public.formula_versions
+   WHERE (calculator_id, formula_version) IN (('dew_point', 'fv1-260e7f34'), ('distance_converter', 'fv1-36d27af2'),
+                                              ('bolt_torque_spec', 'fv1-f63ea4c8'), ('bolt_stretch', 'fv1-d48e7340'));
+  IF n <> 4 THEN
+    RAISE EXCEPTION 'PF_0408_POSTCONDITION: the original formula versions must remain, found %', n;
+  END IF;
+END $$;
+
+COMMIT;
+```
+<!-- MIGRATION-0408-SQL-END -->
+
+**Still needed before production (none of it authorized yet).**
+- **Steps 6 and 7 of Section 10.** These change production configuration and touch the production project, so they wait for authorization B:
+  - pin the workflow (`.github/workflows/provision-supabase.yml`) to the commit that contains this file, with an 18-file manifest;
+  - update `supabase/PROVISIONING.md`;
+  - run the production dry run.
+- **Catalogue tooling (D3).** It is still pinned to the `0005` seed, on purpose: it describes production as provisioned. It should switch to "latest migrated row per calculator" in the same change that applies `0408` to production, not before (Section 9).
