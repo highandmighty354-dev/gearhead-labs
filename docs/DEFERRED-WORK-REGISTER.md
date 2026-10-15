@@ -1685,7 +1685,12 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Priority:** P2
 - **Description:** Battery Pack Heat Balance, Motor Thermal Limit, Inverter Thermal Load, DC Fast-Charge Time with CC-CV Taper, Hybrid Power-Split Device Kinematics, Regenerative Braking Energy Recovery.
 - **Evidence:** Project plan; Phase 1 notes (Regenerative Braking replaces the "braking power" input of `hybrid_regen_energy`).
-- **Affected:** 6 new Premium calculators; 4 exist (2026-10-14): stage 1 `regen_braking_energy`, `battery_pack_heat_balance`; stage 2 `motor_thermal_limit`, `inverter_thermal_load` (Mode A only); final pair `dc_fast_charge_time`, `power_split_device_kinematics`. All 6 exist (`docs/PREMIUM-CATALOG.md`, "Batch 14, stage 1" and "Batch 14, stage 2").
+- **Affected:** 6 new Premium calculators, all 6 built (2026-10-14):
+  - stage 1: `regen_braking_energy`, `battery_pack_heat_balance`;
+  - stage 2: `motor_thermal_limit`, `inverter_thermal_load` (Mode A only);
+  - final pair: `dc_fast_charge_time`, `power_split_device_kinematics`.
+
+  See `docs/PREMIUM-CATALOG.md`, "Batch 14, stage 1", "Batch 14, stage 2", "Batch 14, final pair" and "Batch 14 closeout".
 - **Impact:** Catalog expansion.
 - **Decision:** Approved set.
 - **Dependencies:**
@@ -1693,8 +1698,17 @@ This is the **single authoritative register** of known defects, deferred improve
   - New power and torque rows must be classified under the GH-IMP-019 policy (EV_POWER, HYBRID_SYSTEM_POWER, EV_TORQUE, ENGINE_POWER) with `PERF_ROWS` and census entries. The policy questions still open in GH-IMP-020 (EV motor torque and the rest) may affect them.
   - Related existing calculators: `hybrid_regen_energy`, `hybrid_power_split`, `ev_charge_time`, `ev_battery_heat`, `ev_coolant_flow`, `ev_motor_*` and Batch 7's `planetary_gearset_ratio`. Each needs a cross-link and an overlap check.
 - **Revisit:** After Batch 13 (readiness review 2026-10-14, see History).
-- **Commits:** stage 1: `6f85783` (Regenerative Braking Energy Recovery), `45a2177` (Battery Pack Heat Balance), docs `df85938`; specification rev 1.1 `71de139`; stage 2: `67f45ae` (Motor Thermal Limit), `3736b91` (Inverter Thermal Load, Mode A), docs in the following commit.
-- **Tests:** `premium/tests/structural-14.test.js` (new in stage 1; 622 checks after stage 2); stage 2 adds 2 `unit-system` cases (new `jperk` output kind), 4 engine self-test assertions and 9 `PERF_ROWS` / performance-census rows. Stage 1: 2 `unit-system` cases (new `massflowmin` input and `kwh`, `watts`, `amps`, `seconds`, `tempabs` output kinds), 5 engine self-test assertions, 9 `PERF_ROWS` / performance-census rows, 2 mass rows.
+- **Commits:**
+  - stage 1: `6f85783` (Regenerative Braking Energy Recovery), `45a2177` (Battery Pack Heat Balance), docs `df85938`;
+  - specification rev 1.1: `71de139`;
+  - stage 2: `67f45ae` (Motor Thermal Limit), `3736b91` (Inverter Thermal Load, Mode A), docs `a50079f`;
+  - specification rev 1.2: `01bff91`;
+  - final pair: `ace5547` (DC Fast-Charge Time), `3d3a531` (Hybrid Power-Split Device Kinematics), each with its docs;
+  - closeout record: the commit that adds this line.
+- **Tests:**
+  - `premium/tests/structural-14.test.js`: new in stage 1; 622 checks after stage 2; 1,075 with all six groups.
+  - Final pair: 2 `unit-system` cases (330 and 300 checks), 2 + 2 engine self-test assertions (729 in total), and 1 + 11 `PERF_ROWS` / performance-census rows.
+  - Stage 2 adds 2 `unit-system` cases (new `jperk` output kind), 4 engine self-test assertions and 9 `PERF_ROWS` / performance-census rows. Stage 1: 2 `unit-system` cases (new `massflowmin` input and `kwh`, `watts`, `amps`, `seconds`, `tempabs` output kinds), 5 engine self-test assertions, 9 `PERF_ROWS` / performance-census rows, 2 mass rows.
 - **Docs:** Project plan.
 - **Verification:** Batch workflow.
 - **History:** 2026-10-12 — entry created.
@@ -1715,6 +1729,11 @@ This is the **single authoritative register** of known defects, deferred improve
   2026-10-14 — **stage 2 authorized and done: Motor Thermal Limit and Inverter Thermal Load (Mode A only)**, with owner decisions S2-1 to S2-8, test-first, one commit each. Approved examples reproduced by independent methods (motor 198.18 s to the limit, 110.97 kW extrapolated continuous; inverter 3,092.78 W loss, heatsink 98.87 °C). The authorization's "Input power: 100 kW" for the inverter example was read as AC output, as the specification and the expected 3.09 kW loss require; noted for owner review. Full regression: 33 of 34 suites clean; `nav-return` failed on one older calculator with the GH-DEF-035 signature (evidence in `docs/PREMIUM-CATALOG.md`; GH-DEF-035 not modified). Remaining: DC Fast-Charge Time, Hybrid Power-Split Device Kinematics, and Inverter Mode B; status stays APPROVED.
   2026-10-14 — final pair authorized by the owner (decisions D-14-5, DC-1 to DC-5, PS-1, D-14-6, D-14-2, PS-2, PS-3; specification rev 1.2 `01bff91`). **DC Fast-Charge Time done**: test-first; the three rev 1.2 examples reproduced (25.7444, 30.9587, 10.3972 min) and checked by forward integration; full browser regression 35 of 35 suites. Hybrid Power-Split Device Kinematics follows in its own commit.
   2026-10-14 — **Hybrid Power-Split Device Kinematics done** (PS-1, D-14-6, D-14-2, PS-2, PS-3): test-first; rev 1.2 examples A–D reproduced against an oracle built from planet geometry and a free body; no direction creates energy; the stationary-ring case shows "—" with no fabricated battery power; full browser regression 35 of 35 suites. **All six Batch 14 calculators are built.** Status left APPROVED rather than closed, because Inverter Thermal Load's Mode B (D-14-4) is still outstanding and not ready; closing this entry is the owner's call.
+  2026-10-15 — **Batch 14 closeout recorded** (`docs/PREMIUM-CATALOG.md`, "Batch 14 closeout").
+  - **State:** HEAD `3d3a531`, synced with the remote and clean; `main` at `a4203cd`.
+  - **Counts:** 743 calculator-kind tools, 158 Premium calculators, 137 expansion, 757 in Premium.
+  - **Closeout run:** `run-tests.sh` (catalog, register, frontend 55/55, schema 26/26), plus a full browser regression (35 of 35 suites passed).
+  - **Status:** stays APPROVED because Inverter Mode B is outstanding.
 
 
 ### GH-FUT-004 — Batch 16: Workbenches (6)

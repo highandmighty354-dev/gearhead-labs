@@ -92,7 +92,7 @@ Saving is not being extended to new tools while the catalog is incomplete. The e
 - **Decided (2026-10-14, owner authorization for Batch 13):** Scavenging / Charging Efficiency and Port Timing from Measured Geometry (classed "Analyzer" in the reconciliation) are built as calculators, with their limits stated on the page. The Batch 13 formula decisions (tuned-pipe model with an explicit exhaust-gas temperature, scavenging definitions and the two ideal reference curves, crankcase compression ratio convention) are recorded in the Batch 13 section.
 - **Decided (2026-10-14, owner authorization, Batch 14 stage 1):** Regenerative Braking Energy Recovery and Battery Pack Heat Balance only, from the Batch 14 model specification; heat rows in W (RETAIN-ACCESSORY), EV power in native kW (EV_POWER), energies kWh / Wh / kJ on a page selector. The specification's battery transient was corrected (see the Batch 14 stage 1 section).
 - **Decided (2026-10-14, owner authorization, Batch 14 stage 2):** Motor Thermal Limit and Inverter Thermal Load (Mode A only), with decisions S2-1 to S2-8 (`claude/batch-14-stage2-decisions.md` in the project): loss rows in W (RETAIN-ACCESSORY), EV power in native kW, motor input power or torque + speed (torque EV_TORQUE, lb-ft under Auto), τ as the motor heat-storage input with C as a result, the extrapolated continuous output kept and labelled, copper-loss feedback left out, no inverter junction estimate and no Mode B selector.
-- **Open: next batch.** Batch 11 (37), Batch 13 (4) and Batch 14 (6 of 6) are complete. 6 approved items remain: Batch 16 Workbenches (6), unauthorized. Inverter Thermal Load's Mode B is also outstanding: it is not ready (its application-note equations and switching-loss scaling are unverified; D-14-4). No batch starts without explicit authorization.
+- **Open: next batch.** Batch 11 (37), Batch 13 (4) and Batch 14 (6 of 6) are complete. 6 approved items remain: Batch 16 Workbenches (6), unauthorized. Inverter Thermal Load's Mode B is also outstanding: it is not ready (its application-note equations and switching-loss scaling are unverified; D-14-4). No batch starts without explicit authorization. Per the owner (2026-10-15), the GH-DEF-034 investigation (Bolt Torque Spec stress area) comes before any further batch (see "Batch 14 closeout").
 - **Open: E01–E14 QA counting.** They are live in the Premium Engineering Lab, but ENGINEERING_EXPANSION_CATALOG_V1.md says they are not counted as public calculators until QA sign-off.
 
 ### Calculators excluded from saving (119)
@@ -1096,6 +1096,70 @@ The owner authorized this investigation and fix on 2026-10-14. The full record i
 | full browser regression (35 suites) | — | 2 of 2 runs pass, 35 / 35 suites each |
 
 **Remaining risk.** Two other wrappers (`enhance`, `d31EnhanceDashboard`) also run one tick after a render. No failure was traced to them, so they are unchanged.
+
+### Batch 14 closeout (2026-10-15)
+
+Batch 14 is complete: all six approved EV / Hybrid calculators are built, each in its own commit on `premium/full-calculator-expansion`. This section is the batch record. The detail of each calculator is in the three sections above, and the GH-DEF-035 fix that ran between them is in the section before this one.
+
+**Repository state at closeout** (checked 2026-10-15, before this documentation commit): HEAD `3d3a531`, identical to `origin/premium/full-calculator-expansion` (0 ahead, 0 behind), clean working tree; `main` = `origin/main` = `a4203cd`, untouched.
+
+| Sub-group | Calculator | id | Commit | structural-14 checks (at its commit) | unit-system checks |
+|---|---|---|---|---|---|
+| E1A | Regenerative Braking Energy Recovery | `regen_braking_energy` | `6f85783` | 238 | 296 |
+| E1B | Battery Pack Heat Balance | `battery_pack_heat_balance` | `45a2177` | 177 | 370 |
+| E2A | Motor Thermal Limit | `motor_thermal_limit` | `67f45ae` | 119 | 189 |
+| E2B | Inverter Thermal Load (Mode A only) | `inverter_thermal_load` | `3736b91` | 91 | 150 |
+| E3A | DC Fast-Charge Time with CC-CV Taper | `dc_fast_charge_time` | `ace5547` | 217 | 330 |
+| E3B | Hybrid Power-Split Device Kinematics | `power_split_device_kinematics` | `3d3a531` | 239 | 300 |
+
+Every focused test was written first and failed before its calculator's code existed (counts in each stage's Verification above).
+- **Documentation commits:**
+  - `df85938` (stage 1 record);
+  - `71de139` (specification rev 1.1, battery-transient erratum);
+  - `a50079f` (stage 2 record);
+  - `01bff91` (specification rev 1.2, final-pair review).
+- **GH-DEF-035 fix between stage 2 and the final pair:** `ca2f9b8`, with its docs in `2b0dbd4`.
+
+**Counts.** These were checked with `run-tests.sh` on 2026-10-15 at `3d3a531`. The four figures measure different things:
+
+| Metric | Value | Definition |
+|---|---|---|
+| Calculator-kind tools in the engine | **743** | 585 Free-tier + 21 migrated to Premium + 137 expansion |
+| Premium calculators (`premium_by_kind.calculator`) | **158** | 21 migrated + 137 expansion |
+| Premium Calculator Expansion | **137** | of 143 approved; Batch 14 added 6 (131 → 137) |
+| In Premium (`premium_total_access`) | **757** | the 743 calculator-kind tools + 14 Engineering Lab tools (4 workbenches, 10 analyzers) |
+
+The catalogue also reports 172 Premium-only tools (137 + 21 + 14) and 151 validated expansion entries.
+
+**Test evidence.** There are four kinds, kept apart because they ran at different times.
+1. **Focused tests at each calculator's commit:** the table above, plus the engine self-test assertions (721 → 725 → 729) and the unit, mass-force and performance censuses recorded in each stage.
+2. **Full browser regressions run during the batch:**
+   - **After stage 1 and after stage 2:** 33 of 34 suites clean. `nav-return` failed on older calculators with the GH-DEF-035 signature.
+   - **After the GH-DEF-035 fix (`ca2f9b8`):** 2 of 2 runs passed, 35/35 suites each.
+   - **After DC Fast-Charge (`ace5547`) and after Power-Split (`3d3a531`):** 35/35 suites each. In the last run, `nav-return` had 739 consistent and `structural-14` had 1,075 checks.
+3. **Final focused re-run on the committed state** (2026-10-14, `3d3a531`):
+   - engine self-test 729/729;
+   - `render-race` 95/95;
+   - `structural-14` 1,075 checks, 0 failures (all six groups together);
+   - `unit-system` for the two final calculators, 630 checks, 0 failures.
+4. **Closeout run** (2026-10-15, `3d3a531`, nothing changed since):
+   - `run-tests.sh`: catalog OK, register OK (80 entries), frontend 55/55, schema 26/26;
+   - full browser regression: **35 of 35 suites passed, 0 failures in any suite** (about 70 minutes). Results: engine self-test 729/729; smoke 19/19 with 743 calculator-kind tools; unit-system 7,688; toggle-sweep 743 (1 known-open); `nav-return` 739 consistent, 0 failures; label-consistency 743; formula-fingerprints 577 (575 identical to the seed, 2 recorded corrections); `structural-14` 1,075; `render-race` 95.
+
+**Limitations that remain (each is stated on its page).**
+- **Regenerative braking:** road loads are neglected, so the energy is an upper bound. Not modelled: grade, variable deceleration, ABS, the motor's low-speed constant-torque region, and reduced charge acceptance (the user enters it).
+- **Battery pack:** one lumped mean temperature, with no gradients, hot spots, ageing or runaway. R and dU/dT are inputs. Heat to ambient is neglected; constant current only. The specification's τ = C ÷ UA transient was corrected to τ = C × R_sum (1,503 s, not 1,018 s).
+- **Motor thermal:** a single thermal node with no copper-loss temperature feedback, so the real time to the limit is likely shorter. The "continuous output" row is an extrapolation, not a rating.
+- **Inverter thermal:** Mode A (steady state, P_out (1/η − 1)) only, with no junction temperature estimate. **Mode B is not built** (D-14-4, not ready). The authorization's "Input power: 100 kW" wording was read as AC output, as the specification and the expected 3.09 kW require; this remains noted for owner review.
+- **DC fast charge:** a linear OCV with one fixed resistance. A power-limited time is an upper bound. The result is an engineering estimate, not validated against measured vehicle charging data, and it excludes auxiliary/thermal loads, temperature, the BMS schedule and preconditioning.
+- **Power split:** steady state only. G = 3.267 is illustrative. There is no MG1 overspeed limit (no cited value). The stationary ring with engine torque has no steady solution and shows "—". Reverse, engine braking and battery charge/assist are excluded.
+
+**Register status at closeout** (unchanged by this record):
+- **GH-FUT-003 (Batch 14):** stays **APPROVED**, not closed, because Inverter Thermal Load Mode B is outstanding. Closing it is the owner's call.
+- **GH-DEF-035:** stays **VERIFIED CLOSED**.
+- **GH-DEF-034** (Bolt Torque Spec stress area): stays **OPEN**.
+
+**Next.** On the owner's direction (2026-10-15), engineering quality comes before further expansion. GH-DEF-034 is investigated next, and any fix needs its own authorization. Batch 16 and Inverter Mode B are not authorized.
 
 ## Reliability pass (2026-10-12, between Batch 10 and Batch 11)
 
