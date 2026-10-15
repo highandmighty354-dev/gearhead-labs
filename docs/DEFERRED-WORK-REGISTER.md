@@ -57,7 +57,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-031](#gh-def-031--the-shells-compact-units-menu-did-nothing-it-called-setunits-which-does-not-exist-the-engines-setunit-could-not-run-without-the-buttons-the-shell-removed-and-the-legacy-unit-hider-could-hide-the-control) | The shell's compact UNITS menu did nothing: it called `setUnits`, which does not exist, the engine's `setUnit` could not run without the buttons the shell removed, and the legacy-unit hider could hide the control | VERIFIED CLOSED | High | P1 |
 | [GH-DEF-032](#gh-def-032--a-simulators-first-draw-runs-at-50--drivetrain-efficiency-its-fallback-is-085-where-the-box-holds-85) | A simulator's first draw runs at 50 % drivetrain efficiency (its fallback is 0.85 where the box holds 85) | VERIFIED CLOSED | High | P2 |
 | [GH-DEF-033](#gh-def-033--the-acceleration-simulators-default-60-mph-target-is-also-one-of-its-distance-marks-60-ft-so-it-reports-the-60-foot-time-as-the-target-time) | The Acceleration simulator's default 60 mph target is also one of its distance marks (60 ft), so it reports the 60-foot time as the Target Time | VERIFIED CLOSED | High | P2 |
-| [GH-DEF-034](#gh-def-034--bolt-torque-spec-by-grade-estimates-the-tensile-stress-area-with-16-threads-per-inch-for-every-bolt-above-03-in-reported-needs-investigation) | Bolt Torque Spec by Grade estimates the tensile stress area with 16 threads per inch for every bolt above 0.3 in (reported; needs investigation) | OPEN | Unknown until investigated | P2 |
+| [GH-DEF-034](#gh-def-034--bolt-torque-spec-by-grade-estimates-the-tensile-stress-area-with-16-threads-per-inch-for-every-bolt-above-03-in-reported-needs-investigation) | Bolt Torque Spec by Grade estimates the tensile stress area with 16 threads per inch for every bolt above 0.3 in (reported; needs investigation) | OPEN | Medium, confirmed by the 2026-10-15 investigation | P2 |
 | [GH-DEF-035](#gh-def-035--a-navigation-made-in-the-same-instant-as-a-trip-to-the-dashboard-can-be-overwritten-by-the-dashboards-deferred-home-page-swap-intermittent-nav-return-failures) | A navigation made in the same instant as a trip to the dashboard can be overwritten by the dashboard's deferred home-page swap (intermittent nav-return failures) | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
@@ -742,7 +742,10 @@ This is the **single authoritative register** of known defects, deferred improve
 
 ### GH-DEF-034 — Bolt Torque Spec by Grade estimates the tensile stress area with 16 threads per inch for every bolt above 0.3 in (reported; needs investigation)
 - **Status:** OPEN
-- **Severity:** Unknown until investigated. If confirmed, probably Medium: the target clamp load and recommended torque would be a few percent to about 13 % off for common coarse threads, high for most sizes, which means overtightening.
+- **Severity:** Medium, confirmed by the 2026-10-15 investigation.
+  - For common UNC sizes, 7/16 to 1 in, the recommended torque and clamp load are 4.8–14.3 % high, which means overtightening.
+  - Two secondary causes, in the proof-strength constants, reach +10 % (ISO 10.9) and up to +88 % (SAE Grade 2 above 3/4 in).
+  - (Before the investigation, this field read: "Unknown until investigated. If confirmed, probably Medium …")
 - **Priority:** P2
 - **Description:** Reported 2026-10-14 while preparing Batch 11b, recorded on the owner's instruction. `bolt_torque_spec` (Free, "Bolt Torque Spec by Grade") computes the tensile stress area as `0.7854 × (d − 0.9743 ÷ n)²` with `n = 16` threads per inch when `d > 0.3 in` and `n = 20` otherwise, whatever the bolt's real thread. The calculator has no thread-pitch input. The UN formula itself is the standard one (ASME B1.1 / FED-STD-H28); the suspected fault is the fixed `n`. The stress area feeds the target clamp load (75 % of proof load) and the recommended torque `T = K × D × F`.
 - **Evidence:** Source reading only (engine `53c7792`, `RENDERS.bolt_torque_spec`, the line `stress_area = 0.7854*Math.pow(dia_bt-(0.9743/(dia_bt>0.3?16:20)),2)`).
@@ -759,24 +762,106 @@ This is the **single authoritative register** of known defects, deferred improve
     - 7/8-9: +12.7 %
     - 1-8: +14.4 %
   - For UNF threads the error has the other sign or is different again. The page was not opened for this entry and nothing was changed; the figures are to be reproduced on the page as part of the investigation.
+  - **Investigation, 2026-10-15** (engine at `3d3a531`; diagnostics in a scratch folder, nothing in the repository changed).
+    - **References inspected:**
+      - (R1) [MechaniCalc fastener size tables](https://mechanicalc.com/reference/fastener-size-tables), UNC/UNF tensile stress areas, sourced there to ASME B1.1 Appendix B, and metric coarse stress areas, sourced to ASME B1.13M Appendix B. Values: 1/2-13 UNC **0.1419**, 1/2-20 UNF 0.1599, M12×1.75 84.27 mm².
+      - (R2) [Engineers Edge, ANSI inch thread stress area](https://engineersedge.com/hardware/ansi_inch_size_thread_stress_15800.htm), "ASME / ANSI B1.1": 1/2-13 **0.1419**, 1/2-20 0.1599, 5/8-11 0.226, 3/4-10 0.334. Its 7/16-14 entry (0.0163) is a typo on that page and was not used.
+      - (R3) [Portland Bolt, SAE J429](https://www.portlandbolt.com/technical/specifications/sae-j429/), proof loads:
+        - Grade 2: 55 ksi for 1/4–3/4 in, **33 ksi over 3/4 to 1-1/2 in**;
+        - Grade 5: 85 ksi for 1/4–1 in, **74 ksi over 1 to 1-1/2 in**;
+        - Grade 8: 120 ksi.
+      - (R4) [Fastenal, Mechanical Properties of Metric Fasteners](https://crafter.fastenal.com/static-assets/pdfs/Mechanical_Properties_of_Metric_Fasteners.pdf), "per ISO 898-1": proof 8.8 **580 MPa (M5–M16)**, 600 MPa (M18–M39); 10.9 **830 MPa**; A_s = 0.7854 ((d₂ + d₃)/2)².
+      - ASME B1.1, SAE J429 and ISO 898-1 themselves were **not** inspected; R1–R4 are secondary summaries of them. The tabulated areas agree with π/4 (d − 0.9743/n)² for UN and π/4 (d − 0.9382 P)² for ISO coarse threads to the printed digits.
+    - **Root cause (confirmed).** The area uses a fixed pitch instead of the bolt's own pitch, and the page has no thread input.
+      - `RENDERS.bolt_torque_spec` (engine line 5980) uses n = 16 above 0.3 in and 20 below.
+      - The active `RENDERS.bolt_stretch` (line 10635) uses n = 16 for every diameter. Line 6108 is an earlier definition, overridden and not run.
+      - The registry formula of `bolt_torque_spec` (`GH_BACKFILL_FORMULAS`, reported by the engine as `GH_LEGACY_FORMULAS`, fingerprint `fv1-f63ea4c8`, the same as the production seed) carries the same rule.
+      - `GH_ENGINE.calculate('bolt_torque_spec', {dia_bt: 0.5, K: 0.2, proof_str: 85000})` returns 80.4506 ft-lb, so the save path has the defect too.
+    - **Reproduced on the page** (Playwright, real renders, both systems). 1/2 in Grade 5 dry: **80.5 ft-lb, 9,654 lbf**; lubricated 60.3 ft-lb. With A_t = 0.1419, the values are 75.4 ft-lb, 9,046 lbf and 56.5 ft-lb (+6.7 %). Grade 5 dry, page against the UNC thread (UNF in brackets):
+
+      | Size | Page torque, ft-lb | UNC reference | Error UNC (UNF) |
+      |---|---|---|---|
+      | 1/4 | 8.5 | 8.4 | +0.1 % (−12.6 %) |
+      | 5/16 | 16.5 | 17.4 | −5.1 % (−14.3 %) |
+      | 3/8 | 30.9 | 30.9 | 0 % (−11.7 %) |
+      | 7/16 | 51.8 | 49.4 | +4.8 % (−6.1 %) |
+      | 1/2 | 80.5 | 75.4 | +6.7 % (−5.3 %) |
+      | 9/16 | 118.1 | 108.8 | +8.6 % (−2.7 %) |
+      | 5/8 | 166.0 | 150.1 | +10.6 % (−2.4 %) |
+      | 3/4 | 297.2 | 266.2 | +11.7 % (0 %) |
+      | 7/8 | 483.9 | 429.5 | +12.7 % (+2.3 %) |
+      | 1 | 735.9 | 643.9 | +14.3 % (+4.5 %) |
+
+      The figures logged on 2026-10-14 against the tabulated areas are corrected to: 5/16-18 −5.1 % (not −5.2 %), 3/4-10 +11.7 % (not +11.5 %), 1-8 +14.3 % (not +14.4 %).
+    - **Metric (confirmed, same cause).** The diameter box converts mm to inches, and the inch 16/20 TPI rule is applied, so the ISO pitch is never used. Page area against the ISO coarse thread:
+      - M6 −11.5 %;
+      - M8 −10.7 %;
+      - M10 −3.2 %;
+      - M12 +1.8 %;
+      - M16 +4.7 %.
+    - **Secondary causes (confirmed against R3 and R4; separate from the thread):** the proof-strength table has one value per grade.
+      - **Grade 2 above 3/4 in** uses 55 ksi, where the reference is 33 ksi. A 7/8-9 Grade 2 bolt dry: page 313.1 ft-lb, 21,472 lbf; reference 166.8 ft-lb, 11,435 lbf; **+87.8 %**.
+      - **Grade 5 above 1 in** uses 85 ksi, where the reference is 74 ksi. A 1-1/4-7 bolt: page 70,796 lbf, reference 53,780; +31.6 % with the area.
+      - **Metric 8.8** uses 87,000 psi (599.8 MPa), which is the M18+ value; M5–M16 is 580 MPa (+3.4 %).
+      - **Metric 10.9** uses 130,000 psi (896.3 MPa), where the reference is 830 MPa (**+8.0 %**). M12 10.9: page 57,689 N, reference 52,458 N, +10.0 %.
+    - **`bolt_stretch` (confirmed):** its Estimated Clamp Load = E ε A uses the same fixed-n area: 1/4 in −11.7 %, 1/2 in +6.7 %, 1 in +14.3 % against UNC. Target Stretch and Bolt Stress do not use the area.
+    - **Not affected (checked):**
+      - the Free `clamp_load` (F = T ÷ (K D), no area);
+      - the Batch 11b fastener calculators (`GH11B_threadRead` takes the real pitch; self-test 1/2-13 0.141898);
+      - the T = K D F relation and the 75 %-of-proof convention themselves.
+    - **Observation, not investigated:** `bolt_stretch` applies the strain measured over the whole length to the threaded area; a shank-dominated bolt has a larger effective area. This is a modelling question, outside GH-DEF-034.
 - **Affected:** `bolt_torque_spec` (Target Clamp Load, Recommended Torque). Possibly also:
   - `bolt_stretch` ("Bolt Stretch / Clamp Load"), which uses the same expression with n = 16 for every diameter (`stress_area_bs`) for its clamp-load estimate.
   - the metric grade choices of `bolt_torque_spec` (8.8, 10.9), whose diameter is an inch box and whose area uses the same inch thread rule rather than an ISO pitch.
   - Both are to be confirmed in the investigation.
   - Not affected: the Batch 11b fastener calculators, which take the thread pitch (UN threads per inch or ISO pitch) as an input and do not reuse this estimate.
+  - **Confirmed 2026-10-15** (see Evidence):
+    - `bolt_torque_spec`: page and registry formula (save path), Imperial and Metric, including the metric grades;
+    - `bolt_stretch`: Estimated Clamp Load only.
+    - The proof-strength constants of `bolt_torque_spec` are a second, independent cause.
 - **Impact:** For coarse threads from 7/16 to 1 in, the clamp load and torque the calculator recommends would be about 5 to 14 % high, toward overtightening. A 5/16-18 bolt would be about 5 % under-torqued. The calculator already advises verifying critical fasteners against manufacturer specs.
+  - **Measured 2026-10-15:**
+    - UNC 7/16–1 in: +4.8 to +14.3 % (overtightening);
+    - 5/16-18: −5.1 %;
+    - every UNF size from 1/4 to 5/8 in: −2.4 to −14.3 % (under-tightening);
+    - ISO coarse M6 to M16: −11.5 to +4.7 % in area;
+    - the proof constants add up to +88 % (Grade 2 above 3/4 in), +31.6 % (Grade 5 at 1-1/4 in) and +10 % (M12 10.9).
+  - The default page (3/8 in Grade 8 dry) happens to be correct for 3/8-16 UNC.
 - **Decision:** OPEN / NEEDS INVESTIGATION: not verified. The owner approved logging it (2026-10-14); no fix is authorized. A separate correction task, with tests written first, is to be planned after the investigation.
+  - **2026-10-15:** investigated and **confirmed**. The status stays OPEN, and **no fix is authorized**.
+  - **Proposed repair, for owner decision:**
+    - (P1) a thread input on both calculators, reusing the Batch 11b thread helper (UN: diameter in + threads per inch; ISO: diameter and pitch in mm). The default is 3/8-16 UNC, so the default results are unchanged.
+    - (P2) size-dependent SAE J429 proof strengths.
+    - (P3) ISO 898-1 proof strengths: 8.8 at 580/600 MPa by size, 10.9 at 830 MPa.
+    - (P4) the registry formula follows P1–P3. This gives a new fingerprint, recorded under `VERSIONED` in `formula-fingerprints.test.js`, as for GH-DEF-005 and GH-DEF-019. The production `formula_versions` row for it is later, separately reviewed migration work, not part of the fix.
 - **Dependencies:** None. Kept separate from the Batch 11b implementation commits.
-- **Revisit:** When the owner schedules the investigation.
-- **Commits:** None (this entry only).
+- **Revisit:** When the owner schedules the investigation. (2026-10-15: investigation done; revisit when the owner decides on the repair.)
+- **Commits:** None (this entry only). 2026-10-15: investigation record only, a documentation commit of its own; no code.
 - **Tests:** None yet. The investigation must add an independent test before any change: tabulated stress areas, proof loads and K × D × F torques for several UNC and UNF sizes, plus the metric choices.
+  - **Proposed, 2026-10-15:** a new `premium/tests/fasteners-def034.test.js`, written first and failing on the current engine. It checks:
+    - the tabulated reference literals (R1, R3, R4) for UNC/UNF 1/4–1 in and ISO M6–M16;
+    - torque = K D F and clamp load = 0.75 × proof × area, dry and lubricated, in both systems;
+    - the size thresholds of the proof table;
+    - `bolt_stretch` clamp load;
+    - default results unchanged;
+    - invalid threads rejected;
+    - `GH_ENGINE.calculate` equal to the page;
+    - the existing `unit-system` `bolt_stretch` case updated from "n = 16" to the thread entered.
 - **Docs:** This entry; `docs/PREMIUM-CATALOG.md` (Batch 11b plan, observation).
 - **Verification:** Required before this entry can move on:
   1. Reproduce on the page (Imperial and Metric) for 1/2 in Grade 5 dry and lubricated, and for at least 5/16, 7/16, 5/8 and 3/4 in.
   2. Confirm the governing thread geometry: the ASME B1.1 thread series and the stress-area formula, and how the calculator should know the pitch (a thread input or a coarse/fine choice).
   3. Check `bolt_stretch` and the metric grade options for the same cause.
   4. Then, with an approved fix, show the corrected values against tabulated references, with Imperial and Metric unchanged elsewhere.
+
+  Steps 1–3 were done on 2026-10-15 (Evidence). Step 2's answer is a thread input; the proposal is P1. Step 4 waits for authorization.
 - **History:** 2026-10-14 — observed during Batch 11b planning (commit `53c7792`, catalogue observation); logged as OPEN on the owner's instruction, with the reproduction figures above and the two possibly related places in the code. No change made.
+  2026-10-15 — investigated on the owner's instruction (after the Batch 14 closeout).
+  - **Confirmed:** the fixed pitch on the page and in the registry formula, for Imperial and Metric, and in `bolt_stretch`'s clamp load.
+  - **Further causes found:** the single proof value per grade (SAE J429 size ranges; ISO 898-1 8.8 and 10.9).
+  - Three of the logged percentages are corrected against tabulated areas.
+  - A repair (P1–P4) and its tests are proposed.
+  - Status stays OPEN; no code changed.
 
 ### GH-DEF-035 — A navigation made in the same instant as a trip to the dashboard can be overwritten by the dashboard's deferred home-page swap (intermittent nav-return failures)
 - **Status:** VERIFIED CLOSED
