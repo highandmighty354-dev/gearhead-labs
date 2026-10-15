@@ -340,7 +340,7 @@ COMMIT;
 - **D8 (new):** authorize a read-only count of `bolt_stretch` records, the same way.
 - **Then** the two separate authorizations of Section 10: A (prepare on the branch) and B (apply to production).
 
-## 13. Prepared migration `0408` (2026-10-15)
+## 13. Prepared migration `0408` (2026-10-15, commit `0cc4fc8`)
 
 **Status: PREPARED ON THE BRANCH, NOT APPLIED.** The owner approved, on 2026-10-15:
 - the four-row proposal (Section 12, decision D1 with D5 and D7);
