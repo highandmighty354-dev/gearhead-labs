@@ -52,6 +52,18 @@ const VERSIONED = {
     } else if (g.version !== r.version) fail(`${r.id}: engine fingerprint ${g.version} differs from the production seed's ${r.version} and is not recorded in VERSIONED — a changed formula needs a new formula_versions row (GH-ENG-014)`);
   }
   for (const id of Object.keys(VERSIONED)) if (!rows.some(r => r.id === id)) fail(`${id}: listed in VERSIONED but not in the seed`);
+  /* D3 (GH-ENG-014): the engine's fingerprint must be each calculator's LATEST formula_versions row across the migrations, so a
+     corrected formula without its migration, or a migration without the engine change, fails here */
+  const FV = require(path.join(REPO, 'catalog/formula-versions.js')).read(REPO);
+  for (const [id, r] of Object.entries(FV.latest)) {
+    const g = got[id];
+    if (g && !g.error && (g.version !== r.version || g.registry !== r.registry)) fail(`${id}: engine ${g.version} (${g.registry}), latest migrated formula_versions row ${r.version} (${r.registry}, ${r.file})`);
+  }
+  for (const [id, v] of Object.entries(VERSIONED)) {
+    const h = FV.history[id] || [];
+    if (!h.length || h[h.length - 1].version !== v.version || h[h.length - 1].file === '0005_reference_seed.sql') fail(`${id}: VERSIONED ${v.version} has no later migration row (latest: ${h.length ? h[h.length - 1].version + ' in ' + h[h.length - 1].file : 'none'})`);
+    if (!h.some(r => r.version === v.seed)) fail(`${id}: its original row ${v.seed} is no longer defined`);
+  }
   if (pageErrors.length) { failures++; lines.push('PAGE ERRORS:\n' + pageErrors.slice(0, 5).join('\n')); }
   if (lines.length) console.log(lines.join('\n'));
   const same = rows.filter(r => got[r.id] && got[r.id].version === r.version).length;

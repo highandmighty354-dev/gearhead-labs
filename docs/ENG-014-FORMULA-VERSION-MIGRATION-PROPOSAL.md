@@ -438,3 +438,36 @@ COMMIT;
   - update `supabase/PROVISIONING.md`;
   - run the production dry run.
 - **Catalogue tooling (D3).** It is still pinned to the `0005` seed, on purpose: it describes production as provisioned. It should switch to "latest migrated row per calculator" in the same change that applies `0408` to production, not before (Section 9).
+
+## 14. Release readiness (2026-10-15; prepared on the branch, nothing applied)
+
+The owner authorized preparing the remaining release artifacts on the feature branch. Applying `0408`, merging and deploying were **not** authorized, and none was done. The procedure itself lives in `supabase/PROVISIONING.md`, section "Prepared, not applied: 0408": execution order, preconditions, the dry run, post-migration checks and failure handling.
+
+**Workflow pin and manifest** (`.github/workflows/provision-supabase.yml`, on this branch only):
+- `PINNED_SHA` changes from `ca8e582…` to `0cc4fc8d7cd2bb678a2a60a61c1a9f738ee5e4b6`, the commit that added `0408`. The `supabase/` folder at that commit is identical to the branch head.
+- The manifest has 18 lines: the 17 earlier sha256 values, unchanged and re-computed from `0cc4fc8`, plus `0408` = `df92a3e050bc7cbc46d5e1c1d6fe3822a7a82db58a2ebc5fe3965138380c4c49`.
+- The messages and header comments now say 18 files and "production at 0407 → only 0408". The stale "exact 16 file names" comment is fixed.
+- **Checked locally:** the workflow's own verify step, extracted from the YAML and run against a checkout of `0cc4fc8`, exits 0 with "18 files, approved order, all checksums match", and all 12 frozen sources are OK. `main` still pins `ca8e582` (17 files) and is not changed.
+
+**Dry run.**
+- The `dry-run` job only runs `supabase db push --dry-run`, and the `apply` job needs mode `apply` plus a typed APPLY.
+- In the CLI source at `v2.119.0` (the version the workflow installs), the dry-run path reads `SELECT version FROM supabase_migrations.schema_migrations` and prints the plan. Migrations, the history-table DDL and the Vault update are only in the non-dry-run branch.
+- The dry run is therefore write-free. It was **not** run: it needs the owner's *Run workflow* and production-gate approval, and Claude does not dispatch workflows.
+- **Equivalent read-only evidence from production** (2026-10-15, read-only transaction): 17 applied versions (0001–0407), `formula_versions` 577, none of the four new rows present, the four original rows unchanged, `calculation_records` 0. The dry run would list exactly `0408`.
+- **Unverified:** whether the `production` environment restricts deployment branches. If it does, running the workflow "from" this branch is refused at the gate (nothing runs), and the owner chooses how to proceed.
+
+**D3 implemented in the same change.**
+- `catalog/formula-versions.js` reads every `formula_versions` insert in `supabase/migrations`, in file-name order. It finds 581 rows for 577 calculators, and four calculators have two rows (seed, then `0408`).
+- `build-catalog.js` names each calculator's latest row and records `0408` as a catalogue source.
+- `check-catalog.js` checks:
+  - catalogue = latest migrated row;
+  - every seed row is still its calculator's first row;
+  - a later row only adds a version, in the same registry and in a later migration.
+- `formula-fingerprints.test.js` additionally checks that engine = latest migrated row for all 577 calculators, that each `VERSIONED` entry is the latest row of a migration after the seed, and that each original row is still defined.
+- With the catalogue still at the seed fingerprints, the new check fails on exactly the four calculators, as intended. After the rebuild it passes.
+- This is the release change: the branch must not be merged or deployed before `0408` is applied (PROVISIONING.md, step 6).
+
+**Historical calculations.**
+- Old rows cannot change: `df_never_changed` refuses updates and deletes, and `df_no_truncate` refuses truncation. The throwaway proof (A-, H-checks) shows the 577 earlier rows are byte-identical after applying `0408` twice.
+- `calculation_records` is append-only, and each record keeps the `(canonical_id, formula_version)` it was saved with. Production holds 0 records today.
+- After `0408`, the engine names the new versions for new saves only.

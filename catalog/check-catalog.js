@@ -11,7 +11,8 @@
  *     every expansion calculator carries real promotion copy and no free_companion
  *   - the Engineering Lab is exactly E01-E14 from premium/models.js and engineering-expansion-v1.js
  *   - aliases are never counted, never collide with a tool id, and resolve to a Free calculator that lists them
- *   - every "eligible" calculator has its production catalog row and formula fingerprint (0005 seed); every seed row is accounted for
+ *   - every "eligible" calculator has its production catalog row (0005 seed) and its LATEST formula fingerprint across the migrations
+ *     (0005, or the later migration that corrected it, e.g. 0408; D3 of GH-ENG-014); every seed row is accounted for and kept
  *   - the sources have not changed since the file was generated (else: node catalog/build-catalog.js)
  *   - no marine content; every field uses the documented vocabulary */
 'use strict';
@@ -118,7 +119,19 @@ check(cat.tools.reduce((n, t) => n + t.aliases.length, 0) === cat.aliases.length
 // production seed (0005, byte-identical to the provisioned database)
 const seed = fs.readFileSync(path.join(REPO, 'supabase/migrations/0005_reference_seed.sql'), 'utf8');
 const rows = [...seed.matchAll(/^\s*\('([a-z0-9_]+)', '([a-z0-9_]+)', (true|false)\)/gm)].map(m => ({ id: m[1], canonical: m[2], proven: m[3] === 'true' }));
-const fvs = Object.fromEntries([...seed.matchAll(/^\s*\('([a-z0-9_]+)', '(fv1-[0-9a-f]{8})', '[0-9.]+', '([A-Z0-9_]+)'/gm)].map(m => [m[1], { version: m[2], registry: m[3] }]));
+// Formula fingerprints (GH-ENG-014, decision D3): the catalog names each calculator's LATEST formula_versions row across the migrations
+// (file-name order), so a corrected formula is described by the migration that recorded it (0408), never by the superseded seed row.
+// History is never dropped: every seed row is still the first row of its calculator, and a later row only ever adds a version.
+const FV = require('./formula-versions').read(REPO);
+const fvs = Object.fromEntries(Object.entries(FV.latest).map(([id, r]) => [id, { version: r.version, registry: r.registry }]));
+const seedFv = [...seed.matchAll(/^\s*\('([a-z0-9_]+)', '(fv1-[0-9a-f]{8})', '[0-9.]+', '([A-Z0-9_]+)'/gm)].map(m => ({ id: m[1], version: m[2], registry: m[3] }));
+check(seedFv.length === 577 && seedFv.every(r => FV.history[r.id] && FV.history[r.id][0].version === r.version && FV.history[r.id][0].file === '0005_reference_seed.sql'),
+  'every 0005 seed formula version is still the first row of its calculator');
+check(Object.keys(FV.latest).length === seedFv.length, `formula_versions defines ${Object.keys(FV.latest).length} calculators, the seed ${seedFv.length}: a later migration may only add versions of seeded calculators`);
+for (const [id, h] of Object.entries(FV.history)) for (const r of h.slice(1)) {
+  check(r.registry === h[0].registry, `${id}: ${r.version} (${r.file}) is in ${r.registry}, its seed row in ${h[0].registry}`);
+  check(r.file > h[0].file, `${id}: ${r.version} must come from a migration after the seed`);
+}
 const selfRows = rows.filter(r => r.id === r.canonical), aliasRows = rows.filter(r => r.id !== r.canonical);
 // The production seed describes calculator-kind tools only, and does not know about Premium tiering: a migrated
 // calculator keeps the exact seed row it always had, and an expansion calculator (save:'excluded', no formula)
@@ -129,7 +142,7 @@ check(rows.length === 583 && selfRows.length === 577 && aliasRows.length === 6, 
 check(JSON.stringify(eligible.map(t => t.id).sort()) === JSON.stringify(selfRows.map(r => r.id).sort()), 'eligible calculators != the catalog rows of the production seed');
 for (const t of eligible) {
   const f = fvs[t.id], r = selfRows.find(x => x.id === t.id);
-  check(f && t.formula.version === f.version && t.formula.registry === f.registry, `${t.id}: formula fingerprint differs from the seed`);
+  check(f && t.formula.version === f.version && t.formula.registry === f.registry, `${t.id}: formula fingerprint ${t.formula.version} differs from the latest migrated formula_versions row ${f && f.version}`);
   check(r && t.formula.engine_proven === r.proven, `${t.id}: engine_proven differs from the seed`);
 }
 check(JSON.stringify(aliasRows.map(r => [r.id, r.canonical]).sort()) === JSON.stringify(cat.aliases.map(a => [a.id, a.canonical]).sort()), 'aliases differ from the seed');

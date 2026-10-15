@@ -5,6 +5,9 @@
  *   - the public calculators, their categories and labs:   F1.12.4, loaded in Chromium (CALCS, ghLabForCalc)
  *   - formula fingerprints / registries / aliases:          the engine registries in the same page + GH_CALC_ALIASES
  *   - the production catalog rows and engine-proven flags:  supabase/migrations/0005_reference_seed.sql (byte-identical to prod)
+ *   - each calculator's formula fingerprint:                the LATEST formula_versions row across supabase/migrations, in file-name
+ *                                                            order (catalog/formula-versions.js; decision D3 of GH-ENG-014): the 0005
+ *                                                            seed row, or the row of a later migration that corrected it (0408)
  *   - the Premium engineering layer (E01-E14):              premium/models.js ENGINEERING_CATALOG + engineering-expansion-v1.js
  *   - Premium calculators (kind:'calculator', tier:'premium'): premium/models.js PREMIUM_CALCULATORS. A calculator id
  *                                                            in this list gets tier:'premium' instead of the default 'free';
@@ -35,7 +38,7 @@ function readSeed() {
   const s = fs.readFileSync(path.join(REPO, SEED), 'utf8');
   const calculators = {}, formulas = {};
   for (const m of s.matchAll(/^\s*\('([a-z0-9_]+)', '([a-z0-9_]+)', (true|false)\)/gm)) calculators[m[1]] = { canonical: m[2], engine_proven: m[3] === 'true' };
-  for (const m of s.matchAll(/^\s*\('([a-z0-9_]+)', '(fv1-[0-9a-f]{8})', '([0-9.]+)', '([A-Z0-9_]+)', '([^']+)'\)/gm)) formulas[m[1]] = { version: m[2], engine: m[3], registry: m[4] };
+  for (const [id, r] of Object.entries(require('./formula-versions').read(REPO).latest)) formulas[id] = { version: r.version, engine: r.engine, registry: r.registry };
   return { calculators, formulas };
 }
 
@@ -131,7 +134,10 @@ async function build() {
     schema: 'gearhead-catalog/1',
     description: 'Canonical Gearhead Labs tool catalog. Free = public calculators (no account). Premium ($5.99/month or $59.99/year) = everything Free plus the Premium-only tools below (the original 21 Free -> Premium migrated calculators approved 2026-10-06, the approved Premium Calculator Expansion\'s net-new calculators, and the Engineering Lab), My Garage and saved work. Aliases are alternate ids that resolve to a tool; they are never counted.',
     generated_from: { page: { file: PAGE, sha256: sha(PAGE) }, seed: { file: SEED, sha256: sha(SEED) },
-      models: { file: 'premium/models.js', sha256: sha('premium/models.js') }, engineering: { file: 'engineering-expansion-v1.js', sha256: sha('engineering-expansion-v1.js') } },
+      models: { file: 'premium/models.js', sha256: sha('premium/models.js') }, engineering: { file: 'engineering-expansion-v1.js', sha256: sha('engineering-expansion-v1.js') },
+      /* every later migration that adds formula_versions rows (D3): editing one makes the catalog stale */
+      ...Object.fromEntries([...new Set(require('./formula-versions').read(REPO).rows.map(r => r.file))].filter(f => f !== path.basename(SEED))
+        .map(f => [`formula_versions_${f.slice(0, 4)}`, { file: `supabase/migrations/${f}`, sha256: sha(`supabase/migrations/${f}`) }])) },
     counts: {
       free_public_calculators: free.length,
       migrated_premium_calculators: migratedPremiumCalcs.length,

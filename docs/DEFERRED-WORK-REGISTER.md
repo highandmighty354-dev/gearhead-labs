@@ -1938,6 +1938,7 @@ This is the **single authoritative register** of known defects, deferred improve
     - **Prepared:** migration `supabase/migrations/0408_formula_versions_corrected_formulas.sql`, byte-identical to proposal Section 13.
     - **Rows:** `dew_point` `fv1-73ddeaf4`, `distance_converter` `fv1-4001b424` and `bolt_torque_spec` `fv1-25b1f973` in `GH_LEGACY_FORMULAS`; `bolt_stretch` `fv1-8e827c77` in `GH_E1_FORMULAS`. All are `1.1.0` / `F1.12.4`.
     - **Not done:** production execution, the workflow pin and manifest (Section 10, step 6), the production dry run (step 7) and the catalogue tooling (D3). They wait for authorization B.
+    - **Later on 2026-10-15 (release readiness, branch only):** the workflow pin and manifest and the catalogue tooling (D3) were done; see History. Still not done: the production dry run and the apply, which are owner-run and separately authorized.
 - **Dependencies:** GH-DEF-005.
 - **Revisit:** Before this branch is merged or deployed, or before any calculation is stored through the formula engine, whichever is first. The owner's next decision is D1 (approve the two rows as written) and D3 (catalog tooling, to ship with the migration); applying to production is a separate authorization. Any later correction of a registry formula raises the same question; the guard test fails until it is recorded.
 - **Commits:** `4bfbb48` (guard test and the `dew_point` fingerprint change), `00c31c5` (the `distance_converter` fingerprint change), `6f057cc` (proposal document and throwaway-database script). 2026-10-15: migration `0408` prepared in `0cc4fc8` (SHA recorded by the documentation commit that follows it).
@@ -1964,6 +1965,15 @@ This is the **single authoritative register** of known defects, deferred improve
   - `run-tests.sh`: schema contract 26 of 26 with 0408 applied, frontend 55 of 55, catalog and register OK;
   - `formula-fingerprints`: 4 recorded corrections.
   The status is IN PROGRESS: the entry's Verification also needs the workflow pin and manifest, the production dry run and the catalogue tooling (D3), each awaiting authorization B. No Supabase or production change.
+  2026-10-15 — **release readiness prepared on the branch (not applied).** Authorized by the owner's "GH-DEF-037 fix and migration release readiness" brief. Applying `0408`, merging and deploying were not authorized.
+  - **Workflow:** `.github/workflows/provision-supabase.yml` (branch only; `main` unchanged) pinned to `0cc4fc8d7cd2bb678a2a60a61c1a9f738ee5e4b6`, with an 18-file manifest (`0408` = `df92a3e0…80c4c49`; the other 17 hashes unchanged). Its own verify step, run locally against `0cc4fc8`, prints "18 files, approved order, all checksums match", with all 12 frozen sources OK.
+  - **Dry run:** reviewed in the workflow and in the Supabase CLI 2.119.0 source. It only reads `supabase_migrations.schema_migrations`, so it is write-free. It was not run: it needs the owner's *Run workflow* and production-gate approval.
+  - **Equivalent read-only production evidence:** 17 versions (0001–0407), 577 formula versions, none of the four new rows, the originals unchanged, 0 calculation records.
+  - **Open precondition:** whether the `production` environment allows this branch could not be verified (the environments API was not reachable).
+  - **D3 implemented:** `catalog/formula-versions.js`; `build-catalog.js` and `check-catalog.js` use the latest migrated row per calculator, and the catalogue is rebuilt (exactly the four fingerprints change); `formula-fingerprints.test.js` checks engine = latest migrated row and that the original rows remain.
+  - **Procedure:** `supabase/PROVISIONING.md` "Prepared, not applied: 0408" (execution order, preconditions, post-migration checks, failure handling); proposal Section 14.
+  - **Results:** proof script 40 of 40; `pf.test.js` 48 of 48 (24 of 24 mutants); `run-tests.sh` catalogue OK, register OK, frontend 55 of 55, schema 26 of 26; `formula-fingerprints` 573 identical + 4 recorded, 0 failures.
+  - **Status stays IN PROGRESS:** the remaining Verification items are the owner-run production dry run and apply.
 ---
 
 ## D. Future development
