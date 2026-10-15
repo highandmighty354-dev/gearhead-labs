@@ -1109,7 +1109,7 @@ This is the **single authoritative register** of known defects, deferred improve
   - **Follow-up, one line per helper:** the same finiteness guard on the expected value in the shared `approx` / `near` / `close` helpers listed above. Each to be run against its own suite before it is committed.
 - **Dependencies:** None.
 - **Revisit:** None. Any new harness compares numbers through `premium/tests/lib/numeric-guard.js`.
-- **Commits:** the harness correction (SHA recorded by the documentation commit that follows it).
+- **Commits:** `d771e13` (the harness correction).
 - **Tests:** `premium/tests/numeric-guard.test.js` (61 checks) and every harness listed under Decision, all in `premium/tests/run-browser-tests.sh` (38 suites).
 - **Docs:** This entry; GH-DEF-036 History (where the weakness was first observed).
 - **Verification:**
@@ -1941,7 +1941,7 @@ This is the **single authoritative register** of known defects, deferred improve
     - **Later on 2026-10-15 (release readiness, branch only):** the workflow pin and manifest and the catalogue tooling (D3) were done; see History. Still not done: the production dry run and the apply, which are owner-run and separately authorized.
 - **Dependencies:** GH-DEF-005.
 - **Revisit:** Before this branch is merged or deployed, or before any calculation is stored through the formula engine, whichever is first. The owner's next decision is D1 (approve the two rows as written) and D3 (catalog tooling, to ship with the migration); applying to production is a separate authorization. Any later correction of a registry formula raises the same question; the guard test fails until it is recorded.
-- **Commits:** `4bfbb48` (guard test and the `dew_point` fingerprint change), `00c31c5` (the `distance_converter` fingerprint change), `6f057cc` (proposal document and throwaway-database script). 2026-10-15: migration `0408` prepared in `0cc4fc8` (SHA recorded by the documentation commit that follows it).
+- **Commits:** `4bfbb48` (guard test and the `dew_point` fingerprint change), `00c31c5` (the `distance_converter` fingerprint change), `6f057cc` (proposal document and throwaway-database script). 2026-10-15: migration `0408` prepared in `0cc4fc8`; release readiness (workflow pin and 18-file manifest, D3 catalogue tooling, PROVISIONING.md procedure) in `008ab40`.
 - **Tests:** `premium/tests/formula-fingerprints.test.js` (run by `premium/tests/run-browser-tests.sh`); `premium/tests/eng014-throwaway-db.sh` (needs PostgreSQL server binaries; skips with a message without them; not part of the browser runner). 2026-10-15:
   - `eng014-throwaway-db.sh` now runs the committed `0408` file. It checks the file against proposal Section 13, the behaviour before, a deliberately wrong copy (aborts, no partial write), idempotency, all 577 earlier rows byte-identical, and the behaviour after: **40 checks**.
   - `premium-foundation/tests/pf.test.js`: 18 migrations, 581 formula versions, a new 0408 check, and the 0407-alone rollback scenario built to stop at 0407: **48 checks**.
