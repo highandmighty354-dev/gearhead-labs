@@ -850,7 +850,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Dependencies:** None. Kept separate from the Batch 11b implementation commits. The production `formula_versions` row for `fv1-25b1f973` is a deferred action under GH-ENG-014. It does not block this closure, as with GH-DEF-005 and GH-DEF-019.
 - **Revisit:** When the owner schedules the investigation. (2026-10-15: investigation done; revisit when the owner decides on the repair.)
   2026-10-15: closed. Revisit if ASME B1.1, SAE J429 or ISO 898-1 is inspected directly and differs from the provisional references (for example, an ISO split stated as d > 16 mm, which would close the 16–18 mm gap).
-- **Commits:** the `fix(GH-DEF-034)` correction commit (engine, tests, reference table and docs in one commit; its SHA is recorded by the documentation commit that follows it).
+- **Commits:** `b927343` (`fix(GH-DEF-034)`: engine, tests, reference table and docs in one commit); its SHA was recorded by the documentation commit that follows it.
   Earlier: none at creation (this entry only); 2026-10-15 investigation record `a65c042` (documentation only).
 - **Tests:** `premium/tests/fasteners-def034.test.js` (811 checks; details below), 4 engine self-test assertions, the `unit-system` `bolt_stretch` case and the `formula-fingerprints` `VERSIONED` entry.
   Earlier (2026-10-14): "None yet. The investigation must add an independent test before any change: tabulated stress areas, proof loads and K × D × F torques for several UNC and UNF sizes, plus the metric choices."
@@ -890,7 +890,7 @@ This is the **single authoritative register** of known defects, deferred improve
   - A repair (P1–P4) and its tests are proposed.
   - Status stays OPEN; no code changed.
   2026-10-15 — correction authorized by the owner and done, test-first; **closed** on this evidence.
-  - **Commit:** the `fix(GH-DEF-034)` commit (SHA in the following documentation commit).
+  - **Commit:** `b927343`.
   - **Focused suite:** `fasteners-def034` 811 checks, 0 failures.
   - **Engine self-test:** 733 / 733.
   - **Other suites:**

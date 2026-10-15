@@ -1097,7 +1097,7 @@ The owner authorized this investigation and fix on 2026-10-14. The full record i
 
 **Remaining risk.** Two other wrappers (`enhance`, `d31EnhanceDashboard`) also run one tick after a render. No failure was traced to them, so they are unchanged.
 
-### GH-DEF-034 fix — Bolt Torque Spec and Bolt Stretch thread and proof strength (2026-10-15)
+### GH-DEF-034 fix — Bolt Torque Spec and Bolt Stretch thread and proof strength (2026-10-15, `b927343`)
 
 The owner authorized this correction on 2026-10-15. The full record is the GH-DEF-034 entry in [DEFERRED-WORK-REGISTER.md](DEFERRED-WORK-REGISTER.md). The reference values and every rule are in [GH-DEF-034-FASTENER-REFERENCES.md](GH-DEF-034-FASTENER-REFERENCES.md), written before the code.
 
