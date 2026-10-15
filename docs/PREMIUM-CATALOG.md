@@ -20,17 +20,17 @@ The early $1.99 Garage / $3.99 additional-profile concept is retired and impleme
 |---|---|
 | Free public calculators (F1.12.4; F1.12.3 is the frozen baseline) | **585** |
 | Calculators migrated from Free to Premium (owner-approved audit, 2026-10-06) | **21** |
-| Premium Calculator Expansion calculators (net-new, no Free counterpart; owner-approved brief, 2026-10-07-) | **136** (of 143 approved; see below) |
+| Premium Calculator Expansion calculators (net-new, no Free counterpart; owner-approved brief, 2026-10-07-) | **137** (of 143 approved; see below) |
 | Premium-only tools: the Engineering Lab, E01–E14 (10 analyzers, 4 workbenches) | **14** |
-| Premium-only tools total (21 migrated + 136 expansion calculators + 14 Engineering Lab) | **171** |
-| Tools available in Premium (Free + Premium-only) | **756** |
-| Premium expansion tools validated from approved work (E01–E14 + expansion calculators) | **150** |
+| Premium-only tools total (21 migrated + 137 expansion calculators + 14 Engineering Lab) | **172** |
+| Tools available in Premium (Free + Premium-only) | **757** |
+| Premium expansion tools validated from approved work (E01–E14 + expansion calculators) | **151** |
 | Approved future Premium tools (not yet built) | **0** |
 | Aliases (alternate ids, never counted) | 6 |
 
 Free calculators by lab: universal 315, gasoline 162, diesel 42, EV 39, towing 27 (585 total; see "Calculators migrated from Free to Premium" below for the 21 that moved out of these lab counts on 2026-10-06; the Premium Calculator Expansion's calculators were never Free and so never counted in these lab totals).
 
-*Table updated 2026-10-14 after Batch 14's DC Fast-Charge Time (it had last been updated after Batch 10, at 90 expansion calculators, until Batch 13; the narrative paragraphs below still describe that point, and the batch sections hold the detail). The figures match `catalog/build-catalog.js` and `run-tests.sh`'s catalog check: 136 expansion, 171 Premium-only, 756 in Premium, 150 validated.*
+*Table updated 2026-10-14 after Batch 14 was completed (it had last been updated after Batch 10, at 90 expansion calculators, until Batch 13; the narrative paragraphs below still describe that point, and the batch sections hold the detail). The figures match `catalog/build-catalog.js` and `run-tests.sh`'s catalog check: 137 expansion, 172 Premium-only, 757 in Premium, 151 validated.*
 
 **751 is the current Premium catalog, not the final one.** The Premium catalog is still incomplete, implemented batch by batch. The historical target of about 752 tools (612 Free plus about 140 Premium expansion tools) is still not used here, for two reasons:
 - the authoritative baseline for calculator-kind tools before the expansion began was 606 (585 Free + 21 migrated to Premium), not 612;
@@ -92,7 +92,7 @@ Saving is not being extended to new tools while the catalog is incomplete. The e
 - **Decided (2026-10-14, owner authorization for Batch 13):** Scavenging / Charging Efficiency and Port Timing from Measured Geometry (classed "Analyzer" in the reconciliation) are built as calculators, with their limits stated on the page. The Batch 13 formula decisions (tuned-pipe model with an explicit exhaust-gas temperature, scavenging definitions and the two ideal reference curves, crankcase compression ratio convention) are recorded in the Batch 13 section.
 - **Decided (2026-10-14, owner authorization, Batch 14 stage 1):** Regenerative Braking Energy Recovery and Battery Pack Heat Balance only, from the Batch 14 model specification; heat rows in W (RETAIN-ACCESSORY), EV power in native kW (EV_POWER), energies kWh / Wh / kJ on a page selector. The specification's battery transient was corrected (see the Batch 14 stage 1 section).
 - **Decided (2026-10-14, owner authorization, Batch 14 stage 2):** Motor Thermal Limit and Inverter Thermal Load (Mode A only), with decisions S2-1 to S2-8 (`claude/batch-14-stage2-decisions.md` in the project): loss rows in W (RETAIN-ACCESSORY), EV power in native kW, motor input power or torque + speed (torque EV_TORQUE, lb-ft under Auto), τ as the motor heat-storage input with C as a result, the extrapolated continuous output kept and labelled, copper-loss feedback left out, no inverter junction estimate and no Mode B selector.
-- **Open: next batch.** Batch 11 (37) and Batch 13 (4) are complete; Batch 14 stages 1 and 2 (4 of 6) are done. 8 approved items remain: DC Fast-Charge Time and Hybrid Power-Split Device Kinematics (owner decisions D-14-5, D-14-6, D-14-2 and their own authorization) and Batch 16 Workbenches (6), unauthorized. Inverter Thermal Load's Mode B is also outstanding: it is not ready (its application-note equations and switching-loss scaling are unverified; D-14-4). No batch starts without explicit authorization.
+- **Open: next batch.** Batch 11 (37), Batch 13 (4) and Batch 14 (6 of 6) are complete. 6 approved items remain: Batch 16 Workbenches (6), unauthorized. Inverter Thermal Load's Mode B is also outstanding: it is not ready (its application-note equations and switching-loss scaling are unverified; D-14-4). No batch starts without explicit authorization.
 - **Open: E01–E14 QA counting.** They are live in the Premium Engineering Lab, but ENGINEERING_EXPANSION_CATALOG_V1.md says they are not counted as public calculators until QA sign-off.
 
 ### Calculators excluded from saving (119)
@@ -255,7 +255,7 @@ Note on `turbo_sizing`: its promotion copy explicitly distinguishes it from the 
 
 Access is gated client-side only (same approach as the Engineering Lab, `premium/engineering-bridge.js`): `premium-calculator-gating.js` wraps each of these 21 ids' render function and nav entry, checking `GHP.services.entitlements.isPremium()` fresh on every render. It grants no access and talks to no database — these calculators are entirely client-side math, same as every Free calculator, so there is nothing for Supabase RLS to enforce here. What Supabase enforces is Premium status itself (`entitlement_grants`, `pf_has_feature`; see `PREMIUM_ARCHITECTURE.md`), which this gate reads but never decides.
 
-## Premium Calculator Expansion (136 of 143 approved, batch by batch)
+## Premium Calculator Expansion (137 of 143 approved, batch by batch)
 
 Decided 2026-10-07, from a Phase 1 reconciliation and exception-resolution pass that re-examined the 147-candidate future roadmap (left unapproved by the original Premium Migration Audit, above) against the live code. **143 candidates** were approved for implementation as net-new Premium-only calculators; 1 was held for a follow-up merge decision and 3 were rejected (duplicates or out of scope — see `claude/premium-expansion-phase1-exceptions-resolved.md` and `claude/premium-expansion-batch-plan.md` in the project). Implementation proceeds in 16 named engineering-family batches on the `premium/full-calculator-expansion` branch; each batch is implemented, QA'd (unit/formula tests, catalog validation, browser smoke tests, Premium gating tests, metric/imperial tests, NaN/Infinity/undefined scan) and committed before the next begins. `main` is untouched until the expansion is reviewed and merged.
 
@@ -513,7 +513,7 @@ Batch 11a itself is complete (code and tests `f9cbdae`, docs `f6f6a89`). These a
 | F-11A-01 | Calculator classification of Mohr's Circle, Fatigue Goodman Analysis and Fatigue Soderberg Analysis (classed "Analyzer" in the Phase 1 reconciliation, built as calculators) | **CLOSED** (owner-approved 2026-10-14) | Kept as calculators, consistent with the Batch 11 plan. An Analyzer-oriented enhancement (for example an interactive Goodman diagram) would be separate, separately authorized scope. |
 | F-11A-02 | No engine self-test assertions (`GH_SELFTEST_SUITE`) were added for the 15 Batch 11a calculators (Batch 10 added 46 for its 9) | **DEFERRED** (future QA improvement) | Batch 11a is not reopened for this: its independent suites (`structural-11a` 793 checks, `unit-system` 15 cases) and the full 30-suite browser regression passed. Batch 11b did add self-test assertions for all 13 of its calculators (18 assertions); the 11a ones remain to be added with a later authorized engine change. |
 | F-11A-03 | Commit granularity: Groups A and B of Batch 11a share one code commit (`f9cbdae`, which also holds Group C) | **DEFERRED** (traceability / process improvement; history not rewritten) | Applied from Batch 11b on: one code-and-tests commit per sub-group (`ff7d826` B1, `06343d4` B2, `2d05b9a` B3), the defect entry in its own commit (`bb40ff1`), then one docs commit. |
-| F-11A-04 | Release controls | **AWAITING AUTHORIZATION** | Batch 11a is complete at `f6f6a89`, Batch 11b at `2d05b9a` (docs `d2e82c0`), Batch 11c (authorized 2026-10-14) at `605196f` (docs `f83411b`) Batch 13 (authorized 2026-10-14) at `3dfa4e3` (docs `87eb6c9`) and Batch 14 stage 1 (2 calculators) at `45a2177` (docs `df85938`, `71de139`) and stage 2 (2 calculators) at `3736b91` plus its docs commit, on `premium/full-calculator-expansion`; `main` is still `a4203cd`. No merge, deployment or migration has been authorized. GH-ENG-014 remains unapplied and separately gated (authorizations A and B). No further batch may begin without explicit owner authorization. |
+| F-11A-04 | Release controls | **AWAITING AUTHORIZATION** | Batch 11a is complete at `f6f6a89`, Batch 11b at `2d05b9a` (docs `d2e82c0`), Batch 11c (authorized 2026-10-14) at `605196f` (docs `f83411b`) Batch 13 (authorized 2026-10-14) at `3dfa4e3` (docs `87eb6c9`) and Batch 14 stage 1 (2 calculators) at `45a2177` (docs `df85938`, `71de139`) stage 2 (2 calculators) at `3736b91` (docs `a50079f`) and the final pair at `ace5547` (DC Fast-Charge Time) and the following commit (Hybrid Power-Split), on `premium/full-calculator-expansion`; `main` is still `a4203cd`. No merge, deployment or migration has been authorized. GH-ENG-014 remains unapplied and separately gated (authorizations A and B). No further batch may begin without explicit owner authorization. |
 
 ### Batch 11b — Joints and Fabrication (13, done 2026-10-14)
 
@@ -1014,6 +1014,63 @@ Both are recorded in `claude/batch-14-final-pair-decisions.md` (project). The mo
 - **run-tests.sh:** catalog OK (136 expansion), register OK, frontend 55/55, schema 26/26.
 - **Full browser regression** (35 suites): **35 of 35 suites passed**, run once after this calculator: self-test 727/727; smoke 19/19 with 742 calculator-kind tools; unit-system 7,388; toggle-sweep 742 (1 known-open); `nav-return` 738 consistent, 0 failures; label-consistency 742; negative-zero 742 + 742; range-warnings 2,469; `structural-14` 838; `render-race` 95.
 - **Counts:** 741 → 742 calculator-kind tools, 156 → 157 Premium calculators.
+#### Hybrid Power-Split Device Kinematics — `power_split_device_kinematics` (`EV / HYBRID & ALTERNATIVE ENERGY`)
+
+**Model** (§2.5).
+- **Layout (PS-1):** one fixed Toyota-style single planetary. MG1 is on the sun, the engine on the carrier, and MG2 with the output on the ring. Multi-mode and compound devices are not covered.
+- **Speed:** MG1 speed = ((Z_s + Z_r) n_engine − Z_r n_ring) ÷ Z_s (Willis).
+- **Torque split:** MG1 reaction = T_e Z_s/(Z_s + Z_r); engine torque to the ring = T_e Z_r/(Z_s + Z_r).
+- **Signed powers:** positive when the member delivers mechanical power. With the battery neither charging nor discharging (PS-5), the electrical path is booked by direction (PS-2):
+  - MG1 generating: P_MG2 = η P_MG1;
+  - MG1 motoring (recirculation): P_MG2 = P_MG1 ÷ η.
+  - Output = engine − loss in both directions, so no direction creates energy.
+- **Stationary ring with engine torque (PS-3):** no steady solution exists. MG2 power, MG2 torque, output torque, output power and the loss show "—", and a note explains why. The calculator does not claim a battery charging power.
+- **Other notes on the page:**
+  - engine stopped;
+  - losses exceeding the engine power ("not a usable driving point", shown, not hidden);
+  - generating or recirculation;
+  - G = 3.267 is labelled illustrative.
+- **Not included:** an MG1 overspeed limit or warning (no cited value). Reverse driving, engine braking and battery charge/assist are excluded and disclosed.
+- **Ring speed input:** direct RPM, or vehicle speed + tire radius + G.
+
+**Units (D-14-6, D-14-2).**
+
+| Row | Category | Unit under Auto |
+|---|---|---|
+| Engine torque input | `ENGINE_TORQUE` | lb-ft |
+| Engine torque to the ring; output torque | `DRIVELINE_TORQUE` | lb-ft |
+| MG1 reaction torque; MG2 torque | `EV_TORQUE` | lb-ft |
+| Engine power | `ENGINE_POWER` | HP |
+| Ring mechanical, MG1, MG2 and output power | `EV_POWER` | native kW |
+| Electrical path loss | `RETAIN-ACCESSORY` | W |
+
+A separate note gives the power balance in one unit, kW. In total 11 `PERF_ROWS` entries. Vehicle speed converts mph ↔ km/h and tire radius in ↔ mm; tooth counts, RPM and % are the same in both systems.
+
+**Worked examples** (spec rev 1.2; Z_s 30, Z_r 78, 100 N·m, η 85 %). The page reproduces each.
+
+| Case | MG1 speed | MG1 / MG2 power | Output | Loss |
+|---|---|---|---|---|
+| A: 2,000 / 1,500 RPM | +3,300 RPM | +9.5993 / +8.1594 kW | 19.504 kW (93.125 %) | 1,439.9 W |
+| B: 1,000 / 3,000 RPM (recirculation) | −4,200 RPM | −12.2173 / −14.3733 kW | 8.316 kW (79.412 %) | 2,156.0 W |
+| C: 2,000 / 0 RPM (ring stationary) | +7,200 RPM | MG1 power = engine power 20.944 kW | — (no steady solution) | — |
+| D: 0 / 1,500 RPM, no torque | −3,900 RPM | 0 / 0 | 0 | 0 |
+
+**Independent checks.** The test oracle derives the MG1 speed from planet contact velocities with pitch radii from the tooth counts, not from Willis. It derives the torque split from the planet free body (equal mesh forces, carrier 2F) and books the electrical path by direction. Its reference values satisfy engine = output + loss to 10⁻⁶ W, and output < engine in recirculation. Example C's MG1/engine ratio of 3.6 equals the ring-fixed `planetary_gearset_ratio`.
+
+**Verification.**
+- **Tests first:** the new `structural-14` E3B group failed 35 of 39 checks (only the 3 page-independent reference checks and "no page errors" passed), and the `unit-system` case failed all 5 runs, before the code.
+- **structural-14 E3B:** 7 cases × 2 systems (A–D; MG1 stationary, 100 % mechanical; losses exceeding engine power; vehicle-speed input, 2,888.66 RPM) and 28 invalid inputs; 239 checks, 0 failures.
+- **unit-system:** 300 checks, 0 failures.
+- **Engine self-test:** 2 new assertions, 729 / 729.
+- **Census:**
+  - unit-census: 743 calculators, 3,060 checks;
+  - declared-metric-units: 0 unprotected;
+  - mass-force: 854 checks;
+  - unit-factors: 574 checks;
+  - performance-census (full run): 11 rows added, 0 failed. It also checks the torque and power rows under the hp/kW and lb-ft/N·m preferences.
+- **run-tests.sh:** catalog OK (137 expansion), register OK, frontend 55/55, schema 26/26.
+- **Full browser regression** (35 suites): **35 of 35 suites passed**, run once after this calculator: self-test 729/729; smoke 19/19 with 743 calculator-kind tools; unit-system 7,688; toggle-sweep 743 (1 known-open); `nav-return` 739 consistent, 0 failures; label-consistency 743; negative-zero 743 + 743; range-warnings 2,469; `structural-14` 1,075 (all six Batch 14 calculators); `render-race` 95.
+- **Counts:** 742 → 743 calculator-kind tools, 157 → 158 Premium calculators. Batch 14 is complete (6 of 6).
 
 ### GH-DEF-035 fix — intermittent `nav-return` failures (2026-10-15)
 

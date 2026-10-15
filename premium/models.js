@@ -492,7 +492,9 @@
     { id: 'inverter_thermal_load', name: 'Inverter Thermal Load',
       promo: 'Gearhead Labs Premium unlocks Inverter Thermal Load — inverter heat loss, coolant rise and heatsink temperature at an operating point.' },
     { id: 'dc_fast_charge_time', name: 'DC Fast-Charge Time',
-      promo: 'Gearhead Labs Premium unlocks DC Fast-Charge Time — constant-current and constant-voltage taper charging time and energy, as an engineering estimate.' }
+      promo: 'Gearhead Labs Premium unlocks DC Fast-Charge Time — constant-current and constant-voltage taper charging time and energy, as an engineering estimate.' },
+    { id: 'power_split_device_kinematics', name: 'Hybrid Power-Split Device Kinematics',
+      promo: 'Gearhead Labs Premium unlocks Hybrid Power-Split Device Kinematics — MG1 speed, torque split and signed power flows of a Toyota-style power-split hybrid.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */

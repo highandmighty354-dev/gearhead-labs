@@ -247,6 +247,59 @@ const DEX = { Q: 200, V0: 330, V100: 410, R: 0.1, Vmax: 410, I: 400, P: 350, s0:
 { const o = { ...DEX, s0: 0.5 }, d = dcSim(o);
   add({ g: 'E3A', id: 'dc_fast_charge_time', title: 'start exactly at the switch', inputs: DIN(o), want: { ...DWANT(d), 'Total Charge Time': [15 * Math.log(0.5 / 0.2), 'min'], 'Constant-Current Phase Time': [0, 'min'] }, rel: 3e-5 }); }
 
+/* ======================================================= E3B HYBRID POWER-SPLIT DEVICE KINEMATICS ======================================================= */
+/* Specification rev 1.2 §2.5 (PS-1 fixed THS layout: sun = MG1, carrier = engine, ring = MG2 + output; PS-2; PS-3; D-14-6; D-14-2).
+   Independent oracle: the MG1 speed from PLANET CONTACT VELOCITIES (pitch radii from the tooth counts), the torque split from the PLANET FREE BODY (equal mesh forces F,
+   carrier 2F), and the electrical path booked by direction; the page uses the Willis form. Every case also checks engine power = output power + loss. */
+const NM_PER_LBFT = FT * LB * G0, W_PER_HP = 550 * FT * LB * G0, RPM2W = n => n * 2 * Math.PI / 60;
+function psdSim({ zs, zr, nc, nr, te, eta }) {                                     // te in N·m, eta fraction
+  const rs = zs / 2, rr = zr / 2, rp = (rr - rs) / 2, rc = rs + rp, wc = RPM2W(nc), wr = RPM2W(nr);
+  const wp = (wr * rr - wc * rc) / rp + wc, ws = (wc * rc - (wp - wc) * rp) / rs, ns = ws * 60 / (2 * Math.PI);
+  const F = te / (2 * rc), Ts = F * rs, Tr = F * rr;                               // planet free body
+  const Pe = te * wc, Pr = Tr * wr, P1 = Ts * ws;
+  let P2 = NaN, T2 = NaN, out = NaN, loss = NaN, Tout = NaN;
+  if (nr > 0 || te === 0) { P2 = P1 >= 0 ? eta * P1 : P1 / eta; loss = P1 >= 0 ? P1 - P2 : -P2 + P1; T2 = nr > 0 ? P2 / wr : 0; out = Pr + P2; Tout = Tr + T2; }
+  return { ns, Ts, Tr, Pe, Pr, P1, P2, T2, out, loss, Tout };
+}
+const PIN = (o, veh) => ({ psd_zs: [o.zs, 'teeth'], psd_zr: [o.zr, 'teeth'], psd_ne: [o.nc, 'RPM'], ...(veh ? { psd_v: [veh[0], 'mph'], psd_rt: [veh[1], 'in'], psd_g: [veh[2], ''] } : { psd_nr: [o.nr, 'RPM'] }),
+  psd_te: [o.te / NM_PER_LBFT, 'lb-ft'], psd_eta: [o.eta * 100, '%'] });
+const PWANT = (x, o) => ({ 'MG1 Speed': [x.ns, 'RPM'], 'Engine Torque to the Ring': [x.Tr / NM_PER_LBFT, 'lb-ft'], 'MG1 Reaction Torque': [x.Ts / NM_PER_LBFT, 'lb-ft'], 'Engine Power': [x.Pe / W_PER_HP, 'HP'],
+  'Ring Mechanical Power': [x.Pr / 1000, 'kW'], 'MG1 Power': [x.P1 / 1000, 'kW'] });
+const PFULL = (x, o) => ({ ...PWANT(x, o), 'MG2 Power': [x.P2 / 1000, 'kW'], 'Output Power': [x.out / 1000, 'kW'], 'MG2 Torque': [x.T2 / NM_PER_LBFT, 'lb-ft'], 'Output Torque': [x.Tout / NM_PER_LBFT, 'lb-ft'], 'Electrical Path Loss': [x.loss, 'W'] });
+const PEX = { zs: 30, zr: 78, nc: 2000, nr: 1500, te: 100, eta: 0.85 };
+{ /* A (spec): MG1 +3,300 RPM generating; MG1 9,599.31 W; MG2 8,159.41 W; output 19,504.05 W (93.125 %); loss 1,439.90 W; MG2 torque 51.9444 N·m; output torque 124.1667 N·m */
+  const x = psdSim(PEX);
+  LATE.push(() => check('power-split A: engine power = output + loss (reference)', Math.abs(x.Pe - x.out - x.loss) < 1e-6, `${x.Pe} vs ${x.out} + ${x.loss}`));
+  add({ g: 'E3B', id: 'power_split_device_kinematics', title: 'A: 2,000 / 1,500 RPM, MG1 generating', sel: { psd_rmode: 'direct' }, inputs: PIN(PEX),
+    want: { ...PFULL(x, PEX), 'Share of Engine Power through the Mechanical Path': [x.Pr / x.Pe * 100, '%'] },
+    literal: { 'MG1 Speed': 3300, 'MG1 Power': 9.5993, 'MG2 Power': 8.1594, 'Output Power': 19.504, 'Electrical Path Loss': 1439.9 }, notes: [/MG1 generating/i, /balance/i], noNotes: [/no steady/i], rel: 2e-5 }); }
+{ /* B (spec): recirculation, MG1 −4,200 RPM motoring; MG2 −14,373.30 W (P_MG1 / eta); output 8,315.98 W (79.412 %); loss 2,156.00 W; never more out than in */
+  const o = { ...PEX, nc: 1000, nr: 3000 }, x = psdSim(o);
+  LATE.push(() => check('power-split B: output < engine power and engine = output + loss (reference)', x.out < x.Pe && Math.abs(x.Pe - x.out - x.loss) < 1e-6, `${x.out} vs ${x.Pe}`));
+  add({ g: 'E3B', id: 'power_split_device_kinematics', title: 'B: 1,000 / 3,000 RPM, recirculation', sel: { psd_rmode: 'direct' }, inputs: PIN(o), want: PFULL(x, o),
+    literal: { 'MG1 Speed': -4200, 'MG2 Power': -14.3733, 'Output Power': 8.316, 'Electrical Path Loss': 2156 }, notes: [/recirculation/i], rel: 2e-5 }); }
+{ /* C (spec, PS-3): ring stationary with engine torque: MG1 +7,200 RPM (= 3.6 x engine, the ring-fixed planetary ratio), MG1 power = engine power; no charge-sustaining steady solution */
+  const o = { ...PEX, nr: 0 }, x = psdSim(o);
+  add({ g: 'E3B', id: 'power_split_device_kinematics', title: 'C: ring stationary (no steady solution)', sel: { psd_rmode: 'direct' }, inputs: PIN(o),
+    want: { ...PWANT(x, o), 'MG1 Power': [x.Pe / 1000, 'kW'], 'Ring Mechanical Power': [0, 'kW'] }, literal: { 'MG1 Speed': 7200 },
+    blank: ['MG2 Power', 'Output Power', 'MG2 Torque', 'Output Torque', 'Electrical Path Loss'], notes: [/no steady solution/i], rel: 2e-5 }); }
+{ /* D (spec): engine stopped, no torque: MG1 −3,900 RPM, everything else 0, share undefined */
+  const o = { ...PEX, nc: 0, te: 0 }, x = psdSim(o);
+  add({ g: 'E3B', id: 'power_split_device_kinematics', title: 'D: engine stopped', sel: { psd_rmode: 'direct' }, inputs: PIN(o),
+    want: { 'MG1 Speed': [-3900, 'RPM'], 'Engine Power': [0, 'HP'], 'MG1 Power': [0, 'kW'], 'MG2 Power': [0, 'kW'], 'Output Power': [0, 'kW'], 'Output Torque': [0, 'lb-ft'] },
+    blank: ['Share of Engine Power through the Mechanical Path'], notes: [/engine stopped/i], rel: 1e-9 }); }
+{ /* MG1 stationary ("mechanical point"): ring = 108/78 x engine -> MG1 0 RPM, no electrical flow, all engine power mechanical (100 %) */
+  const o = { ...PEX, nc: 1000, nr: 1000 * 108 / 78 }, x = psdSim(o);
+  add({ g: 'E3B', id: 'power_split_device_kinematics', title: 'MG1 stationary: 100 % mechanical', sel: { psd_rmode: 'direct' }, inputs: PIN(o),
+    want: { ...PFULL(x, o), 'MG1 Speed': [0, 'RPM'], 'Electrical Path Loss': [0, 'W'], 'Share of Engine Power through the Mechanical Path': [100, '%'] }, rel: 2e-5 }); }
+{ /* losses exceed engine power: engine at 0 RPM with torque -> engine power 0, MG1 motoring -> negative output, flagged */
+  const o = { ...PEX, nc: 0, te: 50 }, x = psdSim(o);
+  add({ g: 'E3B', id: 'power_split_device_kinematics', title: 'losses exceed engine power: flagged, not hidden', sel: { psd_rmode: 'direct' }, inputs: PIN(o), want: PFULL(x, o), notes: [/not a usable driving point/i], rel: 2e-5 }); }
+{ /* vehicle-speed input: 100 km/h, tire radius 0.3 m, G 3.267 (illustrative) -> ring 2,888.662 RPM */
+  const nr = 100 / 3.6 / (2 * Math.PI * 0.3) * 60 * 3.267, o = { ...PEX, nr }, x = psdSim(o);
+  add({ g: 'E3B', id: 'power_split_device_kinematics', title: 'vehicle-speed input (G illustrative)', sel: { psd_rmode: 'vehicle' }, inputs: PIN(o, [100 / 3.6 / MPH, 0.3 / IN, 3.267]),
+    want: { ...PFULL(x, o), 'Ring Speed': [nr, 'RPM'] }, literal: { 'Ring Speed': 2888.66 }, notes: [/illustrative/i], rel: 2e-5 }); }
+
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    INVALID INPUT.
    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -289,6 +342,15 @@ for (const [label, over] of [['OCV at 100 % not above OCV at 0 %', { dcf_v100: '
   ['V_max not above the starting OCV', { dcf_vmax: '330' }], ['zero capacity', { dcf_q: '0' }], ['zero resistance', { dcf_r: '0' }], ['zero current limit', { dcf_i: '0' }], ['zero charger power', { dcf_p: '0' }],
   ['efficiency below 50 %', { dcf_eff: '40' }], ['efficiency above 100 %', { dcf_eff: '101' }], ['start SOC above 100 %', { dcf_s0: '120' }]])
   bad('E3A', 'dc_fast_charge_time', BASE.dc_fast_charge_time, label, over);
+
+BASE.power_split_device_kinematics = flat(PIN(PEX)); SEL.power_split_device_kinematics = { psd_rmode: 'direct' };
+sweepBad('E3B', 'power_split_device_kinematics', Object.keys(BASE.power_split_device_kinematics));
+for (const [label, over] of [['sun teeth not fewer than ring teeth', { psd_zs: '80' }], ['fractional sun teeth', { psd_zs: '30.5' }], ['fractional ring teeth', { psd_zr: '78.2' }], ['zero sun teeth', { psd_zs: '0' }],
+  ['efficiency below 50 %', { psd_eta: '40' }], ['efficiency above 100 %', { psd_eta: '101' }]])
+  bad('E3B', 'power_split_device_kinematics', BASE.power_split_device_kinematics, label, over, SEL.power_split_device_kinematics);
+BASE.power_split_device_kinematics_v = flat(PIN(PEX, [62.137, 11.811, 3.267]));
+for (const [label, over] of [['zero tire radius', { psd_rt: '0' }], ['zero ratio', { psd_g: '0' }], ['negative vehicle speed', { psd_v: '-10' }], ['tire radius empty', { psd_rt: '' }]])
+  bad('E3B', 'power_split_device_kinematics', BASE.power_split_device_kinematics_v, label, over, { psd_rmode: 'vehicle' });
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    HARNESS
@@ -354,7 +416,7 @@ async function runInvalid(page, b) {
 }
 
 (async () => {
-  const groups = (process.env.GROUP || 'E1A,E1B,E2A,E2B,E3A').split(',');
+  const groups = (process.env.GROUP || 'E1A,E1B,E2A,E2B,E3A,E3B').split(',');
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });
   const page = await (await browser.newContext()).newPage(); page.setDefaultTimeout(8000);
   const pageErrors = []; page.on('pageerror', e => pageErrors.push(String(e)));
@@ -362,7 +424,7 @@ async function runInvalid(page, b) {
   await page.waitForTimeout(300);
   for (const c of CASES.filter(c => groups.includes(c.g))) { try { await runCase(page, c); } catch (e) { check(`${c.id} ${c.title}`, false, 'test error: ' + String(e.message || e).split('\n')[0]); } }
   for (const b of INVALID.filter(b => groups.includes(b.g))) { try { await runInvalid(page, b); } catch (e) { check(`${b.id} ${b.label}`, false, 'test error: ' + String(e.message || e).split('\n')[0]); } }
-  if (groups.includes('E2B')) LATE.forEach(f => f());
+  LATE.forEach(f => f());
   check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
   await browser.close();
   console.log(log.join('\n'));

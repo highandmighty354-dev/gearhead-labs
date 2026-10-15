@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "23687445cf6c249c7d6a702ab75998ceb6690617b917b0906ac3d2142c234542"
+      "sha256": "8ba150832e5b772d6b1b7ded6ab5b74f7e9a0a317bc56b0a4a968edaa4e3a9b2"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -12,7 +12,7 @@
     },
     "models": {
       "file": "premium/models.js",
-      "sha256": "7470e316924d9d19a2377e36a24b949adb993ac71cf9cfeb48fab22eb8edc069"
+      "sha256": "b58eeff2e2f2c2e176f15e8286cda9337cdb2638949dd9e4dd1fe29091ba9586"
     },
     "engineering": {
       "file": "engineering-expansion-v1.js",
@@ -22,10 +22,10 @@
   "counts": {
     "free_public_calculators": 585,
     "migrated_premium_calculators": 21,
-    "premium_expansion_calculators": 136,
+    "premium_expansion_calculators": 137,
     "engineering_lab_tools": 14,
-    "premium_only_tools": 171,
-    "premium_total_access": 756,
+    "premium_only_tools": 172,
+    "premium_total_access": 757,
     "aliases_not_counted": 6,
     "free_by_lab": {
       "universal": 315,
@@ -35,22 +35,22 @@
       "ev": 39
     },
     "premium_by_kind": {
-      "calculator": 157,
+      "calculator": 158,
       "workbench": 4,
       "analyzer": 10
     },
     "save": {
       "eligible": 577,
-      "excluded": 165,
+      "excluded": 166,
       "saveable": 14
     },
-    "premium_expansion_validated": 150,
+    "premium_expansion_validated": 151,
     "approved_future_tools": 0
   },
   "decisions": [
-    "Owner decision 2026-10-06: the 165 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
+    "Owner decision 2026-10-06: the 166 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
     "Owner decision 2026-10-06: 21 existing Free calculators are migrated to Premium, cutting the originally-proposed 70-item list to the 21 the audit actually recommended (Gearhead_Labs_Premium_Migration_AUDIT.xlsx; 49 rejected as Engineering Lab duplicates, SEO/on-ramp anchors, or workbook-arithmetic errors). Free drops from 606 to 585; the Engineering Lab (E01-E14) is unaffected. The 147-item future roadmap remains unimplemented and uncounted.",
-    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 136 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
+    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 137 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
   ],
   "premium_migration": {
     "rule": "A Free calculator moves to Premium only from an owner-approved audit in this repository (Gearhead_Labs_Premium_Migration_AUDIT.xlsx). Each migrated calculator keeps a named Free companion as its on-ramp and stays visible (not hidden) in the Free calculator navigation with a Premium indicator.",
@@ -186,7 +186,7 @@
   },
   "premium_expansion": {
     "rule": "A Premium tool enters this catalog only from approved engineering/product work in this repository, after QA. No count target (the historical ~140 / 752 figures are not used).",
-    "validated": 150,
+    "validated": 151,
     "sources": [
       {
         "source": "ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)",
@@ -202,11 +202,11 @@
       },
       {
         "source": "Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list from the Phase 1 reconciliation and exception resolution)",
-        "outcome": "136 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 7 remain"
+        "outcome": "137 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 6 remain"
       }
     ],
     "premium_calculators": {
-      "validated": 136,
+      "validated": 137,
       "tools": [
         {
           "id": "ac_power_factor",
@@ -657,6 +657,11 @@
           "id": "port_timing_from_geometry",
           "name": "Port Timing from Measured Geometry",
           "category": "UNIVERSAL / ENGINE MECHANICAL DESIGN"
+        },
+        {
+          "id": "power_split_device_kinematics",
+          "name": "Hybrid Power-Split Device Kinematics",
+          "category": "EV / HYBRID & ALTERNATIVE ENERGY"
         },
         {
           "id": "press_fit_interference",
@@ -1608,6 +1613,7 @@
     {"id":"port_area_hp_estimator","name":"CYLINDER HEAD / FLOW · Port/Throat Area → HP Estimator","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks the Port/Throat Area → HP Estimator — find out whether your heads can flow enough to support your power target before you buy them."},
     {"id":"port_timing_from_geometry","name":"Port Timing from Measured Geometry","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Port Timing from Measured Geometry — two-stroke port opening angles, durations and exhaust lead from measured port heights."},
     {"id":"portal_gear_reduction","name":"Portal Gear Reduction","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"premium","kind":"calculator","save":"eligible","formula":{"version":"fv1-5b95b265","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[],"free_companion":"crawl_ratio","promotion":"Use the free Crawl Ratio calculator for standard axle gearing. Premium’s Portal Gear Reduction handles the portal-axle math off-road builds need."},
+    {"id":"power_split_device_kinematics","name":"Hybrid Power-Split Device Kinematics","category":"EV / HYBRID & ALTERNATIVE ENERGY","lab":"ev","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Hybrid Power-Split Device Kinematics — MG1 speed, torque split and signed power flows of a Toyota-style power-split hybrid."},
     {"id":"press_fit_interference","name":"Press-Fit/Interference Fit","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Press-Fit/Interference Fit — Lamé contact pressure, hub and shaft stresses, and slip force and torque capacity."},
     {"id":"primary_secondary_balance_force","name":"Primary & Secondary Balance Force","category":"UNIVERSAL / ENGINE MECHANICAL DESIGN","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Primary & Secondary Balance Force — the harmonic breakdown behind inline-4 secondary shake and balance-shaft design."},
     {"id":"principal_stress","name":"Principal Stress","category":"UNIVERSAL / MATERIALS & STRUCTURES","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Principal Stress — principal stresses, maximum shear and the principal angle of a plane-stress state."},

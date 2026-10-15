@@ -1685,7 +1685,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Priority:** P2
 - **Description:** Battery Pack Heat Balance, Motor Thermal Limit, Inverter Thermal Load, DC Fast-Charge Time with CC-CV Taper, Hybrid Power-Split Device Kinematics, Regenerative Braking Energy Recovery.
 - **Evidence:** Project plan; Phase 1 notes (Regenerative Braking replaces the "braking power" input of `hybrid_regen_energy`).
-- **Affected:** 6 new Premium calculators; 4 exist (2026-10-14): stage 1 `regen_braking_energy`, `battery_pack_heat_balance`; stage 2 `motor_thermal_limit`, `inverter_thermal_load` (Mode A only); final pair `dc_fast_charge_time` (`docs/PREMIUM-CATALOG.md`, "Batch 14, stage 1" and "Batch 14, stage 2").
+- **Affected:** 6 new Premium calculators; 4 exist (2026-10-14): stage 1 `regen_braking_energy`, `battery_pack_heat_balance`; stage 2 `motor_thermal_limit`, `inverter_thermal_load` (Mode A only); final pair `dc_fast_charge_time`, `power_split_device_kinematics`. All 6 exist (`docs/PREMIUM-CATALOG.md`, "Batch 14, stage 1" and "Batch 14, stage 2").
 - **Impact:** Catalog expansion.
 - **Decision:** Approved set.
 - **Dependencies:**
@@ -1714,6 +1714,7 @@ This is the **single authoritative register** of known defects, deferred improve
   2026-10-14 — specification committed as `docs/BATCH-14-SPECIFICATION.md` revision 1.1 with the §2.1 battery-transient erratum (`71de139`); Stage 2 decision table S2-1 to S2-8 prepared.
   2026-10-14 — **stage 2 authorized and done: Motor Thermal Limit and Inverter Thermal Load (Mode A only)**, with owner decisions S2-1 to S2-8, test-first, one commit each. Approved examples reproduced by independent methods (motor 198.18 s to the limit, 110.97 kW extrapolated continuous; inverter 3,092.78 W loss, heatsink 98.87 °C). The authorization's "Input power: 100 kW" for the inverter example was read as AC output, as the specification and the expected 3.09 kW loss require; noted for owner review. Full regression: 33 of 34 suites clean; `nav-return` failed on one older calculator with the GH-DEF-035 signature (evidence in `docs/PREMIUM-CATALOG.md`; GH-DEF-035 not modified). Remaining: DC Fast-Charge Time, Hybrid Power-Split Device Kinematics, and Inverter Mode B; status stays APPROVED.
   2026-10-14 — final pair authorized by the owner (decisions D-14-5, DC-1 to DC-5, PS-1, D-14-6, D-14-2, PS-2, PS-3; specification rev 1.2 `01bff91`). **DC Fast-Charge Time done**: test-first; the three rev 1.2 examples reproduced (25.7444, 30.9587, 10.3972 min) and checked by forward integration; full browser regression 35 of 35 suites. Hybrid Power-Split Device Kinematics follows in its own commit.
+  2026-10-14 — **Hybrid Power-Split Device Kinematics done** (PS-1, D-14-6, D-14-2, PS-2, PS-3): test-first; rev 1.2 examples A–D reproduced against an oracle built from planet geometry and a free body; no direction creates energy; the stationary-ring case shows "—" with no fabricated battery power; full browser regression 35 of 35 suites. **All six Batch 14 calculators are built.** Status left APPROVED rather than closed, because Inverter Thermal Load's Mode B (D-14-4) is still outstanding and not ready; closing this entry is the owner's call.
 
 
 ### GH-FUT-004 — Batch 16: Workbenches (6)

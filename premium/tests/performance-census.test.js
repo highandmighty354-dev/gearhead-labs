@@ -76,6 +76,17 @@ const ADDED = [
   ['inverter_thermal_load', 'OUT|DC Input Power|kW', 'EV_POWER', 'Batch 14 stage 2: inverter DC input power'],
   ['inverter_thermal_load', 'OUT|Inverter Heat Loss|W', 'RETAIN-ACCESSORY', 'Batch 14 stage 2: inverter heat loss in W (owner decision S2-1)'],
   ['dc_fast_charge_time', 'IN|dcf_p|kW', 'EV_POWER', 'Batch 14 final pair: DC charger power limit (native kW box)'],
+  ['power_split_device_kinematics', 'IN|psd_te|lb-ft', 'ENGINE_TORQUE', 'Batch 14 final pair: engine torque on the carrier'],
+  ['power_split_device_kinematics', 'OUT|Engine Torque to the Ring|lb-ft', 'DRIVELINE_TORQUE', 'Batch 14 final pair: ring torque from the engine (owner decision D-14-2)'],
+  ['power_split_device_kinematics', 'OUT|MG1 Reaction Torque|lb-ft', 'EV_TORQUE', 'Batch 14 final pair: MG1 (motor-generator) torque'],
+  ['power_split_device_kinematics', 'OUT|MG2 Torque|lb-ft', 'EV_TORQUE', 'Batch 14 final pair: MG2 (motor-generator) torque'],
+  ['power_split_device_kinematics', 'OUT|Output Torque|lb-ft', 'DRIVELINE_TORQUE', 'Batch 14 final pair: ring/output torque (owner decision D-14-2)'],
+  ['power_split_device_kinematics', 'OUT|Engine Power|HP', 'ENGINE_POWER', 'Batch 14 final pair: engine power (owner decision D-14-6)'],
+  ['power_split_device_kinematics', 'OUT|Ring Mechanical Power|kW', 'EV_POWER', 'Batch 14 final pair: mechanical-path power (D-14-6)'],
+  ['power_split_device_kinematics', 'OUT|MG1 Power|kW', 'EV_POWER', 'Batch 14 final pair: MG1 power, signed (D-14-6)'],
+  ['power_split_device_kinematics', 'OUT|MG2 Power|kW', 'EV_POWER', 'Batch 14 final pair: MG2 power, signed (D-14-6)'],
+  ['power_split_device_kinematics', 'OUT|Output Power|kW', 'EV_POWER', 'Batch 14 final pair: output power (D-14-6)'],
+  ['power_split_device_kinematics', 'OUT|Electrical Path Loss|W', 'RETAIN-ACCESSORY', 'Batch 14 final pair: electrical-path loss in W (S2-1 rule)'],
 ];
 /* inventory rows the table does not carry: [calc, kind, key, why] */
 const DROPPED = [];

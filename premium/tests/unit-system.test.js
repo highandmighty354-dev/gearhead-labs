@@ -546,7 +546,15 @@ const CASES = [
       const Est = Q * (V0 * (s1 - s0) + k * (s1 * s1 - s0 * s0) / 2), L = Icc * Icc * R * tcc + Ib * Ib * R * tau / 2 * (1 - Math.exp(-2 * tcv / tau));   // Wh
       return { 'CC Current': ['amps', Icc], 'Constant-Current Phase Time': ['minutes', tcc * 60], 'Constant-Voltage Phase Time': ['minutes', tcv * 60], 'Total Charge Time': ['minutes', (tcc + tcv) * 60],
                'Current at the Target SOC': ['amps', I1], 'Energy Stored': ['kwh', Est * 3600], 'Pack Resistive Loss': ['kwh', L * 3600], 'Energy at the Pack Terminals': ['kwh', (Est + L) * 3600],
-               'Energy from the Grid': ['kwh', (Est + L) * 3600 / (v.dcf_eff / 100)], 'Time if the CC Current Held to the Target': ['minutes', (s1 - s0) * Q / Icc * 60] }; }, rel: 2e-3 }
+               'Energy from the Grid': ['kwh', (Est + L) * 3600 / (v.dcf_eff / 100)], 'Time if the CC Current Held to the Target': ['minutes', (s1 - s0) * Q / Icc * 60] }; }, rel: 2e-3 },
+  /* ---- Batch 14 final pair, E3B: Hybrid Power-Split (direct ring speed; Willis form here, structural-14 uses planet geometry). Torque lb-ft and engine power HP in both systems
+     under Auto; MG / ring / output powers native kW; loss W. Efficiency last. ---- */
+  { id: 'power_split_device_kinematics', fields: [['psd_zs', 'none', 33], ['psd_zr', 'none', 81], ['psd_ne', 'none', 2500], ['psd_nr', 'none', 1200], ['psd_te', 'lbftfix', 120], ['psd_eta', 'none', 88]],
+    compute: v => { const zs = v.psd_zs, zr = v.psd_zr, w = n => n * 2 * Math.PI / 60, ns = ((zs + zr) * v.psd_ne - zr * v.psd_nr) / zs, Te = v.psd_te, eta = v.psd_eta / 100;
+      const Ts = Te * zs / (zs + zr), Tr = Te * zr / (zs + zr), Pe = Te * w(v.psd_ne), Pr = Tr * w(v.psd_nr), P1 = Ts * w(ns), P2 = P1 >= 0 ? eta * P1 : P1 / eta, T2 = P2 / w(v.psd_nr);
+      return { 'MG1 Speed': ['rpm', ns], 'Engine Torque to the Ring': ['lbftfix', Tr], 'MG1 Reaction Torque': ['lbftfix', Ts], 'Engine Power': ['hpfix', Pe], 'Ring Mechanical Power': ['kw', Pr / 1000],
+               'MG1 Power': ['kw', P1 / 1000], 'MG2 Power': ['kw', P2 / 1000], 'Output Power': ['kw', (Pr + P2) / 1000], 'MG2 Torque': ['lbftfix', T2], 'Output Torque': ['lbftfix', Tr + T2],
+               'Electrical Path Loss': ['watts', Math.abs(P1 - P2)], 'Share of Engine Power through the Mechanical Path': ['pct', Pr / Pe * 100] }; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;
