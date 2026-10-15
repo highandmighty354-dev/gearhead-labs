@@ -490,7 +490,9 @@
     { id: 'motor_thermal_limit', name: 'Motor Thermal Limit',
       promo: 'Gearhead Labs Premium unlocks Motor Thermal Limit — whether a motor operating point is continuous or time-limited, and the time to its winding limit.' },
     { id: 'inverter_thermal_load', name: 'Inverter Thermal Load',
-      promo: 'Gearhead Labs Premium unlocks Inverter Thermal Load — inverter heat loss, coolant rise and heatsink temperature at an operating point.' }
+      promo: 'Gearhead Labs Premium unlocks Inverter Thermal Load — inverter heat loss, coolant rise and heatsink temperature at an operating point.' },
+    { id: 'dc_fast_charge_time', name: 'DC Fast-Charge Time',
+      promo: 'Gearhead Labs Premium unlocks DC Fast-Charge Time — constant-current and constant-voltage taper charging time and energy, as an engineering estimate.' }
   ];
   const PREMIUM_CALC_SET = new Set(PREMIUM_CALCULATORS.map(c => c.id));
   /* read-only view: a Set itself cannot be frozen */

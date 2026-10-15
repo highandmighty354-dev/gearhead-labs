@@ -20,17 +20,17 @@ The early $1.99 Garage / $3.99 additional-profile concept is retired and impleme
 |---|---|
 | Free public calculators (F1.12.4; F1.12.3 is the frozen baseline) | **585** |
 | Calculators migrated from Free to Premium (owner-approved audit, 2026-10-06) | **21** |
-| Premium Calculator Expansion calculators (net-new, no Free counterpart; owner-approved brief, 2026-10-07-) | **135** (of 143 approved; see below) |
+| Premium Calculator Expansion calculators (net-new, no Free counterpart; owner-approved brief, 2026-10-07-) | **136** (of 143 approved; see below) |
 | Premium-only tools: the Engineering Lab, E01–E14 (10 analyzers, 4 workbenches) | **14** |
-| Premium-only tools total (21 migrated + 135 expansion calculators + 14 Engineering Lab) | **170** |
-| Tools available in Premium (Free + Premium-only) | **755** |
-| Premium expansion tools validated from approved work (E01–E14 + expansion calculators) | **149** |
+| Premium-only tools total (21 migrated + 136 expansion calculators + 14 Engineering Lab) | **171** |
+| Tools available in Premium (Free + Premium-only) | **756** |
+| Premium expansion tools validated from approved work (E01–E14 + expansion calculators) | **150** |
 | Approved future Premium tools (not yet built) | **0** |
 | Aliases (alternate ids, never counted) | 6 |
 
 Free calculators by lab: universal 315, gasoline 162, diesel 42, EV 39, towing 27 (585 total; see "Calculators migrated from Free to Premium" below for the 21 that moved out of these lab counts on 2026-10-06; the Premium Calculator Expansion's calculators were never Free and so never counted in these lab totals).
 
-*Table updated 2026-10-14 after Batch 14 stage 2 (it had last been updated after Batch 10, at 90 expansion calculators, until Batch 13; the narrative paragraphs below still describe that point, and the batch sections hold the detail). The figures match `catalog/build-catalog.js` and `run-tests.sh`'s catalog check: 135 expansion, 170 Premium-only, 755 in Premium, 149 validated.*
+*Table updated 2026-10-14 after Batch 14's DC Fast-Charge Time (it had last been updated after Batch 10, at 90 expansion calculators, until Batch 13; the narrative paragraphs below still describe that point, and the batch sections hold the detail). The figures match `catalog/build-catalog.js` and `run-tests.sh`'s catalog check: 136 expansion, 171 Premium-only, 756 in Premium, 150 validated.*
 
 **751 is the current Premium catalog, not the final one.** The Premium catalog is still incomplete, implemented batch by batch. The historical target of about 752 tools (612 Free plus about 140 Premium expansion tools) is still not used here, for two reasons:
 - the authoritative baseline for calculator-kind tools before the expansion began was 606 (585 Free + 21 migrated to Premium), not 612;
@@ -255,7 +255,7 @@ Note on `turbo_sizing`: its promotion copy explicitly distinguishes it from the 
 
 Access is gated client-side only (same approach as the Engineering Lab, `premium/engineering-bridge.js`): `premium-calculator-gating.js` wraps each of these 21 ids' render function and nav entry, checking `GHP.services.entitlements.isPremium()` fresh on every render. It grants no access and talks to no database — these calculators are entirely client-side math, same as every Free calculator, so there is nothing for Supabase RLS to enforce here. What Supabase enforces is Premium status itself (`entitlement_grants`, `pf_has_feature`; see `PREMIUM_ARCHITECTURE.md`), which this gate reads but never decides.
 
-## Premium Calculator Expansion (135 of 143 approved, batch by batch)
+## Premium Calculator Expansion (136 of 143 approved, batch by batch)
 
 Decided 2026-10-07, from a Phase 1 reconciliation and exception-resolution pass that re-examined the 147-candidate future roadmap (left unapproved by the original Premium Migration Audit, above) against the live code. **143 candidates** were approved for implementation as net-new Premium-only calculators; 1 was held for a follow-up merge decision and 3 were rejected (duplicates or out of scope — see `claude/premium-expansion-phase1-exceptions-resolved.md` and `claude/premium-expansion-batch-plan.md` in the project). Implementation proceeds in 16 named engineering-family batches on the `premium/full-calculator-expansion` branch; each batch is implemented, QA'd (unit/formula tests, catalog validation, browser smoke tests, Premium gating tests, metric/imperial tests, NaN/Infinity/undefined scan) and committed before the next begins. `main` is untouched until the expansion is reviewed and merged.
 
@@ -957,6 +957,63 @@ The owner authorized these two calculators on 2026-10-14, after the Stage 2 deci
   - **Status of GH-DEF-035:** OPEN. Its register entry was not modified and the race was not investigated, per the Stage 2 authorization.
   - **Individual calculator results are clean; full-suite success is not.**
 - **Commits:** `67f45ae` (E2A), `3736b91` (E2B).
+
+### Batch 14, final pair — DC Fast-Charge Time and Hybrid Power-Split Device Kinematics (done 2026-10-14)
+
+The owner authorized both calculators on 2026-10-14, to be built in order, each validated and committed before the next. The owner decisions are:
+- **DC Fast-Charge Time:** D-14-5 and DC-1 to DC-5;
+- **Hybrid Power-Split:** PS-1, D-14-6, D-14-2 (ring/output torque is driveline torque), PS-2 and PS-3.
+
+Both are recorded in `claude/batch-14-final-pair-decisions.md` (project). The model definition is [`docs/BATCH-14-SPECIFICATION.md`](BATCH-14-SPECIFICATION.md) revision 1.2 (`01bff91`), §2.4 and §2.5. The existing calculators `ev_charge_time`, `hybrid_power_split` and `planetary_gearset_ratio` are unchanged.
+
+#### DC Fast-Charge Time — `dc_fast_charge_time` (`EV / CHARGING & RANGE`)
+
+**Model** (§2.4, D-14-5). An open-circuit voltage that rises in a straight line over the usable SOC window (DC-3), plus one fixed resistance.
+- **Constant current:** the current is I_cc = min(current limit, charger power ÷ V_max).
+  - DC-5: one current input, the lower of the battery and charger limits.
+  - DC-2: the power-limited rule is conservative, and the page calls a power-limited time an upper bound.
+  - CC runs until OCV + I R reaches V_max, at s_b = (V_max − I_cc R − V₀) ÷ k.
+- **Constant-voltage taper:** s(t) = s_∞ − (s_∞ − s_cv) e^(−t/τ), with τ = R Q ÷ k and s_∞ = (V_max − V₀) ÷ k.
+- **DC-1:** a start SOC already past s_b begins in the taper, with a CC time of 0.
+- **Energies:** stored (open-circuit basis), pack I²R loss, terminal, and grid (÷ charger efficiency).
+- **Comparison row:** the time if the CC current held all the way.
+
+**Rejected inputs, each with a reason:**
+- V_max at or below the start OCV (no current flows);
+- a target at or above s_∞ (the taper only approaches it);
+- OCV₁₀₀ ≤ OCV₀;
+- target ≤ start;
+- non-positive capacity, resistance, current or power;
+- efficiency outside 50–100 %.
+
+**Notes and units.**
+- **Notes on the page:** "Engineering estimate … not validated against measured vehicle charging data". The excluded effects (DC-4: heating/cooling loads; also temperature, BMS current schedule and preconditioning) are listed in a note that always shows. Separate notes cover power-limited operation, a target reached in CC, and a start in the taper.
+- **Units:** Ah, V, ohm, A, %, min and kWh are the same in Metric and Imperial. The charger power is a native kW box (`EV_POWER`, 1 `PERF_ROWS` entry). No mass, force, torque or temperature rows.
+
+**Worked examples** (spec rev 1.2): Q 200 Ah, 330/410 V, 0.1 ohm, V_max 410 V, 400 A, 95 %. The page reproduces each.
+
+| Example | Total | CC + CV | Energy at the terminals / from the grid |
+|---|---|---|---|
+| Ex 1: 350 kW, 10 → 80 % | **25.7444 min** | 12.0000 + 13.7444 min | 56.12 / 59.0737 kWh |
+| Ex 2: 120 kW (power-limited, 292.68 A), 10 → 80 % | **30.9587 min** | 21.9 + 9.0587 min | 55.1175 / 58.0184 kWh |
+| Ex 3: 60 → 80 %, starts in the taper | **10.3972 min** | 0 + 10.3972 min | 16.4 / 17.2632 kWh |
+
+**Independent check.** Forward integration of dS/dt = min(I_cc, (V_max − OCV)/R) ÷ Q with a 2 × 10⁻⁶ h step. It accumulates time, OCV·I and I²R separately, and agrees with the page's closed forms. These examples check the model's arithmetic; **they are not measured-vehicle validation.**
+
+**Verification.**
+- **Tests first:** the new `structural-14` E3A group failed 46 of 47 checks and the `unit-system` case failed all 5 runs before the code.
+- **structural-14 E3A:** 5 closed-form cases × 2 systems (the three examples; CC only, 10 → 40 % = 9 min exactly; start exactly at the switch, 15 ln 2.5 min) and 41 invalid inputs; 217 checks, 0 failures.
+- **unit-system:** 330 checks, 0 failures.
+- **Engine self-test:** 2 new assertions, 727 / 727.
+- **Census:**
+  - unit-census: 742 calculators, 3,043 checks;
+  - declared-metric-units: 0 unprotected;
+  - mass-force: 854 checks;
+  - unit-factors: 574 checks;
+  - performance-census (full run): 1 row added, 0 failed.
+- **run-tests.sh:** catalog OK (136 expansion), register OK, frontend 55/55, schema 26/26.
+- **Full browser regression** (35 suites): **35 of 35 suites passed**, run once after this calculator: self-test 727/727; smoke 19/19 with 742 calculator-kind tools; unit-system 7,388; toggle-sweep 742 (1 known-open); `nav-return` 738 consistent, 0 failures; label-consistency 742; negative-zero 742 + 742; range-warnings 2,469; `structural-14` 838; `render-race` 95.
+- **Counts:** 741 → 742 calculator-kind tools, 156 → 157 Premium calculators.
 
 ### GH-DEF-035 fix — intermittent `nav-return` failures (2026-10-15)
 

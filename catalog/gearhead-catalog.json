@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "84f5a9f35073b7e892fbb1ee3931fae2cfc6b7fd6cfae6f237047228d8bfc37f"
+      "sha256": "23687445cf6c249c7d6a702ab75998ceb6690617b917b0906ac3d2142c234542"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -12,7 +12,7 @@
     },
     "models": {
       "file": "premium/models.js",
-      "sha256": "8b4ddd7123150c33b1194f887f9f794891369f3b8a3f0dc96a0f5cc25105bfea"
+      "sha256": "7470e316924d9d19a2377e36a24b949adb993ac71cf9cfeb48fab22eb8edc069"
     },
     "engineering": {
       "file": "engineering-expansion-v1.js",
@@ -22,10 +22,10 @@
   "counts": {
     "free_public_calculators": 585,
     "migrated_premium_calculators": 21,
-    "premium_expansion_calculators": 135,
+    "premium_expansion_calculators": 136,
     "engineering_lab_tools": 14,
-    "premium_only_tools": 170,
-    "premium_total_access": 755,
+    "premium_only_tools": 171,
+    "premium_total_access": 756,
     "aliases_not_counted": 6,
     "free_by_lab": {
       "universal": 315,
@@ -35,22 +35,22 @@
       "ev": 39
     },
     "premium_by_kind": {
-      "calculator": 156,
+      "calculator": 157,
       "workbench": 4,
       "analyzer": 10
     },
     "save": {
       "eligible": 577,
-      "excluded": 164,
+      "excluded": 165,
       "saveable": 14
     },
-    "premium_expansion_validated": 149,
+    "premium_expansion_validated": 150,
     "approved_future_tools": 0
   },
   "decisions": [
-    "Owner decision 2026-10-06: the 164 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
+    "Owner decision 2026-10-06: the 165 public calculators without a formula fingerprint are EXCLUDED from saved calculations for now (save = \"excluded\"). They stay Free and unchanged; the database already refuses them (no calculators row).",
     "Owner decision 2026-10-06: 21 existing Free calculators are migrated to Premium, cutting the originally-proposed 70-item list to the 21 the audit actually recommended (Gearhead_Labs_Premium_Migration_AUDIT.xlsx; 49 rejected as Engineering Lab duplicates, SEO/on-ramp anchors, or workbook-arithmetic errors). Free drops from 606 to 585; the Engineering Lab (E01-E14) is unaffected. The 147-item future roadmap remains unimplemented and uncounted.",
-    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 135 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
+    "Owner decision 2026-10-07: the approved Premium Calculator Expansion has added 136 net-new Premium-only calculator(s) with no Free counterpart (no free_companion; see premium_expansion below). The original 21-calculator Free -> Premium migration above is unaffected and unchanged; Free stays at 585."
   ],
   "premium_migration": {
     "rule": "A Free calculator moves to Premium only from an owner-approved audit in this repository (Gearhead_Labs_Premium_Migration_AUDIT.xlsx). Each migrated calculator keeps a named Free companion as its on-ramp and stays visible (not hidden) in the Free calculator navigation with a Premium indicator.",
@@ -186,7 +186,7 @@
   },
   "premium_expansion": {
     "rule": "A Premium tool enters this catalog only from approved engineering/product work in this repository, after QA. No count target (the historical ~140 / 752 figures are not used).",
-    "validated": 149,
+    "validated": 150,
     "sources": [
       {
         "source": "ENGINEERING_EXPANSION_CATALOG_V1.md (abeea94, 2026-10-04)",
@@ -202,11 +202,11 @@
       },
       {
         "source": "Premium Calculator Expansion brief (2026-10-07, owner-approved; 143-item approved BUILD list from the Phase 1 reconciliation and exception resolution)",
-        "outcome": "135 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 8 remain"
+        "outcome": "136 net-new Premium-only calculator(s) built and QA'd so far, batch by batch (premium/models.js PREMIUM_CALCULATORS entries with no free_companion); 7 remain"
       }
     ],
     "premium_calculators": {
-      "validated": 135,
+      "validated": 136,
       "tools": [
         {
           "id": "ac_power_factor",
@@ -402,6 +402,11 @@
           "id": "damping_coefficient_from_ratio",
           "name": "Damping Coefficient from Target Ratio",
           "category": "UNIVERSAL / VEHICLE DYNAMICS"
+        },
+        {
+          "id": "dc_fast_charge_time",
+          "name": "DC Fast-Charge Time",
+          "category": "EV / CHARGING & RANGE"
         },
         {
           "id": "diffuser_angle_expansion",
@@ -1528,6 +1533,7 @@
     {"id":"cutting_force","name":"Cutting Force","category":"UNIVERSAL / MANUFACTURING","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Cutting Force — turning force, cutting and spindle power and removal rate from the specific cutting force."},
     {"id":"damper_velocity_from_wheel_travel","name":"Damper Velocity from Wheel Travel","category":"UNIVERSAL / VEHICLE DYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Damper Velocity from Wheel Travel — converts a wheel-travel event into the shaft velocity a damper dyno plot is actually indexed against."},
     {"id":"damping_coefficient_from_ratio","name":"Damping Coefficient from Target Ratio","category":"UNIVERSAL / VEHICLE DYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Damping Coefficient from Target Ratio — reverse-solves the Free Damping Ratio relationship from physical wheel rate and corner weight, giving the actual shock valving spec instead of requiring it as an input."},
+    {"id":"dc_fast_charge_time","name":"DC Fast-Charge Time","category":"EV / CHARGING & RANGE","lab":"ev","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks DC Fast-Charge Time — constant-current and constant-voltage taper charging time and energy, as an engineering estimate."},
     {"id":"diffuser_angle_expansion","name":"Diffuser Angle / Expansion","category":"UNIVERSAL / AERODYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Diffuser Angle / Expansion — ramp angle, area expansion ratio and ideal pressure recovery for an underbody diffuser."},
     {"id":"drag_coefficient","name":"Drag Coefficient","category":"UNIVERSAL / AERODYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Drag Coefficient — extracts Cd (and CdA) from a measured drag force, the reverse of the Free Aerodynamic Drag Force calculator."},
     {"id":"drag_downforce_tradeoff","name":"Drag / Downforce Tradeoff","category":"UNIVERSAL / AERODYNAMICS","lab":"universal","tier":"premium","kind":"calculator","save":"excluded","formula":null,"vehicle_link":"optional","status":"current","aliases":[],"promotion":"Gearhead Labs Premium unlocks Drag / Downforce Tradeoff — compares two aero setups for downforce gained, drag and horsepower paid, and the grip it could buy."},

@@ -75,6 +75,7 @@ const ADDED = [
   ['inverter_thermal_load', 'IN|itl_p|kW', 'EV_POWER', 'Batch 14 stage 2: inverter AC output power (native kW box)'],
   ['inverter_thermal_load', 'OUT|DC Input Power|kW', 'EV_POWER', 'Batch 14 stage 2: inverter DC input power'],
   ['inverter_thermal_load', 'OUT|Inverter Heat Loss|W', 'RETAIN-ACCESSORY', 'Batch 14 stage 2: inverter heat loss in W (owner decision S2-1)'],
+  ['dc_fast_charge_time', 'IN|dcf_p|kW', 'EV_POWER', 'Batch 14 final pair: DC charger power limit (native kW box)'],
 ];
 /* inventory rows the table does not carry: [calc, kind, key, why] */
 const DROPPED = [];

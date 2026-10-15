@@ -536,7 +536,17 @@ const CASES = [
   { id: 'inverter_thermal_load', fields: [['itl_p', 'none', 120], ['itl_e', 'none', 96], ['itl_mf', 'massflowmin', 0.2], ['itl_cp', 'none', 3600], ['itl_tin', 'tempabs', 340.15], ['itl_r', 'none', 0.015]],
     compute: v => { const Pin = v.itl_p / (v.itl_e / 100), L = (Pin - v.itl_p) * 1000, rise = L / (v.itl_mf * v.itl_cp), Tm = v.itl_tin + rise / 2;
       return { 'DC Input Power': ['kw', Pin], 'Inverter Heat Loss': ['watts', L], 'Coolant Temperature Rise': ['tempdiff', rise], 'Coolant Outlet Temperature': ['tempabs', v.itl_tin + rise],
-               'Mean Coolant Temperature': ['tempabs', Tm], 'Heatsink (Baseplate) Temperature': ['tempabs', Tm + L * v.itl_r] }; }, rel: 2e-3 }
+               'Mean Coolant Temperature': ['tempabs', Tm], 'Heatsink (Baseplate) Temperature': ['tempabs', Tm + L * v.itl_r] }; }, rel: 2e-3 },
+  /* ---- Batch 14 final pair, E3A: DC Fast-Charge Time (closed forms; structural-14 checks them against forward integration). All units neutral; efficiency last. ---- */
+  { id: 'dc_fast_charge_time', fields: [['dcf_q', 'none', 180], ['dcf_v0', 'none', 320], ['dcf_v100', 'none', 400], ['dcf_r', 'none', 0.12], ['dcf_vmax', 'none', 402], ['dcf_i', 'none', 350], ['dcf_p', 'none', 300],
+      ['dcf_s0', 'none', 15], ['dcf_s1', 'none', 75], ['dcf_eff', 'none', 93]],
+    compute: v => { const Q = v.dcf_q, V0 = v.dcf_v0, k = v.dcf_v100 - V0, R = v.dcf_r, Vm = v.dcf_vmax, s0 = v.dcf_s0 / 100, s1 = v.dcf_s1 / 100;
+      const Icc = Math.min(v.dcf_i, v.dcf_p * 1000 / Vm), sb = (Vm - Icc * R - V0) / k, sinf = (Vm - V0) / k, tau = R * Q / k, scv = Math.max(sb, s0);
+      let tcc, tcv, I1, Ib = 0; if (sb >= s1) { tcc = (s1 - s0) * Q / Icc; tcv = 0; I1 = Icc; } else { tcc = Math.max(0, sb - s0) * Q / Icc; tcv = tau * Math.log((sinf - scv) / (sinf - s1)); I1 = k * (sinf - s1) / R; Ib = k * (sinf - scv) / R; }
+      const Est = Q * (V0 * (s1 - s0) + k * (s1 * s1 - s0 * s0) / 2), L = Icc * Icc * R * tcc + Ib * Ib * R * tau / 2 * (1 - Math.exp(-2 * tcv / tau));   // Wh
+      return { 'CC Current': ['amps', Icc], 'Constant-Current Phase Time': ['minutes', tcc * 60], 'Constant-Voltage Phase Time': ['minutes', tcv * 60], 'Total Charge Time': ['minutes', (tcc + tcv) * 60],
+               'Current at the Target SOC': ['amps', I1], 'Energy Stored': ['kwh', Est * 3600], 'Pack Resistive Loss': ['kwh', L * 3600], 'Energy at the Pack Terminals': ['kwh', (Est + L) * 3600],
+               'Energy from the Grid': ['kwh', (Est + L) * 3600 / (v.dcf_eff / 100)], 'Time if the CC Current Held to the Target': ['minutes', (s1 - s0) * Q / Icc * 60] }; }, rel: 2e-3 }
 ];
 if (typeof module !== 'undefined') module.exports = { K, IN, OUT, CASES };
 if (require.main !== module) return;

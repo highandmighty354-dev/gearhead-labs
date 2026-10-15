@@ -33,7 +33,8 @@ const U = {
   sec: ['sec', 'sec', 1], min: ['min', 'min', 1], A: ['A', 'A', 1], V: ['V', 'V', 1], ohm: ['ohm', 'ohm', 1], 'V/K': ['V/K', 'V/K', 1], 'W/K': ['W/K', 'W/K', 1], 'J/kg·K': ['J/kg·K', 'J/kg·K', 1],
   lbs: ['lbs', 'kg', LB], mph: ['mph', 'km/h', MI / 1000], 'lbs/min': ['lbs/min', 'kg/min', LB],
   '°F': ['°F', '°C', f => (f - 32) * 5 / 9], 'Δ°F': ['Δ°F', 'Δ°C', 5 / 9],
-  'K/W': ['K/W', 'K/W', 1], 'J/K': ['J/K', 'J/K', 1], RPM: ['RPM', 'RPM', 1], 'lb-ft': ['lb-ft', 'lb-ft', 1]   // EV motor torque: lb-ft in both systems under Auto (GH-IMP-019 P2)
+  'K/W': ['K/W', 'K/W', 1], 'J/K': ['J/K', 'J/K', 1], RPM: ['RPM', 'RPM', 1], 'lb-ft': ['lb-ft', 'lb-ft', 1],
+  Ah: ['Ah', 'Ah', 1], HP: ['HP', 'HP', 1], in: ['in', 'mm', IN * 1000], teeth: ['', '', 1]   // engine power: HP in both systems under Auto (GH-IMP-019 P1)   // EV motor torque: lb-ft in both systems under Auto (GH-IMP-019 P2)
 };
 const toM = (u, v) => typeof U[u][2] === 'function' ? U[u][2](v) : v * U[u][2];
 const approx = (got, want, rel, textDecimals) => Math.abs(got - want) <= 0.5 * Math.pow(10, -textDecimals) + rel * Math.abs(want);
@@ -209,6 +210,43 @@ const IEX = { P: 100e3, eta: 0.97, mdot: 0.15, cp: 3500, tin: 65, R: 0.01 };
 { const o = { ...IEX, P: 150e3, eta: 0.95, R: 0.02 }, v = invSim(o);
   add({ g: 'E2B', id: 'inverter_thermal_load', title: '150 kW at 95 %, R_th 0.02 K/W', inputs: IIN(o), want: IWANT(v), rel: 2e-5 }); }
 
+/* ======================================================= E3A DC FAST-CHARGE TIME (CC-CV) ======================================================= */
+/* Specification rev 1.2 §2.4 (D-14-5, DC-1..DC-5). Independent oracle: FORWARD INTEGRATION of dS/dt = I/Q with I = min(I_cc, (V_max − OCV(s))/R), I_cc = min(I_lim, P/V_max),
+   accumulating time, OCV·I (stored) and I²R (loss) separately; the page uses the closed forms. */
+function dcSim({ Q, V0, V100, R, Vmax, I, P, s0, s1, eff }) {                       // Ah, V, ohm, V, A, kW, fractions
+  const k = V100 - V0, Icc = Math.min(I, P * 1000 / Vmax), dt = 2e-6;
+  let s = s0, t = 0, Est = 0, L = 0, tcc = 0, sSwitch = NaN, Iend = Icc;
+  while (s < s1) { const Icv = (Vmax - V0 - k * s) / R, Ii = Math.min(Icc, Icv); if (Icv < Icc && isNaN(sSwitch)) sSwitch = s; if (Icv >= Icc) tcc += dt;
+    const h = Math.min(dt, (s1 - s) * Q / Ii); Est += (V0 + k * s) * Ii * h; L += Ii * Ii * R * h; s += Ii * h / Q; t += h; Iend = Ii; }
+  const term = (Est + L) / 1000;
+  return { Icc, t: t * 60, tcc: tcc * 60, tcv: (t - tcc) * 60, sb: (Vmax - Icc * R - V0) / k, Iend, Est: Est / 1000, L: L / 1000, term, grid: term / eff, lin: (s1 - s0) * Q / Icc * 60 };
+}
+const DIN = o => ({ dcf_q: [o.Q, 'Ah'], dcf_v0: [o.V0, 'V'], dcf_v100: [o.V100, 'V'], dcf_r: [o.R, 'ohm'], dcf_vmax: [o.Vmax, 'V'], dcf_i: [o.I, 'A'], dcf_p: [o.P, 'kW'], dcf_s0: [o.s0 * 100, '%'], dcf_s1: [o.s1 * 100, '%'], dcf_eff: [o.eff * 100, '%'] });
+const DWANT = d => ({ 'CC Current': [d.Icc, 'A'], 'Constant-Current Phase Time': [d.tcc, 'min'], 'Constant-Voltage Phase Time': [d.tcv, 'min'], 'Total Charge Time': [d.t, 'min'],
+  'Current at the Target SOC': [d.Iend, 'A'], 'Energy Stored': [d.Est, 'kWh'], 'Pack Resistive Loss': [d.L, 'kWh'], 'Energy at the Pack Terminals': [d.term, 'kWh'], 'Energy from the Grid': [d.grid, 'kWh'],
+  'Time if the CC Current Held to the Target': [d.lin, 'min'] });
+const DEX = { Q: 200, V0: 330, V100: 410, R: 0.1, Vmax: 410, I: 400, P: 350, s0: 0.10, s1: 0.80, eff: 0.95 };
+/* Ex 1 (spec): current-limited 400 A; switch at 50 %; CC 12.0000 + CV 13.7444 = 25.7444 min; 160 A at the target; stored 51.240, loss 4.880, terminal 56.120, grid 59.0737 kWh; linear 21.00 min */
+{ const d = dcSim(DEX);
+  add({ g: 'E3A', id: 'dc_fast_charge_time', title: 'Ex 1: 350 kW charger, 10 -> 80 % (current-limited)', inputs: DIN(DEX), want: { ...DWANT(d), 'SOC at the Switch to Constant Voltage': [50, '%'] },
+    literal: { 'Total Charge Time': 25.7444, 'Constant-Current Phase Time': 12, 'Constant-Voltage Phase Time': 13.7444, 'Current at the Target SOC': 160, 'Energy Stored': 51.24, 'Energy at the Pack Terminals': 56.12, 'Energy from the Grid': 59.0737, 'Time if the CC Current Held to the Target': 21 },
+    notes: [/estimate/i, /not validated against measured/i, /heating|cooling/i], rel: 3e-5 }); }
+/* Ex 2 (spec): power-limited 120 kW / 410 V = 292.683 A; switch 63.415 %; CC 21.9000 + CV 9.0587 = 30.9587 min; terminal 55.1175, grid 58.0184 kWh */
+{ const o = { ...DEX, P: 120 }, d = dcSim(o);
+  add({ g: 'E3A', id: 'dc_fast_charge_time', title: 'Ex 2: 120 kW charger, power-limited', inputs: DIN(o), want: { ...DWANT(d), 'SOC at the Switch to Constant Voltage': [(410 - 120000 / 410 * 0.1 - 330) / 80 * 100, '%'] },
+    literal: { 'Total Charge Time': 30.9587, 'CC Current': 292.68, 'Energy at the Pack Terminals': 55.1175, 'Energy from the Grid': 58.0184 }, notes: [/power-limited/i, /upper bound/i], rel: 3e-5 }); }
+/* Ex 3 (spec, DC-1): 60 -> 80 % starts already past the switch (50 %): CC 0; CV 10.3972 min; stored 15.440, loss 0.960, terminal 16.400 kWh */
+{ const o = { ...DEX, s0: 0.6 }, d = dcSim(o);
+  add({ g: 'E3A', id: 'dc_fast_charge_time', title: 'Ex 3: starts in the taper (DC-1)', inputs: DIN(o), want: { ...DWANT(d), 'Constant-Current Phase Time': [0, 'min'] },
+    literal: { 'Total Charge Time': 10.3972, 'Energy Stored': 15.44, 'Pack Resistive Loss': 0.96, 'Energy at the Pack Terminals': 16.4 }, notes: [/already past the switch|starts in the constant-voltage/i], rel: 3e-5 }); }
+/* constant-current only: 10 -> 40 % never reaches the 50 % switch: t = 0.3 x 200 / 400 h = 9 min EXACTLY, no CV */
+{ const o = { ...DEX, s1: 0.4 }, d = dcSim(o);
+  add({ g: 'E3A', id: 'dc_fast_charge_time', title: 'constant-current only (target below the switch)', inputs: DIN(o), want: { ...DWANT(d), 'Total Charge Time': [9, 'min'], 'Constant-Voltage Phase Time': [0, 'min'], 'Current at the Target SOC': [400, 'A'] },
+    notes: [/before the switch/i], rel: 3e-5 }); }
+/* transition boundary: starting exactly at the switch (50 %): CC 0, CV tau ln(0.5/0.2) = 13.7444 min */
+{ const o = { ...DEX, s0: 0.5 }, d = dcSim(o);
+  add({ g: 'E3A', id: 'dc_fast_charge_time', title: 'start exactly at the switch', inputs: DIN(o), want: { ...DWANT(d), 'Total Charge Time': [15 * Math.log(0.5 / 0.2), 'min'], 'Constant-Current Phase Time': [0, 'min'] }, rel: 3e-5 }); }
+
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    INVALID INPUT.
    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -244,6 +282,13 @@ sweepBad('E2B', 'inverter_thermal_load', Object.keys(BASE.inverter_thermal_load)
 for (const [label, over] of [['zero power', { itl_p: '0' }], ['efficiency above 99.9 %', { itl_e: '100' }], ['efficiency below 50 %', { itl_e: '45' }], ['zero coolant flow', { itl_mf: '0' }],
   ['zero coolant specific heat', { itl_cp: '0' }], ['zero thermal resistance', { itl_r: '0' }], ['power above 2 000 kW', { itl_p: '2500' }]])
   bad('E2B', 'inverter_thermal_load', BASE.inverter_thermal_load, label, over);
+
+BASE.dc_fast_charge_time = flat(DIN(DEX));
+sweepBad('E3A', 'dc_fast_charge_time', Object.keys(BASE.dc_fast_charge_time));
+for (const [label, over] of [['OCV at 100 % not above OCV at 0 %', { dcf_v100: '320' }], ['target not above start', { dcf_s1: '10' }], ['target at 100 % (beyond the CV equilibrium)', { dcf_s1: '100' }],
+  ['V_max not above the starting OCV', { dcf_vmax: '330' }], ['zero capacity', { dcf_q: '0' }], ['zero resistance', { dcf_r: '0' }], ['zero current limit', { dcf_i: '0' }], ['zero charger power', { dcf_p: '0' }],
+  ['efficiency below 50 %', { dcf_eff: '40' }], ['efficiency above 100 %', { dcf_eff: '101' }], ['start SOC above 100 %', { dcf_s0: '120' }]])
+  bad('E3A', 'dc_fast_charge_time', BASE.dc_fast_charge_time, label, over);
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    HARNESS
@@ -309,7 +354,7 @@ async function runInvalid(page, b) {
 }
 
 (async () => {
-  const groups = (process.env.GROUP || 'E1A,E1B,E2A,E2B').split(',');
+  const groups = (process.env.GROUP || 'E1A,E1B,E2A,E2B,E3A').split(',');
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });
   const page = await (await browser.newContext()).newPage(); page.setDefaultTimeout(8000);
   const pageErrors = []; page.on('pageerror', e => pageErrors.push(String(e)));
