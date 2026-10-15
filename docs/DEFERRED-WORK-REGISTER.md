@@ -60,6 +60,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-034](#gh-def-034--bolt-torque-spec-by-grade-estimates-the-tensile-stress-area-with-16-threads-per-inch-for-every-bolt-above-03-in-reported-needs-investigation) | Bolt Torque Spec by Grade estimates the tensile stress area with 16 threads per inch for every bolt above 0.3 in (reported; needs investigation) | VERIFIED CLOSED | Medium, confirmed by the 2026-10-15 investigation | P2 |
 | [GH-DEF-035](#gh-def-035--a-navigation-made-in-the-same-instant-as-a-trip-to-the-dashboard-can-be-overwritten-by-the-dashboards-deferred-home-page-swap-intermittent-nav-return-failures) | A navigation made in the same instant as a trip to the dashboard can be overwritten by the dashboard's deferred home-page swap (intermittent nav-return failures) | VERIFIED CLOSED | Low | P3 |
 | [GH-DEF-036](#gh-def-036--bolt-stretch-applies-one-tensile-stress-area-to-the-whole-bolt-length-so-a-bolt-with-a-plain-shank-or-a-reduced-shank-gets-the-wrong-clamp-load) | Bolt Stretch applies one tensile stress area to the whole bolt length, so a bolt with a plain shank (or a reduced shank) gets the wrong clamp load | VERIFIED CLOSED | Medium | P2 |
+| [GH-DEF-037](#gh-def-037--test-harnesses-can-pass-vacuously-when-the-expected-value-is-not-finite-and-unit-system-reads-a-blank-box-as-0) | Test harnesses can pass vacuously when the expected value is not finite (and `unit-system` reads a blank box as 0) | OPEN | Low | P2 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
 | [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
@@ -1050,6 +1051,49 @@ This is the **single authoritative register** of known defects, deferred improve
   - **Observation, not fixed (outside scope):** `unit-system.test.js` `verify()` reads a blank box as 0. Its tolerance is relative to the expected value, so an infinite expected value passes vacuously. The `bolt_stretch` case was written so its expected value is always finite.
   - **Deferred:** the production `formula_versions` row `('bolt_stretch', 'fv1-8e827c77', '1.1.0', 'GH_E1_FORMULAS', 'F1.12.4')`, under GH-ENG-014 (Section 12).
 
+
+### GH-DEF-037 — Test harnesses can pass vacuously when the expected value is not finite (and `unit-system` reads a blank box as 0)
+- **Status:** OPEN
+- **Severity:** Low (test infrastructure only; no calculator is affected; no current check is known to pass vacuously, but a future case could hide a real defect)
+- **Priority:** P2
+- **Description:** In `premium/tests/unit-system.test.js`, `verify()` does three things:
+  - it converts every box with `Number(shown)`, so a blank box becomes **0**;
+  - it uses `tol = 0.5·10^−d + rel·|want|`;
+  - it fails only when `|got − want| > tol`.
+
+  So an expected value of **Infinity** gives an infinite tolerance and `Infinity > Infinity` is false, and an expected value of **NaN** makes the comparison false. **Either one passes.** A blank box read as 0 is one way to get there: the old `bolt_stretch` case divided by a blank, so 0, loaded length. Many other harnesses use the same relative-tolerance pattern.
+- **Evidence:** 2026-10-15, on temporary copies only (deleted afterwards).
+  - **Reproduction:** two deliberately wrong `unit-system` cases on `bolt_stretch`, one with expected `1/0` and one with `0/0`, passed every step: 55 checks, 0 failures, the 30 wrong steps all "ok".
+  - **Survey of the current suite** (`verify()` instrumented to report each non-finite expected value and each blank box):
+    - **0** non-finite expected values in 7,694 checks;
+    - **11** blank-box readings, all in the `bolt_stretch` case, whose `compute` already treats a non-positive thread length as the blank box (GH-DEF-036).
+    - So no current `unit-system` check is vacuous.
+  - **The same pattern elsewhere**, read but not surveyed:
+    - **`|got − want| ≤ … + rel·|want|`** (Infinity passes; NaN fails): `structural-11a`, `-11b`, `-11c`, `-13`, `-14`, `acceleration-target`, `curve-editor-mode`, `curve-persistence`, `simulator-first-draw`, `performance-census`, `performance-units`, `profile-shortcut`, `dashboard-summary`, `airflow-readers`, `legacy-fixes`, `mass-force`, `remembered-values`, `toggle-sweep` (`near`), `fasteners-def034` and `bolt-stretch-def036`;
+    - **`|got − want| > tol` as the failure test** (Infinity and NaN pass): `unit-system`, `converters`, `native-units`, and the `near` helper of `temperature-units`.
+    - Most of these oracles are closed-form constants, so a non-finite expectation is unlikely, but nothing guards against it.
+- **Affected:** test harnesses only (files above). No calculator formula or page behaviour.
+- **Impact:** A wrong test case whose expected value is infinite (or NaN) reports "ok" instead of failing. The risk is a false sense of coverage, not a wrong result for users.
+- **Decision:** OPEN; recorded separately from the 0408 migration preparation, on the owner's instruction (2026-10-15). Not fixed.
+- **Proposed correction (for separate authorization):** the smallest safe fix, verified on a temporary copy.
+  - **`unit-system.test.js` `verify()`, two lines:**
+    1. Read a blank box as `NaN` instead of 0, and accept a blank box in the "inputs unreadable" test.
+    2. **Fail when the expected value is not finite**, with the message "the expected value is not finite: the case's compute or its inputs are wrong".
+  - **Result on the copy:**
+    - the two wrong cases fail at all 30 steps;
+    - the full suite still passes, 7,694 checks, 0 failures, with no case changed.
+  - **Follow-up, one line per helper:** the same finiteness guard on the expected value in the shared `approx` / `near` / `close` helpers listed above. Each to be run against its own suite before it is committed.
+- **Dependencies:** None.
+- **Revisit:** When the owner authorizes the harness fix.
+- **Commits:** None (this entry only).
+- **Tests:** None yet. The fix ships with a regression self-check: a deliberately non-finite case must fail.
+- **Docs:** This entry; GH-DEF-036 History (where the weakness was first observed).
+- **Verification:**
+  1. The reproduction above fails with the fix.
+  2. The full `unit-system` suite still passes.
+  3. Each helper changed in the follow-up keeps its suite passing.
+  4. The full browser regression passes.
+- **History:** 2026-10-15 — observed while correcting GH-DEF-036 (the first draft of the `bolt_stretch` case had an infinite expected value at its first steps and still passed). Investigated on the owner's instruction: reproduced, surveyed, fix proposed and verified on temporary copies. No test infrastructure changed.
 
 ## B. Deferred improvements
 
