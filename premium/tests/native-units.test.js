@@ -19,6 +19,7 @@
    Run: node premium/tests/native-units.test.js     ONLY=id,id   VERBOSE=1   GH_ENGINE=path tests another copy of the engine
    Exit code 0 = every case passes in every stage. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -114,8 +115,8 @@ const dec = s => { const m = String(s).replace(/,/g, '').match(/\.(\d+)/); retur
       const cand = got.filter(r => r.l.toLowerCase().startsWith(e.l.toLowerCase()) && r.u === unit);
       if (!cand.length) { bad.push(`${stage}: no row "${e.l}" in ${unit} (rows: ${got.map(r => r.l + '=' + r.v + ' ' + r.u).join(' | ')})`); continue; }
       for (const r of cand) {
-        const n = Number(r.v.replace(/[,~\s]/g, '')), tol = 0.6 * Math.pow(10, -dec(r.v)) + 2e-3 * Math.abs(want);
-        if (!Number.isFinite(n) || Math.abs(n - want) > tol) bad.push(`${stage}: "${e.l}" shows ${r.v} ${r.u}, expected ${+want.toPrecision(6)} ${unit}`);
+        const n = parseShown(String(r.v).replace(/[~\s]/g, '')), tol = 0.6 * Math.pow(10, -dec(r.v)) + 2e-3 * Math.abs(want);   // GH-DEF-037: blank -> NaN
+        const why = mismatch(n, want, tol); if (why) bad.push(`${stage}: "${e.l}" shows "${r.v}" ${r.u}, expected ${Number.isFinite(want) ? +want.toPrecision(6) : want} ${unit}: ${why}`);
       }
     }
     return bad;

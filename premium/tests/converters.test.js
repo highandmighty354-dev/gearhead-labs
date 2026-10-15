@@ -17,6 +17,7 @@
    Run: node premium/tests/converters.test.js   (ONLY=id,id limits calculators; VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 = at least one failed. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -85,12 +86,14 @@ async function type(page, id, text) { await page.click('#' + id); await page.fil
 function check(label, row, want, unit, deviation) {
   checks++;
   if (!row) { fail(label, 'row missing'); return; }
-  const got = Number(row.text), tol = 0.5 * Math.pow(10, -decimals(row.text)) + 1e-4 * Math.abs(want);
+  const got = parseShown(row.text), tol = 0.5 * Math.pow(10, -decimals(row.text)) + 1e-4 * Math.abs(want);
   if (row.unit !== unit) { fail(label, `${row.label}: unit "${row.unit}", expected "${unit}"`); return; }
   /* the known deviation is only checked where it can be seen: when the page's own display rounding is larger than the deviation (1.7 yd = 0.0016 km either way) the ordinary check applies */
+  /* GH-DEF-037: a blank / non-numeric page value or a non-finite expected value fails before the known-deviation branch could log it as known */
+  if (!Number.isFinite(got) || !Number.isFinite(want)) { fail(label, `${row.label}: page "${row.text}" ${row.unit}, expected ${want}: ${mismatch(got, want, tol)}`); return; }
   if (deviation && Math.abs(want) * deviation.min <= 2 * tol) deviation = null;
   if (deviation) { const rel = (got - want) / want; if (Math.abs(got - want) <= tol) fail(label, `${row.label}: matches the exact value now (page ${row.text}); remove the KNOWN_DEVIATIONS entry (${deviation.register})`); else if (Math.abs(rel) < deviation.min || Math.abs(rel) > deviation.max) fail(label, `${row.label}: known deviation changed: page ${row.text}, exact ${want.toPrecision(7)}, relative ${rel.toExponential(2)} (expected ${deviation.min}..${deviation.max})`); else log.push(`  known ${label} ${row.label}: ${row.text} vs exact ${want.toPrecision(7)} (${rel.toExponential(2)}, ${deviation.register})`); return; }
-  if (!Number.isFinite(got) || Math.abs(got - want) > tol) fail(label, `${row.label}: page ${row.text} ${row.unit}, expected ${want.toPrecision(8)} ${unit}`); else if (process.env.VERBOSE) log.push(`  ok   ${label} ${row.label} ${row.text} ${row.unit}`);
+  if (mismatch(got, want, tol)) fail(label, `${row.label}: page ${row.text} ${row.unit}, expected ${want.toPrecision(8)} ${unit}: ${mismatch(got, want, tol)}`); else if (process.env.VERBOSE) log.push(`  ok   ${label} ${row.label} ${row.text} ${row.unit}`);
 }
 
 (async () => {

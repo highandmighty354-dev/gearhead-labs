@@ -19,6 +19,7 @@
    Run: node premium/tests/acceleration-target.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 otherwise. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -28,7 +29,7 @@ const CHROMIUM = process.env.GH_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chr
 
 /* exact definitions */
 const LB = 0.45359237, KMH_PER_MPH = 1.609344, FPS_PER_MPH = 5280 / 3600, G = 32.174;
-const approx = (got, want, rel, abs = 0) => Number.isFinite(got) && Math.abs(got - want) <= abs + rel * Math.abs(want);
+const approx = (got, want, rel, abs = 0) => within(got, want, abs + rel * Math.abs(want)); // GH-DEF-037: guarded
 const num = s => { const n = Number(String(s).replace(/,/g, '').trim()); return s === '' || s === null || s === undefined ? NaN : n; };
 const sig = x => String(+x.toPrecision(7));
 

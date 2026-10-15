@@ -18,6 +18,7 @@
    Run: node premium/tests/structural-14.test.js   (GROUP=E1A,E1B selects sub-groups; VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 = at least one failed. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -37,7 +38,7 @@ const U = {
   Ah: ['Ah', 'Ah', 1], HP: ['HP', 'HP', 1], in: ['in', 'mm', IN * 1000], teeth: ['', '', 1]   // engine power: HP in both systems under Auto (GH-IMP-019 P1)   // EV motor torque: lb-ft in both systems under Auto (GH-IMP-019 P2)
 };
 const toM = (u, v) => typeof U[u][2] === 'function' ? U[u][2](v) : v * U[u][2];
-const approx = (got, want, rel, textDecimals) => Math.abs(got - want) <= 0.5 * Math.pow(10, -textDecimals) + rel * Math.abs(want);
+const approx = (got, want, rel, textDecimals) => within(got, want, 0.5 * Math.pow(10, -textDecimals) + rel * Math.abs(want)); // GH-DEF-037: guarded
 const decimals = t => { const m = String(t).replace(/,/g, '').match(/\.(\d+)/); return m ? m[1].length : 0; };
 const C2F = c => c * 9 / 5 + 32, F2C = f => (f - 32) * 5 / 9;
 
@@ -374,7 +375,7 @@ async function results(page) {
     return { rows: out, note, page: t(document.querySelector('#calc-container .calc-body')) };
   });
 }
-const num = s => Number(String(s).replace(/,/g, '').replace(/[−–]/g, '-'));
+const num = s => parseShown(s); // GH-DEF-037: guarded (a blank text is NaN, not 0)
 
 async function runCase(page, c) {
   for (const sys of ['imperial', 'metric']) {

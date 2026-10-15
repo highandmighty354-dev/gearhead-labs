@@ -30,6 +30,7 @@
    Run: node premium/tests/airflow-readers.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 = at least one failed. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -61,7 +62,7 @@ const STAGE_ABS = 0.051, STAGE_REL = 1e-4;       // the staged curve is rounded 
 
   let checks = 0, failures = 0, points = 0; const lines = [];
   const check = (label, ok, detail) => { checks++; if (!ok) { failures++; lines.push(`  FAIL ${label}: ${detail}`); } else if (process.env.VERBOSE) lines.push(`  ok   ${label}`); };
-  const close = (got, want, rel, abs) => Math.abs(got - want) <= (abs || 0) + rel * Math.abs(want);
+  const close = (got, want, rel, abs) => within(got, want, (abs || 0) + rel * Math.abs(want)); // GH-DEF-037: guarded
   const open = async (id, sys) => {
     await page.evaluate(s => { if (UNIT.system !== s) setUnit(s); }, sys);
     await page.waitForTimeout(40);

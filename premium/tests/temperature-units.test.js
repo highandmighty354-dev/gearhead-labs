@@ -29,6 +29,7 @@
           SKIP_GUARD=1 skips the whole-catalogue label guard, GUARD_ONLY=1 runs only the guard; ALL_CLEAN=1 also runs the clean:false cases through the full re-entry sequence)
    Exit code 0 = every check passed, 1 = at least one failed. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -177,17 +178,17 @@ async function verify(page, c, sys, step) {
   /* the unit label printed next to each temperature input must match the system (reading vs difference) */
   c.fields.forEach((f, i) => { const k = U[f[1]]; if (k.temp && shown[i].u.trim() !== k.label(sys)) fail(label0, `${f[0]} shows unit "${shown[i].u.trim()}", expected "${k.label(sys)}"`); });
   const res = await readResults(page);
-  const o = (label, k) => { const r = res.find(x => x.label === label); return r ? kind(k).toCanon(sys, Number(r.text.replace(/,/g, ''))) : NaN; };
+  const o = (label, k) => { const r = res.find(x => x.label === label); return r ? kind(k).toCanon(sys, parseShown(r.text)) : NaN; };
   const exp = c.compute(v, o);
   for (const [label, spec] of Object.entries(exp)) {
     const [k, want, extra = 0] = spec, K = kind(k); checks++;
     const r = res.find(x => x.label === label);
     if (!r) { fail(label0, `no result "${label}" (page shows: ${res.map(x => x.label).join(', ') || 'validation error'})`); continue; }
-    const got = Number(r.text.replace(/,/g, '')), wantDisp = K.fromCanon(sys, want);
+    const got = parseShown(r.text), wantDisp = K.fromCanon(sys, want);
     const scale = Math.abs(K.fromCanon(sys, 1) - K.fromCanon(sys, 0));
     const tol = 0.5 * Math.pow(10, -decimals(r.text)) + 1e-4 * Math.abs(wantDisp) + extra * scale;
     const wantUnit = K.plain ? K.label() : K.label(sys);
-    if (!Number.isFinite(got) || Math.abs(got - wantDisp) > tol) fail(label0, `${label}: page ${r.text} ${r.unit}, expected ${wantDisp.toPrecision(7)} ${wantUnit} (inputs shown ${shown.map(s => s.v).join(' / ')})`);
+    if (mismatch(got, wantDisp, tol)) fail(label0, `${label}: page "${r.text}" ${r.unit}, expected ${Number.isFinite(wantDisp) ? wantDisp.toPrecision(7) : wantDisp} ${wantUnit} (inputs shown ${shown.map(s => s.v).join(' / ')}): ${mismatch(got, wantDisp, tol)}`);
     else if (r.unit !== wantUnit) fail(label0, `${label}: unit "${r.unit}" expected "${wantUnit}"`);
     else log.push(`  ok   ${label0} ${label} ${r.text} ${r.unit}`);
   }
@@ -197,7 +198,7 @@ async function verify(page, c, sys, step) {
 function sameCanon(a, b, label) {
   for (const id of Object.keys(a)) { invariance++;
     const x = a[id], y = b[id], tol = 2e-5 * Math.max(Math.abs(x), Math.abs(y)) + 1e-12;
-    if (!Number.isFinite(y) || Math.abs(x - y) > tol) fail(label, `${id} changed physical value across the toggle: ${x} -> ${y}`); }
+    if (mismatch(y, x, tol)) fail(label, `${id} changed physical value across the toggle: ${x} -> ${y}: ${mismatch(y, x, tol)}`); }
 }
 
 /* ---- 1. unit functions: known conversion points, written from the definitions ---- */
@@ -212,7 +213,7 @@ async function unitFunctionChecks(page) {
     out.consistency = [[212, 32], [300, 85], [75, 75], [-4, 20]].map(([a, b]) => [t(a, '°F', 'metric') - t(b, '°F', 'metric'), t(a - b, 'Δ°F', 'metric')]);
     return out;
   });
-  const near = (name, got, want, tol = 1e-9) => { checks++; if (!Number.isFinite(got) || Math.abs(got - want) > tol) fail('unit functions', `${name}: got ${got}, expected ${want}`); else log.push(`  ok   unit functions ${name} = ${got}`); };
+  const near = (name, got, want, tol = 1e-9) => { checks++; if (mismatch(got, want, tol)) fail('unit functions', `${name}: got ${got}, expected ${want}: ${mismatch(got, want, tol)}`); else log.push(`  ok   unit functions ${name} = ${got}`); };
   near('15 Δ°F -> Δ°C (= 25/3)', r.d15, 25 / 3); near('0 Δ°F -> 0 Δ°C (no offset)', r.d0, 0); near('90 Δ°F -> 50 Δ°C', r.d90, 50); near('-9 Δ°F -> -5 Δ°C', r.dneg, -5);
   near('25/3 Δ°C -> 15 Δ°F', r.d15back, 15); near('Δ°F stays as typed in Imperial', r.dimp, 15);
   near('32 °F -> 0 °C (reading keeps its offset)', r.a32, 0); near('212 °F -> 100 °C', r.a212, 100); near('-40 °F -> -40 °C', r.am40, -40); near('75 °F -> 23.8889 °C', r.a75, 23.88888888888889, 1e-9); near('100 °C -> 212 °F', r.a100back, 212);

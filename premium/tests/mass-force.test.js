@@ -35,6 +35,7 @@
    Run: node premium/tests/mass-force.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 = at least one failed. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -113,14 +114,14 @@ const tolFor = (a, b, f = 1) => 2 * Math.max(f * 0.5 * Math.pow(10, -dec(a)), 0.
         check(`unit ${key(id, kd, x)}`, m.unit === unit, `Metric shows "${m.unit}", expected ${unit} (${isMass ? 'a mass' : 'a force / weight'})`);
         const xv = num(a.val), yv = num(m.val);
         if (!(xv > 0)) { check(`factor ${key(id, kd, x)}`, true); continue; }
-        check(`factor ${key(id, kd, x)}`, Math.abs(yv - xv * want) <= tolFor(a.val, m.val, want), `Imperial ${a.val} ${a.unit} -> Metric ${m.val} ${m.unit}; ${xv} x ${want} = ${(xv * want).toPrecision(7)}`);
+        check(`factor ${key(id, kd, x)}`, within(yv, xv * want, tolFor(a.val, m.val, want)), `Imperial ${a.val} ${a.unit} -> Metric ${m.val} ${m.unit}; ${xv} x ${want} = ${(xv * want).toPrecision(7)}`);
       }
     } catch (e) { check(`factors ${id}`, false, String(e.message || e).split('\n')[0]); }
   }
 
   /* ---------- 3. typed masses ---------- */
   const type = async (f, v) => { await page.click('#' + f); await page.fill('#' + f, String(v)); await page.waitForTimeout(15); };
-  const near = (got, want, rel, abs) => Math.abs(got - want) <= Math.max(abs || 0, rel * Math.abs(want));
+  const near = (got, want, rel, abs) => within(got, want, Math.max(abs || 0, rel * Math.abs(want))); // GH-DEF-037: guarded
   { /* temperature rise: dT = Q / (m c); the unit-less factors stay as they are, Q is in BTU and c in BTU/lb-F in both systems */
     await open('temperature_rise', 'metric'); await type('tr_m', 10);
     const r = await grab(), want = (541 / ((10 / LB_KG) * 0.12)) * 5 / 9, got = num((r['OUT|Temperature Rise'] || {}).val);
@@ -163,7 +164,7 @@ const tolFor = (a, b, f = 1) => 2 * Math.max(f * 0.5 * Math.pow(10, -dec(a)), 0.
         const a = I[k], m = M[k]; if (!m) { check(`typed 10 kg: ${id} ${k}`, false, 'row missing in Metric'); continue; }
         const want = convRow(num(a.val), a.unit, m.unit), got = num(m.val);
         if (Number.isNaN(want)) { if (!/lb|N|kg/.test(a.unit + m.unit)) check(`typed 10 kg: ${id} ${k}`, false, `unit ${a.unit} -> ${m.unit} has no conversion in this test`); continue; }
-        check(`typed 10 kg: ${id} ${k}`, Math.abs(got - want) <= 2 * tolFor(a.val, m.val) + 0.06, `Imperial ${a.val} ${a.unit} should read ${want.toFixed(4)} ${m.unit} in Metric, shows ${m.val}`);
+        check(`typed 10 kg: ${id} ${k}`, within(got, want, 2 * tolFor(a.val, m.val) + 0.06), `Imperial ${a.val} ${a.unit} should read ${want.toFixed(4)} ${m.unit} in Metric, shows ${m.val}`);
       }
     } catch (e) { check(`typed 10 kg: ${id}`, false, String(e.message || e).split('\n')[0]); }
   }
@@ -190,7 +191,7 @@ const tolFor = (a, b, f = 1) => 2 * Math.max(f * 0.5 * Math.pow(10, -dec(a)), 0.
         else if (a.unit === m.unit) { want = x; mu = m.unit; }
         else { check(lab, false, `unit ${a.unit} -> ${m.unit} has no conversion in this test; add it to CONV from its definition`); continue; }
         const f = want === x ? 1 : (CONV[a.unit] ? CONV[a.unit][1] : 1);
-        check(lab, m.unit === mu && Math.abs(y - want) <= 2 * tolFor(a.val, m.val, f) + 0.06, `Imperial ${a.val} ${a.unit} (box values ${boxes.map(b => lbVal[b]).join(' / ')} lb) should read ${want.toPrecision(7)} ${mu} for the same mass typed in kg, the page shows ${m.val} ${m.unit}`);
+        check(lab, m.unit === mu && within(y, want, 2 * tolFor(a.val, m.val, f) + 0.06), `Imperial ${a.val} ${a.unit} (box values ${boxes.map(b => lbVal[b]).join(' / ')} lb) should read ${want.toPrecision(7)} ${mu} for the same mass typed in kg, the page shows ${m.val} ${m.unit}`);
       }
     } catch (e) { check(`typed kg: ${id}`, false, String(e.message || e).split('\n')[0]); }
   }
@@ -220,7 +221,7 @@ const tolFor = (a, b, f = 1) => 2 * Math.max(f * 0.5 * Math.pow(10, -dec(a)), 0.
         if (CONV[a.unit] && CONV[a.unit][0] === m.unit) { want = x * CONV[a.unit][1]; mu = m.unit; } else if (a.unit === m.unit) { want = x; mu = m.unit; }
         else { check(lab, false, `unit ${a.unit} -> ${m.unit} has no conversion in this test; add it to CONV from its definition`); continue; }
         const f = want === x ? 1 : CONV[a.unit][1];
-        check(lab, m.unit === mu && Math.abs(y - want) <= 2 * tolFor(a.val, m.val, f) + 0.06, `Imperial ${a.val} ${a.unit} (box values ${boxes.map(b => lbfVal[b]).join(' / ')} lbf) should read ${want.toPrecision(7)} ${mu} for the same force typed in newtons, the page shows ${m.val} ${m.unit}`);
+        check(lab, m.unit === mu && within(y, want, 2 * tolFor(a.val, m.val, f) + 0.06), `Imperial ${a.val} ${a.unit} (box values ${boxes.map(b => lbfVal[b]).join(' / ')} lbf) should read ${want.toPrecision(7)} ${mu} for the same force typed in newtons, the page shows ${m.val} ${m.unit}`);
       }
     } catch (e) { check(`typed N: ${id}`, false, String(e.message || e).split('\n')[0]); }
   }

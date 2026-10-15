@@ -17,6 +17,7 @@
    Run: node premium/tests/simulator-first-draw.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 otherwise. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -27,7 +28,7 @@ const CHROMIUM = process.env.GH_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chr
 /* exact definitions */
 const LB = 0.45359237, FT = 0.3048, G0 = 9.80665;
 const KW_PER_HP = 550 * FT * LB * G0 / 1000, NM_PER_LBFT = FT * LB * G0;
-const approx = (got, want, rel, abs = 0) => Number.isFinite(got) && Math.abs(got - want) <= abs + rel * Math.abs(want);
+const approx = (got, want, rel, abs = 0) => within(got, want, abs + rel * Math.abs(want)); // GH-DEF-037: guarded
 const num = s => { const n = Number(String(s).replace(/,/g, '').trim()); return s === '' || s === null || s === undefined ? NaN : n; };
 
 /* the shipped default engine curve (torque, lb-ft) and the default gearing: the independent side of the checks */

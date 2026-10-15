@@ -15,6 +15,7 @@
    It must FAIL on the engine before the correction (GH_ENGINE=path tests another copy).
    Run: node premium/tests/bolt-stretch-def036.test.js   (VERBOSE=1 prints passes)    Exit code 0 = every check passed. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -59,9 +60,9 @@ const NINE = [
 /* ---- harness ---- */
 let checks = 0, failures = 0; const log = [];
 const check = (name, ok, detail) => { checks++; if (!ok) { failures++; log.push(`  FAIL ${name}: ${detail}`); } else if (process.env.VERBOSE) log.push(`  ok   ${name}`); };
-const num = s => Number(String(s).replace(/,/g, '').replace(/[−–]/g, '-'));
+const num = s => parseShown(s); // GH-DEF-037: guarded (a blank text is NaN, not 0)
 const decimals = s => ((String(s).split('.')[1] || '').replace(/[^0-9]/g, '')).length;
-const approx = (got, want, rel, dec) => Number.isFinite(got) && Math.abs(got - want) <= Math.max(rel * Math.abs(want), 0.5 * Math.pow(10, -dec) * 1.0001 + 1e-12);
+const approx = (got, want, rel, dec) => within(got, want, Math.max(rel * Math.abs(want), 0.5 * Math.pow(10, -dec) * 1.0001 + 1e-12)); // GH-DEF-037: guarded
 
 (async () => {
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });

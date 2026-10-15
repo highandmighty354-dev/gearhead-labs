@@ -20,6 +20,7 @@
           GH_ENGINE=path tests another copy of the engine (e.g. the engine before 36026e7 to see the shared-helper defect come back)
    Exit code 0 = no regression and the ledger is accurate; 1 otherwise. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -95,7 +96,7 @@ async function helperContract(page) {
   await page.evaluate(() => { setUnit('imperial'); renderCalc('dashboard', false); });
   const expectText = async (name, setup, fn, wantNum, tolRel = 2e-4) => {
     checks++; const got = await run(setup, fn); const g = num(got.replace(/[A-Za-z/²³·].*$/, ''));
-    if (!Number.isFinite(g) || Math.abs(g - wantNum) > tolRel * Math.abs(wantNum) + 0.51) fail('certValue contract', `${name}: page "${got}", expected about ${wantNum}`); else ok('certValue contract', `${name} -> ${got}`);
+    if (mismatch(g, wantNum, tolRel * Math.abs(wantNum) + 0.51)) fail('certValue contract', `${name}: page "${got}", expected about ${wantNum}: ${mismatch(g, wantNum, tolRel * Math.abs(wantNum) + 0.51)}`); else ok('certValue contract', `${name} -> ${got}`);
   };
   /* fan_cfm_requirement: CFM = Q / (1.08 x dT); defaults 45000 BTU/hr and 15 delta-degF = 2,778 CFM */
   await expectText('canonical value used although the field is not on the page (placement fix bfddb21)', 'UNIT_SWITCH_CANONICAL={fcr_q:54000,fcr_dt:10}', 'RENDERS.fan_cfm_requirement', 54000 / (1.08 * 10));
@@ -116,7 +117,7 @@ async function helperContract(page) {
    The two throw-away calculators below exist only inside the test page and call the helper through the engine's GH_CERT_VALUE test hook; their labels are
    deliberately misleading. */
 async function inferenceContract(page) {
-  const near = (got, want) => Number.isFinite(got) && Math.abs(got - want) <= 1e-4 * Math.abs(want) + 1e-9;
+  const near = (got, want) => within(got, want, 1e-4 * Math.abs(want) + 1e-9); // GH-DEF-037: guarded
   const check = (name, got, want) => { checks++; if (near(got, want)) ok('certValue inference', `${name} -> ${got}`); else fail('certValue inference', `${name}: got ${got}, expected ${want}`); };
   await page.evaluate(() => {
     setUnit('imperial');
@@ -229,11 +230,11 @@ async function staleStateChecks(page) {
     await page.evaluate(id => { try { delete CALC_PERSISTENT_STATE[id]; } catch (e) {} renderCalc(id, false); }, A);
     await page.click('#' + field); await page.fill('#' + field, String(typed)); await page.waitForTimeout(30);
     await page.evaluate(id => renderCalc(id, false), B); await page.click('#btn-metric'); await page.evaluate(id => renderCalc(id, false), A);
-    const shown = Number(await page.inputValue('#' + field)); await page.click('#btn-imperial');
-    const back = Number(await page.evaluate(([a, f]) => { renderCalc(a, false); const e = document.getElementById(f); return e ? e.value : ''; }, [A, field]));
+    const shown = parseShown(await page.inputValue('#' + field)); await page.click('#btn-imperial');
+    const back = parseShown(await page.evaluate(([a, f]) => { renderCalc(a, false); const e = document.getElementById(f); return e ? e.value : ''; }, [A, field]));
     checks++;
-    if (Math.abs(shown - wantMetric) > 1e-3 * wantMetric + 1e-3) fail(`remembered value ${A}`, `${typed} typed in Imperial reappears as ${shown} in Metric after the system was switched on another calculator (expected ${wantMetric})`);
-    else if (Math.abs(back - typed) > 1e-4 * typed + 1e-6) fail(`remembered value ${A}`, `${typed} typed in Imperial is ${back} after Metric and back to Imperial`);
+    if (!within(shown, wantMetric, 1e-3 * wantMetric + 1e-3)) fail(`remembered value ${A}`, `${typed} typed in Imperial reappears as ${shown} in Metric after the system was switched on another calculator (expected ${wantMetric})`);
+    else if (!within(back, typed, 1e-4 * typed + 1e-6)) fail(`remembered value ${A}`, `${typed} typed in Imperial is ${back} after Metric and back to Imperial`);
     else ok(`remembered value ${A}`, `${typed} -> ${shown} in Metric -> ${back} in Imperial`);
   }
 }

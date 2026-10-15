@@ -22,6 +22,7 @@
    Run: node premium/tests/unit-census.test.js   (VERBOSE=1 prints counts per unit; LIST=1 prints every Imperial-only unit with the calculators that use it (all of them, no 40-line cap); GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 = at least one failed. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -118,7 +119,7 @@ const N_CALCS = 743;                                                            
         else { want = va * p[1]; tol = tb + ta * Math.abs(p[1]); }
         tol += 2e-6 * Math.abs(want);
         numericChecked++;
-        check(`${id} ${ra.key}: ${va} ${ua} -> ${ub}`, Math.abs(vb - want) <= tol, `Metric shows ${rb.value} ${ub}, ${va} ${ua} is ${want} ${ub} (tolerance ${tol.toPrecision(3)})`);
+        check(`${id} ${ra.key}: ${va} ${ua} -> ${ub}`, within(vb, want, tol), `Metric shows ${rb.value} ${ub}, ${va} ${ua} is ${want} ${ub} (tolerance ${tol.toPrecision(3)})`);
         continue;
       }
       /* unchanged text */
@@ -128,7 +129,7 @@ const N_CALCS = 743;                                                            
       if (both && !LEDGER.has(id)) {
         numericChecked++;
         const tol = 0.5 * Math.pow(10, -Math.min(dec(ra.value), dec(rb.value))) + 1e-9 * Math.abs(va);
-        check(`${id} ${ra.key}: ${ua} is unchanged and so is the number`, Math.abs(vb - va) <= tol, `"${ua}" reads the same in both systems but the number is ${ra.value} Imperial, ${rb.value} Metric`);
+        check(`${id} ${ra.key}: ${ua} is unchanged and so is the number`, within(vb, va, tol), `"${ua}" reads the same in both systems but the number is ${ra.value} Imperial, ${rb.value} Metric`);
       }
     }
   }

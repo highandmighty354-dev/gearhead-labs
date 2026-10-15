@@ -17,6 +17,7 @@
           (Playwright from the global npm root, same as browser-smoke.js)
    Exit code 0 = every check passed, 1 = at least one failed. Prints one PASS/FAIL line per case. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -592,19 +593,21 @@ async function readResults(page) {
 async function verify(page, c, sys, step) {
   const shown = await readInputs(page, c.fields);
   const label0 = `${c.id} [${sys}] ${step}`;
-  if (shown.some(s => s === null || !Number.isFinite(Number(s)))) { fail(label0, `inputs unreadable: ${JSON.stringify(shown)}`); return; }
-  const inSI = {}; c.fields.forEach((f, i) => { inSI[f[0]] = IN[f[1]].toSI(sys, Number(shown[i])); });
+  /* GH-DEF-037: a blank box is NaN for the case's compute (never 0); any other non-number is unreadable */
+  if (shown.some(s => s === null || (String(s).trim() !== '' && !Number.isFinite(Number(s))))) { fail(label0, `inputs unreadable: ${JSON.stringify(shown)}`); return; }
+  const inSI = {}; c.fields.forEach((f, i) => { inSI[f[0]] = String(shown[i]).trim() === '' ? NaN : IN[f[1]].toSI(sys, Number(shown[i])); });
   const exp = c.compute(inSI);
   const res = await readResults(page);
   for (const [label, [kind, si]] of Object.entries(exp)) {
     checks++;
     const r = res.find(x => x.label === label);
     if (!r) { fail(label0, `no result "${label}" (page shows: ${res.map(x => x.label).join(', ') || 'validation error'})`); continue; }
-    const got = Number(r.text.replace(/,/g, ''));
+    const got = parseShown(r.text);                                              // GH-DEF-037: blank / '—' -> NaN, never 0
     const want = OUT[kind].fromSI(sys, si);
     const tol = 0.5 * Math.pow(10, -decimals(r.text)) + (c.rel || 1e-4) * Math.abs(want);
     const unitOk = r.unit === OUT[kind].unit(sys);
-    if (!Number.isFinite(got) || Math.abs(got - want) > tol) fail(label0, `${label}: page ${r.text} ${r.unit}, expected ${want.toPrecision(7)} ${OUT[kind].unit(sys)} (inputs shown ${shown.join(' / ')})`);
+    const why = mismatch(got, want, tol);                                        // GH-DEF-037: non-finite expected or actual values fail
+    if (why) fail(label0, `${label}: page "${r.text}" ${r.unit}, expected ${Number.isFinite(want) ? want.toPrecision(7) : want} ${OUT[kind].unit(sys)} (inputs shown ${shown.join(' / ')}): ${why}`);
     else if (!unitOk) fail(label0, `${label}: unit "${r.unit}" expected "${OUT[kind].unit(sys)}"`);
     else log.push(`  ok   ${label0} ${label} ${r.text} ${r.unit}`);
   }

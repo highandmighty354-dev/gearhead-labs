@@ -20,6 +20,7 @@
    Run: node premium/tests/curve-editor-mode.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine; MUTANTS=0 skips the mutation checks)
    Exit code 0 = every check passed (and every mutant was caught), 1 otherwise. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), os = require('os'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -33,7 +34,7 @@ const KW_PER_HP = 550 * FT * LB * G0 / 1000;          // 0.7456998715...
 const NM_PER_LBFT = FT * LB * G0;                      // 1.3558179483...
 const RPM_TORQUE_TO_HP = 2 * Math.PI / 33000;          // hp = lb-ft x rpm x (2 pi / 33,000) = lb-ft x rpm / 5252.113
 const TOL = 4e-5, TOL_ROUNDTRIP = 1e-5;
-const approx = (got, want, rel = TOL, abs = 0) => Number.isFinite(got) && Math.abs(got - want) <= abs + rel * Math.abs(want);
+const approx = (got, want, rel = TOL, abs = 0) => within(got, want, abs + rel * Math.abs(want)); // GH-DEF-037: guarded
 const num = s => { const n = Number(String(s).replace(/,/g, '').trim()); return s === '' || s === null || s === undefined ? NaN : n; };
 
 /* the shipped default curve: twelve (rpm, lb-ft) points */

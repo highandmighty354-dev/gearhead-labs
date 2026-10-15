@@ -21,6 +21,7 @@
    Run: node premium/tests/dashboard-summary.test.js   (GH_ENGINE=path tests another copy; MUTANT=1 runs the engine with the home-page swap removed and EXPECTS failure)
    Exit code 0 = the settled page and the template are as described, 1 otherwise. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), os = require('os'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -30,8 +31,8 @@ const CHROMIUM = process.env.GH_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chr
 
 const LB = 0.45359237, FT = 0.3048, IN = 0.0254, G0 = 9.80665;
 const KW_PER_HP = 550 * FT * LB * G0 / 1000, NM_PER_LBFT = FT * LB * G0, CC_PER_CI = IN ** 3 * 1e6;
-const num = s => Number(String(s).replace(/,/g, ''));
-const approx = (got, want, rel) => Math.abs(got - want) <= rel * Math.abs(want);
+const num = s => parseShown(s); // GH-DEF-037: guarded
+const approx = (got, want, rel) => within(got, want, rel * Math.abs(want)); // GH-DEF-037: guarded
 
 async function run(enginePath, tag) {
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });

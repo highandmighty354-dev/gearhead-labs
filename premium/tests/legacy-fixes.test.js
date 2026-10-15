@@ -18,6 +18,7 @@
    Run: node premium/tests/legacy-fixes.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 = at least one failed. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -39,7 +40,7 @@ const KG_KWH_PER_LB_HPH = LB / (HP_W / 1000);                       // 1 lb/hp-h
 
   let checks = 0, failures = 0; const lines = [];
   const check = (label, ok, detail) => { checks++; if (!ok) { failures++; lines.push(`  FAIL ${label}: ${detail}`); } else if (process.env.VERBOSE) lines.push(`  ok   ${label}`); };
-  const close = (got, want, rel, abs) => Math.abs(got - want) <= (abs || 0) + rel * Math.abs(want);
+  const close = (got, want, rel, abs) => within(got, want, (abs || 0) + rel * Math.abs(want)); // GH-DEF-037: guarded
   const num = s => { const n = Number(String(s).replace(/,/g, '').replace(/[−–]/g, '-').replace('~', '').trim()); return Number.isFinite(n) ? n : NaN; };
   const rows = () => page.evaluate(() => {
     const out = {}, t = e => (e ? e.textContent.replace(/\s+/g, ' ').trim() : '');

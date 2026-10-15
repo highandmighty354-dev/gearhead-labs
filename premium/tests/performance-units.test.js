@@ -18,6 +18,7 @@
    Run: node premium/tests/performance-units.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine; MUTANTS=0 skips the mutation checks; QUICK=1 runs the short suite)
    Exit code 0 = every check passed (and every mutant was caught), 1 otherwise. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), os = require('os'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -31,7 +32,7 @@ const LEGACY = require('./data/legacy-setups.json');
 const LB = 0.45359237, FT = 0.3048, G0 = 9.80665, IN = 0.0254;
 const KW_PER_HP = 550 * FT * LB * G0 / 1000;          // 0.745699871582...
 const NM_PER_LBFT = FT * LB * G0;                      // 1.355817948331...
-const approx = (got, want, rel = 1e-5, abs = 0) => Math.abs(got - want) <= abs + rel * Math.abs(want);
+const approx = (got, want, rel = 1e-5, abs = 0) => within(got, want, abs + rel * Math.abs(want)); // GH-DEF-037: guarded
 const num = s => { const m = /[-+]?\d[\d,]*\.?\d*(?:e[-+]?\d+)?/i.exec(String(s).replace(/[−–]/g, '-').replace('~', '')); if (!m) return NaN; const n = Number(m[0].replace(/,/g, '')); return Number.isFinite(n) ? n : NaN; };
 /* a displayed power / torque, back to canonical horsepower / lb-ft by the unit text next to it */
 const POWER_UNITS = { 'HP': 1, 'WHP': 1, 'HP-equiv': 1, 'hp': 1, 'kW': 1 / KW_PER_HP, 'kW-equiv': 1 / KW_PER_HP };
@@ -231,7 +232,7 @@ async function runSuite(enginePath, quick) {
           if (o.unit !== wantLabel) { labelBad++; eqDetail.push(`${sys} ${pw}/${tq} ${c.calc} "${label}": unit "${o.unit}" should be "${wantLabel}"`); }
           const canon = kind === 'lbft' ? toLbft(num(o.value), o.unit) : toHp(num(o.value), o.unit);
           const wantCanon = kind === 'kw' ? want / KW_PER_HP : want;
-          if (!(Math.abs(canon - wantCanon) <= tol + 2e-3 * Math.abs(wantCanon))) { eqBad++; eqDetail.push(`${sys} ${pw}/${tq} ${c.calc} "${label}": ${o.value} ${o.unit} = ${canon.toFixed(4)} canonical, expected ${wantCanon.toFixed(4)}`); }
+          if (!within(canon, wantCanon, tol + 2e-3 * Math.abs(wantCanon))) { eqBad++; eqDetail.push(`${sys} ${pw}/${tq} ${c.calc} "${label}": ${o.value} ${o.unit} = ${canon.toFixed(4)} canonical, expected ${wantCanon.toFixed(4)}`); }
         }
       }
     }
@@ -360,9 +361,9 @@ async function runSuite(enginePath, quick) {
       const s = await snap(); const w = legacyWant[fx.calc](s);
       const [id, wantHp, kind] = w.box; const bx = s.inputs[id];
       const shown = bx ? (kind === 'lbft' ? toLbft(num(bx.value), bx.unit) : toHp(num(bx.value), bx.unit)) : NaN;
-      if (!(Math.abs(shown - wantHp) <= 3e-5 * Math.abs(wantHp))) { legacyBad++; legacyDetail.push(`${fx.name} [${pw}/${tq} ${sys}]: ${id} shows ${bx && bx.value} ${bx && bx.unit} = ${shown} canonical, expected ${wantHp}`); }
+      if (!within(shown, wantHp, 3e-5 * Math.abs(wantHp))) { legacyBad++; legacyDetail.push(`${fx.name} [${pw}/${tq} ${sys}]: ${id} shows ${bx && bx.value} ${bx && bx.unit} = ${shown} canonical, expected ${wantHp}`); }
       if (w.res) { const [o, rk, wantR, tol] = w.res; const got = o ? (rk === 'lbft' ? toLbft(num(o.value), o.unit) : toHp(num(o.value), o.unit)) : NaN;
-        if (!(Math.abs(got - wantR) <= tol + 2e-3 * Math.abs(wantR))) { legacyBad++; legacyDetail.push(`${fx.name} [${pw}/${tq} ${sys}]: result ${o && o.value} ${o && o.unit} = ${got}, expected ${wantR}`); } }
+        if (!within(got, wantR, tol + 2e-3 * Math.abs(wantR))) { legacyBad++; legacyDetail.push(`${fx.name} [${pw}/${tq} ${sys}]: result ${o && o.value} ${o && o.unit} = ${got}, expected ${wantR}`); } }
       else if (fx.calc === 'ev_acceleration') { const o = s.outs.find(x => /0.60 Time/.test(x.label) || /0–60/.test(x.label)); if (!o || num(o.value) !== 5.36) { legacyBad++; legacyDetail.push(`${fx.name} [${pw}/${tq} ${sys}]: 0-60 ${o && o.value}, expected 5.36`); } }
     }
   }

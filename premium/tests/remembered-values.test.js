@@ -24,6 +24,7 @@
    Run: node premium/tests/remembered-values.test.js     (CASE=id,id limits the cases; VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 = at least one failed. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -66,7 +67,7 @@ const results = page => page.evaluate(() => {
   document.querySelectorAll('#calc-container .mini-result').forEach(b => { const l = b.querySelector('.label'), v = b.querySelector('.value'), u = b.querySelector('.unit'); if (l && v) o.push({ label: l.textContent.trim(), text: v.textContent.replace(u ? u.textContent : '', '').replace(/,/g, '').trim(), unit: u ? u.textContent.trim() : '' }); });
   return o;
 });
-const relOK = (got, want) => Number.isFinite(got) && Math.abs(got - want) <= REL * Math.abs(want) + 1e-9;
+const relOK = (got, want) => within(got, want, REL * Math.abs(want) + 1e-9); // GH-DEF-037: guarded
 
 /* the Imperial display text a person would type for an SI value, kept to 8 significant digits like a real entry */
 const typedText = (kind, sys, si) => String(+IN[kind].fromSI(sys, si).toPrecision(8));
@@ -76,7 +77,7 @@ async function checkFields(page, c, vals, sys, label) {
     checks++;
     const f = await field(page, fid), want = IN[kind].fromSI(sys, vals[fid]);
     if (!f) { fail(label, `${fid}: box missing`); continue; }
-    if (!relOK(Number(f.text), want)) fail(label, `${fid}: box shows "${f.text}" ${f.unit}, expected ${want.toPrecision(7)} (${sys})`);
+    if (!relOK(parseShown(f.text), want)) fail(label, `${fid}: box shows "${f.text}" ${f.unit}, expected ${want.toPrecision(7)} (${sys})`);
     else pass(label, `${fid} ${f.text} ${f.unit}`);
   }
 }
@@ -86,9 +87,9 @@ async function checkResults(page, c, vals, sys, label) {
     checks++;
     const row = got.find(r => r.label === rl), w = OUT[kind].fromSI(sys, si);
     if (!row) { fail(label, `result "${rl}" missing`); continue; }
-    const g = Number(row.text), tol = 0.5 * Math.pow(10, -decimals(row.text)) + 2e-4 * Math.abs(w);
+    const g = parseShown(row.text), tol = 0.5 * Math.pow(10, -decimals(row.text)) + 2e-4 * Math.abs(w);
     if (row.unit !== OUT[kind].unit(sys)) fail(label, `"${rl}" unit "${row.unit}", expected "${OUT[kind].unit(sys)}"`);
-    else if (!Number.isFinite(g) || Math.abs(g - w) > tol) fail(label, `"${rl}" shows ${row.text} ${row.unit}, expected ${w.toPrecision(7)}`);
+    else if (mismatch(g, w, tol)) fail(label, `"${rl}" shows "${row.text}" ${row.unit}, expected ${Number.isFinite(w) ? w.toPrecision(7) : w}: ${mismatch(g, w, tol)}`);
     else pass(label, `${rl} ${row.text} ${row.unit}`);
   }
 }
@@ -160,10 +161,10 @@ const typeAll = async (page, c, vals, sys) => { for (const [fid, kind] of c.fiel
     await reset(page); await open(page, 'drag_force'); await type(page, 'df_v', '100');
     await open(page, OTHER1); await toggle(page, 'metric'); await open(page, 'drag_force');
     const f = await field(page, 'df_v'); checks++;
-    if (!f || Math.abs(Number(f.text) - 160.9344) > 1e-3 || f.unit !== 'km/h') fail('anchor 100 mph', `box shows "${f && f.text}" ${f && f.unit}, expected 160.934 km/h`); else pass('anchor 100 mph', `${f.text} ${f.unit}`);
+    if (!f || !within(parseShown(f.text), 160.9344, 1e-3) || f.unit !== 'km/h') fail('anchor 100 mph', `box shows "${f && f.text}" ${f && f.unit}, expected 160.934 km/h`); else pass('anchor 100 mph', `${f.text} ${f.unit}`);
     await open(page, OTHER2); await toggle(page, 'imperial'); await open(page, 'drag_force');
     const g = await field(page, 'df_v'); checks++;
-    if (!g || Math.abs(Number(g.text) - 100) > 1e-3 || g.unit !== 'mph') fail('anchor back to Imperial', `box shows "${g && g.text}" ${g && g.unit}, expected 100 mph`); else pass('anchor back to Imperial', `${g.text} ${g.unit}`);
+    if (!g || !within(parseShown(g.text), 100, 1e-3) || g.unit !== 'mph') fail('anchor back to Imperial', `box shows "${g && g.text}" ${g && g.unit}, expected 100 mph`); else pass('anchor back to Imperial', `${g.text} ${g.unit}`);
   } catch (e) { fail('anchor', 'test error: ' + String(e.message || e).split('\n')[0]); }
 
   /* text that is not a number is kept as typed; unit-less boxes and drop-downs are not converted */
@@ -176,7 +177,7 @@ const typeAll = async (page, c, vals, sys) => { for (const [fid, kind] of c.fiel
     }
     /* "3." is the number 3: it converts like 3 (a plain 3 mph is 4.82803 km/h) */
     await reset(page); await open(page, 'drag_force'); await type(page, 'df_v', '3.'); await open(page, OTHER1); await toggle(page, 'metric'); await open(page, 'drag_force');
-    { const f = await field(page, 'df_v'); checks++; if (!f || Math.abs(Number(f.text) - 4.828032) > 1e-4 || f.unit !== 'km/h') fail('"3." converts as 3', `box shows "${f && f.text}" ${f && f.unit}, expected 4.82803 km/h`); else pass('"3." converts as 3'); }
+    { const f = await field(page, 'df_v'); checks++; if (!f || !within(parseShown(f.text), 4.828032, 1e-4) || f.unit !== 'km/h') fail('"3." converts as 3', `box shows "${f && f.text}" ${f && f.unit}, expected 4.82803 km/h`); else pass('"3." converts as 3'); }
     await reset(page); await open(page, 'speed_converter'); await type(page, 's_in', '123'); await page.selectOption('#s_from', 'kph'); await page.waitForTimeout(25);
     await open(page, OTHER1); await toggle(page, 'metric'); await open(page, 'speed_converter');
     const si = await field(page, 's_in'), sel = await page.inputValue('#s_from'); checks += 2;

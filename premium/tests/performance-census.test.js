@@ -16,6 +16,7 @@
    Run: node premium/tests/performance-census.test.js   (VERBOSE=1 prints passes and the full row list; GH_ENGINE=path tests another copy of the engine; QUICK=1 scans only the 128 inventory calculators)
    Exit code 0 = every check passed, 1 otherwise. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -103,7 +104,7 @@ const HELPERLESS = [
       'lbin_to_nm|OUT|N·m|N·m', 'nm_to_lbft|OUT|lb-ft|lb-ft', 'nmm_to_lbft|OUT|Torque|lb-in', 'ps_to_hp|OUT|Horsepower|HP'].map(k => { const [c, ...r] = k.split('|'); return [c, r.join('|'), 'converter output drawn by the converter renderer (RETAIN-CONVERTER)']; }),
 ];
 
-const approx = (got, want, rel, abs = 0) => Math.abs(got - want) <= abs + rel * Math.abs(want);
+const approx = (got, want, rel, abs = 0) => within(got, want, abs + rel * Math.abs(want)); // GH-DEF-037: guarded
 
 async function run(enginePath) {
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });
@@ -256,7 +257,7 @@ async function run(enginePath) {
           if (!ref2) continue;
           const a = canonOf(ref2.value, ref2.unit), b = canonOf(got.value, got.unit);
           const ulp = Math.pow(10, -decimals(ref2.value)) * (/^kW/.test(ref2.unit) ? 1 / KW_PER_HP : (ref2.unit === 'N·m' ? 1 / NM_PER_LBFT : 1));
-          if (!(Math.abs(a - b) <= 3e-3 * Math.abs(a) + 1.01 * ulp + 1e-9)) { valueBad++; valueDetail.push(`${r.calc} ${r.kind} ${r.key} [${pw}/${tq} ${sys}]: ${got.value} ${got.unit} = ${b.toFixed(4)}, Auto ${ref2.value} ${ref2.unit} = ${a.toFixed(4)}`); }
+          if (!within(b, a, 3e-3 * Math.abs(a) + 1.01 * ulp + 1e-9)) { valueBad++; valueDetail.push(`${r.calc} ${r.kind} ${r.key} [${pw}/${tq} ${sys}]: ${got.value} ${got.unit} = ${b.toFixed(4)}, Auto ${ref2.value} ${ref2.unit} = ${a.toFixed(4)}`); }
         }
       }
     }

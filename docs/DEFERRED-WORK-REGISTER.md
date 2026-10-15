@@ -60,7 +60,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-034](#gh-def-034--bolt-torque-spec-by-grade-estimates-the-tensile-stress-area-with-16-threads-per-inch-for-every-bolt-above-03-in-reported-needs-investigation) | Bolt Torque Spec by Grade estimates the tensile stress area with 16 threads per inch for every bolt above 0.3 in (reported; needs investigation) | VERIFIED CLOSED | Medium, confirmed by the 2026-10-15 investigation | P2 |
 | [GH-DEF-035](#gh-def-035--a-navigation-made-in-the-same-instant-as-a-trip-to-the-dashboard-can-be-overwritten-by-the-dashboards-deferred-home-page-swap-intermittent-nav-return-failures) | A navigation made in the same instant as a trip to the dashboard can be overwritten by the dashboard's deferred home-page swap (intermittent nav-return failures) | VERIFIED CLOSED | Low | P3 |
 | [GH-DEF-036](#gh-def-036--bolt-stretch-applies-one-tensile-stress-area-to-the-whole-bolt-length-so-a-bolt-with-a-plain-shank-or-a-reduced-shank-gets-the-wrong-clamp-load) | Bolt Stretch applies one tensile stress area to the whole bolt length, so a bolt with a plain shank (or a reduced shank) gets the wrong clamp load | VERIFIED CLOSED | Medium | P2 |
-| [GH-DEF-037](#gh-def-037--test-harnesses-can-pass-vacuously-when-the-expected-value-is-not-finite-and-unit-system-reads-a-blank-box-as-0) | Test harnesses can pass vacuously when the expected value is not finite (and `unit-system` reads a blank box as 0) | OPEN | Low | P2 |
+| [GH-DEF-037](#gh-def-037--test-harnesses-can-pass-vacuously-when-the-expected-value-is-not-finite-and-unit-system-reads-a-blank-box-as-0) | Test harnesses can pass vacuously when the expected value is not finite (and `unit-system` reads a blank box as 0) | VERIFIED CLOSED | Low | P2 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
 | [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
@@ -1053,7 +1053,7 @@ This is the **single authoritative register** of known defects, deferred improve
 
 
 ### GH-DEF-037 — Test harnesses can pass vacuously when the expected value is not finite (and `unit-system` reads a blank box as 0)
-- **Status:** OPEN
+- **Status:** VERIFIED CLOSED
 - **Severity:** Low (test infrastructure only; no calculator is affected; no current check is known to pass vacuously, but a future case could hide a real defect)
 - **Priority:** P2
 - **Description:** In `premium/tests/unit-system.test.js`, `verify()` does three things:
@@ -1074,7 +1074,31 @@ This is the **single authoritative register** of known defects, deferred improve
     - Most of these oracles are closed-form constants, so a non-finite expectation is unlikely, but nothing guards against it.
 - **Affected:** test harnesses only (files above). No calculator formula or page behaviour.
 - **Impact:** A wrong test case whose expected value is infinite (or NaN) reports "ok" instead of failing. The risk is a false sense of coverage, not a wrong result for users.
-- **Decision:** OPEN; recorded separately from the 0408 migration preparation, on the owner's instruction (2026-10-15). Not fixed.
+- **Decision:** Fixed on 2026-10-15 under the owner's authorization ("GH-DEF-037 fix and migration release readiness"), in one shared helper that every tolerance check delegates to, so a caller cannot bypass it. No broad refactor; no tolerance changed; no case changed.
+  - **`premium/tests/lib/numeric-guard.js`** (new):
+    - `parseShown(text)` reads a page or box text as a number. Blank, missing, "—" or non-numeric text gives `NaN`, never 0. A typed or shown "0" stays 0.
+    - `mismatch(got, want, tol)` returns `null` or the reason. It fails:
+      - an expected value that is not a finite number ("the expected value is not finite … the test case or its inputs are wrong");
+      - a blank or NaN actual value ("blank or not a number");
+      - an infinite actual value ("not finite");
+      - a tolerance that is not finite or is negative.
+      Otherwise it fails only when `|got − want| > tol`, which is the caller's own tolerance formula, unchanged.
+    - `within()` = `mismatch() === null`.
+    - A test that intentionally expects a non-finite result must say so with its own `Number.isNaN` / `=== Infinity` check. No current test does.
+  - **25 harnesses changed:** their `approx` / `near` / `close` / `relOK` helpers and inline comparisons now call `within` / `mismatch`, and their page-text readers call `parseShown`. Each failure message names the test, the expected and actual values and the reason.
+    - `unit-system`: `verify()` reads a blank box as `NaN` (and accepts it in the "inputs unreadable" test), and fails with the guard's reason.
+    - `converters`, `native-units`, `temperature-units`, `mass-force`, `remembered-values`, `toggle-sweep` (`near`, `expectText` and the remembered-value checks; its page-against-page `sameResults` compares two page texts and is unchanged), `unit-census`;
+    - `structural-11a/-11b/-11c/-13/-14`, `fasteners-def034`, `bolt-stretch-def036`;
+    - `acceleration-target`, `curve-editor-mode`, `curve-persistence`, `simulator-first-draw`;
+    - `performance-census`, `performance-units`, `profile-shortcut`, `dashboard-summary`;
+    - `airflow-readers`, `legacy-fixes`.
+  - **`premium/tests/numeric-guard.test.js`** (new, no browser; 61 checks), added to `run-browser-tests.sh`. It checks that:
+    - blank output fails when a number (including 0) is expected;
+    - an expected NaN, +Infinity or −Infinity fails;
+    - a non-finite actual value fails;
+    - zero passes;
+    - finite values at and within the tolerance pass and just beyond fail; the old and the guarded comparisons agree on 20,000 random finite cases;
+    - the reproduced wrong cases passed the old comparisons and fail the guarded ones.
 - **Proposed correction (for separate authorization):** the smallest safe fix, verified on a temporary copy.
   - **`unit-system.test.js` `verify()`, two lines:**
     1. Read a blank box as `NaN` instead of 0, and accept a blank box in the "inputs unreadable" test.
@@ -1084,16 +1108,28 @@ This is the **single authoritative register** of known defects, deferred improve
     - the full suite still passes, 7,694 checks, 0 failures, with no case changed.
   - **Follow-up, one line per helper:** the same finiteness guard on the expected value in the shared `approx` / `near` / `close` helpers listed above. Each to be run against its own suite before it is committed.
 - **Dependencies:** None.
-- **Revisit:** When the owner authorizes the harness fix.
-- **Commits:** None (this entry only).
-- **Tests:** None yet. The fix ships with a regression self-check: a deliberately non-finite case must fail.
+- **Revisit:** None. Any new harness compares numbers through `premium/tests/lib/numeric-guard.js`.
+- **Commits:** the harness correction (SHA recorded by the documentation commit that follows it).
+- **Tests:** `premium/tests/numeric-guard.test.js` (61 checks) and every harness listed under Decision, all in `premium/tests/run-browser-tests.sh` (38 suites).
 - **Docs:** This entry; GH-DEF-036 History (where the weakness was first observed).
 - **Verification:**
   1. The reproduction above fails with the fix.
   2. The full `unit-system` suite still passes.
   3. Each helper changed in the follow-up keeps its suite passing.
   4. The full browser regression passes.
+- **Verification result (2026-10-15):**
+  1. **The reproduction fails with the fix.** The same two wrong `unit-system` cases (expected `1/0` and `0/0` on `bolt_stretch`), on a temporary copy that was deleted afterwards, now fail at all 30 wrong steps, with "the expected value is not finite". The `numeric-guard` checks of section 6 also show that the old comparisons passed them.
+  2. **The full `unit-system` suite still passes:** 7,694 result checks, 0 failures, the same count as before, with no case changed.
+  3. **Every changed helper keeps its suite passing.** Full browser regression (`bash premium/tests/run-browser-tests.sh`, 38 suites, Chromium 141), with 0 failures in each suite. Selected counts:
+     - engine self-test 736/736, browser smoke 19/19, `temperature-units` 1,108 + 990;
+     - `toggle-sweep` 782 (743 calculators; the 1 known-open inconsistency, unchanged), `nav-return` 743, `converters` 2,064, `native-units` 29 cases;
+     - `remembered-values` 371, `mass-force` 858, `unit-census` 3,067, `airflow-readers` 131, `legacy-fixes` 61;
+     - `profile-shortcut` 80, `dashboard-summary` 12, `performance-units` 95, `performance-census` 15;
+     - `curve-editor-mode` 107, `curve-persistence` 262, `acceleration-target` 39, `simulator-first-draw` 59;
+     - `structural-11a` 793, `-11b` 730, `-11c` 429, `-13` 251, `-14` 1,075, `fasteners-def034` 811, `bolt-stretch-def036` 439, `numeric-guard` 61.
+  The Verification criteria are met.
 - **History:** 2026-10-15 — observed while correcting GH-DEF-036 (the first draft of the `bolt_stretch` case had an infinite expected value at its first steps and still passed). Investigated on the owner's instruction: reproduced, surveyed, fix proposed and verified on temporary copies. No test infrastructure changed.
+  2026-10-15 — **closed:** the shared guard was written and applied to the 25 harnesses, `numeric-guard.test.js` was added, and the reproduction now fails. The full regression passed with `unit-system` at 7,694 checks. Test infrastructure only: no engine, page, migration or production change.
 
 ## B. Deferred improvements
 

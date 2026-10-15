@@ -19,6 +19,7 @@
    Run: node premium/tests/profile-shortcut.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine; MUTANTS=0 skips the mutation checks)
    Exit code 0 = every check passed (and every mutant was caught), 1 otherwise. */
 'use strict';
+const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), os = require('os'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
@@ -59,7 +60,7 @@ const NEVER_OFFERED = {
   weight_transfer_braking: ['wtb_g', 'wtb_h', 'wtb_l'],
   weight_transfer_accel: ['wta_g', 'wta_h', 'wta_l'],
 };
-const approx = (got, want, rel = 1e-5, abs = 0) => Math.abs(got - want) <= abs + rel * Math.abs(want);
+const approx = (got, want, rel = 1e-5, abs = 0) => within(got, want, abs + rel * Math.abs(want)); // GH-DEF-037: guarded
 /* the number at the start of a displayed text ("1,152.45 N·m", "~ 78 kW", "↓ use 275.909 kW") */
 const num = s => { const m = /[-+]?\d[\d,]*\.?\d*(?:e[-+]?\d+)?/i.exec(String(s).replace(/[−–]/g, '-').replace('~', '')); if (!m) return NaN; const n = Number(m[0].replace(/,/g, '')); return Number.isFinite(n) ? n : NaN; };
 
