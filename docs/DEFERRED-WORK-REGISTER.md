@@ -59,6 +59,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-033](#gh-def-033--the-acceleration-simulators-default-60-mph-target-is-also-one-of-its-distance-marks-60-ft-so-it-reports-the-60-foot-time-as-the-target-time) | The Acceleration simulator's default 60 mph target is also one of its distance marks (60 ft), so it reports the 60-foot time as the Target Time | VERIFIED CLOSED | High | P2 |
 | [GH-DEF-034](#gh-def-034--bolt-torque-spec-by-grade-estimates-the-tensile-stress-area-with-16-threads-per-inch-for-every-bolt-above-03-in-reported-needs-investigation) | Bolt Torque Spec by Grade estimates the tensile stress area with 16 threads per inch for every bolt above 0.3 in (reported; needs investigation) | VERIFIED CLOSED | Medium, confirmed by the 2026-10-15 investigation | P2 |
 | [GH-DEF-035](#gh-def-035--a-navigation-made-in-the-same-instant-as-a-trip-to-the-dashboard-can-be-overwritten-by-the-dashboards-deferred-home-page-swap-intermittent-nav-return-failures) | A navigation made in the same instant as a trip to the dashboard can be overwritten by the dashboard's deferred home-page swap (intermittent nav-return failures) | VERIFIED CLOSED | Low | P3 |
+| [GH-DEF-036](#gh-def-036--bolt-stretch-applies-one-tensile-stress-area-to-the-whole-bolt-length-so-a-bolt-with-a-plain-shank-or-a-reduced-shank-gets-the-wrong-clamp-load) | Bolt Stretch applies one tensile stress area to the whole bolt length, so a bolt with a plain shank (or a reduced shank) gets the wrong clamp load | OPEN | Medium | P2 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
 | [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
@@ -939,6 +940,76 @@ This is the **single authoritative register** of known defects, deferred improve
   - **Remaining risk:** two other wrappers schedule `setTimeout(enhance, 0)` and `setTimeout(d31EnhanceDashboard, 0)` after every render without a sequence check. No failure was traced to them, and they were left unchanged (out of scope, no evidence).
 
 
+### GH-DEF-036 — Bolt Stretch applies one tensile stress area to the whole bolt length, so a bolt with a plain shank (or a reduced shank) gets the wrong clamp load
+- **Status:** OPEN
+- **Severity:** Medium.
+  - **Typical rod bolts and studs with a full-diameter shank:** the clamp load is low, by up to about 30 % for 3/8-16.
+  - **Reduced-shank (waisted) bolts:** it is high (+18 % in the case below).
+  - The page already says "this is an estimate only".
+- **Priority:** P2
+- **Description:** `bolt_stretch` ("Bolt Stretch / Clamp Load", Free) turns a stretch into a load as clamp load = E × (stretch ÷ length) × A_t.
+  - "Bolt Length" is the whole bolt ("under head to end"), and A_t is the tensile stress area of the thread entered (since GH-DEF-034).
+  - That is the load in a **uniform bar of area A_t** as long as the bolt. A real bolt is segments in series, so a measured stretch δ corresponds to F = E δ ÷ Σ(L_i ÷ A_i) over the loaded segments.
+  - A plain shank (area π d²/4, larger than A_t) stretches less per pound than the threads. Thread beyond the nut is unloaded and does not stretch.
+  - The page has no input for the shank length, the shank diameter or the loaded thread length, so it cannot tell these bolts apart.
+- **Evidence:** Investigated 2026-10-15, engine `8f9b9b5`. Scripts are in the session scratch folder; nothing in the repository changed.
+  - **Reference (inspected):** [MechaniCalc, Bolted Joint Analysis](https://mechanicalc.com/reference/bolted-joint-analysis).
+    - "The shank and the threaded portion of the bolt will act as springs in series".
+    - Spring stiffness A·E/L, "where A is the area, E is the elastic modulus … and L is the length".
+    - The shank stiffness uses the nominal area; the threaded portion uses A_t over "the length of the threaded portion within the grip".
+    - Its equations are images and were not readable as text.
+  - **Derivation (ours):** F = k δ, with 1/k = Σ L_i ÷ (A_i E). No standard (VDI 2230, ASME) was inspected. Head and engaged-thread compliance are **not** modelled: the inspected source does not treat them.
+  - **Reproduction.** Steel E = 29,000,000 psi (the page's constant), 3/8-16 UNC (A_t 0.077490 in², shank A_d 0.110447 in²), length 2.000 in, measured stretch 0.006 in (0.3 %). The page shows 6,742 lbf and 87,000 psi for every case:
+
+    | Case | Shank / thread / unloaded (in) | Series model F | Page vs model |
+    |---|---|---|---|
+    | 1 all threaded and loaded (the page's implicit model) | 0 / 2.0 / 0 | 6,741.6 lbf | 0.0 % |
+    | 2 mostly threaded | 0.25 / 1.75 / 0 | 7,002.8 | −3.7 % |
+    | 3 mixed | 1.0 / 1.0 / 0 | 7,923.8 | −14.9 % |
+    | 4 mostly plain shank | 1.75 / 0.25 / 0 | 9,123.8 | −26.1 % |
+    | 5 all plain shank (limit) | 2.0 / 0 / 0 | 9,608.9 | −29.8 % |
+    | 6 fully threaded, 0.5 in past the nut | 0 / 1.5 / 0.5 | 8,988.8 | −25.0 % |
+    | 7 3/8-24, reduced shank 0.300 in dia | 1.5 / 0.5 / 0 | 6,465.1 | **+18.2 %** (page 7,641) |
+    | 8 default inputs (0.04 %), mixed 1.0 / 1.0 | 1.0 / 1.0 / 0 | 1,056.5 | −14.9 % (page 899) |
+    | 9 1/2-20 UNF, 2.5 in, 0.25 %, 1.5 / 1.0 | 1.5 / 1.0 / 0 | 13,047.7 | −11.1 % (page 11,596) |
+
+  - **The limiting error is A_t ÷ A_d − 1.** For a full plain shank that is UNC −35 % (1/4) to −23 % (1 in), and UNF −26 % to −16 %.
+  - **"Bolt Stress" (E × stretch ÷ length)** is the stress of the same uniform bar. In case 3 the real stresses are 71,743 psi in the shank and 102,257 psi in the thread; the page shows 87,000.
+- **Affected:** `bolt_stretch` only: the Estimated Clamp Load and Bolt Stress rows, and the Tensile Stress Area row that feeds them. Target Stretch (length × %) is unaffected.
+  - The registry formula (`GH_E1_FORMULAS.bolt_stretch`, `f*l/(a*e)`, seed `fv1-d48e7340`) is the same single-area bar, in the other direction (load → stretch). The seed marks the calculator `engine_proven = false`.
+  - Not examined, to keep the scope (no evidence either way): the other fastener calculators.
+- **Impact:** For a stretch-method rod bolt or stud with a full-diameter shank, the clamp load the page infers from a stretch is low, so a user who trusts it could over-stretch. For a waisted rod bolt it is high. Fully threaded loaded lengths are correct.
+- **Decision:** OPEN / NEEDS OWNER DECISION. Not fixed; no code changed. It is kept separate from GH-DEF-034, which stays VERIFIED CLOSED: its correction (the thread entered) is right, and this single-area model predates it.
+- **Proposed correction (for decision):** the smallest correct change keeps the current inputs and adds three:
+  - **New inputs:**
+    - Plain Shank Length L_s (default 0);
+    - Shank Diameter d_s (default = the nominal major diameter; a smaller value for a reduced shank);
+    - Loaded Thread Length L_t (default = bolt length − L_s).
+  - **Equation:** F = E δ ÷ (L_s ÷ A_s + L_t ÷ A_t), with δ = length × %, A_s = π d_s²/4 and A_t from the thread. Length − L_s − L_t is unloaded and contributes no stretch.
+  - **Stress rows:** report the shank stress F ÷ A_s and the thread stress F ÷ A_t in place of the single "Bolt Stress" (owner choice: replace, or keep "Bolt Stress" meaning the thread stress).
+  - **Defaults:** L_s = 0 and L_t = length reproduce today's results exactly (899 lbf and 11,600 psi at the defaults), so default and saved displays do not move.
+  - **Refused:** L_s < 0; L_t ≤ 0 together with L_s = 0; L_s + L_t > length; d_s ≤ 0 or above the major diameter.
+- **Dependencies:**
+  - GH-ENG-014. If the registry formula is changed to the segmented form, `bolt_stretch` gets a new fingerprint and needs a fourth `formula_versions` row. That row is best folded into the same migration as the three in the ENG-014 proposal's Section 11 (D7).
+  - Optionally, an inspected reference for head and engaged-thread compliance (for example VDI 2230), if the owner wants those included.
+- **Revisit:** After the owner decides on the correction, and before the ENG-014 migration is prepared.
+- **Commits:** None (this entry only).
+- **Tests:** None yet. Proposed, written first:
+  - cases 1–9 above as expected values from the series model, in both systems (mm lengths and N);
+  - the default unchanged;
+  - limits L_s = length and L_t = length;
+  - a reduced shank;
+  - an unloaded protrusion;
+  - invalid inputs;
+  - the `unit-system` `bolt_stretch` case extended.
+- **Docs:** This entry; `docs/ENG-014-FORMULA-VERSION-MIGRATION-PROPOSAL.md` Section 11 (D7).
+- **Verification:** Required before this entry can move on:
+  1. The owner decides the inputs, the stress rows, and whether the registry formula changes.
+  2. The tests above fail before the change and pass after it.
+  3. Cases 1–9 are reproduced on the page in Imperial and Metric, with the defaults unchanged.
+  4. The full browser regression passes.
+- **History:** 2026-10-15 — reported as a possible issue during the GH-DEF-034 correction. Investigated on the owner's instruction: series-compliance model derived and checked against the page, which reproduces the uniform-bar values. **Confirmed** as a modelling defect for bolts that are not threaded along their whole loaded length. Logged OPEN; no change made.
+
 ## B. Deferred improvements
 
 ### GH-IMP-001 — Energy in ft-lb is labelled "N·m" rather than "J" in Metric
@@ -1754,6 +1825,7 @@ This is the **single authoritative register** of known defects, deferred improve
   2026-10-13 — closeout phase: final decision brief for the owner added as Section 10 of the proposal (the SQL and schema/immutability review, migration and rollback behaviour, the latest-fingerprint catalogue tooling, what remains to be committed and verified before a merge, and the exact wording of the two separate authorizations: A prepares the package on the branch, B applies it to production through the gated workflow). Re-checked: `supabase/`, `premium-foundation/`, `.github/` and the throwaway script are byte-identical to `6f057cc`; the throwaway-database script re-run on the final text, 17 run, 17 passed, 0 failed, proposal exit codes 0/0; fingerprints 575 identical, 2 recorded. Found while writing the brief: the `0407`-alone rollback comparison in `pf.test.js` will need to stop at `0407` once `0408` exists (the rows cannot be rolled back), and the workflow header comment still says "16 file names". Status unchanged (OPEN): not applied, not added to `supabase/migrations/`, no workflow change, no deployment; this closeout is not an authorization.
 
   2026-10-15 — **deferred action recorded, not done:** GH-DEF-034 corrected the `bolt_torque_spec` registry formula, so a third row is needed: `('bolt_torque_spec', 'fv1-25b1f973', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4')` (seed row `fv1-f63ea4c8`). It is recorded in `formula-fingerprints.test.js` `VERSIONED`; the catalogue keeps the seed fingerprint. The proposal document and its two-row SQL were **not** changed. Adding this row (and any migration, Supabase or production change) needs the owner's separate authorization, as for the other two.
+  2026-10-15 — post-GH-DEF-034 review: the third row was written up as **Section 11** of the proposal (documentation only; Sections 1–10 and the two-row SQL block unchanged, 17 of 17 re-run). A three-row variant passes 22 of 22 on a throwaway database. New decisions D5 (third row in the same migration), D6 (read-only production count for `bolt_torque_spec`) and D7 (decide GH-DEF-036 first; it may add a fourth row for `bolt_stretch`). Nothing applied; no migration file; no SQL against Supabase.
 ---
 
 ## D. Future development

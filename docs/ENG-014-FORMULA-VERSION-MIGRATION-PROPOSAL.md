@@ -192,3 +192,68 @@ Two separate authorizations are needed, and neither exists today:
 
 - **A. Prepare (repository only, no production effect).** *"I approve the two formula-version rows exactly as written in Section 2 of the ENG-014 proposal (migration 0408, engine_version 1.1.0, first_release F1.12.4). Prepare steps 1–6 on premium/full-calculator-expansion. Do not apply anything."*
 - **B. Apply to production (given only after A is finished and I have reported commit A and the dry-run result).** *"I authorize applying migration 0408 to the production Supabase project from pinned commit <the full commit hash I was given>. I will run the Provision Supabase workflow myself: target production, dry-run first, then apply with the project ref confirmed and APPLY typed, and I will approve the production gate."* It is run from the GitHub Actions page in the browser; no command line, SQL or password is involved on your side.
+
+## 11. Addendum of 2026-10-15: a third corrected formula (`bolt_torque_spec`, GH-DEF-034)
+
+**Status: documentation only. NOT applied, and no migration file was created.** Sections 1–10 above are **unchanged**. In particular, the Section 2 SQL block between the `PROPOSED-SQL` markers, which `premium/tests/eng014-throwaway-db.sh` extracts, still has two rows and still passes **17 of 17** (re-run 2026-10-15 at `8f9b9b5`).
+
+This section records the exact change that a third row would make, and why. Whether it is adopted is the owner's decision.
+
+**Why a third row.** The GH-DEF-034 correction (`b927343`) changed the registry formula of `bolt_torque_spec`:
+- **The thread:** the stress area is now taken from the thread entered, where it used a fixed 16 or 20 threads per inch.
+- **The proof strength:** it now depends on grade and size.
+- **The inputs:** the formula's inputs and options changed as well.
+
+So the engine now computes a fingerprint that production has no row for (`formula-fingerprints.test.js` `VERSIONED`):
+
+| Calculator | Production row (kept) | New fingerprint (needs a row) | Register |
+|---|---|---|---|
+| `bolt_torque_spec` | `fv1-f63ea4c8`, first release F1.12.3 (`0005_reference_seed.sql` line 626) | `fv1-25b1f973` | GH-DEF-034 |
+
+**Values for the row.** Each value was checked against the actual schema and engine, not assumed.
+- **`calculator_id` = `bolt_torque_spec`:** it exists in `calculators` and is its own canonical id (seed line 42).
+- **`formula_version` = `fv1-25b1f973`:** it matches `^fv1-[0-9a-f]{8}$`, and it is what `GH_ENGINE.describe('bolt_torque_spec')` reports at `8f9b9b5`.
+- **`engine_version` = `1.1.0`:** the engine still reports `gh-engine@1.1.0`; the correction did not change `ENGINE_VERSION`.
+- **`formula_registry` = `GH_LEGACY_FORMULAS`:** the registry name the engine reports for this calculator. The spec is defined in `GH_BACKFILL_FORMULAS` and reported under that name, as for the seed row.
+- **`first_release` = `F1.12.4`:** the same engine page as the two existing rows.
+
+**The exact change, if adopted.** One more `VALUES` line, and both post-conditions counting three instead of two:
+
+```sql
+INSERT INTO public.formula_versions (calculator_id, formula_version, engine_version, formula_registry, first_release) VALUES
+  ('dew_point',          'fv1-73ddeaf4', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4'),
+  ('distance_converter', 'fv1-4001b424', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4'),
+  ('bolt_torque_spec',   'fv1-25b1f973', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4')
+ON CONFLICT (calculator_id, formula_version) DO NOTHING;
+-- post-condition 1: the three new rows, with this metadata          -> n <> 3 aborts
+-- post-condition 2: the three original rows ('dew_point', 'fv1-260e7f34'), ('distance_converter', 'fv1-36d27af2'),
+--                   ('bolt_torque_spec', 'fv1-f63ea4c8') still exist -> n <> 3 aborts
+```
+
+**Evidence (throwaway database, never a Supabase project).** The three-row variant was run with a scratch copy of `eng014-throwaway-db.sh`. Neither the repository script nor this document's block was changed. The copy adds five checks:
+- **Before the migration:**
+  - B5: a record with the **old** `bolt_torque_spec` fingerprint is accepted;
+  - B6: a record with the **new** one is refused by `calc_formula_version_fk` (`23503`).
+- **After the migration:**
+  - A12: the new fingerprint is accepted;
+  - A13: the old row remains, and its record still resolves to it;
+  - A14: deleting the new row is refused.
+
+It also expects 580 formula versions instead of 579. Result: **22 run, 22 passed, 0 failed**, and the migration applied cleanly twice (exit codes 0/0).
+
+**Compatibility.**
+- **Old records stay reproducible as history.** A record made with `fv1-f63ea4c8` keeps its stored inputs and outputs: `calculation_records` is append-only and `formula_versions` is never altered. Its inputs use the old keys (`dia_bt`, `K`, `proof_str`). New records use the new keys (`btq_d`, `btq_std`, `btq_tpi`, `grade_bt`, `lube_bt`, where `btq_std`, `grade_bt` and `lube_bt` are categorical). The schema puts no constraint on input keys (`inputs jsonb`, object). The front end only displays stored inputs (`premium/models.js`); it never recomputes them.
+- **The old formula stays recoverable.** Its text is in the seed's tagged baseline, and in this branch's history before `b927343`.
+- **Old numbers are not rewritten** (Section 3 applies unchanged).
+- **`calculators.engine_proven` is `false`** for `bolt_torque_spec` (seed line 42). It is a per-calculator flag in a table that has no immutability trigger, and the repository does not define what it means: the exporter that set it, `data-foundation/tools/export-engine-catalog.js`, is not in this repository. The new row does not depend on it, and it is not proposed to change.
+
+**What the three-row variant changes in the Section 10 checklist.**
+1. **The migration file:** the SQL above, as one migration, still a single file (placeholder `0408`). The manifest becomes 18 files either way.
+2. **`pf.test.js`:** `577` formula versions → **`580`** (not 579), and an assertion that exactly the three new rows exist.
+3. **`eng014-throwaway-db.sh`:** add the five checks above, 579 → 580, 17 → 22 checks; the Section 2 block becomes the three-row text.
+4. **Unchanged:** catalogue tooling (D3), the order of steps, and the two authorizations, except that authorization A names three rows.
+
+**Decisions this adds.**
+- **D5.** Add `bolt_torque_spec` as a third row in the same migration (recommended: one migration, not a `0408` + `0409` pair).
+- **D6.** A read-only production count of `calculation_records` for `bolt_torque_spec`, as was done for D2. It was not run here: this task does not authorize SQL against Supabase. The 2026-10-13 count covered only the two other calculators.
+- **D7.** Settle the Bolt Stretch question (GH-DEF-036) before the migration is prepared. If that fix changes the `bolt_stretch` registry formula (seed `fv1-d48e7340`), it needs a fourth row, and folding it into the same migration avoids a second production change.
