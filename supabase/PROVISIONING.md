@@ -1,9 +1,10 @@
 # Provisioning the Gearhead Labs Premium database
 
-**Status (2026-10-15): production is at migration 0407; `0408` is prepared and NOT applied.** All 17 migrations (0001 through 0407) are applied to the production project `jmztpjudwzjvrcdtjynd`, by the gated workflow *Provision Supabase (manual, gated)*:
+**Status (2026-10-16): production is at migration 0408.** All 18 migrations (0001 through 0408) are applied to the production project `jmztpjudwzjvrcdtjynd`, by the gated workflow *Provision Supabase (manual, gated)*:
 - 0001–0406 were applied first, from commit b2baaaa.
 - `0407_premium_product_model.sql` was applied by run #8 (see "Applied: 0407" below).
-- `0408_formula_versions_corrected_formulas.sql` (GH-ENG-014) is prepared on `premium/full-calculator-expansion` at commit `0cc4fc8`, and the workflow on that branch is pinned to it with an 18-file manifest (see "Prepared, not applied: 0408" below). Applying it needs separate explicit owner authorization.
+- `0408_formula_versions_corrected_formulas.sql` (GH-ENG-014) was applied on 2026-10-16 by run #10, from `premium/full-calculator-expansion` at `382107e`, package pinned to `0cc4fc8` (see "Applied: 0408" below; the preparation record follows it under "Prepared, not applied: 0408").
+- `main` still carries the old workflow copy (pinned to `ca8e582`, 17 files) until the branch is merged; the merge is a separate owner decision.
 
 Every step that writes to the project needs explicit owner approval first.
 
@@ -67,7 +68,54 @@ Workflow change made for this apply (on `main`, 12cac10):
 
 0407 had to be applied before PR #2 is merged, and it now is.
 
+## Applied: 0408 (corrected formula versions, GH-ENG-014)
+
+| # | File | Origin |
+|---|---|---|
+| 18 | `0408_formula_versions_corrected_formulas.sql` | PREMIUM-FOUNDATION 1.1.0 (applied to production 2026-10-16) |
+
+**Production record (2026-10-16):**
+- Project ref: `jmztpjudwzjvrcdtjynd`.
+- Migration level: **0408**. The history holds 18 versions, 0001 through 0408; version `0408` is named `formula_versions_corrected_formulas` and follows `0407`.
+- **How it was applied:** the workflow *Provision Supabase (manual, gated)* from `premium/full-calculator-expansion` at `382107e` (not `main`). The package is pinned to `0cc4fc8d7cd2bb678a2a60a61c1a9f738ee5e4b6`, with an 18-file manifest and the fail-closed pending-migration gate added in `382107e`.
+  - **Run #9 (dry run):** Actions run [38900383896](https://github.com/highandmighty354-dev/gearhead-labs/actions/runs/38900383896), target `production`, mode `dry-run`, APPLY blank, production gate approved for the dry run only. The apply job was skipped.
+  - **Run #10 (apply):** Actions run [38915379679](https://github.com/highandmighty354-dev/gearhead-labs/actions/runs/38915379679), target `production`, mode `apply`, typed APPLY.
+    - The production gate was approved by `highandmighty354-dev`; GitHub records one approval.
+    - The dry-run job was skipped.
+    - The APPLY job ran 2026-10-16 15:16:32–15:16:43 UTC and succeeded, including the step "Re-check target, dry run, then apply".
+- **Before** (read-only, 2026-10-16, just before run #10): 17 versions, latest `0407`; `formula_versions` 577; none of the four new rows; `calculation_records` 0.
+- **After** (read-only, 2026-10-16 after run #10, re-checked at the closeout):
+  - 18 versions, latest `0408`; `formula_versions` 581;
+  - exactly 4 rows have a first release other than F1.12.3, and they are the four new rows:
+
+    | Calculator | Fingerprint | Engine | Registry | First release |
+    |---|---|---|---|---|
+    | `dew_point` | `fv1-73ddeaf4` | 1.1.0 | `GH_LEGACY_FORMULAS` | F1.12.4 |
+    | `distance_converter` | `fv1-4001b424` | 1.1.0 | `GH_LEGACY_FORMULAS` | F1.12.4 |
+    | `bolt_torque_spec` | `fv1-25b1f973` | 1.1.0 | `GH_LEGACY_FORMULAS` | F1.12.4 |
+    | `bolt_stretch` | `fv1-8e827c77` | 1.1.0 | `GH_E1_FORMULAS` | F1.12.4 |
+
+- **Original rows unchanged.** An md5 over all 577 earlier rows (calculator, version, engine, registry, first release, in key order) was `fa37017972b7f62600cfbc711103494d` before the apply and is the same value after it. The four rows that the new ones supersede are still present at F1.12.3. `df_never_changed` and `df_no_truncate` are still on `formula_versions`.
+- **Nothing else changed** (the same before and after):
+  - reference data: `calculators` 583 (252 engine-proven), `canonical_fields` 47, `plans` 2, `plan_offers` 2, `engineering_analyzers` 14;
+  - schema: 23 `public` tables, 50 policies, 35 `public` functions, 70 `public` triggers;
+  - `calculation_records` 0.
+- **Evidence sources:**
+  - **Observed directly:**
+    - the run records, job and step conclusions and the approval record, through the GitHub API;
+    - the database state above, through read-only transactions on the Supabase connector;
+    - for the dry run (run #9) only, the job summary and the log of its gate step, read in a signed-in browser. They showed `Would push these migrations:` / ` • 0408_formula_versions_corrected_formulas.sql` and `verdict: PASS exactly the expected production pending list`.
+  - **Not observed (open gap):** the log text of run #10's APPLY step was not readable from Claude's session.
+    - The API's log download redirects to a storage host that the session's network does not allow.
+    - The browser link was offline.
+    - The check run has no summary text, only two routine notices (Node 20 deprecation, the `ubuntu-latest` image change).
+    - So the pre-apply gate verdict, the `Applying migration` line and the post-apply "Remote database is up to date." line of run #10 have **not** been seen.
+  - **Inference, not observation:** the step is written to exit before applying unless the gate passes, and to fail afterwards unless the CLI reports up to date. It succeeded, and the database shows exactly 0408 added. Anyone with repository access can close the gap: open run #10, expand "Re-check target, dry run, then apply" in the APPLY job, and read it.
+- **Not done** (separate owner decisions): merging the branch, deploying the frontend, and the reconciliation with `main`'s older workflow copy.
+
 ## Prepared, not applied: 0408 (corrected formula versions, GH-ENG-014)
+
+*Preparation record, kept as written before the apply. For what happened, see "Applied: 0408" above.*
 
 | # | File | Origin |
 |---|---|---|

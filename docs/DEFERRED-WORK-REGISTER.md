@@ -93,7 +93,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-ENG-011](#gh-eng-011--wind-et-calculator-ignores-its-wind-direction-input-task-4-audit-item) | Wind-ET calculator ignores its wind-direction input (Task 4 audit item) | OPEN | Unknown | P2 |
 | [GH-ENG-012](#gh-eng-012--max-safe-rpm-heuristic-assumptions-task-4-audit-item) | Max-safe-RPM heuristic assumptions (Task 4 audit item) | OPEN | Unknown | P3 |
 | [GH-ENG-013](#gh-eng-013--trailer-sway-and-brake-controller-heuristic-labelling-task-4-audit-item) | Trailer-sway and brake-controller heuristic labelling (Task 4 audit item) | OPEN | Unknown | P3 |
-| [GH-ENG-014](#gh-eng-014--two-corrected-formulas-dewpoint-distanceconverter-have-new-fingerprints-the-production-formulaversions-table-has-no-rows-for-them) | Two corrected formulas (`dew_point`, `distance_converter`) have new fingerprints: the production `formula_versions` table has no rows for them | IN PROGRESS | Medium | P2 |
+| [GH-ENG-014](#gh-eng-014--two-corrected-formulas-dewpoint-distanceconverter-have-new-fingerprints-the-production-formulaversions-table-has-no-rows-for-them) | Two corrected formulas (`dew_point`, `distance_converter`) have new fingerprints: the production `formula_versions` table has no rows for them | VERIFIED CLOSED | Medium | P2 |
 | [GH-FUT-001](#gh-fut-001--batch-11-structural--mechanical--machining--nvh-37-calculators) | Batch 11: Structural / Mechanical / Machining + NVH (37 calculators) | VERIFIED CLOSED | n/a | P1 once authorized |
 | [GH-FUT-002](#gh-fut-002--batch-13-two-stroke-4-calculators) | Batch 13: Two-Stroke (4 calculators) | VERIFIED CLOSED | n/a | P2 |
 | [GH-FUT-003](#gh-fut-003--batch-14-ev--hybrid-6-calculators) | Batch 14: EV / Hybrid (6 calculators) | APPROVED | n/a | P2 |
@@ -1926,7 +1926,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-10-12 — entered from the older audit note.
 
 ### GH-ENG-014 — Two corrected formulas (`dew_point`, `distance_converter`) have new fingerprints: the production `formula_versions` table has no rows for them
-- **Status:** IN PROGRESS
+- **Status:** VERIFIED CLOSED
 - **Severity:** Medium (only once the branch is deployed: no calculation made with the corrected formula can be stored until a row exists; nothing in the current front end stores one)
 - **Priority:** P2 (decision needed before the branch is merged or deployed; no production change was made)
 - **Description:** Every registry formula has a fingerprint (`fv1-` plus an FNV-1a hash of its expressions, units, options and the formula text the page displays). The production table `formula_versions` holds one row per calculator with the fingerprint exported from the engine (`supabase/migrations/0005_reference_seed.sql`, frozen, 577 rows), and `calculation_records` points at it with the foreign key `calc_formula_version_fk`; rows are never altered or deleted (`df_never_changed`). **Two** formulas have been corrected on this branch, so the engine now computes fingerprints production has no row for: `dew_point` `fv1-260e7f34` -> `fv1-73ddeaf4` (GH-DEF-005) and `distance_converter` `fv1-36d27af2` -> `fv1-4001b424` (GH-DEF-019; found in the closeout phase). A calculation stored with either corrected formula would have no row to point at and the foreign key would refuse it. Until this branch the engine and the seed agreed for all 577 formulas; now 575 agree and the two above are recorded.
@@ -1941,7 +1941,7 @@ This is the **single authoritative register** of known defects, deferred improve
     - **Later on 2026-10-15 (release readiness, branch only):** the workflow pin and manifest and the catalogue tooling (D3) were done; see History. Still not done: the production dry run and the apply, which are owner-run and separately authorized.
 - **Dependencies:** GH-DEF-005.
 - **Revisit:** Before this branch is merged or deployed, or before any calculation is stored through the formula engine, whichever is first. The owner's next decision is D1 (approve the two rows as written) and D3 (catalog tooling, to ship with the migration); applying to production is a separate authorization. Any later correction of a registry formula raises the same question; the guard test fails until it is recorded.
-- **Commits:** `4bfbb48` (guard test and the `dew_point` fingerprint change), `00c31c5` (the `distance_converter` fingerprint change), `6f057cc` (proposal document and throwaway-database script). 2026-10-15: migration `0408` prepared in `0cc4fc8`; release readiness (workflow pin and 18-file manifest, D3 catalogue tooling, PROVISIONING.md procedure) in `008ab40`.
+- **Commits:** `4bfbb48` (guard test and the `dew_point` fingerprint change), `00c31c5` (the `distance_converter` fingerprint change), `6f057cc` (proposal document and throwaway-database script). 2026-10-16: `382107e` (fail-closed dry-run gate in the provisioning workflow), the commit that production run #10 applied `0408` from. 2026-10-15: migration `0408` prepared in `0cc4fc8`; release readiness (workflow pin and 18-file manifest, D3 catalogue tooling, PROVISIONING.md procedure) in `008ab40`.
 - **Tests:** `premium/tests/formula-fingerprints.test.js` (run by `premium/tests/run-browser-tests.sh`); `premium/tests/eng014-throwaway-db.sh` (needs PostgreSQL server binaries; skips with a message without them; not part of the browser runner). 2026-10-15:
   - `eng014-throwaway-db.sh` now runs the committed `0408` file. It checks the file against proposal Section 13, the behaviour before, a deliberately wrong copy (aborts, no partial write), idempotency, all 577 earlier rows byte-identical, and the behaviour after: **40 checks**.
   - `premium-foundation/tests/pf.test.js`: 18 migrations, 581 formula versions, a new 0408 check, and the 0407-alone rollback scenario built to stop at 0407: **48 checks**.
@@ -1974,6 +1974,22 @@ This is the **single authoritative register** of known defects, deferred improve
   - **Procedure:** `supabase/PROVISIONING.md` "Prepared, not applied: 0408" (execution order, preconditions, post-migration checks, failure handling); proposal Section 14.
   - **Results:** proof script 40 of 40; `pf.test.js` 48 of 48 (24 of 24 mutants); `run-tests.sh` catalogue OK, register OK, frontend 55 of 55, schema 26 of 26; `formula-fingerprints` 573 identical + 4 recorded, 0 failures.
   - **Status stays IN PROGRESS:** the remaining Verification items are the owner-run production dry run and apply.
+  2026-10-16 — **dry-run gate hardened (`382107e`).** The workflow's dry run now fails closed. `pending_gate` reads only the CLI's own pending list; production must show exactly `0408`. `workflow-pending-gate.test.py` has 60 checks, and 6 mutation controls (deliberately broken workflow copies) are each caught. The package, pin and manifest are unchanged.
+  2026-10-16 — **production dry run: run #9** ([38900383896](https://github.com/highandmighty354-dev/gearhead-labs/actions/runs/38900383896)), owner-authorized.
+  - The `production` environment's deployment-branch rule was verified as "No restriction" in the signed-in browser; nothing was changed.
+  - The production gate was approved for the dry run only, and the apply job was skipped.
+  - **Observed in the job summary and the gate step's log:** ` • 0408_formula_versions_corrected_formulas.sql` as the only pending entry, `verdict: PASS exactly the expected production pending list`.
+  2026-10-16 — **`0408` applied to production: run #10** ([38915379679](https://github.com/highandmighty354-dev/gearhead-labs/actions/runs/38915379679)), owner-authorized.
+  - **The run:** from `premium/full-calculator-expansion` at `382107e`, package pinned to `0cc4fc8`, mode `apply` with typed APPLY. The production gate was approved by `highandmighty354-dev` (one approval recorded). The APPLY job ran 15:16:32–15:16:43 UTC and succeeded.
+  - **Read-only verification (observed):**
+    - 18 migrations, `0408` (`formula_versions_corrected_formulas`) right after `0407`;
+    - `formula_versions` 577 → 581, with exactly the four rows of `0408`: `dew_point` `fv1-73ddeaf4`, `distance_converter` `fv1-4001b424` and `bolt_torque_spec` `fv1-25b1f973` in `GH_LEGACY_FORMULAS`, and `bolt_stretch` `fv1-8e827c77` in `GH_E1_FORMULAS`, all engine 1.1.0, first release F1.12.4;
+    - the 577 earlier rows unchanged: md5 `fa37017972b7f62600cfbc711103494d` before and after, and the four originals are still at F1.12.3;
+    - reference data, schema object counts and `calculation_records` (0) identical before and after.
+  - **Open evidence gap:** the log text of run #10's APPLY step could not be read from the session (the log download host is blocked and the browser link was offline). Its gate verdict and its "up to date" line are therefore **inferred** from the step's success and the database state, **not observed**. Details: `supabase/PROVISIONING.md` "Applied: 0408".
+  - **Closed:** the Verification criteria are met. The remaining items, the production dry run and the apply, were shown above.
+  - **Still separate owner decisions, outside this entry:** merging the branch and deploying the frontend, after which the engine's corrected fingerprints are used.
+
 ---
 
 ## D. Future development
