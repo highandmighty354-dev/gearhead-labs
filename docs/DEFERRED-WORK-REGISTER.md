@@ -1,0 +1,2293 @@
+# Gearhead Labs — Deferred Work & Future Improvements Register
+
+**Created 2026-10-12** (reliability pass between Batch 10 and Batch 11). Branch `premium/full-calculator-expansion`.
+
+This is the **single authoritative register** of known defects, deferred improvements, open engineering questions and future development for the calculator engine and the Premium Calculator Expansion. No earlier register existed in the repository (checked 2026-10-12: `docs/`, the root `V1.1.0_TASK4_*` QA notes and the changelog hold findings, not a register); the findings those documents carry are reconciled into the entries below and keep their original home as the source of record for their *wording*, while **this file is the only place a finding's status is tracked**.
+
+## Rules
+
+1. **One record per issue.** Other documents point here by ID (`GH-DEF-001`); they do not carry an independent copy of an issue's status. The master project plan and `docs/PREMIUM-CATALOG.md` hold a short summary and a link only.
+2. **History is never deleted.** When an issue is fixed, its entry is updated in place and keeps its commit and test references. A finding that turns out to be wrong is marked `SUPERSEDED` with the reason, not removed. A decision that changes gets a dated History line saying what changed and why.
+3. **A code change does not close a defect.** `FIXED — UNVERIFIED` means a change is committed. `VERIFIED CLOSED` requires the entry's own *Verification* criteria to have passed, with the evidence (test names, counts, commit) written in History. `premium/tests/register-check.js` refuses a `VERIFIED CLOSED` entry without Commits, Tests and a dated "closed" History line.
+4. **Hypotheses are not defects.** An unverified suspicion lives in section C until it has been reproduced; only then does it move to section A (the move is recorded in History).
+5. **Expected behaviour is recorded, not hidden.** Differences that were investigated and found to be understood and intended (for example a rounding boundary) are kept in section E so they are not re-reported as defects.
+6. **Severity** — Critical: wrong result in the shipped default path; High: wrong result in a common path; Medium: wrong result or misleading display only on a less common path (for example after editing in Metric); Low: cosmetic, test-fixture or documentation. **Priority** — P0 do now, P1 next in the authorized order, P2 scheduled, P3 when convenient, Deferred (a decision not to act yet).
+7. Section **D** entries are work that has been *approved or proposed*; being listed there is not authorization to start. Batch 11 in particular **requires explicit authorization**.
+
+**Status words:** OPEN · INVESTIGATING · DEFERRED · IN PROGRESS · FIXED — UNVERIFIED · VERIFIED CLOSED · SUPERSEDED, plus APPROVED and AWAITING AUTHORIZATION (section D only) and EXPECTED BEHAVIOR (section E only).
+
+**Fields** (every entry has all of them): Status · Severity · Priority · Description · Evidence (with reproduction) · Affected (calculator ids, fields, shared helpers) · Impact · Decision (reason for deferral or the decision taken) · Dependencies · Revisit (trigger or target batch) · Commits · Tests · Docs · Verification (criteria that must pass before closure) · History.
+
+**Checking.** `node premium/tests/register-check.js` (also run by `premium/tests/run-tests.sh`) checks IDs, fields, status rules, cross-references, that every id in the known-open ledger of `premium/tests/toggle-sweep.test.js` is traced to an open entry here (and that the file ledgers `premium/tests/data/nav-return-open.json` and `premium/tests/data/label-consistency-open.json`, when not empty, are named by an open entry), and that the index below is current (`--write-index` regenerates it).
+
+## Index (generated — do not edit by hand)
+
+<!-- INDEX:START -->
+| ID | Title | Status | Severity | Priority |
+|---|---|---|---|---|
+| [GH-DEF-001](#gh-def-001--free-calculators-read-a-unit-bearing-field-without-its-unit-class-a) | Free calculators read a unit-bearing field without its unit (Class A) | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-002](#gh-def-002--evregenpower-labels-an-already-converted-kw-figure-kw-and-the-display-layer-converts-it-again) | `ev_regen_power` labels an already-converted kW figure "kW" and the display layer converts it again | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-003](#gh-def-003--seven-converter-calculators-convert-their-result-rows-a-second-time-in-metric) | Seven converter calculators convert their result rows a second time in Metric | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-004](#gh-def-004--remembered-values-reappear-unconverted-after-a-unit-switch-made-on-another-calculator-class-c) | Remembered values reappear unconverted after a unit switch made on another calculator (Class C) | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-005](#gh-def-005--dewpoint-applies-a-celsius-rule-of-thumb-to-a-fahrenheit-input) | `dew_point` applies a Celsius rule of thumb to a Fahrenheit input | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-006](#gh-def-006--mass-quantities-declared-in-lb-display-as-newtons-in-metric) | Mass quantities declared in `lb` display as newtons in Metric | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-007](#gh-def-007--unregistered-compound-units-stay-imperial-in-metric-mode) | Unregistered compound units stay Imperial in Metric mode | SUPERSEDED | Low | P2 |
+| [GH-DEF-008](#gh-def-008--eight-pre-existing-engine-self-test-failures) | Eight pre-existing engine self-test failures | VERIFIED CLOSED | Low | P2 |
+| [GH-DEF-010](#gh-def-010--free-aero-calculators-gave-wrong-results-after-editing-or-toggling-in-metric) | Free aero calculators gave wrong results after editing or toggling in Metric | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-011](#gh-def-011--temperature-differences-were-converted-like-temperature-readings-in-metric) | Temperature differences were converted like temperature readings in Metric | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-012](#gh-def-012--temperature-converter-f-and-c-rows-were-converted-twice-in-metric) | Temperature Converter °F and °C rows were converted twice in Metric | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-013](#gh-def-013--brake-energy-brake-fade-energy-and-head-flow-curve-gave-wrong-results-after-a-toggle-or-metric-edit) | Brake Energy, Brake Fade Energy and Head Flow Curve gave wrong results after a toggle or Metric edit | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-014](#gh-def-014--premium-result-panels-were-computed-from-pre-switch-display-strings-after-a-unit-toggle-shared-certvalue) | Premium result panels were computed from pre-switch display strings after a unit toggle (shared `certValue`) | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-015](#gh-def-015--metric-mode-live-re-render-corrupted-results-in-batch-13-calculators) | Metric-mode live re-render corrupted results in Batch 1–3 calculators | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-016](#gh-def-016--hpfromspecs-produced-a-physically-impossible-result-missing-air-density-conversion) | `hp_from_specs` produced a physically impossible result (missing air-density conversion) | VERIFIED CLOSED | High | P1 |
+| [GH-DEF-017](#gh-def-017--rcbrakebiasrc-bug-recorded-open-in-older-notes) | `rc_brake_bias_rc` bug recorded OPEN in older notes | VERIFIED CLOSED | Low | P3 |
+| [GH-DEF-018](#gh-def-018--result-panel-is-computed-from-the-shipped-defaults-after-navigating-away-and-returning-class-d) | Result panel is computed from the shipped defaults after navigating away and returning (Class D) | VERIFIED CLOSED | High | P1 |
+| [GH-DEF-021](#gh-def-021--a-box-id-shared-by-two-calculators-lets-one-calculators-remembered-text-appear-in-the-other-even-when-the-units-differ) | A box id shared by two calculators lets one calculator's remembered text appear in the other, even when the units differ | VERIFIED CLOSED | Low | P1 |
+| [GH-DEF-019](#gh-def-019--distanceconverter-turns-yards-into-kilometres-with-0000914-instead-of-00009144) | `distance_converter` turns yards into kilometres with 0.000914 instead of 0.0009144 | VERIFIED CLOSED | Low | P3 |
+| [GH-DEF-020](#gh-def-020--29-free-calculators-declare-a-metric-named-unit-on-a-value-the-engine-treats-as-imperial-so-metric-shows-and-reads-the-wrong-number) | 29 Free calculators declare a Metric-named unit on a value the engine treats as Imperial, so Metric shows and reads the wrong number | VERIFIED CLOSED | High | P1 |
+| [GH-DEF-022](#gh-def-022--a-result-that-is-a-tiny-negative-number-is-shown-as--0-pressure-altitude--0-m-in-metric) | A result that is a tiny negative number is shown as "-0" (Pressure Altitude "-0 m" in Metric) | VERIFIED CLOSED | Low | P3 |
+| [GH-DEF-023](#gh-def-023--airflow-power-and-engine-airflow-handoffs-read-displacement-and-air-density-as-raw-text-ignoring-the-unit-system) | Airflow Power and Engine Airflow handoffs read displacement and air density as raw text, ignoring the unit system | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-024](#gh-def-024--stage-estimate-for-powertorque-simulator-ignores-the-displacement-and-bsfc-entered-in-the-calculator) | "Stage Estimate for Power/Torque Simulator" ignores the displacement and BSFC entered in the calculator | VERIFIED CLOSED | Medium | P2 |
+| [GH-DEF-025](#gh-def-025--forces-declared-in-the-mass-unit-read-kilograms-in-metric-downforce-lateral-force-clamp-load-bearing-load-valve-spring-seat-pressure) | Forces declared in the mass unit read kilograms in Metric (downforce, lateral force, clamp load, bearing load, valve-spring seat pressure) | VERIFIED CLOSED | Medium | P1 |
+| [GH-DEF-026](#gh-def-026--the-dashboards-vehicle-summary-line-printed-imperial-unit-names-beside-converted-metric-numbers) | The dashboard's vehicle summary line printed Imperial unit names beside converted Metric numbers | VERIFIED CLOSED | Low | P3 |
+| [GH-DEF-027](#gh-def-027--the-hybrid-power-split-offers-the-vehicles-horsepower-in-a-kilowatt-box-and-in-a-fraction-box) | The hybrid power split offers the vehicle's horsepower in a kilowatt box and in a fraction box | VERIFIED CLOSED | Medium | P2 |
+| [GH-DEF-028](#gh-def-028--range-warnings-are-matched-on-the-first-letters-of-a-box-id-and-after-a-unit-switch-compare-the-converted-number-with-imperial-limits) | Range warnings are matched on the first letters of a box id and, after a unit switch, compare the converted number with Imperial limits | VERIFIED CLOSED | Low | P3 |
+| [GH-DEF-029](#gh-def-029--curve-editor-choosing-power-vs-rpm-relabels-the-twelve-boxes-without-converting-their-numbers-and-the-simulators-always-read-the-curve-as-torque) | Curve Editor: choosing "Power vs RPM" relabels the twelve boxes without converting their numbers, and the simulators always read the curve as torque | VERIFIED CLOSED | Medium | P3 |
+| [GH-DEF-030](#gh-def-030--a-curve-typed-in-the-curve-editor-reaches-the-acceleration-dragstrip-and-top-speed-simulators-on-their-first-draw-only) | A curve typed in the Curve Editor reaches the Acceleration, Dragstrip and Top Speed simulators on their first draw only | VERIFIED CLOSED | Medium | P3 |
+| [GH-DEF-031](#gh-def-031--the-shells-compact-units-menu-did-nothing-it-called-setunits-which-does-not-exist-the-engines-setunit-could-not-run-without-the-buttons-the-shell-removed-and-the-legacy-unit-hider-could-hide-the-control) | The shell's compact UNITS menu did nothing: it called `setUnits`, which does not exist, the engine's `setUnit` could not run without the buttons the shell removed, and the legacy-unit hider could hide the control | VERIFIED CLOSED | High | P1 |
+| [GH-DEF-032](#gh-def-032--a-simulators-first-draw-runs-at-50--drivetrain-efficiency-its-fallback-is-085-where-the-box-holds-85) | A simulator's first draw runs at 50 % drivetrain efficiency (its fallback is 0.85 where the box holds 85) | VERIFIED CLOSED | High | P2 |
+| [GH-DEF-033](#gh-def-033--the-acceleration-simulators-default-60-mph-target-is-also-one-of-its-distance-marks-60-ft-so-it-reports-the-60-foot-time-as-the-target-time) | The Acceleration simulator's default 60 mph target is also one of its distance marks (60 ft), so it reports the 60-foot time as the Target Time | VERIFIED CLOSED | High | P2 |
+| [GH-DEF-034](#gh-def-034--bolt-torque-spec-by-grade-estimates-the-tensile-stress-area-with-16-threads-per-inch-for-every-bolt-above-03-in-reported-needs-investigation) | Bolt Torque Spec by Grade estimates the tensile stress area with 16 threads per inch for every bolt above 0.3 in (reported; needs investigation) | VERIFIED CLOSED | Medium, confirmed by the 2026-10-15 investigation | P2 |
+| [GH-DEF-035](#gh-def-035--a-navigation-made-in-the-same-instant-as-a-trip-to-the-dashboard-can-be-overwritten-by-the-dashboards-deferred-home-page-swap-intermittent-nav-return-failures) | A navigation made in the same instant as a trip to the dashboard can be overwritten by the dashboard's deferred home-page swap (intermittent nav-return failures) | VERIFIED CLOSED | Low | P3 |
+| [GH-DEF-036](#gh-def-036--bolt-stretch-applies-one-tensile-stress-area-to-the-whole-bolt-length-so-a-bolt-with-a-plain-shank-or-a-reduced-shank-gets-the-wrong-clamp-load) | Bolt Stretch applies one tensile stress area to the whole bolt length, so a bolt with a plain shank (or a reduced shank) gets the wrong clamp load | VERIFIED CLOSED | Medium | P2 |
+| [GH-DEF-037](#gh-def-037--test-harnesses-can-pass-vacuously-when-the-expected-value-is-not-finite-and-unit-system-reads-a-blank-box-as-0) | Test harnesses can pass vacuously when the expected value is not finite (and `unit-system` reads a blank box as 0) | VERIFIED CLOSED | Low | P2 |
+| [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | VERIFIED CLOSED | Low | P3 |
+| [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
+| [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
+| [GH-IMP-004](#gh-imp-004--keep-the-exact-value-per-field-so-repeated-toggles-do-not-drift-in-the-sixth-significant-digit) | Keep the exact value per field so repeated toggles do not drift in the sixth significant digit | DEFERRED | Low | P3 |
+| [GH-IMP-005](#gh-imp-005--the-catalogue-sweep-retypes-only-one-field-per-calculator) | The catalogue sweep retypes only one field per calculator | DEFERRED | Low | P2 |
+| [GH-IMP-006](#gh-imp-006--anti-squat-from-link-coordinates-uses-one-effective-link) | Anti-Squat from Link Coordinates uses one effective link | DEFERRED | Low | P3 |
+| [GH-IMP-007](#gh-imp-007--gear-tooth-stress-calculators-omit-full-agma-factors) | Gear tooth stress calculators omit full AGMA factors | DEFERRED | Low | P3 |
+| [GH-IMP-008](#gh-imp-008--bump-stop-rate-is-a-linear-secant-approximation) | Bump Stop Rate is a linear secant approximation | DEFERRED | Low | P3 |
+| [GH-IMP-009](#gh-imp-009--cam-motion-calculators-use-a-simple-harmonic-lift-model-jerk-discontinuity) | Cam motion calculators use a simple-harmonic lift model (jerk discontinuity) | DEFERRED | Low | P3 |
+| [GH-IMP-010](#gh-imp-010--ground-effect-estimate-and-diffuser-angle--expansion-are-idealized) | Ground Effect Estimate and Diffuser Angle / Expansion are idealized | DEFERRED | Low | P3 |
+| [GH-IMP-011](#gh-imp-011--drag--downforce-tradeoff-grip-bound-ignores-tire-load-sensitivity) | Drag / Downforce Tradeoff grip bound ignores tire load sensitivity | DEFERRED | Low | P3 |
+| [GH-IMP-012](#gh-imp-012--cda-from-coast-down-uses-one-constant-crr) | CdA from Coast-Down uses one constant Crr | DEFERRED | Low | P2 |
+| [GH-IMP-013](#gh-imp-013--vehicle-trailer-and-part-weights-showed-newtons-in-metric-the-convention-is-decided-and-applied-kg-for-mass-and-for-scale-read-loads-n-for-force-66-rows-are-corrected-d3-is-deferred) | Vehicle, trailer and part weights showed newtons in Metric: the convention is decided and applied (kg for mass and for scale-read loads, N for force), 66 rows are corrected, D3 is deferred | IN PROGRESS | Medium | P2 |
+| [GH-IMP-014](#gh-imp-014--sixty-one-us-customary-units-are-not-registered-so-a-metric-page-shows-them-unconverted) | Sixty-one US-customary units are not registered, so a Metric page shows them unconverted | DEFERRED | Low | P2 |
+| [GH-IMP-015](#gh-imp-015--energy-rows-declared-ft-lb-read-nm-in-metric-instead-of-j) | Energy rows declared `ft-lb` read N·m in Metric instead of J | SUPERSEDED | Low | P3 |
+| [GH-IMP-016](#gh-imp-016--pressure-altitude-uses-the-1000-ft-per-inhg-rule-not-the-standard-atmosphere-relation) | Pressure Altitude uses the 1000 ft per inHg rule, not the standard-atmosphere relation | DEFERRED | Low | P3 |
+| [GH-IMP-018](#gh-imp-018--premium-validation-messages-quote-imperial-limits-when-the-page-is-in-metric) | Premium validation messages quote Imperial limits when the page is in Metric | OPEN | Low | P3 |
+| [GH-IMP-019](#gh-imp-019--engine-and-ev-power-and-torque-follow-the-metric-switch-hp-becomes-kw-lb-ft-becomes-nm-instead-of-the-locked-performance-unit-convention) | Engine and EV power and torque follow the Metric switch (hp becomes kW, lb-ft becomes N·m) instead of the locked performance-unit convention | VERIFIED CLOSED | Medium | P2 |
+| [GH-IMP-020](#gh-imp-020--performance-unit-policy-questions-that-remain-after-gh-imp-019-was-implemented) | Performance-unit policy questions that remain after GH-IMP-019 was implemented | DEFERRED | Low | P3 |
+| [GH-ENG-001](#gh-eng-001--which-of-the-65-metric-named-unit-inventory-entries-are-real-defects) | Which of the 65 "metric-named unit" inventory entries are real defects? | VERIFIED CLOSED | Medium | P1 |
+| [GH-ENG-002](#gh-eng-002--are-all-registered-unit-conversion-factors-correct) | Are all registered unit conversion factors correct? | VERIFIED CLOSED | Low | P1 |
+| [GH-ENG-003](#gh-eng-003--do-the-airflow-block-an-readers-have-the-head-flow-curve-defect) | Do the airflow-block `an()` readers have the Head Flow Curve defect? | SUPERSEDED | Medium | P1 |
+| [GH-ENG-004](#gh-eng-004--do-the-cross-calculator-stage-handoffs-write-values-in-the-right-unit-system) | Do the cross-calculator "stage" handoffs write values in the right unit system? | OPEN | Unknown | P2 |
+| [GH-ENG-005](#gh-eng-005--does-leaving-a-calculator-write-its-inputs-into-the-next-calculators-remembered-state) | Does leaving a calculator write its inputs into the next calculator's remembered state? | SUPERSEDED | Unknown | P2 |
+| [GH-ENG-006](#gh-eng-006--is-the-vehicle-profile-editor-covered-by-the-unit-handling-fixes) | Is the vehicle-profile editor covered by the unit-handling fixes? | OPEN | Unknown | P2 |
+| [GH-ENG-007](#gh-eng-007--bmep--torque-model-and-units-task-4-audit-item) | BMEP / torque model and units (Task 4 audit item) | OPEN | Unknown | P2 |
+| [GH-ENG-008](#gh-eng-008--valve-lash-pushrod-length-input-wiring-task-4-audit-item) | Valve-lash pushrod-length input wiring (Task 4 audit item) | OPEN | Unknown | P2 |
+| [GH-ENG-009](#gh-eng-009--deck-height-unmatched-dkdh-reference-task-4-audit-item) | Deck-height unmatched `dk_dh` reference (Task 4 audit item) | VERIFIED CLOSED | None | P2 |
+| [GH-ENG-010](#gh-eng-010--hp-from-compression-ratio-empirical-model-labelling-task-4-audit-item) | HP-from-compression-ratio empirical model labelling (Task 4 audit item) | OPEN | Unknown | P3 |
+| [GH-ENG-011](#gh-eng-011--wind-et-calculator-ignores-its-wind-direction-input-task-4-audit-item) | Wind-ET calculator ignores its wind-direction input (Task 4 audit item) | OPEN | Unknown | P2 |
+| [GH-ENG-012](#gh-eng-012--max-safe-rpm-heuristic-assumptions-task-4-audit-item) | Max-safe-RPM heuristic assumptions (Task 4 audit item) | OPEN | Unknown | P3 |
+| [GH-ENG-013](#gh-eng-013--trailer-sway-and-brake-controller-heuristic-labelling-task-4-audit-item) | Trailer-sway and brake-controller heuristic labelling (Task 4 audit item) | OPEN | Unknown | P3 |
+| [GH-ENG-014](#gh-eng-014--two-corrected-formulas-dewpoint-distanceconverter-have-new-fingerprints-the-production-formulaversions-table-has-no-rows-for-them) | Two corrected formulas (`dew_point`, `distance_converter`) have new fingerprints: the production `formula_versions` table has no rows for them | VERIFIED CLOSED | Medium | P2 |
+| [GH-FUT-001](#gh-fut-001--batch-11-structural--mechanical--machining--nvh-37-calculators) | Batch 11: Structural / Mechanical / Machining + NVH (37 calculators) | VERIFIED CLOSED | n/a | P1 once authorized |
+| [GH-FUT-002](#gh-fut-002--batch-13-two-stroke-4-calculators) | Batch 13: Two-Stroke (4 calculators) | VERIFIED CLOSED | n/a | P2 |
+| [GH-FUT-003](#gh-fut-003--batch-14-ev--hybrid-6-calculators) | Batch 14: EV / Hybrid (6 calculators) | APPROVED | n/a | P2 |
+| [GH-FUT-004](#gh-fut-004--batch-16-workbenches-6) | Batch 16: Workbenches (6) | APPROVED | n/a | P3 |
+| [GH-FUT-005](#gh-fut-005--batches-12-diesel-and-15-performance--simulation-have-no-approved-items) | Batches 12 (Diesel) and 15 (Performance / Simulation) have no approved items | DEFERRED | n/a | Deferred |
+| [GH-FUT-006](#gh-fut-006--make-some-of-the-29-render-only-calculators-saveable) | Make some of the 29 render-only calculators saveable | DEFERRED | n/a | Deferred |
+| [GH-FUT-007](#gh-fut-007--stripe-billing) | Stripe billing | DEFERRED | n/a | Deferred |
+| [GH-FUT-008](#gh-fut-008--projects-decision-p-3) | Projects (decision P-3) | DEFERRED | n/a | Deferred |
+| [GH-FUT-009](#gh-fut-009--migrate-e01e14-into-ghengine) | Migrate E01–E14 into `GH_ENGINE` | DEFERRED | n/a | Deferred |
+| [GH-FUT-010](#gh-fut-010--task-4-certification-gates) | Task 4 certification gates | OPEN | n/a | P2 |
+| [GH-EXP-001](#gh-exp-001--drivetrainloss-result-flips-by-one-at-a-half-unit-rounding-boundary) | `drivetrain_loss` result flips by one at a half-unit rounding boundary | EXPECTED BEHAVIOR | None | None |
+| [GH-EXP-002](#gh-exp-002--densityaltitude-default-lands-on-a-half-foot) | `density_altitude` default lands on a half foot | EXPECTED BEHAVIOR | None | None |
+| [GH-EXP-003](#gh-exp-003--six-significant-digit-field-round-trips-move-results-by-parts-per-million) | Six-significant-digit field round trips move results by parts per million | EXPECTED BEHAVIOR | None | None |
+<!-- INDEX:END -->
+
+---
+
+## A. Known defects
+
+### GH-DEF-001 — Free calculators read a unit-bearing field without its unit (Class A)
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium
+- **Priority:** P1 (authorized; reliability pass Item 1)
+- **Description:** 84 Free calculators call `certValue(id, fallback)` without the field's unit for a field declared with a convertible unit. In Metric, a live re-render (retyping or editing any field) reads the number on screen (km/h, m², N, kW, …) as if it were Imperial, and the Metric → Imperial toggle re-reads stale Metric text. Imperial mode is unaffected. Same mechanism as the six Free aero calculators fixed in `6209d74` (GH-DEF-010).
+- **Evidence:** `premium/tests/toggle-sweep.test.js` sweep (real Chromium, real clicks) at HEAD `6550452`: 696 swept, 609 consistent, 87 inconsistent = these 84 + `ev_regen_power` + 2 rounding cases; every one of the 84 breaks "live re-render in Metric equals the result right after the toggle" and/or "round trip equals the original". Reproduction: open the calculator in Imperial, click Metric, retype the first unit-bearing field's displayed value unchanged; the result changes although no input did. Numeric examples are recorded when Item 1 reproduces them before the fix.
+- **Affected:** Free calculators `air_fuel_mass`, `beam_deflection`, `bend_allowance`, `chip_load`, `clamp_load`, `control_error`, `cornering_stiffness`, `curtain_area` (alias `valve_curtain_area`), `diesel_airflow`, `diesel_rail_power`, `e85_fuel_multiplier`, `ev_charge_added`, `ev_coolant_flow`, `ev_hvac_energy`, `ev_inverter_loss`, `ev_power_conversion`, `ev_wheel_torque`, `feed_rate`, `flow_coefficient`, `fmep_from_imep_bmep`, `following_distance`, `fuel_flow_from_hp`, `fuel_pressure_flow`, `fuel_pump_capacity`, `fuel_pump_sizing`, `fuel_system_hp`, `heat_input_per_cycle`, `heat_transfer`, `hybrid_power_split`, `hybrid_regen_energy`, `imep_from_power`, `injector_size`, `intake_port_vel`, `intercooler_pressure_drop`, `intercooler_temp_drop`, `load_transfer_lateral`, `load_transfer_longitudinal`, `machining_rpm`, `material_removal`, `natural_frequency`, `pid_proportional`, `piston_to_valve_clearance`, `pumping_mep`, `quench_clearance`, `radiator_heat_capacity`, `ride_frequency`, `rocker_valve_lift`, `roll_stiffness`, `section_modulus`, `sensor_scaling`, `shear_stress`, `sheet_weight`, `spring_force_at_lift`, `spring_rate`, `stress`, `supercharger_parasitic`, `surface_speed`, `temperature_rise`, `thermal_efficiency`, `thermal_expansion`, `tire_frequency`, `tow_actual_combined`, `tow_aero_drag`, `tow_axle_load`, `tow_brake_energy`, `tow_gcwr_margin`, `tow_grade_power`, `tow_grade_speed`, `tow_gvwr_margin`, `tow_hitch_margin`, `tow_mpg_penalty`, `tow_payload_remaining`, `tow_range`, `tow_rolling_resistance`, `tow_stopping_distance`, `tow_trailer_capacity`, `tow_trip_fuel_cost`, `tow_wheel_torque`, `tube_weight`, `turbo_airflow`, `valve_lift_rocker`, `weight_transfer_accel`, `weight_transfer_braking`, `yaw_moment`. Shared helper `certValue`. No Premium calculator is in this class.
+- **Impact:** A user working in Metric gets a wrong answer after editing any field of an affected calculator, and a wrong answer after toggling back to Imperial. Imperial users are unaffected.
+- **Decision:** Authorized 2026-10-12 only if safe inference of the unit from the field's declared metadata can be shown to be backward compatible and field-specific; otherwise stop and report. Done as authorized: `field()` records the unit it is given in `FIELD_UNIT_REGISTRY[calculator][field]` and `certValue` uses it when the caller passes no unit (an explicit unit, including `''`, is never overridden). The unit comes from declared metadata, never from a label, and is per calculator. Safety was shown before the change was committed: all 84 calculators declare their units as literals (217 `field()` calls, none with a computed unit or id), none of them converts units by hand, and the before/after comparison below found no change outside the 84.
+- **Dependencies:** none for the fix; GH-DEF-004 (remembered values) must also hold for the "navigate away and return" case.
+- **Revisit:** Reliability pass Item 1.
+- **Commits:** `dc9dfd8` (engine change, tests, catalog hash). Evidence-only precursor: `e6f5c74` (GH-DEF-018 ledger test).
+- **Tests:** `premium/tests/unit-system.test.js` (18 representative Class A calculators added: `tow_stopping_distance`, `tow_range`, `tow_trip_fuel_cost`, `tow_wheel_torque`, `ev_wheel_torque`, `spring_rate`, `natural_frequency`, `stress`, `flow_coefficient`, `feed_rate`, `machining_rpm`, `fuel_pump_sizing`, `fmep_from_imep_bmep`, `heat_transfer`, `intercooler_temp_drop`, `yaw_moment`, `intake_port_vel`, `tire_frequency`); `premium/tests/toggle-sweep.test.js` (12 new inference contract checks via the `GH_CERT_VALUE` test hook; the `CLASS_A` ledger is now empty and all 84 are swept as ordinary calculators); `premium/tests/temperature-units.test.js` (five calculators that were exempt because of this defect now run the full sequence).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 1.
+- **Verification:** Representative families (towing, EV, fuel pump, stress, machining, chassis, cooling) match independent SI/NIST expected values in Imperial and Metric across defaults, toggle, retype every field, toggle back, repeated toggles; calculators with several differently-unit fields checked field by field; callers that pass no unit for a field with no declared unit behave exactly as before; the full catalog sweep shows the 84 consistent and the `CLASS_A` ledger empty; no calculator that was consistent before becomes inconsistent.
+- **History:** 2026-10-12 — entry created from the committed test ledger; count 84 re-confirmed by the baseline sweep.
+  2026-10-12 — fixed in `dc9dfd8`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: the new unit-system cases fail 143 of 343 checks on the previous behaviour and pass 343 of 343 on the fix (suite 538 checks, 0 failures); the new contract checks fail 9 of 28 on the previous behaviour, pass 28 of 28 on the fix; the full sweep gives 693 consistent and 3 inconsistent of 696 (`ev_regen_power`, `density_altitude`, `drivetrain_loss`, all in their own open entries), 735 checks, 0 failures; the five temperature calculators exempted for this defect pass 93 + 126 checks (39 fail on the previous behaviour); a before/after comparison of all 696 calculators in both systems (default render plus a 1.25 x edit of each of up to 8 fields, real typing) changed 0 calculators in Imperial and exactly the 84 in Metric. Example: `tow_range` in Metric, fuel capacity 128.704 L edited to 160.88 L, gave 3,127 mi (the litres read as gallons); now 514 mi (411 x 1.25).
+  2026-10-12 — scope note: eight of the 84 (`ev_charge_added`, `ev_coolant_flow`, `ev_hvac_energy`, `ev_inverter_loss`, `ev_power_conversion`, `heat_input_per_cycle`, `hybrid_power_split`, `hybrid_regen_energy`) declare a Metric-named unit (kW, °C, kg) on a value the calculator already treats in that unit. Their calculations are now correct and toggle-consistent, but the Metric display of that input is still wrong (for example `ev_charge_added` shows 7 kW as 5.2199 kW; `ev_coolant_flow` shows a 5 °C difference as −15 °C). That is the Metric-named-unit class tracked in GH-ENG-001 (Item 2), not a Class A defect; the toggle sweep cannot see it because both systems scale together. Fields declared `lb` that hold a mass still display as N: GH-DEF-006 (Item 4).
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: unit-system 559 result checks, 0 failures (includes the 18 representative Class A calculators, both systems, defaults / toggle / retype every field / repeated toggles); toggle-sweep 696 calculators swept, 694 consistent, the 2 not consistent are the expected-rounding ledger (GH-EXP-001, GH-EXP-002, both Free calculators that were already there), `CLASS_A` ledger empty, 735 checks, 0 failures; label-consistency and nav-return 0 failures; before/after comparison at `dc9dfd8` changed 84 calculators in Metric and none in Imperial.
+
+### GH-DEF-002 — `ev_regen_power` labels an already-converted kW figure "kW" and the display layer converts it again
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium
+- **Priority:** P1 (done; reliability pass Item 2)
+- **Description:** The calculator returns a power it has already converted to kW and labels it `kW`; the display layer treats `kW` as the Metric label of horsepower, so in Metric the figure is converted a second time: 112.7 kW is shown as 84.1 kW.
+- **Evidence:** Reproduced earlier in the reliability pass (Metric shows 84.1 kW where Imperial shows 112.7 kW); `toggle-sweep.test.js` ledger `CLASS_B`; unit inventory entry `result:Estimated Recovered Power [kW -> treated as HP]`.
+- **Affected:** `ev_regen_power` (Free), result "Estimated Recovered Power".
+- **Impact:** Wrong displayed result in Metric (about 25% low).
+- **Decision:** Authorized (Item 2), separate commit. Done: `resultHTML()` gained an optional `raw` argument with the meaning `multiResult`'s per-item `raw` already had, and `ev_regen_power` passes it, so the kW figure it computed is printed as computed.
+- **Dependencies:** Convention for kW-denominated EV fields (GH-ENG-001 audit); Batch 14 "Regenerative Braking Energy Recovery" builds on this area (GH-FUT-003).
+- **Revisit:** Reliability pass Item 2.
+- **Commits:** `df3764b`
+- **Tests:** `premium/tests/unit-system.test.js` (new `ev_regen_power` case, independent SI physics: P = m a v eta); `premium/tests/toggle-sweep.test.js` (`CLASS_B` ledger now empty); `premium/tests/label-consistency.test.js`.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 2.
+- **Verification:** Metric and Imperial show the same physical power (112.7 kW = 151.1 HP at the default) with the label matching the number; value already in its target unit is not converted again; ledger entry removed and the sweep consistent.
+- **History:** 2026-10-12 — entry created.
+  2026-10-12 — fixed in `df3764b`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: the new `ev_regen_power` unit-system case fails 10 of 559 checks on the previous engine (Metric 84.04 kW against the independent 112.75 kW at the defaults) and passes 559 of 559 on the fix; `label-consistency.test.js` reports it on the previous engine and not on the fix; the before/after comparison of all 696 calculators changed 0 in Imperial and exactly 8 in Metric (this one and the seven converters of GH-DEF-003).
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: unit-system 559 checks, 0 failures (the `ev_regen_power` case against P = m a v eta); toggle-sweep `CLASS_B` ledger empty, 735 checks, 0 failures; label-consistency 696 checked, 0 failures (`ev_regen_power` is not in its 29-entry ledger).
+
+### GH-DEF-003 — Seven converter calculators convert their result rows a second time in Metric
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium
+- **Priority:** P1 (done; reliability pass Item 2)
+- **Description:** The output rows of `speed_converter`, `distance_converter`, `volume_converter`, `pressure_converter`, `power_converter`, `sheet_gauge` and `fraction_to_decimal_mm` already name the unit of each row (for example "KM/H", "Millimeters"), but the rows are passed through the Imperial→Metric display layer again, so Metric shows different numbers from Imperial for the same input. The Temperature Converter had the same defect and was fixed in `5d469cd` (GH-DEF-012) with the `multiResult` `raw` flag, which is the ready mechanism.
+- **Evidence:** `toggle-sweep.test.js` converter section (`CONVERTERS_OPEN`): each of the seven shows different rows in Metric and Imperial. Inventory hits: `speed_converter` "KM/H [km/h → mph]", "M/S"; `distance_converter` "Kilometers", "Meters"; `volume_converter` "Liters"; `pressure_converter` "bar", "kPa"; `power_converter` "kW"; `sheet_gauge` "Thickness (mm)"; `fraction_to_decimal_mm` "Millimeters".
+- **Affected:** `speed_converter`, `distance_converter`, `volume_converter`, `pressure_converter`, `power_converter`, `sheet_gauge`, `fraction_to_decimal_mm`.
+- **Impact:** Wrong numbers in Metric for these converters.
+- **Decision:** Authorized (Item 2), separate commit, no unrelated converter refactored and no formula changed: `raw:true` is set on every output row of the seven converters, which makes `multiResult` print each row as computed. Audit result for the other converters: the 27 single-purpose converters were already correct (GH-ENG-001). A formula constant that is slightly off in `distance_converter` (yards to kilometres) was found while testing and is GH-DEF-019, not changed here.
+- **Dependencies:** none.
+- **Revisit:** Reliability pass Item 2.
+- **Commits:** `df3764b`
+- **Tests:** `premium/tests/converters.test.js` (new; 2,064 checks against exact SI factors, every From option, two inputs, both starting systems, repeated toggles; also the 27 single-purpose converters); `premium/tests/toggle-sweep.test.js` converter section (`CONVERTERS_OPEN` now empty, all eight converters in `CONVERTERS_FIXED`); `premium/tests/label-consistency.test.js`.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 2.
+- **Verification:** For each, a known input gives the independently computed output in every row in both unit systems, identical rows in both systems, and displayed unit equals the unit of the number; `CONVERTERS_OPEN` empties and the converter checks pass.
+- **History:** 2026-10-12 — entry created.
+  2026-10-12 — fixed in `df3764b`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `converters.test.js` fails 708 of 2,064 checks on the previous engine (133 distance, 20 fraction, 57 power, 159 pressure, 48 sheet gauge, 132 speed, 159 volume; none in the 27 single-purpose converters) and 0 on the fix; examples on the previous engine: speed converter in Metric showed the MPH row as "96.56 km/h" and 60 mph as 155.4 km/h, power converter showed 316.92 kW as 236.3 kW; the sweep converter section is identical in both systems for all eight converters; before/after comparison of 696 calculators: 0 changed in Imperial, exactly 8 in Metric.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: converters 2,064 checks, 0 failures (every From option, both starting systems, repeated toggles, plus the 27 single-purpose converters); toggle-sweep `CONVERTERS_OPEN` empty, 735 checks, 0 failures. The one converter inaccuracy found on the way, `distance_converter` yards to kilometres, is a different cause and is GH-DEF-019 (open).
+
+### GH-DEF-004 — Remembered values reappear unconverted after a unit switch made on another calculator (Class C)
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium
+- **Priority:** P1 (done; reliability pass Item 3)
+- **Description:** Each calculator remembers its inputs as display strings (`CALC_PERSISTENT_STATE`) with no record of the unit system they were typed in. If the unit system is switched while another calculator is open, the remembered string is shown again unchanged under the new unit label: 100 mph reappears as 100 km/h (about 62 mph). The same happened after switching on the same calculator, leaving it and coming back (the text captured during the switch was still in the old system).
+- **Evidence:** `toggle-sweep.test.js` "remembered value" checks reproduce it on `drag_force` (speed 100 mph → box shows 100 km/h, correct 160.9344), `brake_rotor_temp` (100 → 160.9344), `rotor_cooling_rate` (3 sq ft → shows 3 m², correct 0.2787). Reproduction: Imperial, type 100 in Drag Force speed, open Dynamic Pressure, click Metric, reopen Drag Force. Mechanism read in the code: `renderCalc` seeds `CALC_FIELD_SNAPSHOT` from the stored strings and `field()` displays a snapshot string as-is.
+- **Affected:** Shared: `renderCalc`, `field()`, `CALC_PERSISTENT_STATE`, `setUnit`. Every calculator with a unit-bearing field.
+- **Impact:** A user can silently get a calculation from a value that means something different from what they typed.
+- **Decision:** Authorized (Item 3): convert so the physical meaning is preserved; where safe conversion is impossible keep the original value. Done: `CALC_STATE_META[calculator][box] = {calc, system, unit}` is recorded with every numeric box `renderCalc` captures (whose page it came from, the system its text was displayed in, and its unit); `adaptRemembered()` converts the remembered text once into the system now on screen, through canonical units with the functions the live toggle uses. The stored text is never rewritten, so repeated switches elsewhere convert from the original typed text and cannot drift. Kept as typed: text that is not a plain number, boxes with no unit, values with no record (the engine-lab staging hand-off drops its record), and boxes of a unit switch in progress (the exact pre-switch value is used there, as before). Not done: keeping an exact canonical value per box (GH-IMP-004 stays deferred): a box edited in Metric and switched back shows its display rounding, within 2e-5 relative.
+- **Dependencies:** Interacts with GH-DEF-001 (unit inference for the first render after returning); GH-ENG-004 (staging handoffs write into the same store); GH-ENG-005.
+- **Revisit:** Reliability pass Item 3.
+- **Commits:** `def921c`
+- **Tests:** `premium/tests/remembered-values.test.js` (new matrix: 11 calculators × 8 scenarios + anchor, kept-as-typed, no-record, unit-less, drop-down, shared-id hand-off); `premium/tests/toggle-sweep.test.js` (the three recorded examples are now enforced).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 3.
+- **Verification:** 100 mph → about 160.9 km/h and back to 100 mph; Imperial→Metric, Metric→Imperial, repeated toggles, editing after switching, navigating away and returning, switching on a different calculator before returning, calculators with differently-unit fields; one calculator's unit switch never relabels another's stored value; round-trip within display rounding; non-numeric remembered text left alone.
+- **History:** 2026-10-12 — entry created; mechanism confirmed in the code.
+  2026-10-12 — fixed in `def921c`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `remembered-values.test.js` fails 152 of 308 checks on the previous engine (30 Metric-elsewhere, 60 switch-on-the-same-calculator, 30 Metric-typed, 22 edit-after-switch, 5 two-calculators, the anchor and others) and 0 of 309 on the fix; anchor: 100 mph typed in Imperial reads 160.934 km/h after Metric is chosen on another calculator and 100 mph after Imperial is chosen again; the three `toggle-sweep` examples (`drag_force`, `brake_rotor_temp`, `rotor_cooling_rate`) were failing and are enforced; a before/after comparison of all 696 calculators in both systems (default render plus a 1.25 x edit of each of up to 8 fields, real typing) changed 0 in Imperial and 0 in Metric. Not covered: the result panel of a calculator that reads its boxes through `v()`/`vd()` after navigating (GH-DEF-018, next commit).
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: remembered-values 371 checks, 0 failures (11 calculators x 8 scenarios, the 100 mph anchor, kept-as-typed text, no-record text, drop-downs, shared-id hand-off); toggle-sweep 735 checks, 0 failures.
+
+### GH-DEF-005 — `dew_point` applies a Celsius rule of thumb to a Fahrenheit input
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium
+- **Priority:** P1 (done; reliability pass Item 4a)
+- **Description:** The calculator computes `Dew Point = Temp − (100 − RH) / 5` on the temperature in °F. That rule of thumb (Lawrence 2005) is defined for °C; in °F the subtraction is too small by a factor of 1.8. (The rule's accuracy was first recorded here as "about 1 °C for RH above 50%"; measured in Item 4a it is within 1.24 °C of the Magnus formula for RH 60–100% from 0 to 40 °C and 2.4 °C off at 40 °C / 50% — see History.)
+- **Evidence:** Source read at `RENDERS`-table entry `dew_point` (`const dp = +(temp_dp-((100-rh_dp)/5)).toFixed(1)`). Hand calculation, default 75 °F / 60% RH: engine 67.0 °F; the rule in °C gives 23.89 − 8 = 15.89 °C = 60.6 °F; the Magnus formula gives about 60.6 °F. Browser reproduction and the independent Magnus check are made in Item 4.
+- **Affected:** `dew_point` (Free), results "Dew Point" and "Temp/Dew Spread".
+- **Impact:** Dew point reported several °F too high in the default case, growing as humidity drops; affects the "dry air = more power" guidance the page gives.
+- **Decision:** Fixed in Item 4a. The calculator's stated rule of thumb is kept and evaluated in °C: the drop below the air temperature is 1.8 × (100 − RH)/5 in °F. Four places carried the same formula and are corrected together so they cannot disagree: the calculator, the formula registry entry the page displays (`GH_LEGACY_FORMULAS.dew_point`), the explainer example (75 °F at 60% now reads about 61 °F, a 14 °F spread, not 67 °F / 8 °F) and the engine self-test expectation, which had encoded the same mistake (`75-(40/5)`). The registry entry is part of the formula's fingerprint, so this fix gives `dew_point` a new fingerprint (`fv1-260e7f34` → `fv1-73ddeaf4`); what that means for the production database is GH-ENG-014. The Magnus formula itself was not adopted (that would be a different calculator); the rule's own error band is documented in the test.
+- **Dependencies:** GH-ENG-014 (new formula fingerprint; deployment prerequisite for saving dew point calculations).
+- **Revisit:** Reliability pass Item 4.
+- **Commits:** `4bfbb48` (calculator, registry entry, explainer example, self-test expectation, catalog hash, tests).
+- **Tests:** `premium/tests/dew-point.test.js` (688 checks: the stated rule in °C and the Magnus formula, both systems, plus a switch with values typed); `premium/tests/formula-fingerprints.test.js` (GH-ENG-014); the engine self-test case `dew_point` now expects the rule in °C; `temperature-units.test.js` and `toggle-sweep.test.js` already cover the spread identity and the unit toggle.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 4.
+- **Verification:** Results agree with the Magnus-Tetens dew point within the rule's stated accuracy across a grid of temperature and RH ≥ 60% (0–40 °C), in Imperial and Metric, and with the stated rule evaluated in °C at every grid point including RH below 60% (criterion corrected from "RH ≥ 50%": the rule drifts below 60%, see History); spread consistent; test fails on the unfixed engine.
+- **History:** 2026-10-12 — entry created from the earlier finding; confirmed by reading the source and hand calculation.
+  2026-10-12 — fixed in `4bfbb48`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `dew-point.test.js` fails 301 of 688 checks on the previous engine (for example 75 °F at 60% reads 67 °F, the rule in °C gives 60.6 °F, Magnus 60.2 °F) and 0 of 688 on the fix; a before/after comparison of all 696 calculators in both systems changed exactly one calculator in each system, `dew_point` (Imperial 67 °F / 8 °F spread → 60.6 °F / 14.4 °F; Metric 19.4444 °C → 15.8889 °C = 23.8889 °C − 8 °C), with 0 page errors; engine self-test 674 total / 666 passed / 8 failed (the 8 known baseline failures, 0 new). Accuracy of the rule, measured: against Magnus (Alduchov–Eskridge constants) the rule is within 1.24 °C for RH 60–100% between 0 and 40 °C, worst at 40 °C / 60%; below 60% it drifts (2.4 °C at 40 °C / 50%), so the test compares RH below 60% with the stated rule only.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: dew-point 688 checks, 0 failures (stated rule in degrees Celsius and Magnus, both systems, plus a switch with values typed); formula-fingerprints 577 seed formulas, 576 identical to the production seed and 1 (`dew_point`) recorded as corrected; the new fingerprint for the production table is a separate question, GH-ENG-014 (open).
+
+### GH-DEF-006 — Mass quantities declared in `lb` display as newtons in Metric
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium
+- **Priority:** P1 (done for the quantities of matter; reliability pass Item 4b)
+- **Description:** The unit table treats `lb` as a force (Metric label N). Fields whose quantity is a mass (vehicle, payload or part weight entered as pounds) therefore show newtons in Metric instead of kilograms. The calculation is unaffected when the value is entered in Imperial, but in Metric the box reads newtons: a user who types 7 (kilograms, as the label of every other mass field says) is read as 7 N = 1.57 lb, so the mass is read 9.8 times too small (the ratio of a kilogram to a newton, 9.80665) and the answer is wrong by that factor.
+- **Evidence:** The unit table has two pound units: `lbs` is a mass (Metric kg) and `lb` / `lbf` a force (Metric N). Inventory (Item 4b, scan of all 696 calculators on the Imperial page, every input box and result row declared in a pound unit): 147 rows (81 input boxes and 66 result rows) in 85 calculators; two further result rows (`lbforce_to_newton`, `kgf_to_newton`) already name newtons and are not counted. Wrong answer reproduced on the previous engine (`03274a2`): Temperature Rise, Metric, 10 kg typed in Mass → 1,114.1 Δ°C, physics gives 113.6 Δ°C (10 N was read as 2.25 lb); Rotor Cooling Rate, 10 kg typed → time constant 29.7 s where the same rotor typed in Imperial (22.05 lb) gives 291 s; Brake Fade Prediction peak rotor temperature 1,327 °C against 159.9 °C; Tube Weight 68.3 N for 50 / 44 mm × 2 m steel tube (6.96 kg).
+- **Affected:** Classification rule (applied to every row, and pinned in `premium/tests/data/force-unit-rows.json`): MASS = the calculation treats the quantity as an amount of matter (thermal mass, fuel / air mass, the mass of a piece of tube or sheet); FORCE = a force or load used as a force; WEIGHT = a vehicle / trailer / part weight or rating, which every formula uses as a force (W / g, load transfer). Result: **11 rows are masses (7 input boxes, 4 result rows, 10 calculators), 87 are forces (57 calculators), 47 are weights (30 calculators), 2 are converter rows** that name their own unit (`kg_to_lb`, `newton_to_lbforce`; 147 in all, counted on the previous engine; the converters were already correct after Item 2). Masses changed: `brake_rotor_temp` and `rotor_heat` (Rotor Mass `rm`), `rotor_cooling_rate` (`rcr_m`), `brake_fade_prediction` (`bfp_m`), `temperature_rise` (Mass `tr_m`), `tire_heat_generation` (Tire Mass `thg_m`), `air_fuel_mass` (Fuel Mass `afm_f`, result Air Mass), `diesel_injection_quantity` (result Fuel per Cycle), `tube_weight` (result Tube Weight), `sheet_weight` (result Sheet Weight). The 47 weight rows (GVWR, tongue weight, vehicle weight, sprung weight and the margins and totals computed from them; 30 calculators, named in GH-IMP-013) are listed in the JSON with `cls: weight` and left in newtons: see Decision and GH-IMP-013. Shared: `field()`, `resultHTML()`, `UNIT_DEFS` (unchanged).
+- **Impact:** Before: a Metric user entering a mass in kg had it read 9.8 times too small (a thermal model's temperature rise came out 9.8 times too large); a calculated mass was printed in newtons (68.3 N for a 6.96 kg tube). After: the mass boxes and rows read kg and convert with 0.45359237. In Imperial the unit text of these 11 rows changes from "lb" to "lbs" (the mass unit's text everywhere else in the engine); no Imperial number changes.
+- **Decision:** Fixed in Item 4b for the quantities of matter only, by declaring them `lbs`: 13 unit declarations (6 field declarations, 4 result rows and the explicit reader units in `rotor_cooling_rate`, `brake_fade_prediction` and `tire_heat_generation`, which follow the box). Not changed: `UNIT_DEFS`, `UNIT_ALIASES`, any formula, any registry entry (so no formula fingerprint changes, unlike GH-DEF-005). The 47 weight rows were deliberately left alone: a weight is a force, every formula here uses it as one, an existing test pins the newton convention for one of them (`wt_be`, Brake Energy), and changing the convention touches more than 40 calculators, which is the "general refactor" this pass excludes. It is recorded as GH-IMP-013 for an owner decision. `temperature-units.test.js` had encoded the newton display for five of the mass boxes (kind `weight_lb`); those expectations were corrected to kg (kind `mass_lb`) in the same commit.
+- **Dependencies:** GH-IMP-013 (weight convention); GH-DEF-007 (`diesel_injection_quantity` keeps its flow box in `lb/min`, an unregistered unit, beside the kg result).
+- **Revisit:** Reliability pass Item 4.
+- **Commits:** `3b84b36` (13 unit declarations, catalog hash, tests, pinned inventory).
+- **Tests:** `premium/tests/mass-force.test.js` (601 checks) with the pinned inventory `premium/tests/data/force-unit-rows.json`; `premium/tests/temperature-units.test.js` (mass expectations corrected).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 4.
+- **Verification:** Inventory table in this entry; each mass field shows kg in Metric with the independent conversion (1 lb = 0.45359237 kg); each force field still shows N; calculations unchanged.
+- **History:** 2026-10-12 — entry created; scope inventory pending.
+  2026-10-12 — inventory made and fixed in `3b84b36`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `mass-force.test.js` fails 62 of 612 checks on the previous engine and 0 of 601 on the fix (the totals differ because the 11 mass rows move from the force group to the mass group); the 10 kg typed physics checks (temperature rise, air mass, tube and sheet mass against SI physics; the five multi-step thermal models against the Imperial page) all pass; `temperature-units.test.js` fails 166 checks on the previous engine with the corrected mass expectations and 0 on the fix. A before/after comparison of all 696 calculators (both systems, every numeric field retyped) changed 4 calculators in Imperial (the result unit text of `air_fuel_mass`, `diesel_injection_quantity`, `tube_weight`, `sheet_weight`) and exactly the 10 calculators named above in Metric. Regression at that commit: engine self-test 674 total / 666 passed / 8 failed (the 8 known baseline failures, no new one); browser smoke 19/19; unit-system 559 checks, 0 failures; temperature-units 1,108 + 990 checks, 0 failures; toggle-sweep 735 checks, 0 failures; nav-return, label-consistency, converters (2,064), remembered-values (371), dew-point (688) and formula-fingerprints 0 failures; run-tests.sh catalog / register / frontend 55/55 / schema 26/26 all passing.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: mass-force 255 pound-unit rows scanned (136 force/weight, 119 mass), 601 checks, 0 failures; temperature-units 1,108 result/unit checks and 990 toggle-invariance checks, 0 failures; before/after comparison at `3b84b36` changed exactly the 10 calculators named in this entry in Metric. The weight convention for the other 47 rows is a separate decision, GH-IMP-013 (deferred).
+  2026-10-13 — Metric-convention phase (GH-IMP-013): the classification "a vehicle / trailer / part weight stays newtons" and the pin of the winch pull as newtons are superseded: vehicle, trailer and component weights and mass-stated ratings now read kg (`caf4942`). The 11 quantities of matter fixed here are unchanged, and nothing in this entry's own verification changed.
+
+### GH-DEF-007 — Unregistered compound units stay Imperial in Metric mode
+- **Status:** SUPERSEDED
+- **Severity:** Low
+- **Priority:** P2 (investigated in reliability pass Item 4c; superseded by GH-IMP-014)
+- **Description:** Units the engine does not register (`BTU/hr`, `lb/sq ft`, `slug/ft³`, `BTU/hr·ft²·°F`, `psi·ft/min`, `lb-in/rad`-style compounds) pass through unconverted, so a Metric page can show Imperial compound units beside converted ones (for example `rod_bearing_pv` shows 116 bar and 1,005 m/min beside "PV Value 5,543,987 psi·ft/min"). The number and label agree, so this is not a wrong answer; whether any mapping is actually wrong, or the presentation is only inconsistent, is what Item 4 decides.
+- **Evidence:** `premium/tests/unit-census.test.js` renders all 696 calculators in both systems and pairs up the 2,762 input boxes and result rows that have a unit. 1,469 are converted by the exact factor of one of 44 Imperial → Metric unit pairs; 131 are converter rows (GH-DEF-003) set aside; 1,162 read the same unit text in both systems: 820 neutral (ratios, angles, time, money, counts, electrical, engine speed), 134 metric units declared in Imperial calculators (GH-ENG-001 / GH-DEF-020) and **208 rows in 122 calculators in 61 US-customary units the engine does not register** (`BTU/hr`, `lb/min`, `psia`, `gal/hr`, `mi`, `in²`, `in³`, `lb/hp·hr`, `BTU/hr·ft²·°F`, `lb-in/rad`, `psi·ft/min`, `slug/ft³`, `lb/sq ft` and others; the full list is in `premium/tests/data/unit-census.json`). In every one of the 1,162 unchanged rows outside the 29 ledger calculators the number is the same in both systems, so no label disagrees with its number. The examples named when the entry was created (`rod_bearing_pv`, `dynamic_pressure` "lb/sq ft") are in the 61.
+- **Affected:** None wrong. The population is the 208 rows above; `diesel_injection_quantity` (flow box in `lb/min`, result in kg after GH-DEF-006) is the clearest mixed page.
+- **Impact:** Presentation only: a Metric page shows an Imperial compound unit beside converted ones. No wrong number.
+- **Decision:** Every compound unit that appears in a field or result is now classified (converted, neutral, metric-declared, Imperial-only). None is mapped wrongly and none is labelled wrongly, so there is no defect to fix. Under the rule written when this entry was created, unconverted-but-correct units are a deferred improvement: **superseded by GH-IMP-014**. No engine change.
+- **Dependencies:** GH-ENG-002 (unit-table factor audit).
+- **Revisit:** None (superseded); see GH-IMP-014.
+- **Commits:** `e9af30f` (tests only).
+- **Tests:** `premium/tests/unit-census.test.js` (2,535 checks, 0 failures) with `premium/tests/data/unit-census.json`.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 4.
+- **Verification:** Every compound unit that appears in a field or result is classified (mapped correctly / unregistered but labelled correctly / wrong); any wrong one fixed with an independent test. Met: all classified, none wrong; the test fails on an unclassified unit.
+- **History:** 2026-10-12 — entry created.
+  2026-10-12 — superseded by GH-IMP-014: the census (`e9af30f`) found 0 wrongly mapped or mislabelled units among 2,762 unit-bearing rows; the 208 Imperial-only rows are unconverted but correct, which this entry's own Decision reclassifies as a deferred improvement. Kept for history; nothing deleted.
+
+### GH-DEF-008 — Eight pre-existing engine self-test failures
+- **Status:** VERIFIED CLOSED
+- **Severity:** Low
+- **Priority:** P2 (done in the closeout phase, 2026-10-13)
+- **Description:** `ghSelfTest()` reported 674 total, 666 passed, 8 failed (the historical figure, kept). **All eight were errors in the test tables; none was a calculator defect.** Final classification, each against the calculator's own labels and a hand calculation:
+  1. **Obsolete test reference** (class 1) x5 — `airflow_from_ve`, `carb_cfm`, `valve_curtain_area`, `volumetric_efficiency`, `fraction_to_decimal`: retired duplicate ids that now resolve through `GH_CALC_ALIASES` to `engine_airflow`, `carb_sizing`, `curtain_area`, `volumetric_eff`, `fraction_decimal`. The canonical calculators are not in `GH_E1_FORMULAS` / `GH_E101_FORMULAS`, so the rows could never resolve. Rows removed; the aliases are now tested instead (alias map entry plus an identical render to the canonical calculator, five checks).
+  2. **Incorrect expected value** (class 2) — `deck_height`: the row passed Stroke = 1.875 (already halved) to an expression that halves it again. With the full stroke 3.75 the hand value is 9.025 - (3.75/2 + 6.123 + 1.02) = 0.007 in, and the engine gives 0.007. The calculator was right.
+  3. **Incorrect argument order** (class 2) — `sensor_scaling`: the row passed (raw, output span, signal span) to labels (Raw Signal, Signal Span, Output Span) and the formula raw x output span / signal span. With [512, 1024, 5] the hand value is 512 x 5 / 1024 = 2.5 V (a 10-bit ADC at half scale on 5 V) and the engine gives 2.5. The calculator was right.
+  4. **Expected-label mismatch** (class 2) — `carb_sizing` (renderer): the test looked for a result labelled "carburetor cfm" using field ids that are not on the page; the calculator labels the result "recommended carb size". With the real ids and non-default inputs the result equals 350 x 6500 x 0.92 / 3456 CFM. The calculator was right.
+  Three older renderer tests (`engine_airflow`, `curtain_area`, `volumetric_eff`) also passed only because they ran on the calculators' defaults (wrong field ids, ignored silently); they now use the real ids and non-default inputs, and the in-page test helper refuses a field id that is not on the page, so that cannot recur. No class 3 (genuine calculator defect) and no class 4 (intentional behavior needing documentation) was found.
+- **Evidence:** `premium/tests/engine-selftest.js` on the final engine: **679 total, 679 passed, 0 failed** (was 674 / 666 / 8; the five alias rows were removed, five alias checks, two `fraction_decimal`, two `deck_height`, one `sensor_scaling` renderer/formula case and the renamed renderer tests were added). The baseline list `KNOWN_BASELINE` is empty, so any failure fails the run. **The corrected tests check the intended behavior:** 18 mutants of the engine (re-introducing real defects: `deck_height` or `sensor_scaling` formula and calculator reverted, the `carb_sizing` constant 3456 -> 3465, `engine_airflow` ignoring the displacement box, the live `curtain_area` using pi/4 or ignoring lift or the alias re-pointed, and others) were run against the corrected tests and against the old tests: **16 of the 16 mutants that change a live calculator, alias or formula are detected by the corrected tests** (one to two tests fail for each, naming the calculator); the old tests, run on the same 16 against the previous engine, reported a new failure for only 2 (`volumetric_eff` and the live `curtain_area`), and for the `deck_height` and `sensor_scaling` formula mutants the mutant made one of the old, wrong tests pass (7 failures instead of 8). The other 2 mutants altered an earlier, shadowed definition of `curtain_area` (replaced when the page loads by the definition that carries the live behavior), change no behavior, and correctly fail nothing; the live definition is covered by 3 further mutants. Strictness guard: renaming one field id in the `curtain_area` test makes the self-test report 1 new failure.
+- **Affected:** `ghSelfTest` reference tables and renderer tests only (every engine hunk is inside `refTables()` / `ghSelfTest()` / `renderPairs()`); no calculator code.
+- **Impact:** None on users. The self-test now reports a clean 679/679, so a future failure is a real signal.
+- **Decision:** Closed. Test-table corrections only, each against an independent hand value; no calculator formula was changed to make a test pass. The unverified `dk_dh` claim of the old audit note is closed with it (GH-ENG-009).
+- **Dependencies:** none.
+- **Revisit:** A test-hygiene pass or the Task 4 certification work (GH-FUT-010).
+- **Commits:** `b88c62e` (the eight failures resolved, baseline emptied), `e818939` (the self-test refuses a renderer test whose field ids are not on the page).
+- **Tests:** `premium/tests/engine-selftest.js` (`KNOWN_BASELINE = []`); the in-page cases in `ghSelfTest` (`refTables()` rows, `T(...)` renderer cases, the `alias` parity block).
+- **Docs:** `docs/PREMIUM-CATALOG.md` Batch records ("8 pre-existing unrelated failures").
+- **Verification:** The five alias rows replaced by alias checks, the two numeric rows corrected with independent expected values, the label row corrected, and `ghSelfTest` reports no failures. (Met: 679 / 679 / 0 on the engine of the closeout regression.)
+- **History:** 2026-10-12 — entry created; each failure analysed; baseline unchanged (8, same names).
+  2026-10-13 — closed: verification criteria met. Fixed in `b88c62e` and `e818939`; closeout regression run suite by suite on engine sha256 d3906d19… at HEAD `e818939`: engine self-test 679 total, 679 passed, 0 failed; `engine-selftest.js` baseline emptied. Re-classified: none of the eight is a calculator defect; the eight were 5 obsolete references, 2 incorrect expected values (`deck_height`, `sensor_scaling`), 1 label mismatch (`carb_sizing`).
+
+### GH-DEF-010 — Free aero calculators gave wrong results after editing or toggling in Metric
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium
+- **Priority:** P1 (done)
+- **Description:** `drag_force`, `dynamic_pressure`, `aero_hp`, `downforce`, `lift_force` and `wing_force` called `certValue` without the unit argument (12 call sites), so a Metric number on screen was read as Imperial (Drag Force 392.28 N → 94.39 N after re-entering the same value; Dynamic Pressure 12.53 → 32.44 lb/sq ft; Aerodynamic Horsepower 12.27 kW → 87.86 kW).
+- **Evidence:** Reproduced on a real page; fixed by passing each field's unit.
+- **Affected:** the six calculators above.
+- **Impact:** Wrong results in Metric (fixed).
+- **Decision:** Fixed in its own commit; no formula changed.
+- **Dependencies:** none.
+- **Revisit:** Closure after the final full regression of this pass.
+- **Commits:** `6209d74`
+- **Tests:** `premium/tests/unit-system.test.js` (46 of 110 original checks failed on the previous engine, 0 after; now part of 195 checks).
+- **Docs:** `docs/PREMIUM-CATALOG.md` Batch 10 and "Reliability pass" → Item 1.
+- **Verification:** `unit-system.test.js` passes with independent SI expected values for all six, both starting systems, with edits, a toggle and three repeat toggles; sweep consistent for the six.
+- **History:** 2026-10-12 — fixed (`6209d74`); 2026-10-12 — baseline re-run on HEAD `6550452` shows unit-system 195/0; closure recorded at the end of this pass.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: unit-system 559 result checks, 0 failures (independent SI values for the six aero calculators, both starting systems, edits, a toggle and three repeat toggles); toggle-sweep 735 checks, 0 failures.
+
+### GH-DEF-011 — Temperature differences were converted like temperature readings in Metric
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium
+- **Priority:** P1 (done)
+- **Description:** A temperature reading converts with an offset (°C = (°F − 32)·5/9); a difference does not (Δ°C = Δ°F·5/9). Every rise, drop, spread, margin and LMTD was declared `°F`, so a 15 °F rise showed as −9.4 °C. A separate `Δ°F` unit (metric label `Δ°C`) now exists and is declared on 26 fields/results in 25 calculators.
+- **Evidence:** 641 failures on the previous engine in the new test; a label guard scans every calculator for difference-named `°F` fields.
+- **Affected:** `brake_rotor_temp`, `rotor_heat`, `dew_point` (spread), `ct_tire_temp_balance`, `diesel_turbo_pr`, `intercooler_temp_drop`, `thermal_expansion`, `heat_transfer`, `coolant_flow`, `radiator_heat_capacity`, `hvac_cooling_load`, `temperature_rise`, `fan_cfm_requirement`, `intercooler_core_sizing`, `oil_cooler_sizing`, `trans_cooler_sizing`, `radiator_core_sizing`, `thermal_resistance_network`, `conduction_heat_transfer`, `convection_heat_transfer`, `brake_fluid_boiling_margin`, `brake_duct_cfm`, `rotor_cooling_rate`, `brake_fade_prediction`, `tire_heat_generation`.
+- **Impact:** Wrong delta-temperature values in Metric (fixed).
+- **Decision:** Fixed in its own commit.
+- **Dependencies:** Five Free calculators of the set are also in GH-DEF-001 (checked Imperial → Metric only until that is fixed).
+- **Revisit:** Closure after the final full regression of this pass; the five toggle-only cases after GH-DEF-001.
+- **Commits:** `64d4933`
+- **Tests:** `premium/tests/temperature-units.test.js` (1,025 result/unit checks, 878 toggle-invariance checks).
+- **Docs:** `docs/PREMIUM-CATALOG.md` Batch 9 note and "Reliability pass" → Item 2.
+- **Verification:** `temperature-units.test.js` passes with independent physics for all 25 calculators in both systems; five Free cases fully checked (not only Imperial → Metric) once GH-DEF-001 is fixed.
+- **History:** 2026-10-12 — fixed (`64d4933`); baseline 1,025/878/0 on HEAD `6550452`.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: temperature-units 1,108 result/unit checks and 990 toggle-invariance checks, 0 failures; every case ran the full re-entry / toggle sequence in both starting systems, including the five Free cases that were Imperial to Metric only until GH-DEF-001 was fixed.
+
+### GH-DEF-012 — Temperature Converter °F and °C rows were converted twice in Metric
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium
+- **Priority:** P1 (done)
+- **Description:** The four rows are already the answer in the unit named on each row; the °F and °C rows were passed through the display layer again (70 °F showed "°F: 21.11 °C" and "°C: −6.05 °C" in Metric). `multiResult` gained an optional per-item `raw` flag.
+- **Evidence:** 15 of 64 converter checks failed on the previous engine.
+- **Affected:** `temp_converter`.
+- **Impact:** Wrong numbers in Metric (fixed).
+- **Decision:** Fixed in its own commit; the same defect in seven other converters is GH-DEF-003.
+- **Dependencies:** none.
+- **Revisit:** Closure after the final full regression of this pass.
+- **Commits:** `5d469cd`
+- **Tests:** `premium/tests/temperature-units.test.js` (converter checks, 8 points × 4 rows × 2 systems); `premium/tests/toggle-sweep.test.js` converter section (`CONVERTERS_FIXED`).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Item 2.
+- **Verification:** Every row equals the independent conversion in both systems; rows identical in both systems.
+- **History:** 2026-10-12 — fixed (`5d469cd`).
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: temperature-units 1,108 / 990 checks, 0 failures (converter rows, 8 points x 4 rows x 2 systems); toggle-sweep converter section 735 checks, 0 failures; converters 2,064 checks, 0 failures.
+
+### GH-DEF-013 — Brake Energy, Brake Fade Energy and Head Flow Curve gave wrong results after a toggle or Metric edit
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium
+- **Priority:** P1 (done)
+- **Description:** `brake_energy` and `brake_fade_energy` called `certValue` without the unit (Brake Energy 421,210 ft-lb → 4,852,693 ft-lb after switching to Metric and back); `head_flow_curve` read its "Interpolate Intake at Lift" box with `an()` (raw text, no unit awareness), so a millimetre value was compared with inch lifts and Metric always answered "outside the measured range".
+- **Evidence:** 48 failures on the previous engine, 0 after.
+- **Affected:** `brake_energy` (`wt_be`, `v_be`), `brake_fade_energy` (`bfe_e`), `head_flow_curve` (`flow_query`).
+- **Impact:** Wrong or missing results in Metric (fixed).
+- **Decision:** Fixed in its own commit.
+- **Dependencies:** none.
+- **Revisit:** Closure after the final full regression of this pass.
+- **Commits:** `716b664`
+- **Tests:** `premium/tests/unit-system.test.js` (195 checks including these three).
+- **Docs:** `docs/PREMIUM-CATALOG.md` Batch 10 findings and "Reliability pass" → Item 3.
+- **Verification:** `unit-system.test.js` passes with independent expected values (KE = ½(W/g)v² in SI; table re-interpolated in the test); sweep consistent for the three.
+- **History:** 2026-10-12 — fixed (`716b664`). An earlier note said Brake Energy and Brake Fade Energy "do not use `certValue`"; that was wrong (they use it without the unit) and was corrected in `6550452`.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: unit-system 559 checks, 0 failures (Brake Energy, Brake Fade Energy, Head Flow Curve against independent physics); toggle-sweep 735 checks, 0 failures.
+
+### GH-DEF-014 — Premium result panels were computed from pre-switch display strings after a unit toggle (shared `certValue`)
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium
+- **Priority:** P1 (done)
+- **Description:** After clicking Metric / Imperial, the result panel of a unit-bearing Premium calculator used the pre-switch display strings read as the new system ("3200" lb read as 3200 N) until the next keystroke; 80 of 111 Premium calculators were affected. `certValue(id, fallback, unit)` now reads the exact pre-switch canonical value like `v()`/`vd()` do. `36026e7` put the five lines inside an existing comment (no effect); `bfddb21` moved them to the top of the function.
+- **Evidence:** Sweep over the Premium calculators: 71 failures before, 3 after `bfddb21` (the three of GH-DEF-013), 0 now.
+- **Affected:** Shared helper `certValue`; Premium calculators.
+- **Impact:** Wrong result panel after a toggle (fixed).
+- **Decision:** Fixed in two commits; guarded by durable tests.
+- **Dependencies:** GH-DEF-001 extends the same helper.
+- **Revisit:** Closure after the final full regression of this pass.
+- **Commits:** `36026e7`, `bfddb21`
+- **Tests:** `premium/tests/toggle-sweep.test.js` contract section (fails on `f9bb9e9` and on `36026e7` alone, passes now) and sweep.
+- **Docs:** `docs/PREMIUM-CATALOG.md` Batch 10 findings and "Reliability pass" → Item 4.
+- **Verification:** Contract checks and the Premium part of the sweep pass.
+- **History:** 2026-10-12 — fixed; durable tests added in `08b445b`.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: toggle-sweep certValue contract section and sweep: 735 checks, 0 failures; 696 swept, 694 consistent, the 2 not consistent are the Free expected-rounding calculators, so no Premium calculator is inconsistent.
+
+### GH-DEF-015 — Metric-mode live re-render corrupted results in Batch 1–3 calculators
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium
+- **Priority:** P1 (done)
+- **Description:** `certValue(id, fallback)` never converted a displayed value back to canonical units, so editing any field in Metric fed a metric number to an Imperial formula. Fixed with the optional third `unit` parameter and 62 call-site updates (the pattern GH-DEF-001 shows is still missing in 84 Free calculators).
+- **Evidence:** Recorded in the project plan (Batch 4) as verified with the exact failing repro and a 17-calculator Metric sweep.
+- **Affected:** the 17 Batch 1–3 calculators; shared helper `certValue`.
+- **Impact:** Wrong Metric results (fixed).
+- **Decision:** Fixed before Batch 4.
+- **Dependencies:** none.
+- **Revisit:** Closure after the final full regression of this pass.
+- **Commits:** `df50a05`
+- **Tests:** `premium/tests/toggle-sweep.test.js` sweep (all Premium calculators consistent).
+- **Docs:** project plan Batch 4 row; `docs/PREMIUM-CATALOG.md`.
+- **Verification:** The Premium part of the current sweep passes for the 17.
+- **History:** 2026-10-07 — fixed (`df50a05`); 2026-10-12 — entered in the register.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: toggle-sweep 696 swept, 694 consistent, the only 2 not consistent are the Free expected-rounding calculators (`drivetrain_loss`, `density_altitude`), so all Premium calculators including the 17 are consistent; 735 checks, 0 failures.
+
+### GH-DEF-016 — `hp_from_specs` produced a physically impossible result (missing air-density conversion)
+- **Status:** VERIFIED CLOSED
+- **Severity:** High
+- **Priority:** P1 (done)
+- **Description:** A documented open bug (about 6,390 HP at defaults) in one of the 21 migrated Premium calculators. The Phase 1 notes record the formula as already fixed on `main` before the expansion; regression coverage was added on a separate branch.
+- **Evidence:** Project doc `premium-expansion-phase1-exceptions-resolved.md` (Section C): 5 `hp_from_specs` tests pass, 0 failures. Not re-verified on this branch in this pass.
+- **Affected:** `hp_from_specs`.
+- **Impact:** Wrong HP (fixed on `main`, which is an ancestor of this branch).
+- **Decision:** Closed on the independent check on this branch (`premium/tests/legacy-fixes.test.js`, added at the end of the reliability pass); no engine change.
+- **Dependencies:** none.
+- **Revisit:** Reliability pass Item 4 (cheap independent check) or the next test-hygiene pass.
+- **Commits:** `0fbc388` (verification test on this branch, no engine change). Earlier: `888eb7d` (regression tests, on branch `fix/hp-from-specs-regression-coverage`, not merged into this branch); the formula fix itself predates it on `main` (commit not re-located in this pass).
+- **Tests:** `premium/tests/legacy-fixes.test.js` (every result row against the independent chain, defaults and three edited points, both unit systems); self-test 'hp_from_specs airflow path' (airflow only); the mass-flow tests of `888eb7d` are not on this branch.
+- **Docs:** Project docs `premium-expansion-phase1-reconciliation.md`, `premium-expansion-phase1-exceptions-resolved.md`.
+- **Verification:** `hp_from_specs` at its defaults matches an independent calculation (CFM = CID·RPM·VE/3456, mass flow at the standard density, fuel flow at the stated AFR, power at the stated BSFC) in both unit systems.
+- **History:** 2026-10-07 — recorded as fixed on `main`; 2026-10-12 — entered in the register as FIXED — UNVERIFIED on this branch.
+  2026-10-13 — closed: verified on this branch by `legacy-fixes.test.js` (`0fbc388`): Estimated Airflow, Air Mass Flow, Fuel Flow and Estimated HP equal CFM = CID x RPM x VE / 3456, air mass = CFM x density, fuel = air mass / AFR, HP = fuel x 60 / BSFC at the defaults (about 379 HP, plausible for 350 ci at 6,000 RPM) and at three edited points, in Imperial and in Metric (cc, kg/m³, kg/kW-hr typed). The file has 61 checks in all (shared with GH-DEF-017) and passes 61 of 61 on the final engine; with the original defect put back (air density skipped) and the GH-DEF-017 defect put back it fails 36 of 61.
+
+### GH-DEF-017 — `rc_brake_bias_rc` bug recorded OPEN in older notes
+- **Status:** VERIFIED CLOSED
+- **Severity:** Low
+- **Priority:** P3
+- **Description:** Older deferred-issue material marked this bug OPEN. Phase 1 found an audit fix (`/* FIX (audit, 2026-09)... */`) already in the live repository and treated the bug as resolved.
+- **Evidence:** Phase 1 reconciliation note; the fix comment in the engine. Not independently re-verified in this pass.
+- **Affected:** `rc_brake_bias_rc`.
+- **Impact:** Before the audit fix the weight transfer was inflated about 12 times (an uncapped front share of about 315 % at the defaults, hidden by the 95 % cap); verified fixed, see History.
+- **Decision:** Recorded so the older OPEN marking does not resurface unexplained.
+- **Dependencies:** none.
+- **Revisit:** Next test-hygiene pass.
+- **Commits:** `0fbc388` (verification test, no engine change). The audit fix is in the engine history (commit not re-located in this pass).
+- **Tests:** `premium/tests/legacy-fixes.test.js` (defaults, four edited points and the 95 % cap, both unit systems).
+- **Docs:** Project doc `premium-expansion-phase1-reconciliation.md` ("Special defect flags").
+- **Verification:** Independent expected-value test of the calculator's bias result in both unit systems.
+- **History:** 2026-10-07 — treated as resolved by the live repository; 2026-10-12 — entered in the register.
+
+---
+  2026-10-13 — closed: verified on this branch by `legacy-fixes.test.js` (`0fbc388`): Ideal Brake Bias equals static front share + deceleration x CG height / wheelbase, capped at 95 %, at the defaults (48 % + 1.5 x 16 / 108 = 70.2 %), four edited points and the cap, in Imperial and in Metric (both lengths typed in millimetres, only their ratio matters). 61 of 61 checks pass on the final engine; with the stray /0.0833 term put back the calculator shows 95 % at the defaults and the file fails 36 of 61 (together with the GH-DEF-016 defect put back).
+
+### GH-DEF-018 — Result panel is computed from the shipped defaults after navigating away and returning (Class D)
+- **Status:** VERIFIED CLOSED
+- **Severity:** High (wrong numbers shown next to the user's own inputs, on 404 of 696 calculators)
+- **Priority:** P1 (done; reliability pass Item 3b)
+- **Description:** Type a value into a calculator, open another calculator, come back: the boxes show what was typed (the remembered text is restored) but the result panel shows the result for the shipped defaults. The next keystroke or click re-renders it correctly, so the panel and the boxes disagree until then. No unit switch is involved. Cause read in the code: `renderCalc` restores every remembered box through `CALC_FIELD_SNAPSHOT`, but `v()` and `vd()` read the live DOM, and on a return trip the container still holds the previous calculator's page while the calculator function runs, so the field is "missing" and `v()` / `vd()` fall back to the default. `certValue()` reads the snapshot first, which is why none of the 84 calculators in GH-DEF-001 is affected.
+- **Evidence:** `premium/tests/nav-return.test.js` (real Chromium, real typing): 696 calculators checked, 404 inconsistent (392 Free, 12 premium-tier legacy engine calculators), 0 test errors, 0 of the 84 GH-DEF-001 calculators. Examples: `hp_quarter_mile` (weight 4275 typed → panel 479 HP; after returning 383 HP), `hp_from_torque` (612.5 → 466.5 HP; after returning 373.2 HP), `crosswind_force` (75 → 738 lbf; after returning 490 lbf), `dew_point`, `static_compression`, `hp_from_specs`. Reproduction: Imperial, open Quarter-Mile HP from ET, type 4275 in Weight, open any other calculator, return.
+- **Affected:** Shared: `v()`, `vd()`, `renderCalc`. The 404 calculators were listed once, in `premium/tests/data/nav-return-open.json` (the test's known-open ledger); that ledger is now empty and keeps the former 404 ids under `history.was_open_ids`. They are not repeated here.
+- **Impact:** A user can read a result that does not belong to the inputs on screen, and act on it, until they touch a field.
+- **Decision:** Fixed in reliability pass Item 3b as the continuation of the Item 3 "navigating away and returning" matrix. The candidate recorded earlier (make `v()` / `vd()` read the remembered text when the field is not on the page) was NOT used: those readers are used by nearly every legacy calculator and the remembered text would have to be converted through each field's unit in every one of them. Instead `renderCalc` runs the calculator function a second time, with the new boxes on screen, when the page has boxes that were not on screen before AND at least one of them is filled from remembered text (what a keystroke in one of the boxes already does). Not repeated: a re-render of the open page (no new boxes) and a calculator opened with nothing remembered (boxes and result are both the shipped defaults). A first version repeated on every open; the before/after comparison showed 43 calculators changing in Metric on a fresh open (the Metric box text is a rounded conversion of the default, so the repeat moved the result by display rounding, GH-EXP-003, and made `density_altitude` show "-0 m", GH-DEF-022), so it was narrowed to the remembered-text case. The repeat is display-only (`window.GH_RENDER_REPEAT`): `syncAirflowStateFromDOM()` does not save during it. Without that guard, opening `camshaft_ivc`, `cam_card` or `head_flow_curve` in Metric rewrote the stored airflow config with round-trip noise (80 became 80.00008); with it the stored config is byte-identical after opening in both systems (probe with a saved non-default config) and the number of storage writes per navigation render is identical for all 696 calculators.
+- **Dependencies:** GH-DEF-001 (the field-unit registry that Item 1 adds is what a snapshot read would need); GH-DEF-004; GH-ENG-004 (staging handoffs write into the same store); GH-ENG-005 (id collisions between calculators).
+- **Revisit:** Reliability pass Item 3 design.
+- **Commits:** `7846339` (engine change, ledger emptied, tests, catalog hash). Evidence-only precursor: the commit that registered this entry and added the test.
+- **Tests:** `premium/tests/nav-return.test.js` with the ledger `premium/tests/data/nav-return-open.json` (now empty); `premium/tests/remembered-values.test.js` (adds `ev_regen_power` and `hp_from_torque`, calculators that read their boxes through `vd()`); both run by `premium/tests/run-browser-tests.sh`.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" (summary added at the end of the pass).
+- **Verification:** The ledger emptied (or each remaining calculator reclassified here with a reason), `nav-return.test.js` passing on all 696 calculators with an empty ledger, the Item 3 navigation matrix passing, and no change in the other suites (engine self-test baseline, unit-system, temperature, toggle-sweep).
+- **History:** 2026-10-12 — found by the navigation probe while preparing Item 3; mechanism confirmed in the code; the 404 / 696 count measured on the engine at `2c89397`.
+  2026-10-12 — fixed in `7846339`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `nav-return.test.js` with the ledger emptied fails 404 of 696 calculators on the previous engine (`5b742c2`) and passes on the fix (692 consistent, 0 inconsistent, 4 without a numeric input skipped); `remembered-values.test.js` fails 12 of 371 checks on the previous engine and 0 of 371 on the fix; a before/after comparison of all 696 calculators in both systems (default render plus a 1.25 x retype of up to 8 fields) changed 0 in Imperial and 0 in Metric; navigation-render side effects (toasts, storage writes, new globals) are identical for all 696; engine self-test 674 total / 666 passed / 8 failed (the 8 known baseline failures), smoke 19/19, unit-system 559, temperature 1,108 + 990, converters 2,064, toggle-sweep 735, label-consistency 696 checked with the 29 known-open (GH-DEF-020), all with 0 failures. Anchor: Quarter-Mile HP from ET, Weight 4275 typed, another calculator opened, return: the panel read 383 HP before and 479 HP now, equal to the value before leaving.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: nav-return 696 calculators checked (4 without a numeric input skipped), 692 consistent, 0 inconsistent, ledger `nav-return-open.json` empty, 0 failures; remembered-values 371 checks, 0 failures; the other suites unchanged (engine self-test 674 / 666 / the 8 known failures, unit-system 559, temperature-units 1,108 + 990, toggle-sweep 735, all 0 new failures).
+
+### GH-DEF-021 — A box id shared by two calculators lets one calculator's remembered text appear in the other, even when the units differ
+- **Status:** VERIFIED CLOSED
+- **Severity:** Low (4 box ids; wrong value shown in a box on direct navigation)
+- **Priority:** P1 (done; reliability pass Item 3)
+- **Description:** `renderCalc(id)` captures every input of the page on screen into the remembered state of the calculator being opened, and restores the focused box's text into the new page. When two calculators use the same box id, the first calculator's text appeared in the second. For 57 of the 61 shared ids the units agree (sibling calculators) and the hand-off is harmless; for four the units differ, so a value of one unit became a value of another: a g-value typed in `weight_transfer` (`g2`) became the gear ratio of `gear_shift_rpm_drag`; `epc_p`, `eir_i` and `dds_t` likewise (inH2O / unit-less, CFM / A, hr / lb-ft).
+- **Evidence:** Collision list and reproduction in GH-ENG-005 (superseded by this entry): `g2` 0.9 typed in Weight Transfer showed 0.9 as the gear ratio of Gear Shift RPM / Drag. Two paths were reproduced: the capture into the new calculator's remembered state, and the focus restore (navigating with the box still focused, for example through the browser history).
+- **Affected:** Shared: `renderCalc`, `field()`, `certValue()`. Box ids `g2`, `epc_p`, `eir_i`, `dds_t` and the calculators named above.
+- **Impact:** A wrong value in one box of a rarely used calculator pair.
+- **Decision:** Fixed with the remembered-value records of GH-DEF-004: another calculator's text for a shared id is refused when it was displayed in a different unit (`snapshotHas()`), and a focused box's text is carried over only for a re-render of the same page. The capture rule itself is not changed: the hand-off between sibling calculators with the same unit is kept (tested with the cam-lift pair).
+- **Dependencies:** GH-DEF-004.
+- **Revisit:** Closure after the final full regression of this pass.
+- **Commits:** `def921c`
+- **Tests:** `premium/tests/remembered-values.test.js` (hand-off, same unit: kept; different units: refused; navigation with focus kept: refused).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** The four ids no longer carry a value across calculators with different units; the same-unit hand-off still works; no other calculator changes (before/after comparison of all 696).
+- **History:** 2026-10-12 — hypothesis GH-ENG-005 reproduced with `g2` during Item 3; registered here and fixed in `def921c`; the g2 checks fail on the previous engine (2 of 308 failures) and pass on the fix.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: remembered-values 371 checks, 0 failures (hand-off, same unit: kept; different units: refused; navigation with focus kept: refused); before/after comparison of all 696 calculators at `def921c` showed no other calculator changed.
+
+### GH-DEF-019 — `distance_converter` turns yards into kilometres with 0.000914 instead of 0.0009144
+- **Status:** VERIFIED CLOSED
+- **Severity:** Low
+- **Priority:** P3 (done in the closeout phase, 2026-10-13)
+- **Description:** With "From Unit" set to Yards the Kilometers row uses the factor 0.000914; the exact value is 0.0009144 (1 yd = 0.9144 m). The result is 0.044 % low. Every other factor in the converter is exact to its displayed precision.
+- **Evidence:** Authoritative definition: the international yard is exactly 0.9144 m (International Yard and Pound Agreement, 1959; NIST SP 811 Appendix B), so 1 yd = 0.0009144 km exactly and the engine's 0.000914 was 0.0438 % low (0.0009144 / 0.000914 = 1.000438). Reproduction on the previous engine: `premium/tests/converters.test.js` 123,456.789 yd gave 112.8395 km against the exact 112.8889 km (relative -4.37e-4) in both unit systems; at small inputs the 4-decimal display hid it (1.7 yd = 0.0016 km either way). The converter's other factors were all exact to their displayed precision (the same test). After the fix the test's list of known deviations is empty and 123,456.789 yd reads 112.8889 km in Imperial and Metric.
+- **Affected:** `distance_converter`, input "Yards", row "Kilometers" only.
+- **Impact:** A fraction of a metre per kilometre; visible only for large inputs.
+- **Decision:** Fixed, isolated, one constant in two places: the `distance_converter` table row `'yd':[1/1760, 0.000914 -> 0.0009144, 3, 0.9144, 1]` and the displayed registry copy `GH_BACKFILL_FORMULAS.distance_converter` (`k_km` 0.0009144), so the formula the page shows and the number it computes agree. Nothing else in the converter changed. **Consequence recorded:** the registry text is part of the formula fingerprint, so `distance_converter` has a new fingerprint (`fv1-36d27af2` -> `fv1-4001b424`); this is covered by GH-ENG-014, which now proposes two rows (`docs/ENG-014-FORMULA-VERSION-MIGRATION-PROPOSAL.md`). No production change.
+- **Dependencies:** none.
+- **Revisit:** When the converters are next touched, or on request.
+- **Commits:** `00c31c5`.
+- **Tests:** `premium/tests/converters.test.js` (independent exact factor for every row; `KNOWN_DEVIATIONS` is now empty); `premium/tests/formula-fingerprints.test.js` (`VERSIONED` records the new fingerprint and fails if it changes again or goes stale).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** 123,456.789 yd reads 112.8889 km in both systems; the `KNOWN_DEVIATIONS` entry removed from `converters.test.js`; the yard conversion proven by the test on the fixed engine and failing on the old one; the fingerprint change recorded. (All met.)
+- **History:** 2026-10-12 — found by the independent-factor converter test; entry created.
+  2026-10-13 — fixed in `00c31c5` (found 2026-10-12). Evidence at that commit: `converters.test.js` with an empty deviation list fails on the previous engine (yards row, -4.37e-4 relative) and passes on the fix; formula-fingerprints now records the two corrected formulas.
+  2026-10-13 — closed: verification criteria met by the closeout regression, run suite by suite on engine sha256 d3906d19… at HEAD `e818939`: converters 2,064 checks, 0 failures (123,456.789 yd = 112.8889 km, both systems); formula-fingerprints 577 seed formulas, 575 identical to the production seed, 2 recorded as corrected (`dew_point`, `distance_converter`), 0 failures. The new `distance_converter` fingerprint is a production-table question, GH-ENG-014 (open).
+
+### GH-DEF-020 — 29 Free calculators declare a Metric-named unit on a value the engine treats as Imperial, so Metric shows and reads the wrong number
+- **Status:** VERIFIED CLOSED
+- **Severity:** High (a Metric user who types a labelled value into an affected field gets a different, wrong answer: the same labelled number typed in Imperial and in Metric gives a different result, in a result row whose unit text is identical in both systems, for 22 of the 29)
+- **Priority:** P1 (done in the closeout phase, 2026-10-13)
+- **Description:** These calculators print a Metric unit name (`cc`, `mm`, `kW`, `kg`, `m`, `L/100km`, `°C`, `J`) on a field or result that already holds that unit. The display layer knows the Metric names only as the Metric label of an Imperial-canonical unit (`kW` → HP, `mm` → in, `cc` → in³, `kg` → lb, `m` → ft, `°C` → °F, `J` → ft-lb), so in Metric it converts the number a second time: the same label shows a different number (`ev_charge_added`: 7 kW in Imperial, 5.2199 kW in Metric), and a value typed in Metric is converted back as if it were the other unit before the calculator uses it. Grouped by cause: **`cc`** (`static_compression`, `milling_heads`, `head_gasket_vol`); **`mm`** (`tire_size`, `tire_size_comparison`, `throttle_body` "Required Bore (metric)", `tap_drill_size`, `tap_drill`, `thread_engagement`, `fraction_decimal` "Millimeters", `wheel_offset`); **`kW`** (`ev_charge_time`, `ev_motor_power`, `ev_motor_torque`, `ev_battery_current`, `ev_peak_power`, `ev_motor_efficiency`, `ev_inverter_loss`, `ev_power_conversion`, `ev_charge_added`, `ev_hvac_energy`, `hybrid_power_split`, `hybrid_regen_energy`, `fuel_cell_power`, `fuel_cell_efficiency`); **other** (`fuel_economy` "L/100km", `reaction_distance` "Distance (m)", `heat_input_per_cycle` kg and J, `ev_coolant_flow` a 5 °C temperature rise shown as −15 °C). Imperial mode is the reference: its figures are the ones the calculators' own formulas use (not independently re-derived here). The machine-readable list is `premium/tests/data/label-consistency-open.json`.
+- **Evidence:** Triage of all 29 against independent physics (`premium/tests/native-units.test.js`: each calculator in 8 stages, typed in Imperial, after the Metric click, one box retyped, all retyped, repeated toggles, fresh Metric page; expected rows computed in the test from the textbook formulas). **On the engine before the fix 0 of 29 pass; after the fix 29 of 29 pass.** Classification, no calculator is left unclassified:
+  - **Double conversion producing an incorrect number in Metric: 29 of 29.** The display layer knows the Metric names only as the Metric label of an Imperial-canonical unit (`kW` of HP, `mm` of in, `cc` of in3, `kg` of lb, `m` of ft, `J` of ft-lb, a degC rise of a degF rise), so a number already in that unit was converted a second time on the way out and again on the way in.
+  - Correct number with a wrong label only: **0**. Intentional or ambiguous convention: **0**. False positive: **0**. Unresolved: **0**. (Every one of the 29 gave a physically wrong figure in Metric: e.g. `head_gasket_vol` 9.2988 cc shown as 152.38 cc, `reaction_distance` 20.1 m as 6.1 m, `fuel_economy` 9.4 L/100km as 25.0, `static_compression` 13.1:1 as 74.2:1, `ev_battery_current` 526 A as 706 A, `wheel_offset` 25.4 mm as 645.16 mm.)
+  - **Group A, result rows only (9 calculators, fixed in `8787c9e`):** `ev_motor_power`, `ev_peak_power`, `fuel_cell_power` (kW); `fraction_decimal` (mm); `head_gasket_vol`, `milling_heads` (cc); `throttle_body` (mm bore); `reaction_distance` (m); `fuel_economy` (L/100km). Cause: a Metric-named unit on a result the calculator produced in that unit. Fix: the existing `raw` flag (6th argument of `resultHTML`, per-item `raw` of `multiResult`), 17 rows in 15 calculators (the 15 include 6 calculators of group B).
+  - **Group B, input boxes too (20 calculators, fixed in `1e38852`):** kW: `ev_battery_current`, `ev_charge_added`, `ev_charge_time`, `ev_hvac_energy`, `ev_inverter_loss`, `ev_motor_efficiency`, `ev_motor_torque`, `ev_power_conversion`, `fuel_cell_efficiency`, `hybrid_power_split`, `hybrid_regen_energy`; degC rise: `ev_coolant_flow`; mm: `tap_drill`, `tap_drill_size`, `thread_engagement`, `tire_size`, `tire_size_comparison`, `wheel_offset`; cc: `static_compression`; kg and J: `heat_input_per_cycle`. Cause: a value typed as "200 kW" was read as 268 "kW" (x1.341), "245 mm" as 9.65 "mm", "64 cc" as 3.9 "cc", "5 degC" as 41 "degC". Fix: `field()` takes an optional `native` argument (default false = unchanged for every other box) and `nativeField()` is the one-line wrapper; a native box is not registered for conversion, carries no `data-ghm-unit`, and `v()`, `vd()` and `certValue()` read it as typed. 30 boxes in 20 calculators are declared native (28 call sites); their unit text and Imperial behaviour are unchanged.
+  - Why a shared rule was not used: `getU()` returns the same Metric literal (`'kW'`) in Metric mode for fields that must convert, so the display layer cannot tell a Metric-native declaration from a Metric-system label; each declaration is explicit. Imperial mode is the reference and is unchanged: 0 of 696 calculators changed in Imperial (comparison of the engine of `9c6faad` with the final engine, both systems, every numeric field retyped); in Metric 33 changed: these 29, the three energy labels of GH-IMP-001 and `density_altitude` of GH-DEF-022; 0 page errors in either system
+  - Structural guard: `premium/tests/declared-metric-units.test.js` renders all 696 calculators in Imperial with `field()`, `resultHTML()` and `multiResult()` wrapped and fails on any Metric-named declaration that is not native/raw: on the engine before the fix it finds exactly these 29; now 59 native/raw declarations in 38 calculators and 0 unprotected, and it fails if the scan itself is blind. A new calculator cannot reintroduce the defect with a zero default.
+- **Affected:** the 29 calculators in the ledger (21 from the GH-ENG-001 inventory, eight from GH-DEF-001's Metric-named group). Shared: `field()`, `fmtUnitValue`, `convertForDisplay`, `UNIT_ALIASES`.
+- **Impact:** Wrong inputs echoed and wrong results for Metric users on these calculators. Imperial users are unaffected.
+- **Decision:** Fixed in two logically separate commits (result rows, then input boxes) with the tests that prove them; no product-convention question arose, so nothing was added to the register for the owner. Not touched, by instruction: the 47 vehicle/trailer weight rows of GH-IMP-013 (kg versus N is an open convention decision). The 134 metric-declared rows of the census are the protected population of this entry (`unit-census.test.js` classifies them `metric-declared`).
+- **Dependencies:** GH-DEF-001 (the field-unit registry, `dc9dfd8`), GH-DEF-007 (unregistered units), GH-ENG-001 (audit).
+- **Revisit:** On authorization, or before any calculator in the list is touched for another reason.
+- **Commits:** `8787c9e` (result rows), `1e38852` (input boxes and the tests). Note: the message of `1e38852` cites the result-row commit by its pre-rebase hash `10c832b`; it is `8787c9e` (the pass reworded one unpublished message; the tree is identical).
+- **Tests:** `premium/tests/native-units.test.js` (new, 29 calculators x 8 stages, independent physics); `premium/tests/declared-metric-units.test.js` (new, structural scan of all 696); `premium/tests/label-consistency.test.js` with the ledger `premium/tests/data/label-consistency-open.json` now empty (history of the 29 kept in the file); all run by `premium/tests/run-browser-tests.sh`.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** The ledger emptied, `label-consistency.test.js` passing on all 696 calculators with an empty ledger, one independent-physics case per calculator passing in both systems at defaults, after toggle, after editing each field and after repeated toggles, the toggle sweep and the other suites unchanged. (All met.)
+- **History:** 2026-10-12 — found by auditing the GH-ENG-001 inventory after GH-DEF-002/003 were fixed (`df3764b`): the audit probe was run on the fixed engine and listed 28; `wheel_offset` was added after a non-zero test input exposed it (its defaults are 0). 21 of the 29 are inventory entries, eight are the Metric-named calculators noted in GH-DEF-001's scope note.
+  2026-10-13 — fixed in `8787c9e` and `1e38852`; status FIXED — UNVERIFIED until the closeout regression. Evidence at those commits: native-units 0 of 29 pass on the previous engine and 29 of 29 now; label-consistency 696 of 696 consistent with the ledger empty.
+  2026-10-13 — closed: verification criteria met by the closeout regression, run suite by suite on engine sha256 d3906d19… at HEAD `e818939`: label-consistency 696 calculators checked, 696 consistent, 0 inconsistent, 0 failures; native-units 29 calculator cases (each in 8 stages), 29 passing, 0 failing; declared-metric-units 696 rendered, 59 Metric-named declarations in 38 calculators native/raw, 0 unprotected; toggle-sweep 696 swept, 694 consistent, 2 in the expected-rounding ledger, 735 checks, 0 failures; unit-system 559, temperature-units 1,108 + 990, converters 2,064, remembered-values 371, mass-force 601, unit-census 2,622, all 0 failures. Before/after of all 696 calculators in both systems: 0 of 696 calculators changed in Imperial (comparison of the engine of `9c6faad` with the final engine, both systems, every numeric field retyped); in Metric 33 changed: these 29, the three energy labels of GH-IMP-001 and `density_altitude` of GH-DEF-022; 0 page errors in either system
+
+### GH-DEF-022 — A result that is a tiny negative number is shown as "-0" (Pressure Altitude "-0 m" in Metric)
+- **Status:** VERIFIED CLOSED
+- **Severity:** Low (cosmetic; the number is correct to display precision)
+- **Priority:** P3 (done in the closeout phase, 2026-10-13)
+- **Description:** In Metric, `density_altitude` shows "Pressure Altitude -0 m" after any live re-render at its defaults (the altimeter box holds the rounded text 101.321 kPa, which converts back to a value a hair away from 29.92 inHg, so the pressure altitude is about -0.0002 ft). Imperial shows "0 ft". A zero should not carry a minus sign.
+- **Evidence:** Reproduced (previous engine, Metric, Density Altitude, any live re-render): "Pressure Altitude -0 m"; Imperial and a fresh open show "0". **Presentation only; no meaningful result is masked.** Cause: the altimeter box holds the rounded text 101.321 kPa, which converts back to 29.920 inHg a hair away from the standard 29.92 (about -0.0002 ft of pressure altitude), and `toLocaleString` keeps the sign of the number it rounds. At standard pressure the true pressure altitude is 0. A real negative pressure altitude is a different case and is kept: altimeter 30.50 inHg at 0 ft elevation gives (29.92 - 30.50) x 1000 = -580 ft = -176.784 m, shown with its minus sign in both systems (tested). **Tolerance:** the sign is dropped only when the DISPLAYED text is a minus sign followed by zeros, i.e. when the value rounds to zero at the precision shown (half a unit of the last displayed digit): -0.00004 at 4 decimals reads "0", but -0.0004 stays "-0.0004", -0.06 at one decimal is "-0.1" and -0.049 at one decimal is "0". `premium/tests/negative-zero.test.js`: 12 formatter cases, Density Altitude in both systems (fresh, after a live re-render, a real negative pressure altitude), and a sweep of all 696 calculators in both systems (fresh render, then the first box retyped with its own value; `SWEEP_BOXES=n` retypes more) for a stand-alone "-0". **On the previous engine it fails 6** (four formatter cases, Density Altitude after a re-render, and the sweep finds the same calculator, Metric only); **on the fix it fails 0.**
+- **Affected:** `density_altitude`, Pressure Altitude row, Metric. The cause is in how a value that rounds to zero is formatted (`fmtUnitValue` / the result formatter), so any future calculator whose result lands on zero from below would show it too.
+- **Impact:** A confusing but harmless label.
+- **Decision:** Fixed narrowly in `fmtUnitValue()`: it drops the leading minus only when the formatted text matches a minus sign followed only by zeros (`/^[-\u2212]0(?:[.,]0+)?$/`). The number, its precision and every other value are untouched. The comparison of all 696 calculators: `density_altitude` is the only calculator whose Metric display changed because of this fix ("Pressure Altitude -0m" became "0m"; the comparison of all 696 calculators, previous engine against the final one, both systems, every numeric field retyped); the 32 other Metric changes belong to GH-DEF-020 (29) and GH-IMP-001 (3), Imperial changed in 0 calculators
+- **Dependencies:** GH-EXP-003 (the round trip that produces the tiny negative value is expected behaviour).
+- **Revisit:** When the formatter is next touched, or on request.
+- **Commits:** `eebcd57`.
+- **Tests:** `premium/tests/negative-zero.test.js` (new; added to `run-browser-tests.sh`).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** Metric `density_altitude` after a live re-render at the defaults reads "0 m"; no other calculator shows a stand-alone "-0"; a real small negative keeps its sign. (All met.)
+- **History:** 2026-10-12 — found while explaining 43 Metric differences in the Item 3b comparison; confirmed to exist before that change; entry created.
+  2026-10-13 — fixed in `eebcd57`; closed on the closeout regression at HEAD `e818939`: negative-zero 20 formatter / Density Altitude checks and 696 + 696 calculator sweeps (Imperial + Metric), 0 failures (6 on the previous engine). Pressure Altitude is computed with the 1000 ft per inHg rule; its difference from the standard-atmosphere relation is recorded separately as GH-IMP-016.
+
+### GH-DEF-023 — Airflow Power and Engine Airflow handoffs read displacement and air density as raw text, ignoring the unit system
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium
+- **Priority:** P1 (done; reliability pass Item 4d)
+- **Description:** `an(id, default)` in the airflow extension is a bare `parseFloat` of the box text. A Metric box shows centimetres cubed, kilograms per cubic metre and so on, and `an()` hands that number to code that expects Imperial. Two buttons use it for a unit-bearing box: the **Airflow vs RPM** graph of Engine Airflow Estimation reads `air_d` (displacement, declared `ci`; Metric shows cc) and the **Stage Estimate for Power/Torque Simulator** button of Airflow → Power Estimate reads `ap_rho` (air density, declared `lb/ft³`; Metric shows kg/m³). The same raw read is in `GHM_AIRFLOW_POWER`, the helper that function was written for. The unitless boxes (`air_ve`, `air_cycle`, `ap_ve`, `ap_afr`) are unaffected.
+- **Evidence:** Reproduced on the engine at `4b38fe2` (page defaults, active profile 408 ci / 2,800 RPM / 6 cylinders): Imperial, the graph's value at 2,800 RPM is 297.5 CFM, equal to the displayed Engine Volume Flow 297.5 CFM. Metric, the displayed Engine Volume Flow is 8,424.26 L/min and the graph's value at 2,800 RPM is 138,048.9 L/min, **16.39 times too high** (the box reads 6,685.92 cc and the graph computes with 6,685.92 cubic inches). Staging: Imperial, the curve's value at 2,800 RPM is 185.8 HP, equal to the displayed Estimated Horsepower 185.79 HP; Metric the same click stages 2,976 HP, **16.02 times too high** (the box reads 1.22541 kg/m³ and the curve computes with 1.22541 lb/ft³ instead of 0.0765). `an()` has no other consumer (GH-ENG-003).
+- **Affected:** `engine_airflow_estimate` (graph button), `airflow_power_estimate` (Stage Estimate button), `window.GHM_ENGINE_AIR_GRAPH`, `window.GHM_STAGE_AIRFLOW`, `window.GHM_AIRFLOW_POWER`. Not the numeric results of either calculator, which read every box with `vd()`. The staged curve is what the Power/Torque Simulator plots when its curve source is "airflow".
+- **Impact:** In Metric, a chart 16.4 times too high beside a correct result, and a horsepower curve 16.0 times too high staged into the Simulator. Imperial is correct.
+- **Decision:** Fixed with the smallest change: the three unit-bearing reads (`air_d` in the graph, `ap_rho` in the staging button and in `GHM_AIRFLOW_POWER`) use `vd()`, the unit-aware reader every calculator in the same block already uses, with the same defaults. The unitless boxes (VE, cycle, AFR) keep `an()`: a bare read is correct for a number with no unit. No formula, registry entry or helper changed (so no formula fingerprint changes).
+- **Dependencies:** GH-DEF-013 (the same class of defect in Head Flow Curve); GH-DEF-024 (same function, different cause).
+- **Revisit:** Reliability pass Item 4d.
+- **Commits:** `6bbea45` (3 reads, catalog hash, `airflow-readers.test.js`, test runner).
+- **Tests:** `premium/tests/airflow-readers.test.js` (groups A and B; 69 checks and 544 points at that commit, extended in GH-DEF-024).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** `airflow-readers.test.js` passes with independent expected values (four-stroke volume flow = displacement x RPM x VE / 3,456; Metric litres per minute = CFM x 28.316846592; displacement typed in cc / 16.387064 = cubic inches; density typed in kg/m³ x 0.062427961 = lb/ft³; horsepower = air mass flow / AFR x 60 / BSFC) in both systems, and fails on the engine before the change.
+- **History:** 2026-10-12 — found by reproducing GH-ENG-003 (Item 4d); entry created.
+  2026-10-12 — fixed in `6bbea45`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: `airflow-readers.test.js` fails 12 of 69 checks on the engine before the change (all in Metric: the graph is 16.3871 times the physics, which is exactly the cc per cubic inch, in all four scenarios; the staged curve and `GHM_AIRFLOW_POWER()` are 16.02 times the physics, which is the kg/m³ per lb/ft³) and 0 of 69 on the fix; Imperial was correct throughout. Regression at that commit: engine self-test 674 total / 666 passed / 8 failed (the 8 known baseline failures, no new one); browser smoke 19/19; unit-system 559 checks, 0 failures; temperature-units 1,108 + 990 checks, 0 failures; toggle-sweep 735 checks (696 swept, 2 in the known-open ledger), 0 failures; nav-return 0 inconsistent; label-consistency 29 known-open, 0 failures; converters 2,064, remembered-values 371, dew-point 688, formula-fingerprints 577, mass-force 601, unit-factors 515, unit-census 2,535 checks, all 0 failures; run-tests.sh catalog / register / frontend 55/55 / schema 26/26 all passing. A before/after comparison of all 696 calculators (both systems, every numeric field retyped) changed none.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: airflow-readers 131 checks (628 curve / estimate points), 0 failures, groups A and B: the Airflow vs RPM graph equals the independent flow at all 61 points and the staged curve and `GHM_AIRFLOW_POWER()` equal the independent horsepower, in Imperial and Metric; it failed 12 of 69 checks on the engine before `6bbea45`.
+
+### GH-DEF-024 — "Stage Estimate for Power/Torque Simulator" ignores the displacement and BSFC entered in the calculator
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium
+- **Priority:** P2 (done; found while fixing GH-DEF-023)
+- **Description:** The staging button sweeps ten RPM points from 1,000 to the profile's peak RPM and computes horsepower at each. It takes the displacement from the active profile (`p.displacement`, never the **Displacement** box `ap_d`) and reads BSFC from `ap_bsfc`, a box that does not exist (the box is `ap_bs`), so the default 0.5 lb/hp-hr is always used. `GHM_AIRFLOW_POWER`, the helper meant for the same purpose, has the same stale ids (`ap_disp`, `ap_rpm`, `ap_bsfc`). A person who changes the displacement or the BSFC and then stages the estimate stages a curve that does not contain their numbers. The air density, VE and AFR are read from the right boxes.
+- **Evidence:** Reproduced on the engine at `4b38fe2`, both systems: at the defaults the curve's value at 2,800 RPM equals the displayed estimate. After typing Displacement 400 ci (6,554.8 cc in Metric) and BSFC 0.45 (0.2737 kg/kW-hr) the displayed Estimated Horsepower moves from 185.79 to 202.38 HP (150.93 kW in Metric) and the staged curve is unchanged: 185.8 HP at 2,800 RPM before and after.
+- **Affected:** `window.GHM_STAGE_AIRFLOW`, `window.GHM_AIRFLOW_POWER`; `airflow_power_estimate` button. The code does not say whether using the profile's displacement was intended; the button sits under the estimate and is labelled "Stage Estimate", and the helper written for it reads boxes, so the numbers on the page are taken to be what is staged.
+- **Impact:** The Simulator plots a curve for a different engine than the one the estimate describes, whenever the displacement or BSFC was changed from its default. Same in both unit systems.
+- **Decision:** Fixed in its own commit, after GH-DEF-023: `GHM_STAGE_AIRFLOW` reads `ap_d` and `ap_bs` with `vd()`, and `GHM_AIRFLOW_POWER` reads `ap_d`, `ap_r` and `ap_bs` with `vd()` (the ids that exist), keeping the profile values and 0.5 as the defaults. The RPM sweep of the staged curve (1,000 to the profile's peak RPM, ten points) is left alone: the RPM box is the operating point of `GHM_AIRFLOW_POWER` only. Not changed: VE, AFR (already read from the correct ids) and the formulas.
+- **Dependencies:** GH-DEF-023.
+- **Revisit:** Reliability pass Item 4d.
+- **Commits:** `7482992` (4 reads in 2 functions, catalog hash, `airflow-readers.test.js` group C).
+- **Tests:** `premium/tests/airflow-readers.test.js` (groups A, B and C; 131 checks and 628 points).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** After editing displacement, VE, density, AFR and BSFC in either system, the staged curve equals the independent horsepower at each of its ten RPM points (to the 0.1 HP the curve stores), and `GHM_AIRFLOW_POWER()` equals the displayed estimate at the box RPM.
+- **History:** 2026-10-12 — found while reproducing GH-DEF-023; entry created.
+  2026-10-12 — fixed in `7482992`; status FIXED — UNVERIFIED until the closing regression of this pass. Evidence at that commit: group C of `airflow-readers.test.js` (displacement edited, BSFC edited, and RPM / displacement / VE / density / AFR / BSFC edited together, both systems) fails 32 of 131 checks on the engine with only GH-DEF-023 fixed (16 per system: the staged curve is the profile engine at 0.5 lb/hp-hr, e.g. 66.4 HP at 1,000 RPM where the edited 400 ci engine gives 65.05 HP and BSFC 0.45 gives 73.72 HP; `GHM_AIRFLOW_POWER()` ignores the displacement, RPM and BSFC boxes and disagrees with the horsepower the page shows) and 0 of 131 on the fix, including `GHM_AIRFLOW_POWER()` equal to the Estimated Horsepower row. Regression at that commit: engine self-test 674 total / 666 passed / 8 failed (the 8 known baseline failures, no new one); browser smoke 19/19; unit-system 559 checks, 0 failures; temperature-units 1,108 + 990 checks, 0 failures; toggle-sweep 735 checks (696 swept, 2 in the known-open ledger), 0 failures; nav-return 0 inconsistent; label-consistency 29 known-open, 0 failures; converters 2,064, remembered-values 371, dew-point 688, formula-fingerprints 577, mass-force 601, unit-factors 515, unit-census 2,535 checks, all 0 failures; run-tests.sh catalog / register / frontend 55/55 / schema 26/26 all passing. A before/after comparison of all 696 calculators (both systems, every numeric field retyped) changed none.
+  2026-10-13 — closed: verification criteria met by the closing regression of the pass, run suite by suite on the final engine (sha256 df33ab91…, unchanged since `7482992`) at HEAD `285be2a`. Evidence: airflow-readers 131 checks, 0 failures, group C: after editing displacement, BSFC, and RPM / displacement / VE / density / AFR / BSFC together, the staged curve equals the independent horsepower at its ten points and `GHM_AIRFLOW_POWER()` equals both the physics and the Estimated Horsepower row, in Imperial and Metric; it failed 32 of 131 checks on the engine before `7482992`.
+
+### GH-DEF-025 — Forces declared in the mass unit read kilograms in Metric (downforce, lateral force, clamp load, bearing load, valve-spring seat pressure)
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium
+- **Priority:** P1 (done in the Metric-convention phase)
+- **Description:** 12 rows in 7 calculators are forces but were declared `lbs`, the mass unit, so Metric showed kilograms (the number is the force divided by g, so it is consistent but the unit is wrong for a force, and a catalogue rating typed in newtons or kilonewtons was read as kilograms, 9.8 times too large). Several sat beside the correct unit for the same quantity: `valve_spring_rate` printed its seat pressure in kg and its spring rate in N/mm in one panel (open pressure = seat + rate × lift could not be done by hand), while `spring_force_at_lift` prints "Seat Load" in N; `lateral_accel` printed "Lateral Force" in kg and `crosswind_force` prints it in N; `rc_downforce` printed downforce and drag in kg while `downforce`, `wing_force`, `lift_force` and `drag_force` print N; `bearing_life` read loads in kg while `main_bearing_load` and `rod_bearing_pv` read N.
+- **Evidence:** Found by the Metric-convention review (scan of all pound-unit rows on the Imperial and Metric pages, `22dd022`; the 119 `lbs` rows were read one by one). Before and after at the default state:
+
+  | Calculator | Row | Default (Imperial) | Metric before | Metric after |
+  |---|---|---|---|---|
+  | `lateral_accel, lateral_acceleration (alias)` | OUT "Lateral Force" | 4,118 lbs → 4,118 lbf | 1,867.9 kg | 18,318 N |
+  | `rc_downforce` | OUT "Downforce at Speed" | 245 lbs → 245 lbf | 111.1 kg | 1,090 N |
+  | `rc_downforce` | OUT "Downforce @ 150 mph" | 552 lbs → 552 lbf | 250.4 kg | 2,455 N |
+  | `rc_downforce` | OUT "Downforce @ 200 mph" | 982 lbs → 982 lbf | 445.4 kg | 4,368 N |
+  | `rc_downforce` | OUT "Estimated Drag" | 61 lbs → 61 lbf | 27.7 kg | 271 N |
+  | `bolt_torque_spec` | OUT "Target Clamp Load" | 6,974 lbs → 6,974 lbf | 3,163.4 kg | 31,022 N |
+  | `bolt_stretch` | OUT "Estimated Clamp Load" | 899 lbs → 899 lbf | 407.8 kg | 3,999 N |
+  | `bearing_life` | IN `load_br` Equivalent Dynamic Load | 2,000 lbs → 2,000 lbf | 907.2 kg | 8,896 N |
+  | `bearing_life` | IN `rated_load` Bearing Dynamic Load Rating | 5,000 lbs → 5,000 lbf | 2,268.0 kg | 22,241 N |
+  | `valve_spring_rate` | IN `seat_load` Seat Pressure (installed) | 130 lbs → 130 lbf | 59.0 kg | 578 N |
+  | `valve_spring_rate` | OUT "Open Pressure" | 195 lbs → 195 lbf | 88.5 kg | 867 N |
+
+  The classification is in GH-IMP-013 (these are the `lbs` rows that are forces; all other `lbs` rows are masses). Wrong answer reproduced with the new independent cases on the previous engine: `valve_spring_rate` Open Pressure and `rc_downforce` downforce / drag fail 145 `unit-system.test.js` checks before and 0 after; `mass-force.test.js` fails 38 checks on `caf4942` and 0 on the fix.
+- **Affected:** `lateral_accel` and its alias `lateral_acceleration` ("Lateral Force"), `rc_downforce` (4 result rows), `bolt_torque_spec` ("Target Clamp Load"), `bolt_stretch` ("Estimated Clamp Load"; two definitions, the later one is live), `bearing_life` (`load_br`, `rated_load`), `valve_spring_rate` (`seat_load`, "Open Pressure").
+- **Impact:** A Metric user saw a force in kilograms and, for bearing load and rating, was asked to type a force as kilograms. After: those rows read newtons with 4.448222 (Imperial text `lbf`); the Imperial numbers are unchanged. No formula, unit table, alias or registry entry changed.
+- **Decision:** Declared `lbf` (explicit pound-force), one declaration per row, 10 changed lines in the engine. The other force rows (about 85) still read "lb" in the Imperial unit text; relabelling them "lbf" is cosmetic and was not done.
+- **Dependencies:** GH-IMP-013 (the convention and the opposite error), GH-DEF-006 (the mass / force split).
+- **Revisit:** None. Closed 2026-10-13 on the full regression below.
+- **Commits:** `422f858` (declarations, tests first, catalogue hash). `eafebb2` (test table only: the Brake Rotor Temp vehicle-weight pin of `temperature-units.test.js`, see GH-IMP-013).
+- **Tests:** `premium/tests/unit-system.test.js` (`lateral_accel`, `rc_downforce`, `valve_spring_rate`, `bolt_stretch` against SI closed forms: m v²/r, ½ρ Cl A v², G d⁴/(8 n D³) and seat + k·lift, E·strain·A), `premium/tests/mass-force.test.js` (the 12 rows pinned as forces; forces typed in Metric).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Metric unit convention".
+- **Verification:** Each of the 12 rows reads N in Metric with 4.448222 and lbf in Imperial; the Imperial numbers are identical to `22dd022`; the SI cases pass; the full browser regression passes at the final commit.
+  **Result (2026-10-13, engine sha256 `550ae2b9…`, suites run one at a time):** all 19 browser suites 0 failures (engine self-test 679 / 679 / 0; unit-system 1,156; temperature-units 1,108 + 990; toggle-sweep 696 swept, 735 checks; nav-return 696; converters 2,064; label-consistency 696 of 696; native-units 29; declared-metric-units 0 unprotected; remembered-values 371; dew-point 688; formula-fingerprints 575 identical + 2 recorded; mass-force 694; unit-factors 514; unit-census 2,622; airflow-readers 131; legacy-fixes 61; negative-zero 20 + 696 + 696). Before / after of all 696 calculators in both systems against the engine of `22dd022`: Imperial numbers identical in all 3,183 Imperial rows (the 62 intended rows differ only in unit text, `lbs` or `lbf` for `lb`); in Metric the 62 intended rows (50 masses, 12 forces) changed by exactly the expected factor and unit, 6,240 other rows are identical, 0 page errors. Two more Metric rows moved by 4 and 54 parts per million (`brake_energy` Kinetic Energy 571,084 → 571,082 J, `tire_rolling_resistance` Rolling Resistance Force 186.83 → 186.82 N) because the Metric default box now shows 1,587.57 kg instead of 15,568.8 N and the result is computed from the displayed text: the round-trip case of GH-EXP-003, not a defect.
+- **History:** 2026-10-13 — found while classifying the `lbs` rows for GH-IMP-013, fixed in `422f858` with the tests written first (failing on the previous engine); status FIXED — UNVERIFIED until the closing regression is recorded.
+  2026-10-13 — closed on the full regression at the final commit (result in Verification): 0 failures in all 19 browser suites and in the catalogue, register, frontend and schema suites; before / after comparison of all 696 calculators shows only the intended rows changed. The one stale test pin the regression found (not a calculator defect) was corrected in `eafebb2` and is recorded in GH-IMP-013.
+
+### GH-DEF-026 — The dashboard's vehicle summary line printed Imperial unit names beside converted Metric numbers
+- **Status:** VERIFIED CLOSED
+- **Severity:** Low (the wrong line was in the page for a few rendering updates on every switch to Metric and every trip home, then replaced by the home page; it was never a settled state, so a flash, not a lasting error; 2026-10-13: see Evidence)
+- **Priority:** P3
+- **Description:** The summary line in the dashboard's vehicle card was built as `fmtUnitValue(p.hp,"HP") HP · fmtUnitValue(p.torque,"lb-ft") lb-ft · fmtUnitValue(p.weight,"lbs") lbs · fmtUnitValue(p.displacement,"ci",1) <metric unit of ci>`. `fmtUnitValue` converts for display in Metric, but the power, torque and weight unit names are fixed text, so Metric prints kilowatts, newton-metres and kilograms under the names HP, lb-ft and lbs. Displacement uses `metricUnit("ci")` and is right.
+- **Evidence:** Reproduced on the page (probe of the dashboard in both systems, active profile "2024 Ram 2500 6.7L Cummins — Diesel Demo": 370 HP, 850 lb-ft, 7,500 lbs, 408 ci; 0 page errors). Imperial: "370 HP · 850 lb-ft · 7,500 lbs · 408 ci". Metric: "275.909 HP · 1,152.4453 lb-ft · 3,401.9428 lbs · 6,685.9 cc". The stat cards beneath read "275.909 kW", "1,152.4453 N·m", "3,401.9428 kg", "6,685.9 cc". Source: the `gh-hero-meta` paragraph of the dashboard renderer in the engine page. The calculator sweeps skip the dashboard (it is not a calculator), so no test covers it.
+  **Investigated 2026-10-13 (`premium/tests/dashboard-summary.test.js`, real Chromium, real clicks on the Imperial and Metric buttons and on the header logo): the wrong text is real but is not reachable.** Every path to the dashboard goes through `ghRender()`, which draws `RENDERS.dashboard` and, one timer tick later (`setTimeout 0`), replaces the whole page with the home page `ghHome()` for the id `dashboard`. The settled page has no vehicle summary line, no stat cards and no horsepower, torque or weight figure in either system; the generated markup is on screen for at most one animation frame. The unreachable template still prints "275.909 HP · 1,152.4453 lb-ft · 3,401.9428 lbs" in Metric and its stat cards are right, which the test pins as the known-open state.
+  **Measured again and fixed 2026-10-13 (Chapter 10 closeout).** The earlier statement that the markup is on screen "for at most one animation frame" was an inference, so it was measured: a `requestAnimationFrame` recorder (observation only) lists every summary text that was in the page at the start of a rendering update, and whatever is in the page then is painted in that frame. In Metric, on the engine page opened directly, "275.909 HP · 1,152.4453 lb-ft · 3,401.9428 lbs · 6,685.9 cc" was recorded after switching to Metric on the dashboard (2 updates), after a trip to another calculator and back by the logo (2 updates at normal speed, 1 at a CPU slowed 6 times), and on a reload with Metric remembered (1 update, 5 when slowed 6 times). Imperial recorded only the right line. So the wrong text was reachable, for 1 to 5 updates at a time; no screenshot of so short a window was taken. In the integrated app the boot overlay hides the first load, but not a later trip home or a switch. `premium/tests/dashboard-summary.test.js` was changed first and failed 2 of 12 checks on the unfixed engine (the Metric template check and the recorder check), 0 of 12 after the fix; the home-page-swap mutant still fails it (5 of 12).
+- **Affected:** The dashboard vehicle summary line only. The profile list (`metricUnit`) and the stat cards are right.
+- **Impact:** For a few frames after a switch to Metric or a trip home, a Metric user was told the engine makes 275.9 hp. The figure is the correct kW value under the wrong name, and it is shown to four decimals.
+- **Decision:** Recorded, not fixed (found by the power-unit audit, outside the closeout scope). The correct fix depends on the unit philosophy: a label-only fix would print kW, N·m and kg, but the locked convention (GH-IMP-019) wants the engine figures in hp and lb-ft in both systems and the mass in kg in Metric ("370 HP · 850 lb-ft · 3,402 kg · 6,686 cc"). Owner choice; it is a one-line change either way. Recommended with GH-IMP-019 step 7, or immediately if wanted sooner.
+  **Disposition 2026-10-13 (performance-unit task): not reproduced as something a user sees, so nothing is guessed and the engine is unchanged.** The entry stays OPEN with a guard: the test fails, and says which, on the day the template is corrected (close this entry) or the home-page swap is removed so the template becomes visible (fix the template first). If it is ever made visible, the line should read the engine figures in the performance units (hp and lb-ft under Auto, kW or N·m by preference) and the mass in kg in Metric, through the same token helpers as the profile list.
+  **Fixed 2026-10-13 (Chapter 10 closeout).** The line now gives every name through `metricUnit()` (`HP`, `lb-ft`, `lbs`, `ci`), the call the stat cards beside it and the displacement already used: Imperial is unchanged ("370 HP · 850 lb-ft · 7,500 lbs · 408 ci"); Metric reads "275.909 kW · 1,152.4453 N·m · 3,401.9428 kg · 6,685.9 cc". This is the label-only option above, chosen because it makes the line agree with the four stat cards on the same screen and decides no policy. It does not decide whether the dashboard's engine figures should follow the Power / Torque preferences (hp and lb-ft under Auto) instead of the Metric / Imperial system: that would change the stat cards and the line together, one place each, and is left to the owner (this fix creates no new owner decision; the four-decimal display of the numbers is the one the stat cards use and is unchanged).
+- **Dependencies:** GH-IMP-019 (convention for engine power and torque), GH-ENG-006 (vehicle-profile editor coverage).
+- **Revisit:** None (closed).
+- **Commits:** `0d5835b` (test and evidence only; no engine change); `834314f` (engine template, test, runner comment, catalogue hash).
+- **Tests:** `premium/tests/dashboard-summary.test.js` (12 checks: the settled page, the template in both systems, the stat cards, and the rendering-update recorder; `MUTANT=1` removes the home-page swap and expects failure).
+- **Docs:** This entry; `docs/PREMIUM-CATALOG.md` "Performance-unit implementation (GH-IMP-019), 2026-10-13" and "Chapter 10 closeout"; header of `premium/tests/dashboard-summary.test.js`.
+- **Verification:** Met. The dashboard in both systems with the demo profile: Imperial unchanged; Metric shows each number with the unit it is in, in the template and at every rendering update recorded; the test opens the dashboard in both systems with real clicks (12 checks, 0 failed).
+- **History:** 2026-10-13 — found while reading the profile display code for the power-unit audit, reproduced on the page, recorded only.
+  2026-10-13 — investigated for the performance-unit task: reproduced the template text, found that the settled page never shows it, added the guard test; severity lowered to Low, status left OPEN.
+  2026-10-13 — closed in the Chapter 10 closeout: the disposition was re-examined by measurement (the wrong line was in the page for 1 to 5 rendering updates in Metric), the test was changed first (2 of 12 checks failed), the template now uses `metricUnit()` for each name (`834314f`), 12 of 12 pass and the mutant is still caught.
+
+### GH-DEF-027 — The hybrid power split offers the vehicle's horsepower in a kilowatt box and in a fraction box
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium (one click on a suggestion the page itself offers puts a wrong number into the calculator: with the demo diesel profile of 370 hp the system power becomes "370 kW", 34 % above the 275.9 kW the engine makes, and the engine fraction becomes 370, so the page reports an engine share of 44,400 kW and a motor share of −44,280 kW)
+- **Priority:** P2 (a Free calculator; the wrong number appears only after the suggestion is clicked, typing the values is correct)
+- **Description:** A numeric box shows a "↓ use <vehicle value>" shortcut when its id matches `PROFILE_FIELD_MAP`; the first matching pattern for horsepower is `/^hp/i`. `hybrid_power_split` names its boxes `hps_p` (system power, a native kW box, GH-DEF-020) and `hps_f` (the engine fraction, 0.65). Both ids begin "hp", so both offer the profile's horsepower. For `hps_p` the profile figure is horsepower and the box is kilowatts, and a native box has no unit for the display layer to convert through; for `hps_f` the box is a dimensionless fraction. Matching a box to a profile field by the first letters of its id is label inference of the kind the unit-policy mechanism of GH-IMP-019 avoids.
+- **Evidence:** Probe on the page (engine sha256 `9674a993…`, 0 page errors, active profile "2024 Ram 2500 6.7L Cummins — Diesel Demo", 370 hp). `hybrid_power_split` opens with system power 120 kW, fraction 0.65, engine 78 kW, motor 42 kW. The system-power box shows the chip "↓ use 370"; clicking it fills 370 into the kW box and the page reports "Engine Power 240.5 kW | Electric Motor Power 129.5 kW". The fraction box shows the same chip "↓ use 370"; clicking it sets the fraction to 370 and the page reports "Engine Power 44,400 kW | Electric Motor Power -44,280 kW". The same in Metric (the chip text is the same, since a native box converts nothing). A scan of all 696 calculators in both systems for chips on boxes that carry no unit found 10 boxes (20 hits): 5 cylinder-count boxes (`cyl_d`, `cyl2`, `cyl4`, `cyl_hf`, `cyl_ex`, chip "↓ use 6", correct), the inputs of the two hp converters (`hp_to_kw_x`, `hp_to_ps_x`, correct: they are horsepower boxes), `rpm_to_radsec_x` (correct), and the two wrong ones, `hps_p` and `hps_f`. "Save to vehicle" is not affected (a native box has no canonical value, so nothing is written).
+- **Affected:** `hybrid_power_split` (`hps_p`, `hps_f`) only.
+- **Impact:** A user who clicks the suggestion on the hybrid power split gets a wrong power split with no warning. The numbers on a normally typed run are right.
+- **Decision:** Recorded, not fixed (found while classifying the profile-link effect of the hybrid rows for GH-IMP-019; no unrelated fixes in that task). The smallest fix is to stop offering the chip on a native box and on a box that is not a profile quantity (an allow-list of the boxes that really are the vehicle's hp, torque, weight and so on, or an exclusion for these two ids); renaming the ids would change saved setups. The GH-IMP-019 plan removes the kW case structurally (the chip converts through the box's unit) but not the fraction case. Owner choice on timing.
+  **Fixed 2026-10-13 (`b0f507f`), authorized by the owner's performance-unit brief.** A box is offered the vehicle value, and "Save to vehicle" writes one back, only when the unit the box declares is the canonical unit of the vehicle property (`PROFILE_PROP_UNIT`: HP, lb-ft, lbs, in, ci, RPM); three unit-less converter inputs are allowed explicitly; the hybrid system power is converted (370 hp offered as 275.909 kW, written back as 370 hp); the engine fraction gets no shortcut. Matching on the first letters of an id was the cause, so the same flaw in 18 boxes of 6 calculators (hp offered in a torque, percent, RPM and displacement box; weight offered in g, percent and inch boxes) is fixed by the same rule. The performance-unit change (GH-IMP-019) then made the shortcut follow the unit a power or torque box shows (a hybrid system power box under Power = hp offers 370 hp).
+- **Dependencies:** GH-IMP-019 (profile chips in the performance-unit tests, T13), GH-DEF-020 (native boxes), GH-ENG-006 (profile link coverage).
+- **Revisit:** With GH-IMP-019 step 7, or on the owner's request.
+- **Commits:** `b0f507f` (fix, with its tests); the shortcut's unit follows the Power and Torque preferences in the GH-IMP-019 implementation commit `d92f5c7`.
+- **Tests:** `premium/tests/profile-shortcut.test.js` (80 checks; 9 mutants, all caught; 76 of the first 115 checks failed on the engine before the fix) and `premium/tests/performance-units.test.js` (the hybrid shortcut under each Power choice, section 5).
+- **Docs:** This entry; `docs/PREMIUM-CATALOG.md` "Performance-unit implementation (GH-IMP-019), 2026-10-13".
+- **Verification:** In both systems the hybrid power split offers no chip on the fraction, and for the system power either no chip or the profile horsepower converted to kW (425 hp reads 316.92 kW); the scan of chips on unit-less boxes then lists only the eight correct ones.
+  **Result 2026-10-13:** the hybrid power split offers no chip on the fraction in either system; the system power offers the vehicle's 370 hp as 275.909 kW (Power = kW or Auto) or as 370 hp (Power = hp); clicking it gives system 275.909 kW, engine 179.341 kW and motor 96.568 kW (or the same in hp), the fraction stays 0.65 and the vehicle keeps 370 hp; "Save to vehicle" never writes the fraction and writes the system power back as hp. The scan of chips on unit-less boxes lists only the eight correct ones.
+- **History:** 2026-10-13 — found while classifying the profile-link effect of the hybrid rows for GH-IMP-019, reproduced on the page, recorded only.
+  2026-10-13 — fixed in `b0f507f` with the tests written first (profile-shortcut: 76 of 115 checks failed on the previous engine, 0 now; 9 of 9 mutants caught); status FIXED — UNVERIFIED until the closing regression.
+  2026-10-13 — closed on the full regression at the final commit (result in GH-IMP-019 Verification): 0 failures in all 23 browser suites, the profile-shortcut suite included after its expectations for the hybrid engine row were updated to the performance-unit policy (justified in GH-IMP-019 History), and in the catalogue, register, frontend and schema suites.
+
+### GH-DEF-028 — Range warnings are matched on the first letters of a box id and, after a unit switch, compare the converted number with Imperial limits
+- **Status:** VERIFIED CLOSED
+- **Severity:** Low (a soft amber warning under a box; no result changes)
+- **Priority:** P3
+- **Description:** `checkFieldRange(id, value)` picks a sanity range by a regular expression on the box id (`/^bore/i` 1.5–6.5, `/^(str|stroke)/i` 1.5–6.0, `/^rpm|_rpm|rpm_/i`, `/^ve\d?$|^ve_|volumetric/i`, `/^wt|weight/i` 200–12,000, `/^hp\d?$|^hp_/i` 20–5,000, `/^cr\d?$|compression/i`, `/^afr/i`) and compares it with the number the box holds. Two separate flaws: (a) the match is on letters of an id, not on the quantity the box holds, so any box whose id starts with `bore` is checked as an engine bore, and any id containing `weight` or `compression` as a vehicle weight or a compression ratio; (b) the limits are written in Imperial units, but when the box was re-drawn from what is on screen (after a unit switch) the number compared is the converted one, so a value in millimetres or kilograms is compared with limits in inches or pounds.
+- **Evidence:** Probe on the page (engine of `0d5835b`, 2026-10-13, 0 page errors). `timing_mark` "Balancer Diameter" (id `bore5`, default 4.25 in) shows no warning in Imperial. After pressing Metric the box reads 107.95 and shows "⚠ Unusual bore — typical range is 1.5–6.5": a balancer diameter is checked as an engine bore, and 107.95 mm is compared with inches. In the same probe `static_compression` "Bore" (`bore2`, 4.25 in = 107.95 mm) shows no warning, so the behaviour differs between boxes; the cause of that difference was not traced. The rules were not scanned across all 696 calculators. Found while giving the power and torque boxes of GH-IMP-019 their own range check (they are now checked in hp and lb-ft whatever unit they show).
+  **Reproduced across all 696 calculators and fixed 2026-10-13 (focused defect pass).** Census of the engine of `c121091` in the Imperial default state: 161 boxes in 109 calculators matched a rule; 140 hold the quantity the rule is for (RPM 60, weight 32, HP 23, stroke 11, bore 8, AFR 3, VE 3, compression ratio 0) and **21 are matched by accident** (Timing Mark `bore5`, a balancer diameter; the weight-transfer boxes, which hold a wheelbase, track width, CG height, g or a percentage, not a weight: `sim_weight_transfer` `wt_wb`, `wt_track`, `wt_cg`, `wt_accel`, `wt_lat`, `wt_front`, `weight_transfer_braking` `wtb_h`, `wtb_l`, `wtb_g`, `weight_transfer_accel` `wta_h`, `wta_l`, `wta_g`; `machining_rpm` `mrpm_v` (cutting speed, SFM) and `mrpm_d` (tool diameter); the four unit-converter value boxes `hp_to_kw_x`, `hp_to_ps_x`, `rpm_to_radsec_x`, `radsec_to_rpm_x`, which accept any number; `supercharger_speed.cr3`, a pulley ratio; `optimal_shift.hp_tq`, a torque), 18 of which showed a false warning at their Imperial default and the same 18 in Metric. The compression-ratio rule had no legitimate box at all. Flaw (b) reproduced for every kind of converted box: after a live re-render in Metric a 100 mm bore (3.94 in) warns and an 8,165 kg weight (18,000 lb) does not. The classified list is `premium/tests/data/range-boxes.json`. `premium/tests/range-warnings.test.js` (written first) on the engine of `c121091`: 2,469 checks, 224 failed (A 135, B 42, C 38, D 1, E 8); on the fixed engine: 2,469 checks, 0 failed. The unexplained difference between `timing_mark` and `static_compression` noted above no longer matters: every box is now compared in its canonical unit whether or not the page holds a snapshot of it.
+- **Affected:** `FIELD_RANGE_RULES` and `checkFieldRange` in the engine page; every numeric box whose id begins with `bore`, `str`, `stroke`, `rpm`, `ve`, `wt`, `hp` (as a whole id or `hp_`), `cr`, `afr`, or contains `weight`, `compression`, `volumetric`, `_rpm`, `rpm_`. Power and torque boxes of GH-IMP-019 are not affected.
+- **Impact:** A Metric user may see a false "Unusual …" warning under a correct value, and a box that is not the named quantity may be warned against the wrong range. Display only: the value is accepted and used unchanged.
+- **Decision:** Fixed 2026-10-13. Each range now belongs to an explicit list of the boxes that HOLD that quantity, written `calculator.box-id` (140 boxes, the 140 of the census; the limits, the labels and the warning text are unchanged). A box that is not listed has no range and never warns, so a new box that should be checked must be added to its list (the new test fails if a listed box disappears or stops warning). `checkFieldRange(id, value, calcId)` looks the box up by calculator and id; the prefix regular expressions are gone. In `field()` every other box is now compared in its canonical unit (the exact value held across a unit switch, or the displayed text converted by the box's declared unit), as the power and torque boxes already were; the performance-unit branch is unchanged. The compression-ratio range is kept with an empty list for the next box that holds one. Not changed, deliberately: the warning text still quotes the Imperial limits in Metric (GH-IMP-018 stays open), and no general validation change.
+- **Dependencies:** GH-DEF-027 (the same prefix-match pattern in the profile shortcut), GH-IMP-018 (validation messages that quote Imperial limits).
+- **Revisit:** None (closed). Batch 11 and later calculators that should warn add their boxes to the lists in `FIELD_RANGE_RULES`.
+- **Commits:** `79f5e55` (engine and tests).
+- **Tests:** `premium/tests/range-warnings.test.js` (new; 2,469 checks in real Chromium: A the 140 boxes × 5 typed values in Imperial, Metric and, for the 23 power boxes, Power = kW, each warning exactly when the physical value is out of range and with the text for its own quantity; B the 21 accidental matches typed out-of-range, in both systems, never warn; C a mix of in-range and out-of-range values held through Imperial → Metric → Imperial → Metric → Imperial moves no warning; D all 696 calculators through a live switch: a warning only on a listed box and the same set in both systems; E the lookup and the register's verification case, Timing Mark Balancer Diameter; 224 fail on the engine of `c121091`, 0 on the fixed engine; six injected faults (displayed number compared, switch value ignored, calculator ignored in the lookup, one box unlisted, a limit changed, a box redirected) are all caught). Data: `premium/tests/data/range-boxes.json`. Added to `premium/tests/run-browser-tests.sh`. Full regression on the fixed engine (`bash premium/tests/run-browser-tests.sh`, 25 suites, 81 minutes on the 2-core machine, 2026-10-13): every suite passed with 0 failures and every injected fault in every suite was caught; `bash premium/tests/run-tests.sh`: catalogue OK, register OK, frontend 55/55, schema 26/26.
+- **Docs:** This entry; header of `premium/tests/run-browser-tests.sh`; `docs/PREMIUM-CATALOG.md` (counts and one note).
+- **Verification:** Met. In both systems a value inside the range shows no warning for any listed box, a value outside shows the warning for the quantity the box holds only, Timing Mark "Balancer Diameter" shows none in Imperial, none after pressing Metric and none for a typed 9, and a sweep of all 696 calculators through a live switch shows warnings on listed boxes only and the same set in both systems.
+- **History:** 2026-10-13 — found while implementing GH-IMP-019, reproduced on the page, recorded only. 2026-10-13 (focused defect pass) — closed: scanned across all 696 calculators (161 matched, 140 legitimate, 21 accidental), regression test written first (224 of 2,469 checks fail on `c121091`), fixed in `79f5e55`, 0 of 2,469 fail, 6 of 6 injected faults caught.
+
+### GH-DEF-029 — Curve Editor: choosing "Power vs RPM" relabels the twelve boxes without converting their numbers, and the simulators always read the curve as torque
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium (a power curve cannot be produced from a torque curve by switching the mode, and a power curve typed into the Curve Editor never reaches the three simulators as power)
+- **Priority:** P3 (a Premium tool; typing the values directly in the wanted mode gives the right Curve Editor summary)
+- **Description:** `sim_curve_editor` has a mode box (`curve_mode`: Torque vs RPM / Power vs RPM). `switchCurveMode` is meant to convert the twelve curve points when the mode changes, but it reads `curve_mode` after the change, so the mode it thinks it is leaving equals the mode it is entering and it converts nothing; `renderCalc` then overwrites the snapshot it kept. The page-wide flag `window._ghmCurveMode`, which `sim_acceleration`, `sim_dragstrip` and `sim_top_speed` read to decide whether the curve holds torque or power, is never set by the interface, so the simulators always treat the curve as torque (the power reading exists only when the flag is set from code).
+- **Evidence:** Probe on the engine of `0d5835b` (2026-10-13): in Imperial, `sim_curve_editor` opens with the twelve torque points 150 … 320 lb-ft; choosing "Power vs RPM" leaves the boxes at 150 … 320 and the summary reads "Peak Power 320.0 HP" (a 320 lb-ft peak at 4,000 rpm is 243.7 hp). In Metric the same probe on that engine gave 203.373 … 433.862 N·m, unchanged by the mode change, again reported as horsepower. Found by the performance-unit tests: the curve test types a power curve point by point and clears the flag rather than relying on the switch.
+  **Reproduced again and fixed 2026-10-13 (focused defect pass).** `premium/tests/curve-editor-mode.test.js` (written first) on the engine of `c121091`: 107 checks, 33 failed (the twelve boxes keep their numbers under the new label in all ten state combinations, the peak cell and the simulators read torque numbers as power). On the fixed engine: 107 checks, 0 failed. Root causes, both confirmed on the page: (1) `switchCurveMode` read the mode being left from the `curve_mode` select after it had already changed, so it never converted; (2) `renderCalc` rebuilt the boxes from the snapshot it keeps of the displayed text, which overwrote any converted value. Neither the select nor the 5252 constant was the fault.
+- **Affected:** `sim_curve_editor` (`curve_mode`, `curve_y_0` … `curve_y_11`), `sim_acceleration`, `sim_dragstrip`, `sim_top_speed` (the "Engine curve peak" rows), the shared helpers `switchCurveMode` and `window._ghmCurveMode`.
+- **Impact:** A user who switches the mode expecting the same engine as power gets the torque numbers re-read as horsepower. The power-mode readings of GH-IMP-019 (the "Engine curve peak | HP" rows of the three simulators) are classified and tested but can be reached only with the flag set from code.
+- **Decision:** Fixed 2026-10-13 as the entry recommended; no product decision was needed. The twelve numbers are read as the quantity the boxes were labelled with before the change (a box that read lb-ft or N·m was torque, one that read HP or kW was power), so switching the mode keeps the engine physically the same. `switchCurveMode` now (1) reads the mode being left from the unit the boxes declare, not from the select; (2) converts each point at its own RPM through the canonical hp / lb-ft (power = torque × RPM / 5252, torque = power × 5252 / RPM, the engine's established constant) and passes the exact values to the redraw (`UNIT_SWITCH_CANONICAL`), so the Power and Torque preferences and Imperial / Metric decide only the unit shown; (3) sets `window._ghmCurveMode`, so the three simulators read the curve in the mode chosen; (4) leaves a point whose RPM or value is blank, zero or not a number as typed. Choosing the mode already chosen changes nothing, and a staged airflow curve still fixes the mode. `simCurvePoints` reads the shipped default curve (stored as torque) in the mode that is set, so a power-mode simulator draw is the same engine. The unit-policy table, the 5252 constant, stored-data conventions and every other calculator are unchanged. The test holds each conversion to 4e-5 of the exact 33,000 / 2π (the engine's 5252 differs from it by 2e-5).
+- **Dependencies:** GH-IMP-019 (the curve cells follow the preferences once the mode is reachable).
+- **Revisit:** None (closed). Related, separate, closed afterwards: GH-DEF-030 (a curve typed in the editor reaches the simulators on their first draw only).
+- **Commits:** `79f5e55` (engine and tests).
+- **Tests:** `premium/tests/curve-editor-mode.test.js` (new; 107 checks: both systems × five Power / Torque preference pairs, both switch directions, four extra round trips, an edited curve, the same mode chosen twice, the simulators' first and later draws, a staged airflow curve, Metric press and kW preference; 33 fail on the engine of `c121091`, 0 on the fixed engine; 8 injected faults all caught). Neighbours on the fixed engine: `performance-units.test.js` 95 checks, 0 failed; `airflow-readers.test.js` 131 checks, 0 failed. Added to `premium/tests/run-browser-tests.sh`. Full regression on the fixed engine (`bash premium/tests/run-browser-tests.sh`, 25 suites, 81 minutes on the 2-core machine, 2026-10-13): every suite passed with 0 failures and every injected fault in every suite was caught; `bash premium/tests/run-tests.sh`: catalogue OK, register OK, frontend 55/55, schema 26/26.
+- **Docs:** This entry; header of `premium/tests/run-browser-tests.sh`; the comment at `performance-units.test.js` section 11 now names this entry as fixed (the test still types the power curve point by point and its checks are unchanged).
+- **Verification:** Met. Switching the mode converts the twelve points at their own RPM (150 lb-ft at 2,000 rpm becomes 57.1 hp, and back), the labels, the peak cell and the Curve Editor summary follow, the Power and Torque preferences change only the unit shown, repeated switching does not drift, and the three simulators report the same engine in either mode (Target Time within 0.5 %: they interpolate linearly in the quantity entered, so a torque curve and the power curve made from it differ slightly between the twelve points and agree exactly at them).
+- **History:** 2026-10-13 — found while writing the GH-IMP-019 simulator tests, reproduced on the page, recorded only. 2026-10-13 (focused defect pass) — closed: reproduced on `c121091` (33 of 107 checks fail), regression test written first, fixed in `79f5e55`, 0 of 107 fail, 8 of 8 injected faults caught; a separate finding (GH-DEF-030) was recorded.
+
+
+### GH-DEF-030 — A curve typed in the Curve Editor reaches the Acceleration, Dragstrip and Top Speed simulators on their first draw only
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium (silently different simulation results; Premium tools; the editor itself was right)
+- **Priority:** P3
+- **Description:** The three simulators have no curve boxes of their own. `simCurvePoints` read the engine curve from the boxes `curve_rpm_0..11` and `curve_y_0..11` on the page on screen (`simNum`, which is `v()`: an element that is not there reads as unknown) and used the shipped default for every box it did not find. Those boxes exist only on the Curve Editor's page. A simulator's first draw after the editor still found them (the editor's page had not been replaced yet); every later draw (an edit in one of the simulator's own boxes, a visit through any other page, a Metric / Imperial press, a Power / Torque preference change) found none and drew the default engine. The editor kept the typed values, so nothing on screen said the simulator had stopped using them. The typed values were never lost: the engine already keeps the text of every calculator's boxes for the session (`CALC_PERSISTENT_STATE.sim_curve_editor`) with what each box showed (`CALC_STATE_META.sim_curve_editor`: the system on screen and the declared unit or Power / Torque token), and the simulators never looked there.
+- **Evidence:** Reproduction (Imperial, Auto; the same on the engine of `c121091` and of `f72a718`, 0 page errors): open `sim_curve_editor`; type 500 in `curve_y_6` (Point 7, 4,000 rpm); open `sim_acceleration`: "Torque curve 12 points · peak 500.0 lb-ft @ 4000 RPM"; type any value into one of its boxes (or press Metric, or open another simulator and come back): "Torque curve 12 points · peak 320.0 lb-ft @ 4000 RPM" and the results are those of the default engine; back in the editor `curve_y_6` still reads 500. Found while writing the GH-DEF-029 simulator tests.
+  **Reproduced again and fixed 2026-10-13 (targeted fix).** `premium/tests/curve-persistence.test.js` (written first) on the engine of `f72a718` (sha256 `d99aa2ae…`, the engine as pushed): 238 checks, 139 failed; the first draw of every simulator reads the typed curve (no first-draw check fails) and every later draw reads the default (60 checks in section A, 48 in B, 27 in C, 3 in D and 1 in F fail; section E, nothing typed, passes). On the fixed engine: 238 checks, 0 failed. Root cause confirmed from the code and the page: the simulators read curve boxes from the live page only; `simCurvePoints` had no other source. Not the cause: the editor's storage (correct), the mode flag of GH-DEF-029, unit conversion, or the order of the renders.
+- **Affected:** `simCurvePoints` (and, through it, `simCurveInputSummary`, `simEngineAtRPM`, `sim_acceleration`, `sim_dragstrip`, `sim_top_speed`); `sim_curve_editor` is read, not changed. The airflow-staged curve (`ghm_airflow_sim_curve`) is stored and was not affected.
+- **Impact:** A user who edited the curve and then adjusted a simulator input got results for the default engine without a warning. Not a unit or conversion defect and independent of the Power / Torque preferences.
+- **Decision:** Fixed 2026-10-13. The earlier entry called the lifetime of a typed curve a product question; the code settles it: the Curve Editor's own page says "The curve is stored with the calculator inputs and reused by Acceleration, Dragstrip and Top Speed simulations", and the engine already keeps calculator inputs for the page session. The fix reads that existing record and invents no lifetime. `simCurvePoints` now reads each curve box through `simCurveBox`: a box on the page is read exactly as before (`simNum`); a box that is not on the page, when a simulator (not the Curve Editor) is drawing, is read from the editor's remembered text and converted from the unit and token it showed (`unitToCanonical`, hp / lb-ft / rpm), so the physical meaning does not depend on the system or the Power / Torque preference on screen now; a blank, non-numeric or missing remembered box reads as unknown and takes the default for that point, as a blank box on the page always did. A remembered curve whose boxes declare the other mode than the one in force (torque numbers while Power is in force, or the reverse) is not used (the default is, as before), so 500 lb-ft can never be read as 500 hp; the interface cannot produce that combination (the GH-DEF-029 switch sets the mode with the conversion), and a test forces it. Nothing new is stored. When nothing was typed, the Curve Editor's own render, the staged airflow curve, the GH-DEF-029 mode conversion, the unit-policy table, the Power / Torque preferences and every other calculator are unchanged.
+- **Dependencies:** GH-DEF-029 (closed; its mode flag and conversion are used as they are), GH-ENG-004 (stage handoffs).
+- **Revisit:** None (closed). Limitations recorded below; two separate simulator findings made on the way: GH-DEF-032, GH-DEF-033.
+- **Commits:** `6068a4a` (engine, test, runner, catalogue hash).
+- **Tests:** `premium/tests/curve-persistence.test.js` (new; 238 checks in real Chromium: A a torque curve of 500 lb-ft at 4,000 rpm (and a weak last point) × four Auto / kW·N·m / hp·lb-ft / Metric states × the three simulators, five draws each (first, a re-typed box, a lighter vehicle, after another simulator, after an unrelated calculator): the curve summary reads the typed engine on every draw, results equal the settled draw, differ from the default engine's, a lighter vehicle is faster; B the same for a power curve of 400 hp; C Metric / Imperial presses and Power / Torque preference changes on the simulator page and on the editor page before leaving it, same engine within the display rounding; D a blank value and a zero RPM are treated the same on every draw; E nothing typed gives the default curve on every draw; F a remembered torque curve is not read as a power curve; 139 fail on the engine of `f72a718`, 0 on the fix). Injected faults: 4 of 6 caught (the unit / token ignored: 24 checks fail; the mode guard removed: 1; a blank box read as zero: 3; the RPM boxes not read: 3). The other 2 survive and are equivalent: ignoring the system the box showed (RPM and the Power / Torque tokens do not depend on it today; the system is still passed so a unit that does would convert correctly) and removing the `currentCalc` guard (the Curve Editor's own repeat pass reads its own boxes either way; the guard only keeps its first pass unchanged by construction). Neighbours on the fixed engine: `curve-editor-mode.test.js` (the GH-DEF-029 regression) 107 checks, 0 failed, 8 of 8 faults caught; `airflow-readers.test.js` 131 checks, 0 failed; `performance-units.test.js` 95 checks, 0 failed (`MUTANTS=0`); `nav-return.test.js` and `toggle-sweep.test.js` limited with `ONLY=` to `sim_curve_editor,sim_acceleration,sim_dragstrip,sim_top_speed`: 4 consistent, 0 failures each; `bash premium/tests/run-tests.sh`: catalogue OK, register OK, frontend 55/55, schema 26/26. A scratch differential of the engine of `f72a718` against the fixed engine (four preference states; each simulator page and the Curve Editor with nothing typed, after an edit, with a typed curve, after a visit, in power mode; boxes, units, results, summaries and labels): 68 of 68 snapshots identical. **Not run:** the other 21 browser suites (the change touches only `simCurvePoints`; searching the engine, its only callers are the Curve Editor, the Engine Curve summary and the two simulation loops of the three simulators); the full 26-suite run (about 82 minutes) is the check to make before a merge. Added to `premium/tests/run-browser-tests.sh`.
+- **Docs:** This entry; header of `premium/tests/run-browser-tests.sh`; the defect-pass section of `docs/PREMIUM-CATALOG.md`.
+- **Verification:** Met. A curve typed in the editor is read by every later draw of the three simulators (edit, redraw, visit through another simulator or another calculator, Metric / Imperial press, Power / Torque preference change, in a torque or a power curve), with its physical meaning unchanged (500 lb-ft is 500 lb-ft in Imperial, Metric, N·m, kW, hp), and the simulator's existing "Engine Curve" line shows which curve is in use (kind, number of points, peak and its RPM). With nothing typed the default curve is used on every draw. Limitations that remain: (1) the typed curve lasts for the page session, like every calculator's remembered inputs; it is not saved across a reload or with a Test Setup (a possible later decision, not made here and not changed); (2) a simulator draw now reads the twelve points from the remembered record: 7 → 10 ms (Acceleration), 20 → 38 ms (Dragstrip), 4 → 10 ms (Top Speed) per draw in the headless browser; (3) the Curve Editor reopened after a point with a zero RPM draws one row fewer (the row builder drops an unusable point); this is old behaviour on both engines, unchanged and untracked; (4) the two findings below.
+- **History:** 2026-10-13 — found during the GH-DEF-029 fix, reproduced on the page on both engines, recorded only. 2026-10-13 (targeted fix) — closed: the test written first, 139 of 238 checks fail on the engine of `f72a718`, fixed in `6068a4a`, 0 of 238 fail, the GH-DEF-029 regression (107), airflow-readers (131), performance-units (95), the two limited neighbour sweeps and the register / frontend / schema suites pass; two separate simulator findings recorded (GH-DEF-032, GH-DEF-033).
+
+### GH-DEF-031 — The shell's compact UNITS menu did nothing: it called `setUnits`, which does not exist, the engine's `setUnit` could not run without the buttons the shell removed, and the legacy-unit hider could hide the control
+- **Status:** VERIFIED CLOSED
+- **Severity:** High (in the integrated app a person could not change between Imperial and Metric at all: the shell removes the engine's own two buttons, its replacement menu did nothing, and in some page loads the control was hidden as well. Reproduced on the repository served locally in Chromium; the production site was not tested)
+- **Priority:** P1
+- **Description:** `app-shell.js` `installCompactUnits` removes the engine's two unit buttons (`#btn-imperial`, `#btn-metric`) and puts a UNITS button with an IMPERIAL / METRIC menu in their place; each item called `w.setUnits(v)` only if `typeof w.setUnits==='function'`. The engine's function is `setUnit` (singular); no file in the repository defines `setUnits`. Three faults followed. (1) The menu called a function that does not exist. (2) The engine's `setUnit` read `#btn-imperial` / `#btn-metric` to move the "active" class, so with the buttons gone it threw after setting `UNIT.system` and before `renderCalc(currentCalc)`: calling the right function alone would have left the numbers on screen unchanged. (3) `final-ui-fix.js` (and `final-qa-fix.js`, which no page loads) add `gh-final-legacy-unit-hidden` (`display:none`) to the smallest container that holds the words Imperial and Metric, with a width of 150 to 550 px, on timers at 0, 300 ms, 1 s and 2 s; when that runs before the shell has replaced the buttons the container is the header's right-hand group (desktop) or the whole header (a phone), the shell then builds its control inside it, and the control, the profile button and the rest of the group stay hidden. Whether the hider runs first is a race between two scripts.
+- **Evidence:** Probe 2026-10-13 (the repository served locally, `index.html` in real Chromium, the engine in its frame, 0 page errors, external requests blocked): `typeof setUnit` is "function", `typeof window.setUnits` is "undefined", the engine's two unit buttons are gone, the compact control exists, and activating its METRIC item leaves `UNIT.system` at "imperial". Across six probe runs the control was visible in two and hidden in the others.
+  **Reproduced again and fixed 2026-10-13 (Chapter 10 closeout).** With real mouse clicks (`premium/tests/shell-units.test.js`, written first): in every load where the control was visible, a click on METRIC left `UNIT.system` "imperial", nothing remembered, the speed box in mph and the label unchanged, in two calculators, on desktop and phone viewports. The natural script order hid the control (and the profile button) in some loads and not in others, in both viewports; delaying the script the shell waits for by 1.8 s (`qa-math-corrections.js`) lets the hider go first, and on a phone that hid the whole `HEADER.gh-premium-header` in 3 of 3 probe loads (desktop 1 of 3). The unfixed tree (`5fdfd37`): 77 checks, 33 failed. After the fix: 77 checks, 0 failed (desktop, phone, and the forced hider-first load). A copy of the fix without the one line that removes the hider's class failed 2 of 56 checks (the control hidden in the natural phone load), so that line is needed. The visibility race means the exact count of hidden loads varies from run to run. **Production:** the production site could not be reached from the working environment and was not tested; whether the control was visible there is still unknown, and it no longer matters for function, because the control now works whenever it is shown and the hider can no longer hide it.
+- **Affected:** `app-shell.js` (`installCompactUnits`); the engine page's `setUnit`; `final-ui-fix.js` and `final-qa-fix.js` (the hider; unchanged). The engine page opened directly was not affected (its own buttons call `setUnit`).
+- **Impact:** A person could not change between Imperial and Metric in the shell: when the control was visible it did nothing, and in some loads it was hidden (with the profile button, or on a phone the whole header). Power / Torque and every other unit preference were reachable only in the units the page opened with.
+- **Decision:** Fixed 2026-10-13, smallest change that reuses the engine's one mechanism (no second unit-management system): the menu items call `w.setUnit(v)`; `setUnit` updates the two buttons only if they exist (`?.`); `installCompactUnits` removes `gh-final-legacy-unit-hidden` from the old toggle and each ancestor before it replaces the buttons, so whichever script ran first the control is shown. The hider itself is unchanged: once the buttons are replaced it finds no "Imperial" / "Metric" labels. Not changed: the compact UNITS button shows no selected state (the old buttons did), a convenience gap and not a calculation error. Release note: the `?v=` cache strings in `index.html` are unchanged by this fix, as they were by the earlier engine fixes of this branch, so a browser that cached `app-shell.js` under the same string keeps the old copy until the strings are bumped at deployment.
+- **Dependencies:** GH-IMP-020 U8 (the same observation; closed here, U8 itself is not reopened).
+- **Revisit:** None (closed). At release: bump the `?v=` cache strings.
+- **Commits:** `b51b500` (shell, engine `setUnit`, test, runner, catalogue hash).
+- **Tests:** `premium/tests/shell-units.test.js` (new; 77 checks in real Chromium on the integrated `index.html`: the control and the profile button visible in the natural order on desktop and phone and in a forced hider-first order; real clicks on UNITS, METRIC and IMPERIAL for Dynamic Pressure and Tow Stopping Distance; `UNIT.system` and `ghm_unit`; the speed box against 1 mile = 1609.344 m; box, label and result equal to the engine's own `setUnit('metric')` on the engine page; the round trip back to Imperial; no page errors). Also run after the change: `browser-smoke` 19, `unit-system` 1,619 result checks, `performance-units` 95, `range-warnings` 2,469, `curve-persistence` 262, `curve-editor-mode` 107, `dashboard-summary`.
+- **Docs:** This entry; `docs/PREMIUM-CATALOG.md` "Chapter 10 closeout"; header of `premium/tests/run-browser-tests.sh`.
+- **Verification:** Met. In the shell, after the page has settled, the unit control is visible; a real click on METRIC changes `UNIT.system`, the numbers and the unit labels exactly as the engine's own `setUnit('metric')` does, and a real click on IMPERIAL restores them (`shell-units.test.js`, 77 checks, 0 failed).
+- **History:** 2026-10-13 — U8 of GH-IMP-020 probed during the release-readiness review; `setUnits` confirmed undefined and the METRIC item confirmed to do nothing; visibility to a person not settled; recorded as its own entry.
+  2026-10-13 — closed in the Chapter 10 closeout: reproduced with real clicks, the test written first (33 of 77 checks failed on `5fdfd37`), fixed in `b51b500` (77 of 77 pass); the focused unit, performance-unit, range-warning and curve suites pass; production not tested.
+
+### GH-DEF-032 — A simulator's first draw runs at 50 % drivetrain efficiency (its fallback is 0.85 where the box holds 85)
+- **Status:** VERIFIED CLOSED
+- **Severity:** High (the first number a person sees when a simulator is opened; the shipped default path; Premium tools)
+- **Priority:** P2
+- **Description:** `simBaseInputs` reads the Drivetrain Efficiency box as `Math.max(0.5, Math.min(1, simNum('sim_eff', 0.85) / 100))`. The field contract is a percentage: `simVehicleFields` draws the box as `field('Drivetrain Efficiency','sim_eff',85,'%')` and the line divides the box value by 100. The value used when the box is not on the page was written as a fraction (0.85) and was then divided by 100 as well, which gives 0.0085 and is raised to the 0.5 floor. A simulator's first draw after another page has none of its own boxes on the page (nothing is remembered yet, so there is no repeat pass), so Acceleration and Dragstrip (and Top Speed, which also multiplies the curve's power by it) drew at 50 % efficiency; the next draw (any edit, or a later visit, which reads the remembered box) used 85 %.
+- **Evidence:** Probe 2026-10-13 on the engines of `f72a718` and `c121091` (Imperial, Auto, defaults, 0 page errors): open `sim_dragstrip` from `hp_quarter_mile`: 1/4 Mile ET 23.460 s, Trap Speed 70.9 mph, Peak Wheel Torque 2089 lb-ft; type the same weight into Vehicle Weight: 18.230 s, 87.2 mph, 3551 lb-ft with every visible input unchanged. A call log of `simBaseInputs()` showed `eff` 0.5 on the first draw and 0.85 on the second. Top Speed: Wheel Power 155 HP on the first draw, 263 HP after (the curve's 309.6 hp at 6,491 rpm × 0.5, then × 0.85).
+  **Reproduced again and fixed 2026-10-13 (final simulator pass).** `premium/tests/simulator-first-draw.test.js` (written first) on the engine of `caa45c8`: 59 checks, 27 failed (12 first-draw-versus-settled tile comparisons in four preference states, the closed-form checks of Top Speed wheel power and Dragstrip peak wheel torque at the default 85 %, the quarter-mile ordering 95 % < 85 % < 70 %, and the render-order check); the same 27 on the engine of `9e4877b`; 0 on the fix. The checks of a typed 70 and 95, of reopening, and of the five other simulators passed before the fix, as they should: only the unseen fallback was wrong. Root cause confirmed: the fallback, and nothing else. Not the cause: the `/100` (correct for a percentage), the `%` unit (no conversion), the 0.5 / 1 clamp, the remembered-box restore, the GH-DEF-018 repeat pass, or any other base input (every other fallback equals its box's default; a first-versus-settled sweep of the other five simulator pages showed no difference).
+- **Affected:** `simBaseInputs` (`eff`); `sim_acceleration`, `sim_dragstrip` (through `simulateCurveAcceleration`) and `sim_top_speed`.
+- **Impact:** The first result shown for Acceleration, Dragstrip or Top Speed (Wheel Power) was for a drivetrain half as efficient as the box says (23.46 s against 18.23 s in the example above) until the person changed any box. Not a unit or conversion defect.
+- **Decision:** Fixed 2026-10-13 as the entry recommended; no product decision was needed (the contract is a percentage, shown by the box default 85, the unit `%` and the division by 100). The fallback is now 85, one token. Unchanged: the 50 % floor and 100 % ceiling (a typed value below 50 is used as 50, above 100 as 100), every other default, and every formula. A person who types 0.85 into the box has typed 0.85 percent and gets the floor, as before.
+- **Dependencies:** GH-DEF-018 (repeat pass; closed), GH-DEF-033 (same simulators, closed in the same pass; the Metric first-draw difference of the Acceleration simulator seen while testing this was that defect, not this one).
+- **Revisit:** None (closed).
+- **Commits:** `c8756ce` (engine, test, runner, catalogue hash).
+- **Tests:** `premium/tests/simulator-first-draw.test.js` (new; 59 checks in real Chromium: A first draw = draw after the box is re-typed, for the three simulators in four Imperial / Metric × Power / Torque states, and the box holds 85 with unit `%`; B the efficiency is applied: Top Speed wheel power = the default curve's power at the Top Gear RPM shown × efficiency, Dragstrip peak wheel torque = 320 lb-ft × 3.50 × 3.73 × efficiency, at the default and with 70 and 95 typed, and the quarter mile is faster with a better drivetrain; C first draw, re-typed box, after another simulator, after an unrelated calculator and after leaving twice give the same tiles; D a typed 70 survives leaving and reopening; E the other five simulator pages have no first-draw split; 27 fail on the engine of `caa45c8`, 0 on the fix). Injected faults: 4 of 4 caught (fallback 90: 24 checks fail; fallback 100: 27; floor 80 %: 6; typed value read as a fraction: 33). `curve-persistence.test.js` now holds the first draw's result to the settled draw as well (262 checks, 0 failed; it compared settled draws only while this defect was open). Neighbours on the final engine: see GH-DEF-033. Added to `premium/tests/run-browser-tests.sh`.
+- **Docs:** This entry; header of `premium/tests/run-browser-tests.sh`; the final-pass section of `docs/PREMIUM-CATALOG.md`.
+- **Verification:** Met. The first draw of Acceleration, Dragstrip and Top Speed equals every later draw of the same inputs in all four states (Dragstrip 18.230 s, 87.2 mph, Top Speed 263 HP at 6,491 rpm for the default vehicle on the first draw), 85 % is applied as 85 % (closed-form values) and a typed percentage is applied as typed. Limitation: none found; the 50 % floor means an efficiency typed below 50 is treated as 50, as before.
+- **History:** 2026-10-13 — found during the GH-DEF-030 test, reproduced with a call log, recorded only. 2026-10-13 (final simulator pass) — closed: the test written first, 27 of 59 checks fail on the engine of `caa45c8`, fixed in `c8756ce` (one token), 0 of 59 fail, 4 of 4 injected faults caught, neighbour suites pass.
+
+### GH-DEF-033 — The Acceleration simulator's default 60 mph target is also one of its distance marks (60 ft), so it reports the 60-foot time as the Target Time
+- **Status:** VERIFIED CLOSED
+- **Severity:** High (the default result of the simulator was for 60 feet, not 60 mph; Premium tools)
+- **Priority:** P2
+- **Description:** `simulateCurveAcceleration` recorded the time, distance and speed at each distance mark (`marks=[60,100,132,330,660,1000,1320]`, feet) and at the target speed in the same object, both keyed by the number (`crossed[m]` and `crossed[target]`), and stopped as soon as `crossed[target]` existed. A target that equals a mark was already there when the vehicle passed that many feet, so the run stopped there and the result was the time at that distance. The default target is 60 mph, which equals the 60-ft mark: the default Acceleration result was the 60-foot time. Targets of exactly 100 or 132 mph (and 330, 660, 1000 and 1320) collided in the same way; a target that was not exactly a mark (for example 59.999975 mph, which is what the rounded Metric text 96.5606 km/h reads back as) did not.
+- **Evidence:** Probe 2026-10-13 (Imperial, Auto, defaults, 0 page errors, the same on the engines of `c121091` and `f72a718`): `sim_acceleration` with Target Speed 60: Target Time 4.150 s, Target Speed 23.7 mph, Distance 60 ft (the run stopped at 60 ft). After pressing Metric and choosing Torque = N·m, the box reads 96.5606 (km/h), which is read back as 59.999975 mph, no longer a mark, and the same inputs give Target Time 10.270 s, Target Speed 60.0 mph, Distance 456 ft. The tile "Target Speed" therefore showed 23.7 mph against a 60 mph target by default.
+  **Reproduced again and fixed 2026-10-13 (final simulator pass).** `premium/tests/acceleration-target.test.js` (written first) on the engine of `caa45c8`: 39 checks, 18 failed (the default configuration: the first draw's and the settled draw's Target Speed tile 16.2 / 23.7 mph instead of 60, Target Time 4.15 s below the physical minimum of 6.54 s for 60 mph at the Max Accel the page reports, Distance 60 ft against a minimum of 288 ft, Target Time equal to the Dragstrip's 60-foot time; and for a light vehicle at 60, 100 and 132 mph the result differing from the same target ± 0.01 mph, for example 100 mph: 3.12 s and 100 ft against 9.64 s and 835 ft at 99.99 mph); 0 on the fix. Root cause confirmed: one object, two meanings. Intended behaviour established from the product: the box is labelled Target Speed in mph, the tiles are Target Time (sec), Target Speed (mph) and Distance (ft), the Dragstrip is where the 60 / 330 / 660 / 1000 / 1320-ft markers are reported (its caption says so), and the engine's own result for a target that was not exactly a mark (10.27 s, 60.0 mph, 456 ft) is the time to the speed. No new default or distance was invented.
+- **Affected:** `simulateCurveAcceleration` (`crossed`, `marks`), `sim_acceleration` (Target Time, Target Speed, Distance and the other tiles of the run); `sim_dragstrip` uses the same function and the distance marks (its 1,320-ft distance is passed through the same options and is unchanged).
+- **Impact:** The default Acceleration result was wrong (a 60-foot time under the label Target Time, 23.7 mph under Target Speed), and it jumped to the right answer after a Metric round trip. Targets of 100 and 132 mph reported 100 ft and 132 ft.
+- **Decision:** Fixed 2026-10-13 as the entry recommended; the intended behaviour is established by the existing labels and the engine's own non-colliding path, so no product decision was needed. The speed event is kept in its own variable (`targetHit`) instead of in `crossed`; the marks, the target default (60 mph), the Dragstrip's options (`target:1320, distanceFt:1320`, which still end the run at the 1,320-ft mark and report it) and every formula are unchanged. After the fix the default Acceleration page shows Target Time 10.270 s, Target Speed 60.0 mph, Distance 456 ft, 2nd gear, 1 shift, the same on the first draw and every later draw and in both systems.
+- **Dependencies:** GH-DEF-032 (same simulator; closed in the same pass).
+- **Revisit:** None (closed).
+- **Commits:** `9e4877b` (engine, test, runner, catalogue hash).
+- **Tests:** `premium/tests/acceleration-target.test.js` (new; 39 checks in real Chromium: A the default configuration in Imperial and Metric, first and settled draws: the box holds 60 mph (96.56 km/h), the Target Speed tile is the target, Target Time ≥ the target speed over the largest acceleration the page reports, Distance ≥ v² / 2a, and not the Dragstrip's 60-foot time; B 60, 100 and 132 mph give the same time (± 0.03 s), distance (± 4 ft) and speed as the same target ± 0.01 mph, and the physical bounds hold; C the Acceleration target set to the Dragstrip's trap speed covers 1,320 ft (± 5 ft) in the Dragstrip's 1/4 Mile ET (± 0.04 s), Imperial and Metric; D the Dragstrip's and Top Speed's tiles for the default vehicle and the Acceleration tiles for a 50 mph target equal the values recorded from the engine before the fix; E labels and units: the box is labelled Target Speed and declares mph, the tiles read sec, mph and ft, the speed tile equals the box (75 mph) in both systems; F an unreachable 400 mph target still reports the 60-second limit and the speed reached; 18 fail on the engine of `caa45c8`, 0 on the fix). Injected faults: 4 of 5 caught (the defect restored: 18 checks fail; the run no longer stopping at the target: 1; the target reached a mile per hour late: 14; the speed tile read at the distance mark: 10); the fifth, removing the Dragstrip's fallback to the 1,320-ft crossing, is equivalent (the run ends in the same step in which that crossing is recorded). `curve-persistence.test.js` no longer needs a 50 mph workaround and follows the default target. Neighbours on the final engine (both fixes, commit `c8756ce`): `curve-persistence.test.js` (GH-DEF-030) 262 checks, 0 failed; `curve-editor-mode.test.js` (GH-DEF-029) 107 checks, 0 failed, 8 of 8 injected faults caught; `airflow-readers.test.js` 131 checks, 0 failed; `performance-units.test.js` 95 checks, 0 failed (`MUTANTS=0`); `performance-census.test.js` (`QUICK=1`) 15 checks, 0 failed; `nav-return.test.js` and `toggle-sweep.test.js` limited with `ONLY=` to the eight `sim_*` calculators: 8 consistent, 0 failures each; `bash premium/tests/run-tests.sh`: catalogue OK, register OK, frontend 55/55, schema 26/26. **Not run:** the other browser suites and the full 28-suite run (about 83 minutes); the change touches `simulateCurveAcceleration` (called by Acceleration and Dragstrip only) and the efficiency fallback in `simBaseInputs` (`eff` is read in two places in the engine, the Top Speed page and `simulateCurveAcceleration`). Added to `premium/tests/run-browser-tests.sh`.
+- **Docs:** This entry; header of `premium/tests/run-browser-tests.sh`; the final-pass section of `docs/PREMIUM-CATALOG.md`.
+- **Verification:** Met. The target speed and the distance marks are independent: Target Time is the time to the Target Speed for the default 60 mph and for 100 and 132 mph, the Dragstrip's marker times and trap speed are unchanged and agree with the Acceleration simulator on the same trajectory, and the labels and units are consistent. Limitations: (1) the output tiles of the simulators keep their Imperial unit text in Metric (mph, ft, sec) and agree with it; this was observed here and not changed, since the unit policy for simulator tiles is outside this defect; (2) a target the vehicle cannot reach in the 60-second limit reports the limit and the speed reached (unchanged; before the fix a 60 mph target the vehicle could not reach showed the 60-foot time instead); (3) the Dragstrip still passes its distance as `target:1320` (a speed it never reaches) next to `distanceFt:1320`; the behaviour is correct and was left alone.
+- **History:** 2026-10-13 — found during the GH-DEF-030 test (a result that changed with a Metric press and a torque preference change), traced to the shared `crossed` object, recorded only. 2026-10-13 (final simulator pass) — closed: the test written first, 18 of 39 checks fail on the engine of `caa45c8`, fixed in `9e4877b`, 0 of 39 fail, 4 of 5 injected faults caught (the fifth equivalent), the default page now shows 10.270 s / 60.0 mph / 456 ft, neighbour suites pass.
+
+### GH-DEF-034 — Bolt Torque Spec by Grade estimates the tensile stress area with 16 threads per inch for every bolt above 0.3 in (reported; needs investigation)
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium, confirmed by the 2026-10-15 investigation.
+  - For common UNC sizes, 7/16 to 1 in, the recommended torque and clamp load are 4.8–14.3 % high, which means overtightening.
+  - Two secondary causes, in the proof-strength constants, reach +10 % (ISO 10.9) and up to +88 % (SAE Grade 2 above 3/4 in).
+  - (Before the investigation, this field read: "Unknown until investigated. If confirmed, probably Medium …")
+- **Priority:** P2
+- **Description:** Reported 2026-10-14 while preparing Batch 11b, recorded on the owner's instruction. `bolt_torque_spec` (Free, "Bolt Torque Spec by Grade") computes the tensile stress area as `0.7854 × (d − 0.9743 ÷ n)²` with `n = 16` threads per inch when `d > 0.3 in` and `n = 20` otherwise, whatever the bolt's real thread. The calculator has no thread-pitch input. The UN formula itself is the standard one (ASME B1.1 / FED-STD-H28); the suspected fault is the fixed `n`. The stress area feeds the target clamp load (75 % of proof load) and the recommended torque `T = K × D × F`.
+- **Evidence:** Source reading only (engine `53c7792`, `RENDERS.bolt_torque_spec`, the line `stress_area = 0.7854*Math.pow(dia_bt-(0.9743/(dia_bt>0.3?16:20)),2)`).
+  - Reproduction case: 1/2 in bolt, Grade 5, dry. The code uses n = 16 and gets 0.7854 × (0.5 − 0.060894)² = 0.1514 sq in. A 1/2-13 UNC bolt (n = 13) has 0.7854 × (0.5 − 0.074946)² = 0.1419 sq in, the value tabulated in ASME B1.1 and SAE J429. The difference is 6.7 % high, and the clamp load and torque inherit it.
+  - Same arithmetic for other UNC sizes (code area ÷ UNC area − 1):
+    - 1/4-20: 0 %
+    - 5/16-18: −5.2 %
+    - 3/8-16: 0 %
+    - 7/16-14: +4.8 %
+    - 1/2-13: +6.7 %
+    - 9/16-12: +8.6 %
+    - 5/8-11: +10.6 %
+    - 3/4-10: +11.5 %
+    - 7/8-9: +12.7 %
+    - 1-8: +14.4 %
+  - For UNF threads the error has the other sign or is different again. The page was not opened for this entry and nothing was changed; the figures are to be reproduced on the page as part of the investigation.
+  - **Investigation, 2026-10-15** (engine at `3d3a531`; diagnostics in a scratch folder, nothing in the repository changed).
+    - **References inspected:**
+      - (R1) [MechaniCalc fastener size tables](https://mechanicalc.com/reference/fastener-size-tables), UNC/UNF tensile stress areas, sourced there to ASME B1.1 Appendix B, and metric coarse stress areas, sourced to ASME B1.13M Appendix B. Values: 1/2-13 UNC **0.1419**, 1/2-20 UNF 0.1599, M12×1.75 84.27 mm².
+      - (R2) [Engineers Edge, ANSI inch thread stress area](https://engineersedge.com/hardware/ansi_inch_size_thread_stress_15800.htm), "ASME / ANSI B1.1": 1/2-13 **0.1419**, 1/2-20 0.1599, 5/8-11 0.226, 3/4-10 0.334. Its 7/16-14 entry (0.0163) is a typo on that page and was not used.
+      - (R3) [Portland Bolt, SAE J429](https://www.portlandbolt.com/technical/specifications/sae-j429/), proof loads:
+        - Grade 2: 55 ksi for 1/4–3/4 in, **33 ksi over 3/4 to 1-1/2 in**;
+        - Grade 5: 85 ksi for 1/4–1 in, **74 ksi over 1 to 1-1/2 in**;
+        - Grade 8: 120 ksi.
+      - (R4) [Fastenal, Mechanical Properties of Metric Fasteners](https://crafter.fastenal.com/static-assets/pdfs/Mechanical_Properties_of_Metric_Fasteners.pdf), "per ISO 898-1": proof 8.8 **580 MPa (M5–M16)**, 600 MPa (M18–M39); 10.9 **830 MPa**; A_s = 0.7854 ((d₂ + d₃)/2)².
+      - ASME B1.1, SAE J429 and ISO 898-1 themselves were **not** inspected; R1–R4 are secondary summaries of them. The tabulated areas agree with π/4 (d − 0.9743/n)² for UN and π/4 (d − 0.9382 P)² for ISO coarse threads to the printed digits.
+    - **Root cause (confirmed).** The area uses a fixed pitch instead of the bolt's own pitch, and the page has no thread input.
+      - `RENDERS.bolt_torque_spec` (engine line 5980) uses n = 16 above 0.3 in and 20 below.
+      - The active `RENDERS.bolt_stretch` (line 10635) uses n = 16 for every diameter. Line 6108 is an earlier definition, overridden and not run.
+      - The registry formula of `bolt_torque_spec` (`GH_BACKFILL_FORMULAS`, reported by the engine as `GH_LEGACY_FORMULAS`, fingerprint `fv1-f63ea4c8`, the same as the production seed) carries the same rule.
+      - `GH_ENGINE.calculate('bolt_torque_spec', {dia_bt: 0.5, K: 0.2, proof_str: 85000})` returns 80.4506 ft-lb, so the save path has the defect too.
+    - **Reproduced on the page** (Playwright, real renders, both systems). 1/2 in Grade 5 dry: **80.5 ft-lb, 9,654 lbf**; lubricated 60.3 ft-lb. With A_t = 0.1419, the values are 75.4 ft-lb, 9,046 lbf and 56.5 ft-lb (+6.7 %). Grade 5 dry, page against the UNC thread (UNF in brackets):
+
+      | Size | Page torque, ft-lb | UNC reference | Error UNC (UNF) |
+      |---|---|---|---|
+      | 1/4 | 8.5 | 8.4 | +0.1 % (−12.6 %) |
+      | 5/16 | 16.5 | 17.4 | −5.1 % (−14.3 %) |
+      | 3/8 | 30.9 | 30.9 | 0 % (−11.7 %) |
+      | 7/16 | 51.8 | 49.4 | +4.8 % (−6.1 %) |
+      | 1/2 | 80.5 | 75.4 | +6.7 % (−5.3 %) |
+      | 9/16 | 118.1 | 108.8 | +8.6 % (−2.7 %) |
+      | 5/8 | 166.0 | 150.1 | +10.6 % (−2.4 %) |
+      | 3/4 | 297.2 | 266.2 | +11.7 % (0 %) |
+      | 7/8 | 483.9 | 429.5 | +12.7 % (+2.3 %) |
+      | 1 | 735.9 | 643.9 | +14.3 % (+4.5 %) |
+
+      The figures logged on 2026-10-14 against the tabulated areas are corrected to: 5/16-18 −5.1 % (not −5.2 %), 3/4-10 +11.7 % (not +11.5 %), 1-8 +14.3 % (not +14.4 %).
+    - **Metric (confirmed, same cause).** The diameter box converts mm to inches, and the inch 16/20 TPI rule is applied, so the ISO pitch is never used. Page area against the ISO coarse thread:
+      - M6 −11.5 %;
+      - M8 −10.7 %;
+      - M10 −3.2 %;
+      - M12 +1.8 %;
+      - M16 +4.7 %.
+    - **Secondary causes (confirmed against R3 and R4; separate from the thread):** the proof-strength table has one value per grade.
+      - **Grade 2 above 3/4 in** uses 55 ksi, where the reference is 33 ksi. A 7/8-9 Grade 2 bolt dry: page 313.1 ft-lb, 21,472 lbf; reference 166.8 ft-lb, 11,435 lbf; **+87.8 %**.
+      - **Grade 5 above 1 in** uses 85 ksi, where the reference is 74 ksi. A 1-1/4-7 bolt: page 70,796 lbf, reference 53,780; +31.6 % with the area.
+      - **Metric 8.8** uses 87,000 psi (599.8 MPa), which is the M18+ value; M5–M16 is 580 MPa (+3.4 %).
+      - **Metric 10.9** uses 130,000 psi (896.3 MPa), where the reference is 830 MPa (**+8.0 %**). M12 10.9: page 57,689 N, reference 52,458 N, +10.0 %.
+    - **`bolt_stretch` (confirmed):** its Estimated Clamp Load = E ε A uses the same fixed-n area: 1/4 in −11.7 %, 1/2 in +6.7 %, 1 in +14.3 % against UNC. Target Stretch and Bolt Stress do not use the area.
+    - **Not affected (checked):**
+      - the Free `clamp_load` (F = T ÷ (K D), no area);
+      - the Batch 11b fastener calculators (`GH11B_threadRead` takes the real pitch; self-test 1/2-13 0.141898);
+      - the T = K D F relation and the 75 %-of-proof convention themselves.
+    - **Observation, not investigated:** `bolt_stretch` applies the strain measured over the whole length to the threaded area; a shank-dominated bolt has a larger effective area. This is a modelling question, outside GH-DEF-034.
+- **Affected:** `bolt_torque_spec` (Target Clamp Load, Recommended Torque). Possibly also:
+  - `bolt_stretch` ("Bolt Stretch / Clamp Load"), which uses the same expression with n = 16 for every diameter (`stress_area_bs`) for its clamp-load estimate.
+  - the metric grade choices of `bolt_torque_spec` (8.8, 10.9), whose diameter is an inch box and whose area uses the same inch thread rule rather than an ISO pitch.
+  - Both are to be confirmed in the investigation.
+  - Not affected: the Batch 11b fastener calculators, which take the thread pitch (UN threads per inch or ISO pitch) as an input and do not reuse this estimate.
+  - **Confirmed 2026-10-15** (see Evidence):
+    - `bolt_torque_spec`: page and registry formula (save path), Imperial and Metric, including the metric grades;
+    - `bolt_stretch`: Estimated Clamp Load only.
+    - The proof-strength constants of `bolt_torque_spec` are a second, independent cause.
+- **Impact:** For coarse threads from 7/16 to 1 in, the clamp load and torque the calculator recommends would be about 5 to 14 % high, toward overtightening. A 5/16-18 bolt would be about 5 % under-torqued. The calculator already advises verifying critical fasteners against manufacturer specs.
+  - **Measured 2026-10-15:**
+    - UNC 7/16–1 in: +4.8 to +14.3 % (overtightening);
+    - 5/16-18: −5.1 %;
+    - every UNF size from 1/4 to 5/8 in: −2.4 to −14.3 % (under-tightening);
+    - ISO coarse M6 to M16: −11.5 to +4.7 % in area;
+    - the proof constants add up to +88 % (Grade 2 above 3/4 in), +31.6 % (Grade 5 at 1-1/4 in) and +10 % (M12 10.9).
+  - The default page (3/8 in Grade 8 dry) happens to be correct for 3/8-16 UNC.
+- **Decision:** OPEN / NEEDS INVESTIGATION: not verified. The owner approved logging it (2026-10-14); no fix is authorized. A separate correction task, with tests written first, is to be planned after the investigation.
+  - **2026-10-15:** investigated and **confirmed**. The status stays OPEN, and **no fix is authorized**.
+  - **Proposed repair, for owner decision:**
+    - (P1) a thread input on both calculators, reusing the Batch 11b thread helper (UN: diameter in + threads per inch; ISO: diameter and pitch in mm). The default is 3/8-16 UNC, so the default results are unchanged.
+    - (P2) size-dependent SAE J429 proof strengths.
+    - (P3) ISO 898-1 proof strengths: 8.8 at 580/600 MPa by size, 10.9 at 830 MPa.
+    - (P4) the registry formula follows P1–P3. This gives a new fingerprint, recorded under `VERSIONED` in `formula-fingerprints.test.js`, as for GH-DEF-005 and GH-DEF-019. The production `formula_versions` row for it is later, separately reviewed migration work, not part of the fix.
+  - **2026-10-15: P1–P4 authorized by the owner and done.**
+    - **Reference table, written before the code:** [`docs/GH-DEF-034-FASTENER-REFERENCES.md`](GH-DEF-034-FASTENER-REFERENCES.md), built from the four provisional sources (the standards themselves were not inspected).
+    - **Both pages use the thread entered:** the Batch 11b thread boxes, UN or ISO. Bolt Torque Spec's ids are `btq_*`, Bolt Stretch's `bst_*`; the old `dia_bt` / `bolt_dia` boxes are gone.
+    - **Proof strength by grade and size:** SAE J429 Grade 2 55/33 ksi, Grade 5 85/74 ksi, Grade 8 120 ksi; ISO 898-1 class 8.8 580 MPa (M5–M16) / 600 MPa (M18–M39), class 10.9 830 MPa.
+    - **No value where the sources print none.** The page shows a validation message instead:
+      - SAE outside 1/4–1-1/2 in;
+      - ISO outside M5–M39;
+      - 8.8 between 16 and 18 mm;
+      - an SAE grade on an ISO thread, or an ISO class on a UN thread.
+    - **New rows on Bolt Torque Spec:** Tensile Stress Area, Proof Strength Used and Proof Load.
+    - **Kept from the old page:** K, T = K D F, the 75 % target and the rounding chain, so the default results are unchanged.
+    - **Registry formula:** `GH_BACKFILL_FORMULAS.bolt_torque_spec` binds the same constants and refuses the same inputs. Its fingerprint changed from `fv1-f63ea4c8` to `fv1-25b1f973` (`VERSIONED`).
+    - **Production row:** deferred. It is recorded as a separate action under GH-ENG-014. No database, migration or Supabase change was made.
+- **Dependencies:** None. Kept separate from the Batch 11b implementation commits. The production `formula_versions` row for `fv1-25b1f973` is a deferred action under GH-ENG-014. It does not block this closure, as with GH-DEF-005 and GH-DEF-019.
+- **Revisit:** When the owner schedules the investigation. (2026-10-15: investigation done; revisit when the owner decides on the repair.)
+  2026-10-15: closed. Revisit if ASME B1.1, SAE J429 or ISO 898-1 is inspected directly and differs from the provisional references (for example, an ISO split stated as d > 16 mm, which would close the 16–18 mm gap).
+- **Commits:** `b927343` (`fix(GH-DEF-034)`: engine, tests, reference table and docs in one commit); its SHA was recorded by the documentation commit that follows it.
+  Earlier: none at creation (this entry only); 2026-10-15 investigation record `a65c042` (documentation only).
+- **Tests:** `premium/tests/fasteners-def034.test.js` (811 checks; details below), 4 engine self-test assertions, the `unit-system` `bolt_stretch` case and the `formula-fingerprints` `VERSIONED` entry.
+  Earlier (2026-10-14): "None yet. The investigation must add an independent test before any change: tabulated stress areas, proof loads and K × D × F torques for several UNC and UNF sizes, plus the metric choices."
+  - **Proposed, 2026-10-15:** a new `premium/tests/fasteners-def034.test.js`, written first and failing on the current engine. It checks:
+    - the tabulated reference literals (R1, R3, R4) for UNC/UNF 1/4–1 in and ISO M6–M16;
+    - torque = K D F and clamp load = 0.75 × proof × area, dry and lubricated, in both systems;
+    - the size thresholds of the proof table;
+    - `bolt_stretch` clamp load;
+    - default results unchanged;
+    - invalid threads rejected;
+    - `GH_ENGINE.calculate` equal to the page;
+    - the existing `unit-system` `bolt_stretch` case updated from "n = 16" to the thread entered.
+  - **Added with the correction:**
+    - `premium/tests/fasteners-def034.test.js` (new; in `run-browser-tests.sh`): 811 checks. Before the code it failed 186 of 245 checks; on the final pre-fix control (`GH_ENGINE` = the committed engine before the fix) it failed 193 of 253.
+    - 4 engine self-test assertions (733 total).
+    - The `unit-system` `bolt_stretch` case (1/2-13; failed all 7 runs before the code).
+    - The `VERSIONED` entry in `formula-fingerprints.test.js`.
+    - The force row "Proof Load" in `force-unit-rows.json` (179 rows).
+- **Docs:** This entry; `docs/PREMIUM-CATALOG.md` (Batch 11b plan, observation; "GH-DEF-034 fix"); `docs/GH-DEF-034-FASTENER-REFERENCES.md`.
+- **Verification:** Required before this entry can move on:
+  1. Reproduce on the page (Imperial and Metric) for 1/2 in Grade 5 dry and lubricated, and for at least 5/16, 7/16, 5/8 and 3/4 in.
+  2. Confirm the governing thread geometry: the ASME B1.1 thread series and the stress-area formula, and how the calculator should know the pitch (a thread input or a coarse/fine choice).
+  3. Check `bolt_stretch` and the metric grade options for the same cause.
+  4. Then, with an approved fix, show the corrected values against tabulated references, with Imperial and Metric unchanged elsewhere.
+
+  Steps 1–3 were done on 2026-10-15 (Evidence). Step 2's answer is a thread input; the proposal is P1. Step 4 waits for authorization.
+
+  **Step 4 done, 2026-10-15.**
+  - **Reference values:** `fasteners-def034` checks the page against the printed tables (UNC/UNF 1/4–1 in; ISO coarse and fine M5–M20) and the proof-strength boundaries of every grade, in both systems.
+  - **Before and after:** 17 representative fasteners were recalculated outside the engine and matched on the page, for example 1/2-13 Grade 5 dry 75.4 ft-lb and 9,046 lbf (was 80.5 and 9,654).
+  - **Unchanged elsewhere:** the defaults (43.6 ft-lb, 6,974 lbf; 59.1137 N·m, 31,021.8975 N; Bolt Stretch 899 lbf, 11,600 psi), and the full browser regression (36 of 36 suites).
+- **History:** 2026-10-14 — observed during Batch 11b planning (commit `53c7792`, catalogue observation); logged as OPEN on the owner's instruction, with the reproduction figures above and the two possibly related places in the code. No change made.
+  2026-10-15 — investigated on the owner's instruction (after the Batch 14 closeout).
+  - **Confirmed:** the fixed pitch on the page and in the registry formula, for Imperial and Metric, and in `bolt_stretch`'s clamp load.
+  - **Further causes found:** the single proof value per grade (SAE J429 size ranges; ISO 898-1 8.8 and 10.9).
+  - Three of the logged percentages are corrected against tabulated areas.
+  - A repair (P1–P4) and its tests are proposed.
+  - Status stays OPEN; no code changed.
+  2026-10-15 — correction authorized by the owner and done, test-first; **closed** on this evidence.
+  - **Commit:** `b927343`.
+  - **Focused suite:** `fasteners-def034` 811 checks, 0 failures.
+  - **Engine self-test:** 733 / 733.
+  - **Other suites:**
+    - `formula-fingerprints`: 577 seed formulas, 574 identical, 3 recorded corrections;
+    - `unit-system` 7,690 checks, `unit-census` 743 calculators, `mass-force` 858 checks, `label-consistency` 743, `toggle-sweep` 743 (1 known-open), `nav-return` 739 consistent;
+    - `performance-census`: full run, 743 calculators.
+  - **`run-tests.sh`:** catalog OK, register OK, frontend 55/55, schema 26/26.
+  - **Full browser regression:** 36 of 36 suites, 0 failures. Engine and test files were checksum-frozen during the run.
+  - **Corrections to the investigation figures** (kept above as written): the torque change differs slightly from the area error. The 1-1/4-7 area (0.969) and the 7/8 Grade 2 reference (166.8) were formula- or printed-table-based, as noted in the reference document. The page now shows 166.7.
+  - **Limitations:**
+    - the standards were not inspected directly (the four sources are provisional);
+    - the 1/2-20 UNF printed 0.1599 against the formula's 0.15995;
+    - the 8.8 16–18 mm gap is refused;
+    - Grade 2's 6-inch length condition is stated on the page, not checked.
+  - **Deferred:** the production `formula_versions` row (GH-ENG-014).
+
+### GH-DEF-035 — A navigation made in the same instant as a trip to the dashboard can be overwritten by the dashboard's deferred home-page swap (intermittent nav-return failures)
+- **Status:** VERIFIED CLOSED
+- **Severity:** Low (no person can navigate within one timer tick; it shows up as an intermittent test failure under load)
+- **Priority:** P3
+- **Description:** `ghRender()` draws a page and then, in a `setTimeout(…, 0)`, replaces the calculator container with the home page when the page drawn was the dashboard (and, for a calculator, decorates the page with that calculator's content section). If another `renderCalc(id)` runs before that timer fires, the calculator is drawn and then wiped by the swap, so its result panel is empty. `premium/tests/nav-return.test.js` renders the dashboard and then the calculator in two quick `page.evaluate` calls, and on a heavily loaded machine the second call can arrive before the timer.
+- **Evidence:** In the full browser regression after Batch 11c (engine of `605196f`, 2026-10-14), `nav-return` failed for `stress`, `tow_trailer_capacity` and `roll_stiffness_distribution` ("back" result empty, "live" correct). Re-run on the same engine: those three alone 0 failures; the whole suite 733 checked, 0 failures. The same suite passed in the Batch 11a and 11b regressions. None of the three calculators was changed by Batch 11.
+- **Affected:** `ghRender` (the deferred home-page swap and calculator decoration); `premium/tests/nav-return.test.js` (intermittently). Any calculator could be hit, Free or Premium: the failing ids in the investigation included `thread_stripping_strength` and `bearing_surface_speed`.
+- **Impact:** A flaky regression result; no realistic user impact.
+- **Decision:** Owner decision 2026-10-14: keep OPEN. The re-run that passed does not resolve it; the timing race is to be investigated and reproduced deterministically as separate work, then fixed under its own authorization. Possible fixes: cancel the pending swap when another page is rendered, or have the test wait for the swap before navigating again.
+- **Dependencies:** None (related to the swap described in GH-DEF-026).
+- **Revisit:** In the separately authorized investigation (reproduce first, then fix with a test that fails before the fix).
+- **Commits:** `ca2f9b8` (fix and the deterministic test).
+- **Tests:** `premium/tests/render-race.test.js` (new, deterministic: two renders in one task, then the timers run; 20 calculators, 95 checks; in `run-browser-tests.sh`); `premium/tests/nav-return.test.js` (unchanged).
+- **Docs:** This entry; `docs/PREMIUM-CATALOG.md` ("Batch 11c", "Batch 13", "Batch 14" verification, and "GH-DEF-035 fix").
+- **Verification:** A fix must make the race impossible (or the test immune to it) and show `nav-return` passing repeatedly under load.
+- **History:** 2026-10-14 — observed in the Batch 11c full regression; re-run passed; recorded as OPEN.
+  2026-10-14 — owner decision: stays OPEN (Low) pending a separate investigation and reproduction; not dismissed because the re-run passed.
+  2026-10-14 — seen again in the full regression after Batch 13 (engine of `3dfa4e3`), on other older calculators each run and never on a Batch 13 one: `clutch_hydraulic_ratio`, `newton_to_kgf`, `timing_mark` (3 failures); a whole-suite re-run failed `brake_controller_gain`, `breakover_angle`, `milling_heads`, `wastegate_flow` (4); each set passed alone, and a second whole-suite re-run passed (733 consistent, 0 failures). Same symptom (one of "back" / "live" empty). Not investigated or fixed here (Batch 13 scope); still OPEN. This history line was also moved back under the entry: it had been left below the "B. Deferred improvements" heading.
+  2026-10-15 — **investigated and fixed under the owner's authorization (2026-10-14, "GH-DEF-035 investigation and controlled fix").**
+  - **Root cause:** confirmed as described. The deferred follow-up in `ghRender` was never cancelled by a newer render. Dashboard → calculator before the timer: the home page wiped the calculator (empty "back" panel; empty "live" panel when the timer fired one call later). It also had a second effect, calculator X → Y before the timer, where Y's page received X's content section as well as its own.
+  - **Deterministic reproduction:** the new `render-race.test.js` failed **50 of 95 checks** on the unfixed engine (`a50079f`), across 16 older Free and 4 Batch 14 calculators.
+  - **Timing evidence:** nav-return's exact sequence on an instrumented copy of the unfixed engine, two copies in parallel, recorded **14 late swaps and 13 inconsistent results**, each inconsistency on a calculator with a late swap. The real `nav-return.test.js`, two copies in parallel, **failed 2 of 2** (11 and 3 calculators, "back" empty).
+  - **Fix (`ca2f9b8`):** a render sequence number in `ghRender`. A timer whose render has been superseded returns without acting; the newer render schedules its own. One render alone behaves exactly as before. No sleep or timeout changed, no assertion weakened, no calculator changed.
+  - **Verified after the fix:**
+    - `render-race` 95/95;
+    - instrumented sequence: 17 late swaps neutralised, 0 inconsistent;
+    - the real `nav-return` under parallel load: **7 of 7 runs passed** (2 + 2 + 3 at once, 737 consistent each);
+    - **two full browser regressions passed, 35 of 35 suites each** (`nav-return` 737 consistent, `render-race` 95, self-test 725/725, `structural-14` 622).
+  - These meet the Verification criteria: the race can no longer change the screen, and `nav-return` passes repeatedly under load. **Closed.**
+  - **Remaining risk:** two other wrappers schedule `setTimeout(enhance, 0)` and `setTimeout(d31EnhanceDashboard, 0)` after every render without a sequence check. No failure was traced to them, and they were left unchanged (out of scope, no evidence).
+
+
+### GH-DEF-036 — Bolt Stretch applies one tensile stress area to the whole bolt length, so a bolt with a plain shank (or a reduced shank) gets the wrong clamp load
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium.
+  - **Typical rod bolts and studs with a full-diameter shank:** the clamp load is low, by up to about 30 % for 3/8-16.
+  - **Reduced-shank (waisted) bolts:** it is high (+18 % in the case below).
+  - The page already says "this is an estimate only".
+- **Priority:** P2
+- **Description:** `bolt_stretch` ("Bolt Stretch / Clamp Load", Free) turns a stretch into a load as clamp load = E × (stretch ÷ length) × A_t.
+  - "Bolt Length" is the whole bolt ("under head to end"), and A_t is the tensile stress area of the thread entered (since GH-DEF-034).
+  - That is the load in a **uniform bar of area A_t** as long as the bolt. A real bolt is segments in series, so a measured stretch δ corresponds to F = E δ ÷ Σ(L_i ÷ A_i) over the loaded segments.
+  - A plain shank (area π d²/4, larger than A_t) stretches less per pound than the threads. Thread beyond the nut is unloaded and does not stretch.
+  - The page has no input for the shank length, the shank diameter or the loaded thread length, so it cannot tell these bolts apart.
+- **Evidence:** Investigated 2026-10-15, engine `8f9b9b5`. Scripts are in the session scratch folder; nothing in the repository changed.
+  - **Reference (inspected):** [MechaniCalc, Bolted Joint Analysis](https://mechanicalc.com/reference/bolted-joint-analysis).
+    - "The shank and the threaded portion of the bolt will act as springs in series".
+    - Spring stiffness A·E/L, "where A is the area, E is the elastic modulus … and L is the length".
+    - The shank stiffness uses the nominal area; the threaded portion uses A_t over "the length of the threaded portion within the grip".
+    - Its equations are images and were not readable as text.
+  - **Derivation (ours):** F = k δ, with 1/k = Σ L_i ÷ (A_i E). No standard (VDI 2230, ASME) was inspected. Head and engaged-thread compliance are **not** modelled: the inspected source does not treat them.
+  - **Reproduction.** Steel E = 29,000,000 psi (the page's constant), 3/8-16 UNC (A_t 0.077490 in², shank A_d 0.110447 in²), length 2.000 in, measured stretch 0.006 in (0.3 %). The page shows 6,742 lbf and 87,000 psi for every case:
+
+    | Case | Shank / thread / unloaded (in) | Series model F | Page vs model |
+    |---|---|---|---|
+    | 1 all threaded and loaded (the page's implicit model) | 0 / 2.0 / 0 | 6,741.6 lbf | 0.0 % |
+    | 2 mostly threaded | 0.25 / 1.75 / 0 | 7,002.8 | −3.7 % |
+    | 3 mixed | 1.0 / 1.0 / 0 | 7,923.8 | −14.9 % |
+    | 4 mostly plain shank | 1.75 / 0.25 / 0 | 9,123.8 | −26.1 % |
+    | 5 all plain shank (limit) | 2.0 / 0 / 0 | 9,608.9 | −29.8 % |
+    | 6 fully threaded, 0.5 in past the nut | 0 / 1.5 / 0.5 | 8,988.8 | −25.0 % |
+    | 7 3/8-24, reduced shank 0.300 in dia | 1.5 / 0.5 / 0 | 6,465.1 | **+18.2 %** (page 7,641) |
+    | 8 default inputs (0.04 %), mixed 1.0 / 1.0 | 1.0 / 1.0 / 0 | 1,056.5 | −14.9 % (page 899) |
+    | 9 1/2-20 UNF, 2.5 in, 0.25 %, 1.5 / 1.0 | 1.5 / 1.0 / 0 | 13,047.7 | −11.1 % (page 11,596) |
+
+  - **The limiting error is A_t ÷ A_d − 1.** For a full plain shank that is UNC −35 % (1/4) to −23 % (1 in), and UNF −26 % to −16 %.
+  - **"Bolt Stress" (E × stretch ÷ length)** is the stress of the same uniform bar. In case 3 the real stresses are 71,743 psi in the shank and 102,257 psi in the thread; the page shows 87,000.
+- **Affected:** `bolt_stretch` only: the Estimated Clamp Load and Bolt Stress rows, and the Tensile Stress Area row that feeds them. Target Stretch (length × %) is unaffected.
+  - The registry formula (`GH_E1_FORMULAS.bolt_stretch`, `f*l/(a*e)`, seed `fv1-d48e7340`) is the same single-area bar, in the other direction (load → stretch). The seed marks the calculator `engine_proven = false`.
+  - Not examined, to keep the scope (no evidence either way): the other fastener calculators.
+- **Impact:** For a stretch-method rod bolt or stud with a full-diameter shank, the clamp load the page infers from a stretch is low, so a user who trusts it could over-stretch. For a waisted rod bolt it is high. Fully threaded loaded lengths are correct.
+- **Decision:** 2026-10-15: the owner authorized the correction, and the saved-calculation formula correction with a new formula version. **Done** (see History).
+  Before that: OPEN / NEEDS OWNER DECISION. Not fixed; no code changed. It is kept separate from GH-DEF-034, which stays VERIFIED CLOSED: its correction (the thread entered) is right, and this single-area model predates it.
+- **Proposed correction (for decision):** the smallest correct change keeps the current inputs and adds three:
+  - **New inputs:**
+    - Plain Shank Length L_s (default 0);
+    - Shank Diameter d_s (default = the nominal major diameter; a smaller value for a reduced shank);
+    - Loaded Thread Length L_t (default = bolt length − L_s).
+  - **Equation:** F = E δ ÷ (L_s ÷ A_s + L_t ÷ A_t), with δ = length × %, A_s = π d_s²/4 and A_t from the thread. Length − L_s − L_t is unloaded and contributes no stretch.
+  - **Stress rows:** report the shank stress F ÷ A_s and the thread stress F ÷ A_t in place of the single "Bolt Stress" (owner choice: replace, or keep "Bolt Stress" meaning the thread stress).
+  - **Defaults:** L_s = 0 and L_t = length reproduce today's results exactly (899 lbf and 11,600 psi at the defaults), so default and saved displays do not move.
+  - **Refused:** L_s < 0; L_t ≤ 0 together with L_s = 0; L_s + L_t > length; d_s ≤ 0 or above the major diameter.
+- **Dependencies:**
+  - GH-ENG-014. If the registry formula is changed to the segmented form, `bolt_stretch` gets a new fingerprint and needs a fourth `formula_versions` row. That row is best folded into the same migration as the three in the ENG-014 proposal's Section 11 (D7).
+  - Optionally, an inspected reference for head and engaged-thread compliance (for example VDI 2230), if the owner wants those included.
+- **Revisit:** After the owner decides on the correction, and before the ENG-014 migration is prepared. (2026-10-15: closed. Revisit if head and engaged-thread compliance are to be modelled, which needs an inspected reference such as VDI 2230.)
+- **Commits:** `129464c` (`fix(GH-DEF-036)`: engine, tests and docs in one commit); its SHA was recorded by the documentation commit that follows it. Before that: none (this entry only, `1e753aa`).
+- **Tests:** `premium/tests/bolt-stretch-def036.test.js` (new; in `run-browser-tests.sh`): 439 checks. Before the code it failed 115 of 136 checks; the only passes were its 19 page-independent oracle checks, one incomplete-input check and "no page errors". Also 3 engine self-test assertions plus the replaced `bolt_stretch` formula reference entry; the `unit-system` `bolt_stretch` case (series model, 1/2-13 with 1 in shank and 1 in thread; failed 11 of 11 before the code); `formula-fingerprints` `VERSIONED`. Proposed before the code, all done:
+  - cases 1–9 above as expected values from the series model, in both systems (mm lengths and N);
+  - the default unchanged;
+  - limits L_s = length and L_t = length;
+  - a reduced shank;
+  - an unloaded protrusion;
+  - invalid inputs;
+  - the `unit-system` `bolt_stretch` case extended.
+- **Docs:** This entry; `docs/ENG-014-FORMULA-VERSION-MIGRATION-PROPOSAL.md` Section 11 (D7) and Section 12 (the final four-row set); `docs/PREMIUM-CATALOG.md` "GH-DEF-036 fix".
+- **Verification:** Required before this entry can move on:
+  1. The owner decides the inputs, the stress rows, and whether the registry formula changes.
+  2. The tests above fail before the change and pass after it.
+  3. Cases 1–9 are reproduced on the page in Imperial and Metric, with the defaults unchanged.
+  4. The full browser regression passes.
+- **History:** 2026-10-15 — reported as a possible issue during the GH-DEF-034 correction. Investigated on the owner's instruction: series-compliance model derived and checked against the page, which reproduces the uniform-bar values. **Confirmed** as a modelling defect for bolts that are not threaded along their whole loaded length. Logged OPEN; no change made.
+  2026-10-15 — correction authorized by the owner and done, test-first; **closed** on this evidence. Commit `129464c`.
+  - **Model check:** independently re-derived before the code. All nine investigation cases were reproduced exactly from the equation.
+    - Two stress figures in the case table above were computed with the unrounded area. The page's rounding chain gives 63,405 psi (not 63,404) for the case-2 shank and 102,256 psi (not 102,257) for the case-3 thread; the loads are unchanged.
+    - 20,000 random fully threaded cases give exactly the old page's numbers.
+  - **The page:**
+    - **New boxes:** Plain Shank Length (`bst_ls`, default 0); Shank Diameter (`bst_ds` for UN, `bst_dsm` in mm for ISO; blank = the nominal diameter); Loaded Thread Length (`bst_lt`; blank = bolt length − shank length).
+    - **Load:** F = E δ ÷ (L_s ÷ A_s + L_t ÷ A_t), with any remaining length unloaded.
+    - **Stress rows:** "Thread Stress" and "Shank Stress" replace the single uniform-bar "Bolt Stress". Shank Stress shows "—" when there is no loaded shank.
+    - **Refused, each with a message:**
+      - an invalid thread;
+      - a bolt length of 0;
+      - a negative, blank or non-numeric shank length;
+      - a shank longer than the bolt;
+      - a negative thread length;
+      - shank + thread longer than the bolt;
+      - no loaded length;
+      - a shank diameter of 0 or less, above the major diameter, or non-numeric.
+    - **Disclosed on the page:** head, engaged-thread, bending and temperature effects are not included.
+    - **The 0.04 % default** is unchanged. It came with the original import (2026-10-05) with no source, so it is documented and stated on the page as **an illustrative example, not a recommended stretch**.
+    - **Defaults unchanged:** 899 lbf, 11,600 psi (thread stress); Metric 3,998.9512 N, 799.7918 bar.
+  - **Saved-calculation formula:** it had the same single-area model (`f*l/(a*e)`, a uniform bar, in the opposite direction from the page). It is replaced by the page's series model, with stretch → clamp load in lbf and the same refusals.
+    - Fingerprint `fv1-d48e7340` → `fv1-8e827c77` (`GH_E1_FORMULAS`), recorded in `VERSIONED`.
+    - The old version and any records under it are untouched.
+    - The input keys and output changed, as documented in ENG-014 Section 12.
+  - **Engine self-test harness:** `evalFormula` now passes the constants that a formula's categorical options bind, as `GH_ENGINE.calculate` does. No existing reference entry used options.
+  - **The GH-DEF-034 regression test `fasteners-def034.test.js` changed in two assertions only, because the stress rows changed by design:**
+    - the default and valid cases now read "Thread Stress" (the same number as the old "Bolt Stress" for a fully threaded bolt);
+    - an invalid thread now shows only the target stretch, because the stresses need the thread's area.
+
+    It is still 811 checks, 0 failures. GH-DEF-034 is not reopened: its correction (the thread entered) is unchanged.
+  - **Results:**
+    - `bolt-stretch-def036`: 439 checks, 0 failures. The pre-fix engine fails 115 of 136.
+    - Engine self-test: 736 / 736.
+    - `formula-fingerprints`: 577 seed formulas, 573 identical, 4 recorded corrections.
+    - `unit-system` 7,694 checks; `unit-census` 743 calculators; `mass-force` 858; `label-consistency`, `nav-return` and `toggle-sweep` 743 calculators each.
+    - `run-tests.sh`: catalog OK, register OK, frontend 55/55, schema 26/26.
+    - **Full browser regression: 37 of 37 suites, 0 failures**, with engine and test files checksum-frozen during the run.
+  - **Observation, not fixed (outside scope):** `unit-system.test.js` `verify()` reads a blank box as 0. Its tolerance is relative to the expected value, so an infinite expected value passes vacuously. The `bolt_stretch` case was written so its expected value is always finite.
+  - **Deferred:** the production `formula_versions` row `('bolt_stretch', 'fv1-8e827c77', '1.1.0', 'GH_E1_FORMULAS', 'F1.12.4')`, under GH-ENG-014 (Section 12).
+
+
+### GH-DEF-037 — Test harnesses can pass vacuously when the expected value is not finite (and `unit-system` reads a blank box as 0)
+- **Status:** VERIFIED CLOSED
+- **Severity:** Low (test infrastructure only; no calculator is affected; no current check is known to pass vacuously, but a future case could hide a real defect)
+- **Priority:** P2
+- **Description:** In `premium/tests/unit-system.test.js`, `verify()` does three things:
+  - it converts every box with `Number(shown)`, so a blank box becomes **0**;
+  - it uses `tol = 0.5·10^−d + rel·|want|`;
+  - it fails only when `|got − want| > tol`.
+
+  So an expected value of **Infinity** gives an infinite tolerance and `Infinity > Infinity` is false, and an expected value of **NaN** makes the comparison false. **Either one passes.** A blank box read as 0 is one way to get there: the old `bolt_stretch` case divided by a blank, so 0, loaded length. Many other harnesses use the same relative-tolerance pattern.
+- **Evidence:** 2026-10-15, on temporary copies only (deleted afterwards).
+  - **Reproduction:** two deliberately wrong `unit-system` cases on `bolt_stretch`, one with expected `1/0` and one with `0/0`, passed every step: 55 checks, 0 failures, the 30 wrong steps all "ok".
+  - **Survey of the current suite** (`verify()` instrumented to report each non-finite expected value and each blank box):
+    - **0** non-finite expected values in 7,694 checks;
+    - **11** blank-box readings, all in the `bolt_stretch` case, whose `compute` already treats a non-positive thread length as the blank box (GH-DEF-036).
+    - So no current `unit-system` check is vacuous.
+  - **The same pattern elsewhere**, read but not surveyed:
+    - **`|got − want| ≤ … + rel·|want|`** (Infinity passes; NaN fails): `structural-11a`, `-11b`, `-11c`, `-13`, `-14`, `acceleration-target`, `curve-editor-mode`, `curve-persistence`, `simulator-first-draw`, `performance-census`, `performance-units`, `profile-shortcut`, `dashboard-summary`, `airflow-readers`, `legacy-fixes`, `mass-force`, `remembered-values`, `toggle-sweep` (`near`), `fasteners-def034` and `bolt-stretch-def036`;
+    - **`|got − want| > tol` as the failure test** (Infinity and NaN pass): `unit-system`, `converters`, `native-units`, and the `near` helper of `temperature-units`.
+    - Most of these oracles are closed-form constants, so a non-finite expectation is unlikely, but nothing guards against it.
+- **Affected:** test harnesses only (files above). No calculator formula or page behaviour.
+- **Impact:** A wrong test case whose expected value is infinite (or NaN) reports "ok" instead of failing. The risk is a false sense of coverage, not a wrong result for users.
+- **Decision:** Fixed on 2026-10-15 under the owner's authorization ("GH-DEF-037 fix and migration release readiness"), in one shared helper that every tolerance check delegates to, so a caller cannot bypass it. No broad refactor; no tolerance changed; no case changed.
+  - **`premium/tests/lib/numeric-guard.js`** (new):
+    - `parseShown(text)` reads a page or box text as a number. Blank, missing, "—" or non-numeric text gives `NaN`, never 0. A typed or shown "0" stays 0.
+    - `mismatch(got, want, tol)` returns `null` or the reason. It fails:
+      - an expected value that is not a finite number ("the expected value is not finite … the test case or its inputs are wrong");
+      - a blank or NaN actual value ("blank or not a number");
+      - an infinite actual value ("not finite");
+      - a tolerance that is not finite or is negative.
+      Otherwise it fails only when `|got − want| > tol`, which is the caller's own tolerance formula, unchanged.
+    - `within()` = `mismatch() === null`.
+    - A test that intentionally expects a non-finite result must say so with its own `Number.isNaN` / `=== Infinity` check. No current test does.
+  - **25 harnesses changed:** their `approx` / `near` / `close` / `relOK` helpers and inline comparisons now call `within` / `mismatch`, and their page-text readers call `parseShown`. Each failure message names the test, the expected and actual values and the reason.
+    - `unit-system`: `verify()` reads a blank box as `NaN` (and accepts it in the "inputs unreadable" test), and fails with the guard's reason.
+    - `converters`, `native-units`, `temperature-units`, `mass-force`, `remembered-values`, `toggle-sweep` (`near`, `expectText` and the remembered-value checks; its page-against-page `sameResults` compares two page texts and is unchanged), `unit-census`;
+    - `structural-11a/-11b/-11c/-13/-14`, `fasteners-def034`, `bolt-stretch-def036`;
+    - `acceleration-target`, `curve-editor-mode`, `curve-persistence`, `simulator-first-draw`;
+    - `performance-census`, `performance-units`, `profile-shortcut`, `dashboard-summary`;
+    - `airflow-readers`, `legacy-fixes`.
+  - **`premium/tests/numeric-guard.test.js`** (new, no browser; 61 checks), added to `run-browser-tests.sh`. It checks that:
+    - blank output fails when a number (including 0) is expected;
+    - an expected NaN, +Infinity or −Infinity fails;
+    - a non-finite actual value fails;
+    - zero passes;
+    - finite values at and within the tolerance pass and just beyond fail; the old and the guarded comparisons agree on 20,000 random finite cases;
+    - the reproduced wrong cases passed the old comparisons and fail the guarded ones.
+- **Proposed correction (for separate authorization):** the smallest safe fix, verified on a temporary copy.
+  - **`unit-system.test.js` `verify()`, two lines:**
+    1. Read a blank box as `NaN` instead of 0, and accept a blank box in the "inputs unreadable" test.
+    2. **Fail when the expected value is not finite**, with the message "the expected value is not finite: the case's compute or its inputs are wrong".
+  - **Result on the copy:**
+    - the two wrong cases fail at all 30 steps;
+    - the full suite still passes, 7,694 checks, 0 failures, with no case changed.
+  - **Follow-up, one line per helper:** the same finiteness guard on the expected value in the shared `approx` / `near` / `close` helpers listed above. Each to be run against its own suite before it is committed.
+- **Dependencies:** None.
+- **Revisit:** None. Any new harness compares numbers through `premium/tests/lib/numeric-guard.js`.
+- **Commits:** `d771e13` (the harness correction).
+- **Tests:** `premium/tests/numeric-guard.test.js` (61 checks) and every harness listed under Decision, all in `premium/tests/run-browser-tests.sh` (38 suites).
+- **Docs:** This entry; GH-DEF-036 History (where the weakness was first observed).
+- **Verification:**
+  1. The reproduction above fails with the fix.
+  2. The full `unit-system` suite still passes.
+  3. Each helper changed in the follow-up keeps its suite passing.
+  4. The full browser regression passes.
+- **Verification result (2026-10-15):**
+  1. **The reproduction fails with the fix.** The same two wrong `unit-system` cases (expected `1/0` and `0/0` on `bolt_stretch`), on a temporary copy that was deleted afterwards, now fail at all 30 wrong steps, with "the expected value is not finite". The `numeric-guard` checks of section 6 also show that the old comparisons passed them.
+  2. **The full `unit-system` suite still passes:** 7,694 result checks, 0 failures, the same count as before, with no case changed.
+  3. **Every changed helper keeps its suite passing.** Full browser regression (`bash premium/tests/run-browser-tests.sh`, 38 suites, Chromium 141), with 0 failures in each suite. Selected counts:
+     - engine self-test 736/736, browser smoke 19/19, `temperature-units` 1,108 + 990;
+     - `toggle-sweep` 782 (743 calculators; the 1 known-open inconsistency, unchanged), `nav-return` 743, `converters` 2,064, `native-units` 29 cases;
+     - `remembered-values` 371, `mass-force` 858, `unit-census` 3,067, `airflow-readers` 131, `legacy-fixes` 61;
+     - `profile-shortcut` 80, `dashboard-summary` 12, `performance-units` 95, `performance-census` 15;
+     - `curve-editor-mode` 107, `curve-persistence` 262, `acceleration-target` 39, `simulator-first-draw` 59;
+     - `structural-11a` 793, `-11b` 730, `-11c` 429, `-13` 251, `-14` 1,075, `fasteners-def034` 811, `bolt-stretch-def036` 439, `numeric-guard` 61.
+  The Verification criteria are met.
+- **History:** 2026-10-15 — observed while correcting GH-DEF-036 (the first draft of the `bolt_stretch` case had an infinite expected value at its first steps and still passed). Investigated on the owner's instruction: reproduced, surveyed, fix proposed and verified on temporary copies. No test infrastructure changed.
+  2026-10-15 — **closed:** the shared guard was written and applied to the 25 harnesses, `numeric-guard.test.js` was added, and the reproduction now fails. The full regression passed with `unit-system` at 7,694 checks. Test infrastructure only: no engine, page, migration or production change.
+
+## B. Deferred improvements
+
+### GH-IMP-001 — Energy in ft-lb is labelled "N·m" rather than "J" in Metric
+- **Status:** VERIFIED CLOSED
+- **Severity:** Low
+- **Priority:** P3 (done in the closeout phase, 2026-10-13)
+- **Description:** A joule (energy) and a newton-metre (torque) are dimensionally identical (kg m2/s2), so the number was never wrong; SI practice reserves N m for torque and J for energy to keep the two readable apart. Which labels were misleading: only the five energy rows declared `ft-lb`, which read "N·m" in Metric because the alias `'ft-lb'` pointed at the torque unit `lb-ft`: `brake_energy` Kinetic Energy, `brake_fade_energy` (the `bfe_e` box and Energy per Stop), `brake_fade_prediction` (the `bfp_e` box) and `tow_brake_energy` Kinetic Energy. No torque row was mislabelled (torque rows legitimately read N·m), no other row is declared `ft-lb`, and the other energy rows use their own units (BTU, kWh, a native J); the universal converter has its own energy table (J, kJ, ft-lb, BTU).
+- **Evidence:** `unit-system.test.js` records the "N·m" label for `brake_energy` / `brake_fade_energy`. Item 4c census (`unit-census.test.js`) and alias audit (`unit-factors.test.js`, GH-ENG-002): 5 rows in 4 calculators are declared `ft-lb` (`brake_energy` Kinetic Energy; `brake_fade_energy` the `bfe_e` box and Energy per Stop; `brake_fade_prediction` the `bfp_e` box; `tow_brake_energy` Kinetic Energy), every `ft-lb` use in the engine is an energy, and the cause is the alias `'ft-lb':'lb-ft'`, while `UNIT_DEFS` already holds an `ft-lb` → J entry reachable only through the alias `J`.
+- **Affected:** Energy outputs declared `ft-lb`: `brake_energy`, `brake_fade_energy`, `brake_fade_prediction`, `tow_brake_energy` (5 rows).
+- **Impact:** Cosmetic.
+- **Decision:** Fixed with the one-token change the entry anticipated, because it reuses a unit the engine already had (`UNIT_DEFS` holds `'ft-lb'` -> J, previously reachable only through the alias `J`): `'ft-lb':'lb-ft'` -> `'ft-lb':'ft-lb'`. `ft-lbs`, `ft-lbf`, `lb-ft`, `N·m` and `N-m` still resolve to the torque unit. No display refactor. The alias table is not part of any formula fingerprint (formula-fingerprints unchanged).
+- **Dependencies:** none.
+- **Revisit:** When the unit table is next extended (see GH-IMP-014, which superseded GH-DEF-007).
+- **Commits:** `f7abb1a`.
+- **Tests:** `premium/tests/unit-system.test.js` (energy rows expect "J" with the independent ft-lbf -> J value; torque rows still expect "N·m"), `premium/tests/unit-census.test.js` (`ft-lb` -> J with the exact factor: checks all five rows), `premium/tests/unit-factors.test.js` (`ft-lb` is its own canonical unit). With the alias put back on a scratch copy of the engine: unit-factors 1 failure, unit-census 5 failures (the five rows, "Metric page says N·m, expected J"), unit-system 16 failures, all of them label failures and no number failing.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Item 3.
+- **Verification:** Energy outputs show "J" in Metric with unchanged numbers; torque outputs still show "N·m". (Met; comparison of all 696 calculators: the three Metric energy rows `brake_energy`, `brake_fade_energy` and `tow_brake_energy` change label only, "N·m" to "J", with the same numbers; the energy input label of `brake_fade_prediction` changes too but the comparison tool records input values, not input unit labels, so that one is covered by `unit-census` (the five rows); Imperial changed in 0 calculators)
+- **History:** 2026-10-12 — entry created.
+  2026-10-13 — decided and fixed in `f7abb1a` (the entry's own proposed change; focused, no display refactor); closed on the closeout regression at HEAD `e818939`: unit-system 559 result checks, unit-census 2,622 checks, unit-factors 514 checks, 0 failures each; the five rows read J in Metric with the same number as before. The finding (3) of GH-ENG-002 is resolved by this change.
+
+### GH-IMP-002 — Yaw Inertia and Polar Moment of Inertia ignore the unit toggle
+- **Status:** DEFERRED
+- **Severity:** Low
+- **Priority:** P3
+- **Description:** `yaw_inertia_estimate` (slug·ft²) and the Batch 7 Polar Moment of Inertia (in⁴) report Imperial units in both unit systems. It is a disclosed convention, not a wrong number.
+- **Evidence:** Batch 7 and Batch 9 notes in `docs/PREMIUM-CATALOG.md`.
+- **Affected:** `yaw_inertia_estimate`, `polar_moment_of_inertia` (Batch 7).
+- **Impact:** Metric users see an Imperial unit for these outputs.
+- **Decision:** Left as disclosed; registering the compound units is now GH-IMP-014 (it supersedes GH-DEF-007; `slug-ft2` and `in⁴` are two of its 61 units).
+- **Dependencies:** GH-DEF-007.
+- **Revisit:** With the compound-unit decision.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `docs/PREMIUM-CATALOG.md` Batch 7, Batch 9.
+- **Verification:** Outputs convert to kg·m² and mm⁴ with independent expected values, or the convention is re-affirmed in History.
+- **History:** 2026-10-12 — entry created from the Batch 7/9 disclosures.
+
+### GH-IMP-003 — `hp_from_specs` could add the Torque output its Free sibling has
+- **Status:** DEFERRED
+- **Severity:** Low
+- **Priority:** P3
+- **Description:** `hp_from_specs` (Premium) is a strict subset of the Free `airflow_power_estimate` (same airflow and mass-flow-to-HP formula; the Free tool also outputs Torque). Adding `HP × 5252 / RPM` would give the Premium tool a modest edge.
+- **Evidence:** Phase 1 exceptions document, Judgment Item 1.
+- **Affected:** `hp_from_specs`.
+- **Impact:** Product positioning only.
+- **Decision:** Recorded 2026-10-07 as a low-priority follow-up outside the 143-calculator expansion.
+- **Dependencies:** none.
+- **Revisit:** Any later Premium polish release.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** Project doc `premium-expansion-phase1-exceptions-resolved.md`.
+- **Verification:** Torque output equals HP × 5252 / RPM in both systems (N·m shown in Metric).
+- **History:** 2026-10-07 — recorded; 2026-10-12 — entered in the register.
+
+### GH-IMP-004 — Keep the exact value per field so repeated toggles do not drift in the sixth significant digit
+- **Status:** DEFERRED
+- **Severity:** Low
+- **Priority:** P3
+- **Description:** Field text is rounded to six significant digits, and each toggle re-derives the canonical value from that text, so many toggles can wander in the last digit. Observed after one round trip: 300 → 299.9999 CFM, PV 5,543,987 → 5,544,002 (about 3 parts per million).
+- **Evidence:** Observed on `intake_port_cfm`, `exhaust_port_cfm`, `rod_bearing_pv`, `convection_heat_transfer`; see GH-EXP-003.
+- **Affected:** Shared: `field()`, `captureVisibleCanonicalFields`.
+- **Impact:** At most a last displayed digit.
+- **Decision:** Not a defect (GH-EXP-003); storing exact canonical values per field would be a refactor outside this pass.
+- **Dependencies:** Item 3's design of stored metadata (GH-DEF-004) should not make this worse.
+- **Revisit:** If a user-visible drift is reported.
+- **Commits:** None.
+- **Tests:** `toggle-sweep.test.js` tolerates display-precision plus 0.05%.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** 20 consecutive toggles leave every field's text unchanged.
+- **History:** 2026-10-12 — entry created.
+
+### GH-IMP-005 — The catalogue sweep retypes only one field per calculator
+- **Status:** DEFERRED
+- **Severity:** Low
+- **Priority:** P2
+- **Description:** `toggle-sweep.test.js` retypes the first unit-bearing field of each calculator. A calculator that reads some other field wrongly would be flagged only if a render path reaches it (a live re-render reads every field, so most defects are caught), but per-field retyping would be stronger.
+- **Evidence:** Test design.
+- **Affected:** `premium/tests/toggle-sweep.test.js`.
+- **Impact:** Test coverage only.
+- **Decision:** Item 1 adds multi-field checks for the affected families; a full per-field sweep is deferred because it multiplies the run time (about 10 minutes now).
+- **Dependencies:** none.
+- **Revisit:** After the reliability pass.
+- **Commits:** None.
+- **Tests:** n/a.
+- **Docs:** None.
+- **Verification:** Sweep variant retyping every unit-bearing field passes for all 696 calculators.
+- **History:** 2026-10-12 — entry created.
+
+### GH-IMP-006 — Anti-Squat from Link Coordinates uses one effective link
+- **Status:** DEFERRED
+- **Severity:** Low
+- **Priority:** P3
+- **Description:** Batch 8 builds the instant-center height from a single controlling link and says so; a two-link intersection is the fuller method (E10 Suspension Kinematics Lab covers the general case).
+- **Evidence:** Batch 8 notes.
+- **Affected:** `anti_squat_from_link_coordinates`.
+- **Impact:** Simplification disclosed in the calculator.
+- **Decision:** Left as disclosed.
+- **Dependencies:** none.
+- **Revisit:** If users ask for a two-link version.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `docs/PREMIUM-CATALOG.md` Batch 8.
+- **Verification:** Two-link case matches an independent geometric intersection.
+- **History:** 2026-10-12 — entered from the Batch 8 disclosure.
+
+### GH-IMP-007 — Gear tooth stress calculators omit full AGMA factors
+- **Status:** DEFERRED
+- **Severity:** Low
+- **Priority:** P3
+- **Description:** Gear Tooth Bending Stress (Lewis, single factor) and Gear Tooth Contact Stress (simplified AGMA/Hertz) omit the dynamic, load-distribution and overload factors, and say so.
+- **Evidence:** Batch 7 notes.
+- **Affected:** `gear_tooth_bending_stress`, `gear_tooth_contact_stress`.
+- **Impact:** Screening-level results, disclosed.
+- **Decision:** Left as disclosed.
+- **Dependencies:** none.
+- **Revisit:** A future gear-design batch.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `docs/PREMIUM-CATALOG.md` Batch 7.
+- **Verification:** Results match a published full-AGMA worked example.
+- **History:** 2026-10-12 — entered from the Batch 7 disclosure.
+
+### GH-IMP-008 — Bump Stop Rate is a linear secant approximation
+- **Status:** DEFERRED
+- **Severity:** Low
+- **Priority:** P3
+- **Description:** Batch 8 treats a bump stop's force-at-compression as a linear secant rate (disclosed); real bump stops are progressive.
+- **Evidence:** Batch 8 notes.
+- **Affected:** `bump_stop_rate`.
+- **Impact:** Disclosed simplification.
+- **Decision:** Left as disclosed.
+- **Dependencies:** none.
+- **Revisit:** If a multi-point force table is requested.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `docs/PREMIUM-CATALOG.md` Batch 8.
+- **Verification:** Multi-point table reproduces an independent piecewise integration.
+- **History:** 2026-10-12 — entered from the Batch 8 disclosure.
+
+### GH-IMP-009 — Cam motion calculators use a simple-harmonic lift model (jerk discontinuity)
+- **Status:** DEFERRED
+- **Severity:** Low
+- **Priority:** P3
+- **Description:** Batch 2 uses `Lift(θ) = (Lmax/2)(1 − cos θ)`, a standard approximation with a known jerk discontinuity, disclosed in the help text.
+- **Evidence:** Batch 2 notes.
+- **Affected:** `valve_motion_velocity`, `valve_acceleration`, `cam_motion_profile`, `cam_area_time`.
+- **Impact:** Idealized kinematics, disclosed.
+- **Decision:** Left as disclosed.
+- **Dependencies:** none.
+- **Revisit:** If polynomial/polydyne profiles are wanted.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `docs/PREMIUM-CATALOG.md` Batch 2.
+- **Verification:** New profile agrees with a published cam-profile example.
+- **History:** 2026-10-12 — entered from the Batch 2 disclosure.
+
+### GH-IMP-010 — Ground Effect Estimate and Diffuser Angle / Expansion are idealized
+- **Status:** DEFERRED
+- **Severity:** Low
+- **Priority:** P3
+- **Description:** Ground Effect Estimate is an upper bound (no boundary layers, sealing, stall, yaw or ride-height change; effectiveness defaults to 1.0); Diffuser Angle / Expansion applies no stall or separation limit because no single threshold is valid for every design.
+- **Evidence:** Batch 10 notes.
+- **Affected:** `ground_effect_estimate`, `diffuser_angle_expansion`.
+- **Impact:** Disclosed upper bounds.
+- **Decision:** Left as disclosed.
+- **Dependencies:** none.
+- **Revisit:** With evidence for a defensible limit.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `docs/PREMIUM-CATALOG.md` Batch 10.
+- **Verification:** A limit added only with a cited source and an independent test.
+- **History:** 2026-10-12 — entered from the Batch 10 disclosure.
+
+### GH-IMP-011 — Drag / Downforce Tradeoff grip bound ignores tire load sensitivity
+- **Status:** DEFERRED
+- **Severity:** Low
+- **Priority:** P3
+- **Description:** The added grip capacity `μ·ΔDF` is an upper bound that ignores tire load sensitivity (disclosed).
+- **Evidence:** Batch 10 notes.
+- **Affected:** `drag_downforce_tradeoff`.
+- **Impact:** Disclosed upper bound.
+- **Decision:** Left as disclosed.
+- **Dependencies:** none.
+- **Revisit:** If a load-sensitivity input is wanted.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `docs/PREMIUM-CATALOG.md` Batch 10.
+- **Verification:** With a load-sensitivity input, the grip figure matches an independent calculation.
+- **History:** 2026-10-12 — entered from the Batch 10 disclosure.
+
+### GH-IMP-012 — CdA from Coast-Down uses one constant Crr
+- **Status:** DEFERRED
+- **Severity:** Low
+- **Priority:** P2
+- **Description:** A single coast-down run cannot separate drag from rolling resistance, so Crr is an input. Fitting CdA and Crr together from several runs is the planned Batch 16 workbench.
+- **Evidence:** Batch 10 notes.
+- **Affected:** `cda_from_coast_down`.
+- **Impact:** Disclosed assumption.
+- **Decision:** Resolved by the Batch 16 workbench, not by changing this calculator.
+- **Dependencies:** GH-FUT-004.
+- **Revisit:** Batch 16.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `docs/PREMIUM-CATALOG.md` Batch 10.
+- **Verification:** The workbench recovers known CdA and Crr from synthetic multi-run data.
+- **History:** 2026-10-12 — entered from the Batch 10 disclosure.
+
+### GH-IMP-013 — Vehicle, trailer and part weights showed newtons in Metric: the convention is decided and applied (kg for mass and for scale-read loads, N for force), 66 rows are corrected, D3 is deferred
+- **Status:** IN PROGRESS
+- **Severity:** Medium (a Metric user states a vehicle weight in kilograms; a box that reads newtons gives a result about 10 times off when kilograms are typed into it, as in GH-DEF-006; the labels did say N, so no default result was wrong)
+- **Priority:** P2 (the 50 mass rows and the 16 load rows are corrected and verified; what is left is D3, deferred by the owner to GH-IMP-014 step 12, and the open questions Q1–Q3 below)
+- **Description:** The Metric convention is **kilograms for mass, newtons for force** (owner direction, 2026-10-13): kg for vehicle, trailer, payload and component mass and for manufacturer ratings that are stated as a mass; N for calculated or specified forces; N·m, J, kW, kPa / bar, Δ°C and Metric length / volume for the rest. Every pound row was classified by what it physically is, never by the word "weight". The 47 rows reported by the Item 4b scan (39 input boxes, 8 result rows) were a label-pattern count; reconciled against the code, the 30 calculators declare **69 pound-force rows (40 input boxes, 29 result rows)** and they classify as: **50 mass or mass-stated rating** (declared `lbs`, now kg), **11 load-transfer or corner-load results** (physically forces, kept N, owner decision D1) and **8 forces** (rolling-resistance force and aero downforce / drag, kept N). The 50 are the 47 reported minus one result (`brake_bias` "Weight Transfer to Front", a force, moved to D1) plus four rows the label pattern had called forces but that are mass-stated ratings (the winch and recovery family: `wlp_rated`, "Recommended Minimum Line Pull", "Effective Pull With Blocks", "Required Minimum Working Load per Point"). 40 input boxes are 39 declarations: `wt_rt` is shared by `brake_rotor_temp` and its alias `rotor_heat`.
+  **Update 2026-10-13 (closeout; owner decisions D1 and D2 approved and applied).** The platform unit philosophy was locked in (section "Unit philosophy" below). D1 and D2 are decided in favour of kg: the 11 load-transfer / corner-load results and the 5 per-tire vertical-load inputs are shown the way a corner-weight scale or a tire load index reads them, as a **mass-equivalent in kg** in Metric. That is **16 more rows** (`cls: load` in `force-unit-rows.json`), declared `lbs` in `c0241f8`; with the 50 earlier rows, **66 rows read kg and 80 forces read N**. D3 (N/deg, N/kW) stays deferred to GH-IMP-014 step 12.
+- **Evidence:** Row-level classification (every one of the 69 rows; the machine-readable list is `premium/tests/data/force-unit-rows.json`, `cls` = `mass-rated` / `load` / `force`). Conversion is by declaration only: the stored number stays pounds in every row (a pound of mass weighs a pound-force at standard gravity, so every formula is exact either way); a Metric box reads kg × 2.2046 instead of N ÷ 4.4482 into the same stored number. Nothing is converted twice: an explicit `certValue(..., 'lb' / 'lbf')` unit argument is changed with the declaration in the 7 calculators that have one.
+
+  | Calculator | Field / result | Declared | Imperial / Metric (default) | Physical quantity | Convention | Recommended Metric unit | Numeric conversion | Regression test | Disposition |
+  |---|---|---|---|---|---|---|---|---|---|
+  | `brake_bias` — Brake Bias | "Weight Transfer to Front" "Dynamic Front Load" "Dynamic Rear Load" | lb → lbs | 570 lbs; Metric 2,535 N → 259 kg | force by physics (vertical load shift), read as the mass-equivalent scale reading | owner decision D1 (2026-10-13): a load shift or corner load is shown the way a corner-weight scale reads it, in kg (the 9 Free calculators already do) | kg | none: stored value stays pounds (a pound of mass weighs one pound-force at standard gravity); Metric shows ×0.45359237, which is the former newton figure ÷ 9.80665 | mass-force (inventory, factor, typed kg) + unit-system closed form in kg | CORRECTED (D1, `c0241f8`) |
+  | `brake_bias` — Brake Bias | `wt_bb` | lb → lbs | 3,420 lb; Metric 15,213 N → 1,551 kg | mass | curb / vehicle weight is a mass, kg in Metric (the 64 Free calculators that read vehicle weight already use kg) | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force (inventory, factor, typed kg) | CORRECTED (`caf4942`) |
+  | `brake_energy` — Brake Energy | `wt_be` | lbf → lbs | 3,500 lb; Metric 15,569 N → 1,588 kg | mass | curb / vehicle weight is a mass, kg in Metric (the 64 Free calculators that read vehicle weight already use kg) | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222); `certValue` unit argument follows the declaration | mass-force + unit-system `brake_energy` | CORRECTED (`caf4942`) |
+  | `brake_rotor_temp` — Brake Rotor Temp Rise | `wt_rt` | lb → lbs | 3,420 lb; Metric 15,213 N → 1,551 kg | mass | curb / vehicle weight is a mass, kg in Metric (the 64 Free calculators that read vehicle weight already use kg) | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force (inventory, factor, typed kg) | CORRECTED (`caf4942`) |
+  | `cda_from_coast_down` — CdA from Coast-Down Data | `cdc_w` | lb → lbs | 3,200 lb; Metric 14,234 N → 1,451 kg | mass | curb / vehicle weight is a mass, kg in Metric (the 64 Free calculators that read vehicle weight already use kg) | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222); `certValue` unit argument follows the declaration | mass-force (inventory, factor, typed kg) | CORRECTED (`caf4942`) |
+  | `damping_coefficient_from_ratio` — Damping Coefficient from Target Ratio | `dcf_w` | lb → lbs | 800 lb; Metric 3,559 N → 363 kg | mass | sprung / corner / supported weight is a mass the user knows from a scale or the spec sheet, kg; spring rates N/mm | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222); `certValue` unit argument follows the declaration | mass-force (inventory, factor, typed kg) | CORRECTED (`caf4942`) |
+  | `drag_downforce_tradeoff` — Drag / Downforce Tradeoff | "Setup A Downforce" "Setup A Drag" "Setup B Downforce" "Setup B Drag" "Added Downforce (B − A)" "Added Drag (B − A)" | lb (unchanged) | 243 lb; Metric 1,081 N (unchanged) | force | a force computed from a mass (m · g · coefficient) or from aerodynamics: N | N | none | mass-force (inventory, factor, typed kg) | RETAIN |
+  | `drag_downforce_tradeoff` — Drag / Downforce Tradeoff | `ddt_w` | lb → lbs | 3,200 lb; Metric 14,234 N → 1,451 kg | mass | curb / vehicle weight is a mass, kg in Metric (the 64 Free calculators that read vehicle weight already use kg) | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222); `certValue` unit argument follows the declaration | mass-force (inventory, factor, typed kg) | CORRECTED (`caf4942`) |
+  | `load_transfer_distribution` — Load Transfer Distribution | "Front-Left" "Front-Right" "Rear-Left" "Rear-Right" | lb → lbs | 1,547 lbs; Metric 6,881 N → 702 kg | force by physics (vertical load shift), read as the mass-equivalent scale reading | owner decision D1 (2026-10-13): a load shift or corner load is shown the way a corner-weight scale reads it, in kg (the 9 Free calculators already do) | kg | none: stored value stays pounds (a pound of mass weighs one pound-force at standard gravity); Metric shows ×0.45359237, which is the former newton figure ÷ 9.80665 | mass-force (inventory, factor, typed kg) + unit-system closed form in kg | CORRECTED (D1, `c0241f8`) |
+  | `load_transfer_distribution` — Load Transfer Distribution | `ltd_w` | lb → lbs | 3,500 lb; Metric 15,569 N → 1,588 kg | mass | curb / vehicle weight is a mass, kg in Metric (the 64 Free calculators that read vehicle weight already use kg) | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222); `certValue` unit argument follows the declaration | mass-force (inventory, factor, typed kg) | CORRECTED (`caf4942`) |
+  | `load_transfer_lateral` — Lateral Load Transfer | "Lateral Load Transfer" | lb → lbs | 933 lbs; Metric 4,152 N → 423 kg | force by physics (vertical load shift), read as the mass-equivalent scale reading | owner decision D1 (2026-10-13): a load shift or corner load is shown the way a corner-weight scale reads it, in kg (the 9 Free calculators already do) | kg | none: stored value stays pounds (a pound of mass weighs one pound-force at standard gravity); Metric shows ×0.45359237, which is the former newton figure ÷ 9.80665 | mass-force + unit-system `load_transfer_lateral` + unit-system closed form in kg | CORRECTED (D1, `c0241f8`) |
+  | `load_transfer_lateral` — Lateral Load Transfer | `ltla_w` | lb → lbs | 3,500 lb; Metric 15,569 N → 1,588 kg | mass | curb / vehicle weight is a mass, kg in Metric (the 64 Free calculators that read vehicle weight already use kg) | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `load_transfer_lateral` | CORRECTED (`caf4942`) |
+  | `load_transfer_longitudinal` — Longitudinal Load Transfer | "Longitudinal Load Transfer" | lb → lbs | 324 lbs; Metric 1,442 N → 147 kg | force by physics (vertical load shift), read as the mass-equivalent scale reading | owner decision D1 (2026-10-13): a load shift or corner load is shown the way a corner-weight scale reads it, in kg (the 9 Free calculators already do) | kg | none: stored value stays pounds (a pound of mass weighs one pound-force at standard gravity); Metric shows ×0.45359237, which is the former newton figure ÷ 9.80665 | mass-force + unit-system `load_transfer_longitudinal` + unit-system closed form in kg | CORRECTED (D1, `c0241f8`) |
+  | `load_transfer_longitudinal` — Longitudinal Load Transfer | `ltl_w` | lb → lbs | 3,500 lb; Metric 15,569 N → 1,588 kg | mass | curb / vehicle weight is a mass, kg in Metric (the 64 Free calculators that read vehicle weight already use kg) | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `load_transfer_longitudinal` | CORRECTED (`caf4942`) |
+  | `natural_frequency` — Natural Frequency | `nf_m` | lbf → lbs | 800 lb; Metric 3,559 N → 363 kg | mass | sprung / corner / supported weight is a mass the user knows from a scale or the spec sheet, kg; spring rates N/mm | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `natural_frequency` | CORRECTED (`caf4942`) |
+  | `recovery_point_rating` — Recovery Point / Shackle Rating | `rpr_w` "Required Minimum Working Load per Point" | lb → lbs | 5,500 lb; Metric 24,465 N → 2,495 kg | mass-stated rating / mass | recovery points and shackles are rated as a working load in tonnes / kg ([ARB bow shackle "4.75 tonne WLL"](https://www.arb.com.au/product/arb2014-arb-bow-shackle-19mm-4-75-tonne)) | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `recovery_point_rating` | CORRECTED (`caf4942`) |
+  | `ride_frequency` — Ride Frequency | `rf_m` | lb → lbs | 800 lb; Metric 3,559 N → 363 kg | mass | sprung / corner / supported weight is a mass the user knows from a scale or the spec sheet, kg; spring rates N/mm | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `ride_frequency` | CORRECTED (`caf4942`) |
+  | `rotor_heat` — Brake Rotor Temperature Rise | `wt_rt` | lb → lbs | 3,420 lb; Metric 15,213 N → 1,551 kg | mass | curb / vehicle weight is a mass, kg in Metric (the 64 Free calculators that read vehicle weight already use kg) | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force (inventory, factor, typed kg) | CORRECTED (`caf4942`) |
+  | `tire_rolling_resistance` — Tire Rolling Resistance | "Rolling Resistance Force" | lb (unchanged) | 42.0 lb; Metric 187 N (unchanged) | force | a force computed from a mass (m · g · coefficient) or from aerodynamics: N | N | none | mass-force + unit-system `tire_rolling_resistance` | RETAIN |
+  | `tire_rolling_resistance` — Tire Rolling Resistance | `tirerr_w` | lb → lbs | 3,500 lb; Metric 15,569 N → 1,588 kg | mass | curb / vehicle weight is a mass, kg in Metric (the 64 Free calculators that read vehicle weight already use kg) | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222); `certValue` unit argument follows the declaration | mass-force + unit-system `tire_rolling_resistance` | CORRECTED (`caf4942`) |
+  | `tow_actual_combined` — Actual Combined Weight | `tac_v` `tac_t` "Combined Weight" | lb → lbs | 6,800 lb; Metric 30,248 N → 3,084 kg | mass-stated rating / mass | GVM / GVWR, GCM / GCWR, payload and tow-hitch download are stated in kg ([WA DVS Safe Towing Guide](https://www.transport.wa.gov.au/mediaFiles/licensing/DVS_P_Safe_Towing_Guide.pdf)); US sources state the same in lb | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `tow_actual_combined` | CORRECTED (`caf4942`) |
+  | `tow_axle_load` — Trailer Axle Load | `tal_w` `tal_t` "Trailer Axle Load" | lb → lbs | 8,700 lb; Metric 38,700 N → 3,946 kg | mass-stated rating / mass | GVM / GVWR, GCM / GCWR, payload and tow-hitch download are stated in kg ([WA DVS Safe Towing Guide](https://www.transport.wa.gov.au/mediaFiles/licensing/DVS_P_Safe_Towing_Guide.pdf)); US sources state the same in lb | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `tow_axle_load` | CORRECTED (`caf4942`) |
+  | `tow_brake_energy` — Towing Brake Energy | `tbe_w` | lb → lbs | 15,500 lb; Metric 68,947 N → 7,031 kg | mass-stated rating / mass | GVM / GVWR, GCM / GCWR, payload and tow-hitch download are stated in kg ([WA DVS Safe Towing Guide](https://www.transport.wa.gov.au/mediaFiles/licensing/DVS_P_Safe_Towing_Guide.pdf)); US sources state the same in lb | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `tow_brake_energy` | CORRECTED (`caf4942`) |
+  | `tow_gcwr_margin` — GCWR Margin | `tcm_g` `tcm_w` "GCWR Margin" | lb → lbs | 17,000 lb; Metric 75,620 N → 7,711 kg | mass-stated rating / mass | GVM / GVWR, GCM / GCWR, payload and tow-hitch download are stated in kg ([WA DVS Safe Towing Guide](https://www.transport.wa.gov.au/mediaFiles/licensing/DVS_P_Safe_Towing_Guide.pdf)); US sources state the same in lb | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `tow_gcwr_margin` | CORRECTED (`caf4942`) |
+  | `tow_grade_power` — Towing Grade Horsepower | `tgp_w` | lb → lbs | 15,500 lb; Metric 68,947 N → 7,031 kg | mass-stated rating / mass | GVM / GVWR, GCM / GCWR, payload and tow-hitch download are stated in kg ([WA DVS Safe Towing Guide](https://www.transport.wa.gov.au/mediaFiles/licensing/DVS_P_Safe_Towing_Guide.pdf)); US sources state the same in lb | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `tow_grade_power` | CORRECTED (`caf4942`) |
+  | `tow_grade_speed` — Towing Grade Speed | `tgs_w` | lb → lbs | 15,500 lb; Metric 68,947 N → 7,031 kg | mass-stated rating / mass | GVM / GVWR, GCM / GCWR, payload and tow-hitch download are stated in kg ([WA DVS Safe Towing Guide](https://www.transport.wa.gov.au/mediaFiles/licensing/DVS_P_Safe_Towing_Guide.pdf)); US sources state the same in lb | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `tow_grade_speed` | CORRECTED (`caf4942`) |
+  | `tow_gvwr_margin` — GVWR Margin | `tgm_g` `tgm_w` "GVWR Margin" | lb → lbs | 7,050 lb; Metric 31,360 N → 3,198 kg | mass-stated rating / mass | GVM / GVWR, GCM / GCWR, payload and tow-hitch download are stated in kg ([WA DVS Safe Towing Guide](https://www.transport.wa.gov.au/mediaFiles/licensing/DVS_P_Safe_Towing_Guide.pdf)); US sources state the same in lb | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `tow_gvwr_margin` | CORRECTED (`caf4942`) |
+  | `tow_hitch_margin` — Hitch Capacity Margin | `thm_h` `thm_t` "Hitch Capacity Margin" | lb → lbs | 1,000 lb; Metric 4,448 N → 454 kg | mass-stated rating / mass | GVM / GVWR, GCM / GCWR, payload and tow-hitch download are stated in kg ([WA DVS Safe Towing Guide](https://www.transport.wa.gov.au/mediaFiles/licensing/DVS_P_Safe_Towing_Guide.pdf)); US sources state the same in lb | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `tow_hitch_margin` | CORRECTED (`caf4942`) |
+  | `tow_payload_remaining` — Tow Payload Remaining | `tpr_p` `tpr_c` `tpr_t` "Remaining Payload" | lb → lbs | 1,985 lb; Metric 8,830 N → 900 kg | mass-stated rating / mass | GVM / GVWR, GCM / GCWR, payload and tow-hitch download are stated in kg ([WA DVS Safe Towing Guide](https://www.transport.wa.gov.au/mediaFiles/licensing/DVS_P_Safe_Towing_Guide.pdf)); US sources state the same in lb | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `tow_payload_remaining` | CORRECTED (`caf4942`) |
+  | `tow_rolling_resistance` — Towing Rolling Resistance | "Rolling Resistance Force" | lb (unchanged) | 155 lb; Metric 690 N (unchanged) | force | a force computed from a mass (m · g · coefficient) or from aerodynamics: N | N | none | mass-force + unit-system `tow_rolling_resistance` | RETAIN |
+  | `tow_rolling_resistance` — Towing Rolling Resistance | `trr_w` | lb → lbs | 15,500 lb; Metric 68,947 N → 7,031 kg | mass-stated rating / mass | GVM / GVWR, GCM / GCWR, payload and tow-hitch download are stated in kg ([WA DVS Safe Towing Guide](https://www.transport.wa.gov.au/mediaFiles/licensing/DVS_P_Safe_Towing_Guide.pdf)); US sources state the same in lb | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `tow_rolling_resistance` | CORRECTED (`caf4942`) |
+  | `tow_tongue_percent` — Tongue Weight Percentage | `ttp_t` `ttp_w` | lb → lbs | 870 lb; Metric 3,870 N → 395 kg | mass-stated rating / mass | GVM / GVWR, GCM / GCWR, payload and tow-hitch download are stated in kg ([WA DVS Safe Towing Guide](https://www.transport.wa.gov.au/mediaFiles/licensing/DVS_P_Safe_Towing_Guide.pdf)); US sources state the same in lb | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `tow_tongue_percent` | CORRECTED (`caf4942`) |
+  | `tow_trailer_capacity` — Trailer Cargo Capacity | `ttc_g` `ttc_e` "Trailer Cargo Capacity" | lb → lbs | 9,200 lb; Metric 40,924 N → 4,173 kg | mass-stated rating / mass | GVM / GVWR, GCM / GCWR, payload and tow-hitch download are stated in kg ([WA DVS Safe Towing Guide](https://www.transport.wa.gov.au/mediaFiles/licensing/DVS_P_Safe_Towing_Guide.pdf)); US sources state the same in lb | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `tow_trailer_capacity` | CORRECTED (`caf4942`) |
+  | `weight_transfer_accel` — Acceleration Weight Transfer | "Rear Load Transfer" | lb → lbs | 259 lbs; Metric 1,153 N → 118 kg | force by physics (vertical load shift), read as the mass-equivalent scale reading | owner decision D1 (2026-10-13): a load shift or corner load is shown the way a corner-weight scale reads it, in kg (the 9 Free calculators already do) | kg | none: stored value stays pounds (a pound of mass weighs one pound-force at standard gravity); Metric shows ×0.45359237, which is the former newton figure ÷ 9.80665 | mass-force + unit-system `weight_transfer_accel` + unit-system closed form in kg | CORRECTED (D1, `c0241f8`) |
+  | `weight_transfer_accel` — Acceleration Weight Transfer | `wta_w` | lb → lbs | 3,500 lb; Metric 15,569 N → 1,588 kg | mass | curb / vehicle weight is a mass, kg in Metric (the 64 Free calculators that read vehicle weight already use kg) | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `weight_transfer_accel` | CORRECTED (`caf4942`) |
+  | `weight_transfer_braking` — Braking Weight Transfer | "Front Load Transfer" | lb → lbs | 583 lbs; Metric 2,595 N → 265 kg | force by physics (vertical load shift), read as the mass-equivalent scale reading | owner decision D1 (2026-10-13): a load shift or corner load is shown the way a corner-weight scale reads it, in kg (the 9 Free calculators already do) | kg | none: stored value stays pounds (a pound of mass weighs one pound-force at standard gravity); Metric shows ×0.45359237, which is the former newton figure ÷ 9.80665 | mass-force + unit-system `weight_transfer_braking` + unit-system closed form in kg | CORRECTED (D1, `c0241f8`) |
+  | `weight_transfer_braking` — Braking Weight Transfer | `wtb_w` | lb → lbs | 3,500 lb; Metric 15,569 N → 1,588 kg | mass | curb / vehicle weight is a mass, kg in Metric (the 64 Free calculators that read vehicle weight already use kg) | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `weight_transfer_braking` | CORRECTED (`caf4942`) |
+  | `winch_line_pull` — Winch Line Pull & Recovery Rating | `wlp_gvwr` `wlp_rated` "Recommended Minimum Line Pull" "Effective Pull With Blocks" | lb → lbs | 5,500 lb; Metric 24,465 N → 2,495 kg | mass-stated rating / mass | winch pull is rated in lb with the kg equivalent printed (a 12,000 lb winch is sold as "5,440 kg", [4x4 Down Under](https://www.4x4downunder.com.au)); the recommendation is vehicle mass × multiplier, compared with that rating | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222) | mass-force + unit-system `winch_line_pull` | CORRECTED (`caf4942`) |
+  | `yaw_inertia_estimate` — Yaw Inertia Estimate | `yie_w` | lb → lbs | 3,500 lb; Metric 15,569 N → 1,588 kg | mass | curb / vehicle weight is a mass, kg in Metric (the 64 Free calculators that read vehicle weight already use kg) | kg | none: stored value stays pounds; Metric shows ×0.45359237 (was ×4.448222); `certValue` unit argument follows the declaration | mass-force (inventory, factor, typed kg) | CORRECTED (`caf4942`) |
+
+  **D2 rows (per-tire vertical load inputs; 5 rows in 5 calculators, outside the 30 above, approved and corrected in `c0241f8`).** Each was declared `lb` (read as newtons in Metric) and is now `lbs`; the stored value stays pounds, so the contact-patch area, deflection, stiffness, heat and combined-slip forces that follow from the load are unchanged. Forces that follow from the load stay N or bar.
+
+  | Calculator | Field | Declared | Imperial / Metric (default) | Regression test | Disposition |
+  |---|---|---|---|---|---|
+  | `tire_contact_patch` — Tire Contact Patch Pressure & Area | `tcp_w` | lb → lbs | 850 lbs; Metric 3,781 N → 385.554 kg | mass-force + unit-system closed form (area = m·g0/p) | CORRECTED (D2, `c0241f8`) |
+  | `tire_deflection` — Tire Deflection | `tfd_w` | lb → lbs | 850 lbs; Metric 3,781 N → 385.554 kg | mass-force + unit-system closed form (m·g0/k) | CORRECTED (D2, `c0241f8`) |
+  | `tire_vertical_stiffness` — Tire Vertical Stiffness | `tvs_w` | lb → lbs | 850 lbs; Metric 3,781 N → 385.554 kg | mass-force + unit-system closed form (m·g0/d) | CORRECTED (D2, `c0241f8`) |
+  | `tire_heat_generation` — Tire Heat Generation | `thg_w` | lb → lbs | 850 lbs; Metric 3,781 N → 385.554 kg | mass-force + unit-system closed form (P = m·g0·Crr·v) + temperature-units (its pin of newtons corrected) | CORRECTED (D2, `c0241f8`) |
+  | `combined_slip` — Combined Slip | `cmbs_w` | lb → lbs | 850 lbs; Metric 3,781 N → 385.554 kg | mass-force + unit-system closed form (elliptical available forces, still N) | CORRECTED (D2, `c0241f8`) |
+
+  **Unit philosophy (platform-wide, locked in by the owner 2026-10-13).** The objective is to use the units that automotive enthusiasts, technicians, racers, builders and related trades actually use; scientific correctness stays mandatory, but no unfamiliar unit is introduced merely for theoretical consistency. *Mass and loads:* Metric vehicle mass, corner weights, component mass, payloads and towing ratings read kg (tonnes where appropriate); Imperial equivalents stay in Imperial mode; corner-weight and load-transfer results are mass-equivalent scale readings in kg in Metric; no newton-based weight display in ordinary weight or corner-weight interfaces; genuine engineering forces stay N and are never relabelled as mass or converted twice. Torque, pressure, spring rates and the like keep the established automotive unit for their application. *Engine and EV performance:* gasoline and diesel engine power defaults to hp and engine torque to lb-ft, also when the general system is Metric; EV motor and electric-powertrain output defaults to kW and EV motor torque to lb-ft (current convention); kW and N·m may be offered as optional alternatives; combustion hp is not converted to kW because Metric is selected; the general measurement setting and a performance-unit setting are separate settings. The rules apply to inputs, outputs, labels, comparisons, saved configurations and reports, and each calculator is judged by the physical quantity it shows, not by one common implementation. The mass and load half is implemented and verified here; the performance half is inventoried and planned in GH-IMP-019 (not implemented).
+
+  **Sources for the convention.** Mass-stated ratings: the Western Australia Department of Transport [Safe Towing Guide](https://www.transport.wa.gov.au/mediaFiles/licensing/DVS_P_Safe_Towing_Guide.pdf) states GVM, GCM, ATM and tow-hitch download in kilograms (never newtons) and shackle ratings in tonnes; the [ARB bow shackle](https://www.arb.com.au/product/arb2014-arb-bow-shackle-19mm-4-75-tonne) is "rated at 4.75 tonne WLL"; the [Warn M12 winch](https://4x4downunder.com.au/products/warn-m12-12v-heavy-duty-recovery-electric-winch-12000lb-17801) is sold as "12,000-pound (5,440 kg) pulling capacity". Forces are stated in newtons / kilonewtons (shackle proof loads in kN, bearing load ratings in kN).
+
+  **Same quantity, different unit (platform consistency, found by this review).** Before: 64 calculators already declared a mass unit, and among them vehicle weight read kg in `weight_transfer`, `cog_height` and `hp_quarter_mile` (and others), tongue weight in `tongue_weight`, GCWR in `gcwr_payload` and the trailer-tire load rating in `trailer_tire_load`, while the Premium towing and dynamics calculators read N for the same quantities. After `caf4942` every vehicle / trailer weight and every mass-stated rating reads kg in both groups. The reverse inconsistency (forces labelled kg) is GH-DEF-025. What was left was D1 (decided and applied in `c0241f8`): the same load-transfer quantity printed kg in the Free calculators (`weight_transfer` "Weight Transfer" 207 kg, `ct_panhard_roll` / `ct_track_bar_adj` lateral weight transfer, `corner_weight_analysis`, `cross_weight`, `ct_wedge_bite`, `ct_weight_dist`, `cog_height` axle loads, `ct_jacking_bolt` "Load Change per Round") and N in the Premium ones.
+- **Affected:** 30 calculators (the original list, unchanged): `brake_bias`, `brake_energy`, `brake_rotor_temp`, `cda_from_coast_down`, `damping_coefficient_from_ratio`, `drag_downforce_tradeoff`, `load_transfer_distribution`, `load_transfer_lateral`, `load_transfer_longitudinal`, `natural_frequency`, `recovery_point_rating`, `ride_frequency`, `rotor_heat`, `tire_rolling_resistance`, `tow_actual_combined`, `tow_axle_load`, `tow_brake_energy`, `tow_gcwr_margin`, `tow_grade_power`, `tow_grade_speed`, `tow_gvwr_margin`, `tow_hitch_margin`, `tow_payload_remaining`, `tow_rolling_resistance`, `tow_tongue_percent`, `tow_trailer_capacity`, `weight_transfer_accel`, `weight_transfer_braking`, `winch_line_pull`, `yaw_inertia_estimate`. Corrected: the weight input boxes of all 30; the mass-stated result rows of the towing, winch and recovery calculators. The result rows that are forces (`tow_rolling_resistance`, `tire_rolling_resistance`, `drag_downforce_tradeoff`) stay N; the load shifts (`brake_bias`, `load_transfer_*`, `weight_transfer_*`) stayed N until D1 and read kg since `c0241f8`; the D2 tire loads are in `tire_contact_patch`, `tire_deflection`, `tire_vertical_stiffness`, `tire_heat_generation` and `combined_slip` (outside these 30). Registry: 24 of the 30 calculators (`tow_*` ×12, `load_transfer_longitudinal`, `load_transfer_lateral`, `weight_transfer_braking`, `weight_transfer_accel`, `ride_frequency`, `natural_frequency`, `brake_energy`, `rotor_heat`, `brake_bias`, `brake_rotor_temp`, `winch_line_pull`, `recovery_point_rating`) also have a formula-registry entry; where it names a unit it is the pound (the canonical stored unit). The page renders these calculators through `RENDERS`, so the registry unit is not what a person sees, and it was deliberately not edited: a registry unit is part of the formula fingerprint, and editing it would change fingerprints and reopen GH-ENG-014.
+- **Impact:** Before: a Metric user had to enter a vehicle weight, GVWR, tongue weight or winch rating in newtons: typing 6,800 kg into the Towing Grade Power box was read as 6,800 N (693 kg) and the power came out about 10 times low; a 7,050 lb GVWR read 31,361 N. After: those boxes and the seven towing result rows read kg, with the winch and recovery ratings, and the answers agree with SI physics (20 new closed-form SI cases, 2 more moved from force to mass). Imperial numbers are unchanged; the Imperial unit text of the 50 rows changes from "lb" / "lbf" to "lbs" (the mass unit's text everywhere else, as for GH-DEF-006). Rows that are forces computed from a mass stay N, so the calculators now show a mass in and a force out, which is physically right; D1 decides whether the load-shift results should be shown the way a scale reads them (kg). **After D1/D2 (`c0241f8`):** the 11 load-transfer results and the 5 tire loads read kg in Metric, so a calculator that takes the vehicle mass in kg now shows the load shift in kg too, as the 9 Free calculators already did; Imperial numbers are unchanged and the Imperial unit text of those 16 rows changes from "lb" to "lbs".
+- **Decision:** **Adopted (2026-10-13, owner brief):** the convention above. **Done:** the 50 mass rows are declared `lbs` (commit `caf4942`); no formula, `UNIT_DEFS`, alias or registry entry changed; the previous pins pushed the other way for these rows (`mass-force.test.js` pinned the `wt_be` Brake Energy box and the winch pull as newtons; they are reversed with the evidence above and the winch / recovery family is the one place where this reverses an earlier test pin: if the owner prefers newtons for winch pull, the five rows return to `lb` by changing one declaration each).
+**Decided and deferred (owner, 2026-10-13):**
+  **D1 — load-transfer and corner-load results (11 rows): DECIDED, Option A, applied in `c0241f8`.** `brake_bias` "Weight Transfer to Front", "Dynamic Front Load", "Dynamic Rear Load"; "Longitudinal Load Transfer"; "Lateral Load Transfer"; "Front Load Transfer"; "Rear Load Transfer"; `load_transfer_distribution` Front-Left / Front-Right / Rear-Left / Rear-Right are declared `lbs` (`cls` `load`). By physics ΔF = m·g·a·h/L is a force, but the number a corner-weight scale gives is its mass-equivalent, and beside a kg vehicle-weight box (and 9 Free calculators) that is the unit a person expects. Correct semantics: the stored value is a force in pound-force, which weighs the same number as a pound of mass at standard gravity, so the kg shown is force ÷ 9.80665 and the load-transfer formulas are unchanged. Forces that act through a contact (lateral force, rolling resistance, downforce, drag, clamp) stay N. *Rejected:* Option B (N everywhere), Option C (leave as is).
+  **D2 — per-tire vertical-load inputs (5 rows): DECIDED, same rule, applied in `c0241f8`** (`tire_contact_patch` `tcp_w`, `tire_deflection` `tfd_w`, `tire_vertical_stiffness` `tvs_w`, `tire_heat_generation` `thg_w`, `combined_slip` `cmbs_w`). A tire load comes from a scale or a load index, so it is typed as kg in Metric; the forces and pressures that follow from it (available tire force, rolling-resistance power, contact-patch pressure, stiffness, deflection) stay N, bar, N/mm, mm, and are checked against independent closed forms. No force is relabelled as mass and no mass conversion is applied twice: the explicit `certValue(..., 'lbs')` unit arguments follow the declarations.
+  **D3 — force-per-angle and force-per-power units: DEFERRED to the unit-registry work (GH-IMP-014 step 12), as the owner decided.** Cornering stiffness is a force per degree (`understeer_gradient` `cf_stiff`, `cr_stiff` declared `lbs/deg`, read kg/deg; `cornering_stiffness` prints `lb/deg` unconverted) and "Downforce per Added HP" (`drag_downforce_tradeoff`) is `lb/HP`, unregistered. Recommended Metric units when registered: N/deg and N/kW. Nothing changed for D3.
+  **Remaining exceptions and unresolved decisions (none is a defect; each is a recorded choice or question, nothing changed):**
+  **Q1 — tonnes.** The philosophy says "kg, with tonnes where appropriate". No calculator displays tonnes: every mass reads kg (for example a 15,500 lb combination reads 7,031 kg). Correctness is not affected. Options: leave kg (recommended until requested), or show a `t` presentation for the large towing ratings (GVM, GCM, ATM; shackle and recovery working loads) in named calculators, which is a display choice per calculator and needs a decision on which.
+  **Q2 — Metric spring-rate unit.** Spring rates read N/mm today (40 rows in 20 calculators declared `lb/in` or `lbs/in`: `coil_spring`, `wheel_motion`, `valve_spring_rate`, `dual_spring_rate`, `ct_spring_split`, `ct_jacking_bolt`, `ct_sway_bar`, `rc_motion_ratio_rc`, `spring_rate`, `spring_force_at_lift`, `ride_frequency`, `wheel_rate`, `roll_stiffness`, `natural_frequency`, `roll_stiffness_distribution`, `anti_roll_bar_wheel_rate`, `damping_coefficient_from_ratio`, `bump_stop_rate`, `tire_deflection`, `tire_vertical_stiffness`). The philosophy asks for the established automotive unit. [Eibach](https://eibach.com/spring-rate-conversion-calculator), a spring maker, states that its "standard spring rates are measured in lbs/in, and metric in kg/mm" and offers N/mm as a third unit; kg/mm is a force per length written as a mass per length, the same scale-reading habit as D1. N/mm is the SI form and is what the engineering side (valve springs, bump stops, bars) uses. Decision for the owner: keep N/mm everywhere (current), use kg/mm for suspension springs and wheel rates only, or offer both. A change is display only (the stored value stays lb/in; the factor to kg/mm is 0.45359237 ÷ 25.4 = 0.0178580) but touches 20 calculators and needs its own closed-form tests. Not changed.
+  **Q3 — winch pull and recovery ratings.** Already kg (`caf4942`): rated as a mass by the makers (a 12,000 lb winch is sold as 5,440 kg; shackles in tonnes WLL). They reverse an earlier test pin that expected newtons; if the owner prefers newtons the five rows return to `lb` by one declaration each. No change proposed.
+  **Q4 — validation messages** quote pounds (GH-IMP-018, open; includes the five D2 calculators).
+  **Q5 — the performance half of the philosophy** (hp, lb-ft, kW defaults; a separate performance-unit setting) is not implemented: inventory and plan in GH-IMP-019.
+- **Dependencies:** GH-DEF-006 (the first mass fix; its "weights stay newtons" classification is superseded here), GH-DEF-025 (forces that were labelled kg: found by this review), GH-IMP-014 (`lb/deg`, `lbs/deg`, `lb/HP`, `lb·s/in`, `slug-ft2` are unregistered), GH-IMP-002 (`yaw_inertia_estimate` prints slug·ft² in both systems), GH-IMP-018 (validation messages quote pounds), GH-IMP-019 (the performance-unit half of the philosophy).
+- **Revisit:** With GH-IMP-014 step 12 (D3) and on the owner's answers to Q1–Q3. D1 and D2 are done, so Batch 11 (which adds load and stiffness rows) can be built on the kg convention for loads once it is authorized.
+- **Commits:** `caf4942` (50 rows declared `lbs`, tests first, catalogue hash). Forces labelled kg: `422f858` (GH-DEF-025). `eafebb2` (test table only: `temperature-units.test.js` pinned the Brake Rotor Temp / `rotor_heat` vehicle weight `wt_rt` as newtons; the full regression after `caf4942` failed 62 checks on that stale pin; now the mass kind: 62 failures on the engine of `22dd022`, 0 on the current engine). `c0241f8` (D1 and D2: 21 `lbs` declarations, tests first, the corrected `temperature-units.test.js` pin of the tire load `thg_w`, the 5 D2 rows moved to `cls: load`, catalogue hash). Register and plan: the commit that carries this text.
+- **Tests:** `premium/tests/mass-force.test.js` (inventory of every pound row, factors, and kg typed into every one of the 30 calculators compared with the same mass in pounds on the Imperial page, output by output) with `premium/tests/data/force-unit-rows.json` (`mass-rated` / `load` / `force` / `converter`); `premium/tests/unit-system.test.js` (20 new closed-form SI cases for the towing chain, grade power / speed, load transfer, ride frequency, rolling resistance, winch and recovery, and the two existing `brake_energy` and `natural_frequency` cases moved from force to mass). On the previous engine (`22dd022`) the new checks fail (298 and 290 failures); on `caf4942` and later 0. **D1/D2:** `mass-force.test.js` now has the `load` class (16 rows must be declared `lbs`), a group that types newtons into the forces and pounds into the same rows in the other system, and `unit-system.test.js` expects kg = m·a·h/L for the four load-transfer calculators plus 7 new closed-form cases (`brake_bias`, `load_transfer_distribution`, `tire_contact_patch`, `tire_deflection`, `tire_vertical_stiffness`, `tire_heat_generation`, `combined_slip`). On the engine of `f2d8fb4` with the new tests: `mass-force` 78 failures, `unit-system` 371 failures, the corrected `temperature-units` pin 45 failures (`tire_heat_generation`); on `c0241f8` all 0.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Metric unit convention"; the master project plan (convention, classification and open questions); `docs/IMP-014-UNREGISTERED-UNITS.md` for D3.
+- **Verification:** Full regression run 2026-10-13 on the final engine (sha256 `550ae2b9…`): all 19 browser suites 0 failures (listed in GH-DEF-025), `run-tests.sh` catalogue OK, register OK, frontend 55/55, schema 26/26, formula fingerprints 575 identical + 2 recorded, `mass-force.test.js` 255 pound-unit rows and 694 checks; before / after comparison of all 696 calculators: Imperial numbers 0 changed, Metric 62 intended rows changed by the expected factor, 0 page errors. Met for the 50 rows: each reads kg in Metric with 0.45359237, each force keeps N, kg typed in Metric equals the same mass in pounds on the Imperial page in every output, SI closed-form checks pass, Imperial numbers unchanged, formula fingerprints unchanged (575 identical, 2 recorded). **D1/D2 verification (2026-10-13, engine sha256 `9674a999…`, HEAD `c0241f8`):** all 19 browser suites run one at a time, 0 failures (engine self-test 679 / 679 / 0; browser-smoke 19/19; unit-system 1,619 result checks; temperature-units 1,108 + 990; toggle-sweep 735; nav-return 696; converters 2,064; label-consistency 696 of 696; native-units 29; remembered-values 371; dew-point 688; formula-fingerprints 577 formulas (575 identical, 2 recorded); mass-force 255 rows and 703 checks; unit-factors 514; unit-census 2,622; airflow-readers 131; legacy-fixes 61; negative-zero 20 + 696 + 696), `run-tests.sh` catalog OK, register OK, frontend 55/55, schema 26/26. The first run of the sequence found one stale pin (`temperature-units.test.js` read the tire load `thg_w` as newtons, 54 failures; the page was right); corrected and re-run, 0. Before / after comparison of all 696 calculators, `f2d8fb4` against `c0241f8`: 6,366 rows compared in both systems; the 16 rows changed as expected in both systems (Imperial: same number, text "lb" to "lbs"; Metric: newton figure ÷ 9.80665, unit N to kg); 6,333 rows identical; 1 row differs by rounding only (`tire_contact_patch` Contact Patch Area 17,137.09 → 17,137.1 mm², 0.6 parts per million, the Metric default tire load now shown as 385.554 kg instead of 3780.99 N); 0 unexpected differences; 0 page errors. **Understood and acceptable:** the earlier Metric differences of 4 and 54 parts per million (`tire_rolling_resistance`, the Metric default weight text) come from the same cause, a result computed from the rounded Metric text of a box whose displayed value changed unit (GH-EXP-003 class, last-digit display rounding, never a unit error); the new one is of the same kind. The entry closes when D3 is delivered (GH-IMP-014 step 12) and Q1–Q3 are answered or declined, and the pinned list is updated.
+- **History:** 2026-10-12 — created from the Item 4b classification (47 weight rows).
+  2026-10-13 — Metric-convention phase: the owner decided the convention (kg for mass, N for force). All 69 pound rows of the 30 calculators were classified from the formulas and from manufacturer practice (table in Evidence): 50 mass / mass-stated rating, 11 load results (D1), 8 forces. The 50 were corrected in `caf4942`, tests first (fail on the previous engine, pass now). D1–D3 recorded as owner decisions with recommendations. Related defect found and fixed: GH-DEF-025. Related improvement recorded: GH-IMP-018. Status DEFERRED → IN PROGRESS. Superseded text kept for the record: the 2026-10-12 decision was "Left as is" (47 weight rows kept in newtons because a weight is physically a force and changing it was a product-wide convention decision needing a rule for forces computed from weights); the 2026-10-12 Evidence pointed at the `cls: weight` rows of the pinned list and at the `wt_be` newton pin in `unit-system.test.js`.
+  2026-10-13 — regression recorded: the one stale pin found (`temperature-units.test.js` read the `wt_rt` box as newtons) was corrected in `eafebb2`; everything else passed unchanged. Status stays IN PROGRESS for D1–D3 only.
+  2026-10-13 — unit philosophy locked in and D1/D2 closeout: the owner approved D1 and D2 (kg for the 11 load results and the 5 tire loads, with correct mass-equivalent semantics and verified conversions) and deferred D3 to the unit-registry work. Applied in `c0241f8` (21 declarations, tests first); the full regression found and fixed one more stale test pin (tire load `thg_w`); before / after of all 696 calculators clean. The closeout re-verified the committed work (`caf4942`, `422f858`, `eafebb2`, `f2d8fb4`): 50 mass rows kg, 12 forces N, no Imperial number changed, the 4 and 54 parts per million understood; one gap identified rather than claimed: the before / after comparison tool lives only in the scratch area of the session, so the comparison is recorded here but cannot be re-run from the repository. Remaining exceptions recorded as Q1–Q5. Status stays IN PROGRESS for D3 (GH-IMP-014 step 12) and Q1–Q3.
+  Superseded text kept for the record (the open questions as they stood before the decision, `f2d8fb4`): **D1 — load-transfer and corner-load results (11 rows: `brake_bias` "Weight Transfer to Front", "Dynamic Front Load", "Dynamic Rear Load"; "Longitudinal Load Transfer"; "Lateral Load Transfer"; "Front Load Transfer"; "Rear Load Transfer"; `load_transfer_distribution` Front-Left / Front-Right / Rear-Left / Rear-Right).** By physics ΔF = m·g·a·h/L is a force and prints N, but beside a kg vehicle-weight box in the same calculator, and 9 Free calculators print the same quantity as kg (scale reading). *Option A (recommended):* show load shifts and corner / axle loads in kg, the way a corner-weight scale reads them, and keep N for forces that act through a contact (lateral force, rolling resistance, downforce, drag, clamp); the 11 rows become `lbs`, `cls` `load` → `mass-rated`, and the `unit-system.test.js` outputs for those rows change from newtons to kg. *Option B:* N everywhere, which means moving the 9 Free calculators' load-shift results to `lbf`. *Option C:* leave as is (mass in, force out, Free and Premium differ). **D2 — per-tire vertical-load inputs (5 rows kept N: `tire_contact_patch` `tcp_w`, `tire_deflection` `tfd_w`, `tire_vertical_stiffness` `tvs_w`, `tire_heat_generation` `thg_w`, `combined_slip` `cmbs_w`).** The same question as D1 for an input: a tire load comes from a scale or a tire load index (kg; `trailer_tire_load` already reads the rating in kg). *Recommendation:* decide with D1 and apply the same rule. **D3 — force-per-angle and force-per-power units.** Cornering stiffness is a force per degree: `understeer_gradient` `cf_stiff`, `cr_stiff` are declared `lbs/deg` (read kg/deg: the number is right, the label says mass per degree) and `cornering_stiffness` prints `lb/deg` unconverted; "Downforce per Added HP" (`drag_downforce_tradeoff`) is `lb/HP`, unregistered. *Recommendation:* N/deg and N/kW as new `UNIT_DEFS` entries, done with GH-IMP-014 step 12 so those calculators are fully converted.
+
+### GH-IMP-014 — Sixty-one US-customary units are not registered, so a Metric page shows them unconverted
+- **Status:** DEFERRED
+- **Severity:** Low
+- **Priority:** P2 (presentation completeness; no wrong number)
+- **Description:** 208 input boxes and result rows in 122 calculators use a US-customary unit that the engine does not register (`UNIT_ALIASES` / `UNIT_DEFS`), so they read the same unit and the same number in Metric (supersedes GH-DEF-007, which asked whether any of them is wrong; none is). Twelve of the 61 units are spellings of a unit that is registered, so one alias line each would convert them: `lb/min` → `lbs/min` (21 rows, 13 calculators), `mi` → `miles` (13 rows, 11), `gal/hr` → `GPH` (10, 8), `psia` → `psi` (10, 6), `in²` → `sq in` (8, 6), `lb/hp·hr` → `lb/hp-hr` (7, 7), `in³` → `ci` (6, 5), `MPG` → `mpg` (4, 3), `gpm` → `GPM` (2, 2), `psig` → `psi` (1, 1), `lb/HP` → `lbs/HP` (1, 1), `lb/deg` → `lbs/deg` (1, 1): 84 rows in 59 calculators. The other 49 need a new `UNIT_DEFS` entry (`BTU/hr`, `BTU`, `BTU/lb`, `BTU/lb·°F`, `BTU/hr·ft²·°F`, `BTU/hr·ft·°F`, `lb/gal`, `lb/in³`, `slug/ft³`, `lb/sq ft`, `in/s`, `in/sec`, `lb-in`, `in-lb`, `lb-in/rad`, `lb·s/in`, `lb·in²`, `slug-ft2`, `in⁴`, `psi·ft/min`, `oz`, `mi/kWh`, `kWh/100 mi`, `$/mi`, `gal/mi`, `gal/ton`, `$/ton`, `ton`, `acre`, `gal/acre`, `$/acre`, `gal/cycle`, `units/gal`, `in³/rev`, `in³/min`, `in/tooth`, `cu ft`, `gr/lb`, `micro-reyn`, `sq in·s`, `lb/hr per HP`, `lb/min per V`, `°/in`, `HP-equiv`, `lbs·in/°`) or have no common Metric counterpart (`°R`, `TPI`).
+- **Evidence:** `premium/tests/unit-census.test.js` and `premium/tests/data/unit-census.json` (every unit with its kind, `variant` or `new`, and the Metric unit it would read). Examples: `rod_bearing_pv` shows 116 bar and 1,005 m/min beside "PV Value 5,543,987 psi·ft/min"; `diesel_injection_quantity` shows its flow box in `lb/min` beside a result in kg.
+- **Affected:** 122 calculators; `LIST=1 node premium/tests/unit-census.test.js` prints every Imperial-only unit with the calculators that use it (not copied here, so the register does not carry a second list that can drift).
+- **Impact:** A Metric user sees an Imperial compound unit beside converted ones. The number and the label agree, so nothing is wrong; it is incomplete. The 12 spellings are the cheap first tranche, but each changes the Metric display and the Metric re-entry of 59 calculators, which needs the same before/after evidence as GH-DEF-006 (all 696 calculators compared), so it was not folded into a reliability fix. **Registering a unit converts it in every calculator that uses it, so registering single units would leave calculators half-converted** (for example `ev_range` would show kilometres beside `mi/kWh`; 16 calculators combine a unit that is a one-line alias with a unit that needs a new definition). The 61 units fall into 33 independent groups (units that share a calculator); `docs/IMP-014-UNREGISTERED-UNITS.md` groups them into 13 registry steps so that every calculator is fully converted after each step.
+- **Decision:** Deferred. Registering units (or aliasing the 12 spellings) is a presentation improvement that touches more than 50 calculators, not a defect repair. `unit-census.test.js` makes the state visible and stops it growing silently: a new unit text that is not classified fails the test, so Batch 11 (which adds torque, inertia and stress units) classifies each new unit when it introduces it. **Closeout phase (2026-10-13): documented, still deferred.** Recommended order, per-step evidence and the owner questions O1–O5 (go / no-go and pace, the BTU table, the diesel haulage units, `°R` and gauge / absolute labels, torque / inertia / stress units with Batch 11) are in `docs/IMP-014-UNREGISTERED-UNITS.md`. The recommendation is steps 1–5 first (hydraulic areas, per-distance economy, mass airflow, pump flow, densities: 40 of the 122 calculators fully converted, no convention decision), then re-assess. `°R` does map to kelvin by a pure x 5/9 scale (the census records K); whether a Metric user should see K is a product convention (O4).
+- **Dependencies:** GH-IMP-002 (yaw / polar inertia units are two of the 61), GH-IMP-001 (energy label), GH-ENG-002 (factors audited), GH-IMP-013 (weight / force convention: `lb/deg`, `lbs/deg`), GH-DEF-020 (the 134 metric-declared rows are a different population).
+- **Revisit:** When the Metric audience is prioritised, or when Batch 11 is authorised (decide whether its new units should be registered as they are added), whichever comes first.
+- **Commits:** None for the units themselves (census and data `e9af30f`). Documentation tooling: `2c43bb1` (`LIST=1 node premium/tests/unit-census.test.js` now prints every unit, not the first 40 lines), `6f057cc` (`docs/IMP-014-UNREGISTERED-UNITS.md`).
+- **Tests:** `premium/tests/unit-census.test.js` pins the classification of every unit.
+- **Docs:** `docs/IMP-014-UNREGISTERED-UNITS.md` (the 61 units with rows, calculators, kind and Metric unit; limitations; recommended registry order; owner questions); `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** For each unit decided: the Metric page shows the Metric unit with the exact factor (the pair is added to `PAIRS` in the census test with its independent factor), the Imperial page is byte-identical, and all 696 calculators are compared before and after.
+- **History:** 2026-10-12 — created from the Item 4c census; replaces GH-DEF-007.
+  2026-10-13 — closeout phase: the 61 units were listed in full (`LIST=1` no longer truncates), classified into 13 registry steps with the half-conversion hazard identified, and the recommendation and owner questions written into `docs/IMP-014-UNREGISTERED-UNITS.md` (`6f057cc`). Status unchanged (DEFERRED): no unit was registered and no engine line changed; the Imperial and Metric pages of every calculator are as before.
+  2026-10-13 — Metric-convention phase: the weight convention (GH-IMP-013) is decided for mass rows. `lbs/deg` and `lb/deg` (cornering stiffness, a force per degree) and `lb/HP` (downforce per horsepower) stay with step 12 here and with D3 of GH-IMP-013; recommended Metric units N/deg and N/kW. No unit was registered and no engine line changed for this entry.
+  2026-10-13 — unit philosophy lock-in: the owner confirmed that D3 (N/deg, N/kW) stays deferred to this entry's step 12; recommended Metric units unchanged. Related question recorded in GH-IMP-013 Q2 (Metric spring-rate unit, N/mm or kg/mm) because it would be a registry decision too. No unit registered, no engine line changed for this entry.
+
+### GH-IMP-015 — Energy rows declared `ft-lb` read N·m in Metric instead of J
+- **Status:** SUPERSEDED
+- **Severity:** Low
+- **Priority:** P3 (label only; the number is right)
+- **Description:** Duplicate of GH-IMP-001, which already records this issue; the Item 4c alias audit found it again and its evidence is merged into GH-IMP-001. `UNIT_ALIASES` maps `ft-lb` to `lb-ft` (the torque unit, Metric N·m), so the energy rows declared `ft-lb` read newton-metres in Metric. An N·m and a joule are the same unit and the number is correct (1 ft·lbf = 1.355817948 N·m = 1.355817948 J), but an energy is conventionally printed in joules. `UNIT_DEFS` already holds an `ft-lb` → J entry, reachable only through the alias `J`.
+- **Evidence:** Census scan: 5 rows in 4 calculators: `brake_energy` (Kinetic Energy), `brake_fade_energy` (the `bfe_e` box and Energy per Stop), `brake_fade_prediction` (the `bfp_e` box), `tow_brake_energy` (Kinetic Energy). Every `ft-lb` use in the engine is an energy. Found while auditing the alias table (GH-ENG-002).
+- **Affected:** The four calculators above; shared: `UNIT_ALIASES['ft-lb']`.
+- **Impact:** Cosmetic. A change would also rename the unit printed by anything else declared `ft-lb`, and `unit-system.test.js` pins the Brake Energy display, so it is a deliberate change with its own evidence, not a side fix.
+- **Decision:** Left as is. If decided: point the alias at the J definition (`'ft-lb':'ft-lb'`), update the pinned expectations, and compare all 696 calculators before and after.
+- **Dependencies:** GH-ENG-002.
+- **Revisit:** None (superseded); see GH-IMP-001.
+- **Commits:** None.
+- **Tests:** `unit-census.test.js` pairs `ft-lb` → `N·m` today; it would fail on the change and be updated with it.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** The five rows read J with the same numbers; torque rows (`ft-lbs`, `lb-ft`) are unchanged.
+- **History:** 2026-10-12 — created from the GH-ENG-002 alias audit.
+  2026-10-12 — superseded by GH-IMP-001 (the same issue was already registered; the register keeps one record per issue). Entry kept for history; evidence merged into GH-IMP-001, nothing deleted.
+
+### GH-IMP-016 — Pressure Altitude uses the 1000 ft per inHg rule, not the standard-atmosphere relation
+- **Status:** DEFERRED
+- **Severity:** Low
+- **Priority:** P3
+- **Description:** `density_altitude` computes its Pressure Altitude row as `field elevation + (29.92 - altimeter) x 1000` ft, the textbook rule of thumb (1000 ft per inHg). The standard-atmosphere relation (ISA, 145,366.45 ft x (1 - (P / 29.92126)^0.190284)) gives a slightly smaller correction: at altimeter 30.50 inHg and 0 ft elevation the rule shows -580 ft and the relation gives -531 ft (49 ft, about 9 % of the correction); the gap is under 10 ft within 0.1 inHg of standard and grows with the departure. The Density Altitude result itself uses the full NWS virtual-temperature model and is not affected; Pressure Altitude is an informational row.
+- **Evidence:** Source of `RENDERS.density_altitude` (`paResult = useElev + (29.92 - altimeter) * 1000`); hand calculation above; `premium/tests/negative-zero.test.js` pins the rule's value (-580 ft, -176.784 m) so the current convention is explicit. Found while writing the GH-DEF-022 test (the first draft of the test expected the ISA figure and was wrong about the calculator's documented convention).
+- **Affected:** `density_altitude`, "Pressure Altitude" row, both systems.
+- **Impact:** A pressure altitude off by tens of feet when the altimeter setting is far from 29.92 inHg (for example 30.50); not a wrong result by the rule the page uses.
+- **Decision:** Deferred. Owner convention question: keep the aviation rule of thumb (what pilots compute by hand) or show the exact relation. If changed, the row and its help note change together and `negative-zero.test.js` is updated to the new expected value.
+- **Dependencies:** none.
+- **Revisit:** When Density Altitude is next touched, or on an owner request.
+- **Commits:** None.
+- **Tests:** `premium/tests/negative-zero.test.js` (pins the current rule).
+- **Docs:** none.
+- **Verification:** The owner's convention is recorded; the row, its note and the test agree.
+- **History:** 2026-10-13 — found in the closeout phase while testing GH-DEF-022; entry created.
+
+### GH-IMP-018 — Premium validation messages quote Imperial limits when the page is in Metric
+- **Status:** OPEN
+- **Severity:** Low
+- **Priority:** P3 (message wording; no wrong number)
+- **Description:** The error text shown when an input is out of range is a fixed string in Imperial units ("Weight must be 0–20,000 lb, coefficient 0–0.05, and speed 0–250 mph."). In Metric the boxes read kg, mm, km/h, and the message still quotes pounds, inches and mph. The limits themselves are checked on the stored (Imperial) value after conversion, so the validation is correct; only the wording is Imperial. This was found next to the weight convention (a Metric user who types 9,500 kg into the Tire Rolling Resistance box is told the limit is 20,000 lb).
+- **Evidence:** Static: the `certError('…')` strings of the Batch 9–10 calculators in the engine page quote `lb`, `lbf`, `lb-ft`, `ft-lb`, `mph`, `in`, `sq ft`, `psi`, `°F`. A targeted grep for `lb` / `lbs` / `lbf` found 17 calculators, listed under Affected. The other unit words were not counted; the whole set was not audited.
+- **Affected:** `tire_contact_patch`, `brake_rotor_sizing`, `tire_deflection`, `tire_vertical_stiffness`, `tire_rolling_resistance`, `tire_heat_generation`, `rotor_cooling_rate`, `yaw_inertia_estimate`, `combined_slip`, `brake_fade_prediction`, `load_transfer_distribution`, `cda_from_coast_down`, `lift_coefficient`, `drag_coefficient`, `drag_downforce_tradeoff`, `port_area_hp_estimator`, `corrected_compressor_flow_speed` (the last two quote `lb/ft³`, `lb/min`, `psia`; `ground_effect_estimate` quotes inches and mph only).
+- **Impact:** Wording only. A Metric user sees a limit in a unit other than the box.
+- **Decision:** Deferred, not part of the weight convention. A fix would build the message from the same `getU` / `fmtUnitValue` helpers the boxes use, or state the limit in both systems; it needs a decision on wording and must be tested in both systems.
+- **Dependencies:** GH-IMP-013.
+- **Revisit:** With the next Premium calculator pass or when Metric polish is prioritised.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** None.
+- **Verification:** For each affected calculator an out-of-range value in Metric produces a message in the Metric units of its boxes; both systems tested.
+- **History:** 2026-10-13 — found during the Metric-convention review; recorded only.
+
+### GH-IMP-019 — Engine and EV power and torque follow the Metric switch (hp becomes kW, lb-ft becomes N·m) instead of the locked performance-unit convention
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium (no number is wrong: every kW and N·m figure is the correct conversion; under the decided policy 110 rows in 71 calculators show the wrong unit today: kW or N·m for combustion engines in Metric, and hp for EV motors in Imperial)
+- **Priority:** P2 (policy decided 2026-10-13; this entry holds the reconciled inventory, the classification, the recommendations and the implementation plan; at the time of writing no calculator behaviour had been changed and implementation waited for the owner's explicit authorization) **Implemented 2026-10-13 on the owner's explicit authorization (the performance-unit implementation brief), before Batch 11.**
+- **Description:** **Performance-unit policy: decided by the owner on 2026-10-13. These are decisions, not open questions.**
+  **P1 Combustion engines (gasoline and diesel):** power defaults to **hp** and torque to **lb-ft**, also when the general measurement system is Metric. hp is never replaced by kW, and lb-ft never by N·m, because Metric is selected.
+  **P2 Electric motors and EV powertrains:** motor and electric-powertrain output defaults to **kW**; EV motor torque defaults to **lb-ft** under the current product decision (one table entry, so a later change is a one-line edit). Appropriate alternatives (hp for power, N·m for torque) are offered where supported.
+  **P3 Independence:** the performance-unit preference is independent of the Metric / Imperial preference. A user can use Metric vehicle measurements (kg, mm, km/h, kPa) and keep hp and lb-ft.
+  **P4 No theoretical consistency for its own sake:** no newton-based vehicle-weight display; formulas and conversions stay physically correct; a calculator's convention is not changed because its unit happens to be Metric or Imperial; each row is judged by the physical quantity it shows (engine, wheel, motor, road load, component, ratio), never by the unit text or by one common implementation.
+  **The gap today.** There is one switch. `UNIT_DEFS` gives `HP` and `WHP` the Metric unit kW and `lb-ft` the Metric unit N·m, so every engine power and torque row converts when Metric is selected, there is no second setting, and three EV calculators still show hp in Imperial. Component torque (fasteners, brakes, bearings, yaw moment) is not part of the policy and stays system-governed (N·m in Metric). This entry was first written as an inventory and plan on 2026-10-13; the same day it was reconciled against the engine, the open questions were answered by the policy above, and the remaining gaps (O1 to O7) were turned into recommendations.
+  **Implemented 2026-10-13** (the owner's brief "Performance unit implementation, hybrid defect fix and regression closeout"; commit in Commits). The architecture supported the policy with a small central change, so nothing was stopped or escalated. Browser-local only: no account, database, schema or migration change.
+  1. *Two preferences beside Metric / Imperial.* **Power** (Auto / hp / kW) and **Torque** (Auto / lb-ft / N·m): two drop-downs in the page header (labelled PWR and TRQ on a phone), stored in this browser only under `ghm_perf_power` and `ghm_perf_torque`; a missing, invalid or blocked stored value means Auto. Auto is the default of the calculator's application (never of the selected vehicle); an explicit choice overrides Auto everywhere, EV rows included; Metric / Imperial neither reads nor writes either preference and an explicit choice survives pressing either button.
+  2. *One explicit, named, auditable table.* `PERF_CATS` holds 17 categories: nine follow a preference (`ENGINE_POWER`, `WHEEL_POWER`, `ROAD_LOAD_POWER` hp under Auto; `EV_POWER`, `HYBRID_SYSTEM_POWER` kW; `ENGINE_TORQUE`, `EV_TORQUE`, `WHEEL_TORQUE`, `DRIVELINE_TORQUE` lb-ft) and eight keep their convention (`RETAIN-BSFC`, `-CONVERTER`, `-COMPONENT`, `-ACCESSORY`, `-RATIO`, `-EMISSIONS`, `-ALT`, `PTW_RATIO`). `PERF_ROWS` assigns every row (calculator, box id or result label, declared unit) to a category: 238 rows in 128 calculators. A power or torque unit that is not in the table is never converted and is recorded in `PERF_UNCLASSIFIED`; the census test fails on it.
+  3. *One resolver, so the number and the label cannot disagree.* A listed row declares a token `perf|<unit the calculator computes in>|<spelling shown>|<category>|<declared unit>` in place of a unit. `unitToCanonical`, `canonicalToUnit`, `metricUnit` and `canonicalUnit` answer a token from the preferences alone and ignore `UNIT.system`; the box text, its stored value, the result number and the unit label are produced from that one decision. The calculator's own arithmetic and every stored value stay in the unit they were in (canonical hp and lb-ft; a native kW box stays kW), so saved setups, profiles and remembered values need no migration and no double conversion.
+  4. *Paths reviewed and changed where needed:* remembered values are converted once when a preference changes while the calculator is closed; saved test setups read new tokens, earlier convertible values (`HP`, `lb-ft` with a canonical) and earlier native kW boxes; the vehicle profile editor and list show the preferred units and store hp and lb-ft unchanged; the "use vehicle value" chip offers the value in the unit the box shows; `certValue` reads a token box through its token; the sanity-range warnings are checked in hp and lb-ft; comparison rows keep one unit per quantity (tested on `diesel_power_economy`: both power boxes and the change in kW) and the exported spec sheet prints the number and unit that are on screen (tested on `hp_from_torque`); the five literal simulator cells and the Curve Editor summary use one helper (`simPerfCell`).
+  5. *Hybrid* (`hybrid_power_split`) is classified per row, not per calculator: engine power follows the Power preference (hp under Auto), electric-motor power and combined system power are kW under Auto, the engine fraction has no unit.
+  6. *Power-to-weight* keeps its meaning and scale: the power input follows the Power preference, the ratio rows keep the spelling they had in each system (Imperial HP/ton, lbs/HP, HP/klb; Metric kW/metric ton, kg/kW, kW/tonne), no silent rescale (GH-IMP-020 U2). *BSFC is unchanged* in this release (GH-IMP-020 U1).
+- **Evidence:** Read-only; the engine and every test are unchanged (engine sha256 `9674a993…`, HEAD `c28e934`). **Method.** (1) The first inventory (every power- or torque-quantity input and result row of the 696 calculators, read from the page in Imperial and in Metric at default state, classified by what the row physically is, never by its unit text) was re-run against the current engine: a fresh DOM dump of all 696 calculators in both systems compared row by row with `premium/tests/data/power-torque-rows.json`; 198 of the 199 keyed rows are identical, with **0 unit-text mismatches**; the 199th is the second `ev_motor_power` "Motor Power" row (same label, a kW row and an HP row), which was added by hand and cannot be keyed. (2) An independent scan from the other direction (an instrumented pass over every `field()`, `resultHTML()` and `multiResult()` call at default state, every other option of every `<select>`, and every stored mode toggle; plus a label scan for power- or torque-looking labels carrying other units) looked for rows the first scan could not see. (3) Each row was given a named policy category, a status (decided / recommended / retain), the preference it inherits, its default, its alternatives, how it is declared in the engine (`convertible` = a registered unit the table can re-tag; `native` = a raw kW box, GH-DEF-020; `fixed-label` = literal text in a simulator grid; `unregistered`), and what it touches (profile link, stored value, spec-sheet export). All of it is in `premium/tests/data/power-torque-rows.json` (now 220 rows; every original row and its original `cls` are unchanged).
+
+  **Reconciliation of the previous audit's figures** (each figure was recomputed from the file, none copied):
+
+  | Figure reported | Verified | Note |
+  |---|---|---|
+  | 114 calculators, 199 rows | **199 rows in 114 calculators were in the file; the full set is 220 rows in 128 calculators (104 Free, 24 Premium)** | the second pass found 21 rows (19 calculators, 14 of them with no earlier row) the first scan could not see: 9 electrical or thermal power rows in watts (`ohms_law`, `electrical_power`, `starter_current`, `wire_current_capacity`, `ev_battery_heat`, `ev_coolant_flow`, `turbo_power_requirement`, `diesel_turbo_efficiency` ×2), 3 moments in lb-in or in-lb (`bending_stress`, `torsional_stress`, `clamp_load`), 4 converter rows in PS or lb-in (`hp_to_ps`, `lbft_to_lbin`, `nmm_to_lbft`, `power_converter`), and 5 rows in the simulators' output grids, which are literal text outside `.result-box` (`sim_acceleration` and `sim_dragstrip` "Peak Wheel Torque", `sim_top_speed` "Wheel Power", `sim_curve_editor` "Peak Torque" and "Peak Power"). The unit list of the first scan had omitted W, lb-in, in-lb and PS. None of the 21 is a new conflict: 16 are retained rows, 5 already read hp or lb-ft in both systems. |
+  | 80 engine-power rows in 58 calculators show kW in Metric | **81 rows in 58 calculators by the first class; 80 conflict** | the 81st, the fuel-energy input of `thermal_efficiency`, reads "HP-equiv" in both systems and already conforms. With the 2 simulator rows the class is 83 rows in 59 calculators. |
+  | 22 engine-torque rows in 10 calculators show N·m | **22 rows in 10 calculators, all 22 conflict** | 23 rows with `sim_curve_editor` "Peak Torque", which already reads lb-ft. |
+  | 4 EV power rows in 3 calculators default to hp in Imperial | **4 rows in 3 calculators** | `ev_acceleration` `ev_ahp`, `ev_quarter_mile` `evq_hp` and "Effective Power", `ev_top_speed` `ev_tshp`. The other 20 EV power rows are native kW boxes and already conform. |
+  | 6 EV torque rows in 4 calculators | **6 rows in 4 calculators by the first class; only 3 are EV motor torque** | `ev_motor_power` `ev_mtq`, `ev_motor_torque` "Motor Torque", `ev_wheel_torque` `ewt_t` are motor torque; `ev_tire_wear` `etw_t` and `etw_rt` and `ev_wheel_torque` "Wheel Torque" are wheel torque (O2, O5). |
+  | 18 ambiguous rows in 13 calculators | **18 rows in 13 calculators** (5 road-load power in 5 calculators, 13 driveline torque in 8) | the re-reading shows that 2 of the 13 are plain engine-torque inputs (`torque_converter` `tc_tq`, `tow_wheel_torque` `twt_t`), which moves them to decided; the table below classifies the remaining ambiguous rows together with the wheel-power, wheel-torque and hybrid rows the re-slice brought into the same questions (29 rows in 19 calculators). |
+  | 28 ratio or decision rows in 21 calculators | **28 rows in 21 calculators** (21 engine-derived ratios in 19, 4 power-to-weight in 1, 3 hybrid rows in 1) | the earlier register table said 29 / 22 because it added the "Downforce per Added HP" row (GH-IMP-013 D3). The label "BSFC family, 21 rows in 19 calculators" was loose: **BSFC proper is 16 rows in 16 calculators** (9 registered `lb/hp-hr`, which become `kg/kW-hr` in Metric; 7 unregistered `lb/hp·hr`, which print the same in both systems, GH-IMP-014); the other 5 of the 21 are 2 g/kWh emissions rows (`diesel_scr_efficiency`), 1 water-methanol flow per hp (`wmi_flow`) and 2 diesel power-to-weight rows. |
+  | Component torque, non-engine power and 10 converters are not clear conflicts | **confirmed, and larger once complete** | 10 component-torque rows (9 calculators), 11 non-engine power rows (10), 14 converter rows (12); all keep their own convention. |
+  | 112 clear conflicts in 69 calculators (57 Free, 12 Premium) | **112 / 69 confirmed for the first inventory; under the policy categories it is 110 decided rows in 71 calculators** | 5 rows leave the group because they are not engine or EV-motor output (`drivetrain_loss` "Wheel HP" and "Drivetrain Loss", `ev_tire_wear` `etw_t` and `etw_rt`, `ev_wheel_torque` "Wheel Torque" become wheel categories, status recommended); 3 join because they are plainly engine quantities (`tc_tq`, `twt_t`, and `power_to_weight` `hp_p2`). Changes today: **Metric 106 rows in 68 calculators, Imperial 4 rows in 3**. |
+
+  **Policy categories** (the table that would drive the implementation; `power-torque-rows.json` carries the category of every row):
+
+  | Category | Status | Auto default (alternatives) | Rows / calculators | Auto differs from today: Imperial / Metric rows |
+  |---|---|---|---|---|
+  | `ENGINE_POWER` | decided (1 row, the hybrid engine share, recommended) | hp (kW) | 82 / 61 | 1 / 80 |
+  | `ENGINE_TORQUE` | decided | lb-ft (N·m) | 25 / 12 | 0 / 24 |
+  | `EV_POWER` | decided (1 row, the hybrid motor share, recommended) | kW (hp) | 24 / 18 | 4 / 0 |
+  | `EV_TORQUE` | decided | lb-ft (N·m) | 3 / 3 | 0 / 3 |
+  | `WHEEL_POWER` | recommended | hp (kW) | 3 / 2 | 0 / 2 |
+  | `ROAD_LOAD_POWER` | recommended | hp (kW) | 5 / 5 | 0 / 5 |
+  | `HYBRID_SYSTEM_POWER` | recommended | kW (hp) | 1 / 1 | 0 / 0 |
+  | `WHEEL_TORQUE` | recommended | lb-ft (N·m) | 7 / 6 | 0 / 5 |
+  | `DRIVELINE_TORQUE` | recommended | lb-ft (N·m) | 9 / 6 | 0 / 9 |
+  | Power-to-weight (`PTW_RATIO`) | recommended, composite | see O4 | 5 / 2 | decided with O4 |
+  | BSFC, water-methanol and downforce ratios, emissions | recommended / retain | see O4 and O7 | 20 / 19 | none until decided |
+  | Component torque and moment, non-engine power, converters, the optional hp companion row | retain | unchanged (system-governed, or the unit the converter is named for) | 36 / 32 | none |
+
+  **159 rows in 96 calculators carry a performance category** (132 change in at least one system, 27 already conform). Of those 159, 132 are `convertible`, 21 are `native` kW boxes (14 calculators), 5 are `fixed-label` simulator cells and 1 is `unregistered` (`thermal_efficiency` "HP-equiv", GH-IMP-014). 29 of the 159 are profile-linked (28 `hp…`/`torq…` boxes and `hps_p`). **26 calculators hold both decided and recommended rows**: 16 only because a BSFC input sits beside a decided engine-power input, 10 because of wheel, ratio or hybrid rows (`drivetrain_loss`, `torque_converter`, `tow_wheel_torque`, `ev_wheel_torque`, `sim_acceleration`, `sim_dragstrip`, `sim_top_speed`, `power_to_weight`, `diesel_power_to_weight`, `wmi_flow`). That is why the recommended categories should be approved together before implementation (decision A1 below): otherwise those calculators would show hp beside a kW or N·m figure.
+
+  **Ambiguous rows: the seven attributes** (1 calculator and row ID, 2 physical quantity, 3 category, 4 unit today in Imperial / Metric, 5 recommended default and alternatives, 6 inherit or retain, 7 effect on profiles, stored values, comparisons, reports). Defaults from the page: "Result" = a result row, "Input" = a box. Every Input stores its canonical value (hp or lb-ft) with the unit it was declared in, so saved setups need no migration; a Result is never stored and appears in the spec-sheet export exactly as shown. No row below is in the vehicle-profile link map except where stated; there is no cross-calculator compare feature (the only comparisons are the before / after rows inside one calculator, which share one category and therefore one unit).
+
+  | 1 Calculator · row | 2–3 Quantity · category | 4 Today (Imperial / Metric) | 5 Recommended default (alternatives) | 6 Inherits or retains | 7 Effect |
+  |---|---|---|---|---|---|
+  | `hp_aero_drag` · "HP Required" (Result) | power to push the car through the air at the entered speed · road-load demand, `ROAD_LOAD_POWER` | HP / kW | hp (kW) | inherits the power preference | none beyond display |
+  | `aero_hp` · "Aerodynamic Power" (Result) | drag force × speed · road-load demand | 16.46 HP / 12.27 kW | hp (kW) | inherits | none beyond display; its force input stays a real force (N in Metric) |
+  | `tow_grade_power` · "Grade Power" (Result) | power to lift the combined weight up the grade at speed (towing) · road-load demand | HP / kW | hp (kW) | inherits | none beyond display |
+  | `tire_rolling_resistance` · "Power Loss" (Result) | rolling-resistance force × speed · road-load demand | HP / kW | hp (kW) | inherits | none beyond display |
+  | `drag_downforce_tradeoff` · "Added Aero Power (B − A)" (Result) | extra drag power of setup B over A at the same speed · road-load demand | HP / kW | hp (kW) | inherits | none beyond display. Its "Downforce per Added HP" row is a force over a power (`lb/HP` in both systems, unregistered): retained, GH-IMP-013 D3 / GH-IMP-014 |
+  | `drivetrain_loss` · "Wheel HP", "Drivetrain Loss" (Results); `fwhp` flywheel input | power measured at the wheels, and flywheel power minus wheel power · wheel output and transmission loss, `WHEEL_POWER` (the input is `ENGINE_POWER`) | WHP and HP / kW | hp (WHP label kept) (kW) | inherits; all three rows share one unit so loss = input − output reads in one unit | none beyond display; the `fwhp` input is profile-independent |
+  | `sim_top_speed` · "Wheel Power" (Result, literal text) | available wheel power at top speed · wheel output | HP / HP | hp (kW) | inherits (needs a helper for an explicit kW) | none beyond display |
+  | `torque_converter` · "Theoretical Wheel Torque" (Result); `tc_tq` input | engine torque × converter multiplication × gear ratios · wheel output, `WHEEL_TORQUE`; `tc_tq` is engine torque (decided) | lb-ft / N·m | lb-ft (N·m) | inherits the torque preference | none beyond display |
+  | `tow_wheel_torque` · "Wheel Torque" (Result); `twt_t` input | engine torque × overall ratio × efficiency · wheel output; `twt_t` engine torque (decided) | lb-ft / N·m | lb-ft (N·m) | inherits | none beyond display |
+  | `ev_wheel_torque` · "Wheel Torque" (Result); `ewt_t` input | motor torque × reduction × efficiency · wheel output; `ewt_t` is EV motor torque (decided) | lb-ft / N·m | lb-ft (N·m) | inherits | none beyond display |
+  | `ev_tire_wear` · `etw_t`, `etw_rt` (Inputs) | peak torque at the wheels of the EV, and of the reference ICE vehicle (divisor of the wear index) · wheel output | lb-ft / N·m | lb-ft (N·m) | inherits; both boxes are one category so the ratio is unit-consistent | canonical only |
+  | `sim_acceleration`, `sim_dragstrip` · "Peak Wheel Torque" (Result, literal text) | peak wheel torque during the run · wheel output | lb-ft / lb-ft | lb-ft (N·m) | inherits (needs a helper for an explicit N·m) | none beyond display |
+  | `clutch_torque_capacity` · "Estimated Torque Capacity" (Result) | friction torque the clutch can hold (clamp × μ × radius × faces) · driveline capacity read against engine torque, `DRIVELINE_TORQUE` | 625 lb-ft / 847.39 N·m | lb-ft (N·m) | inherits (alternative: retain N·m as component strength, A3) | none beyond display |
+  | `lsd_bias_lock_effect` · `lsd_t` (Input); "Low-Traction Wheel Torque", "High-Traction Wheel Torque" (Results) | torque entering the differential and its split between the wheels · driveline demand | lb-ft / N·m | lb-ft (N·m) | inherits | canonical only |
+  | `shaft_angular_deflection` · `sad_t`; `driveshaft_diameter_sizing` · `dds_t` (Inputs) | design torque the shaft must carry · driveline demand | lb-ft / N·m | lb-ft (N·m) | inherits (alternative: retain, A3) | canonical only |
+  | `driveshaft_torque_capacity` · "Maximum Torque Capacity"; `axle_shaft_torque_capacity` · "Yield Torque Capacity", "Safe Working Torque Capacity" (Results) | shear-strength limit of the shaft, yield torque of the axle and yield ÷ safety factor · driveline capacity | lb-ft / N·m | lb-ft (N·m) | inherits (alternative: retain, A3) | none beyond display |
+  | `hybrid_power_split` · `hps_p` (Input) | combined output of the engine and the motor(s) · hybrid system output, `HYBRID_SYSTEM_POWER` | kW / kW (native box) | kW (hp) | own default: unchanged from today; follows an explicit power choice | **profile-linked by its id: the "use vehicle hp" chip puts horsepower into this kW box, GH-DEF-027**; Save to vehicle writes nothing (native, no canonical value) |
+  | `hybrid_power_split` · "Engine Power" (Result) | engine share = system × fraction · combustion-engine output, `ENGINE_POWER` | kW / kW | **hp** (kW) | inherits | none beyond display; the only row of this group that changes in Imperial |
+  | `hybrid_power_split` · "Electric Motor Power" (Result); `hps_f` (Input, a fraction) | motor share = system − engine · electric-motor output, `EV_POWER`; the fraction has no unit and is never converted | kW / kW | kW (hp) | inherits | the fraction box is also profile-linked by its id (GH-DEF-027) |
+
+  Battery power and regeneration power in the EV calculators (`ev_battery_current` `ev_bkw`, `ev_regen_power`, `ev_peak_power`, `ev_inverter_loss`, `ev_power_conversion`, `ev_hvac_energy`, `ev_charge_added`, `ev_charge_time`, `fuel_cell_power`, `hybrid_regen_energy`) are `EV_POWER`, decided, native kW boxes that already conform. There is no battery-power row in the hybrid split calculator.
+
+  **Ratio and decision rows** (the 28 plus the one D3 row; ratios are not an hp or torque display, so they are classified by what they divide):
+
+  | Family | Rows / calculators | Imperial / Metric today | Recommendation |
+  |---|---|---|---|
+  | BSFC | 16 / 16 | `lb/hp-hr` / `kg/kW-hr` (9); `lb/hp·hr` in both (7, unregistered) | keep as today in the first implementation (O7 states the follow-up) |
+  | Power-to-weight | 5 / 2 (`power_to_weight` "HP per Ton" 248.5 HP/ton, "Lbs per HP" 8.05, "HP per 1000 lbs" 124.27; `diesel_power_to_weight` "HP / 1000 lb", "lb / HP", unregistered) | HP/ton, lbs/HP, HP/klb / kW/metric ton, kg/kW, kW/tonne | O4 |
+  | Emissions per energy | 2 / 1 (`diesel_scr_efficiency`) | g/kWh both | not a performance unit; unchanged |
+  | Water-methanol flow per hp, downforce per added hp | 2 / 2 (`wmi_flow` `ratio_wmi`, `drag_downforce_tradeoff`) | `lb/hr per HP`, `lb/HP` in both | unchanged until GH-IMP-014 / GH-IMP-013 D3 |
+
+  One side observation, not a defect of this plan: `power_to_weight` rounds its Imperial results to 0.1 or 0.01 before converting, so its Metric rows 1 and 3 (both kW per tonne) read 204.2654 and 204.2982 for the same car (true value 204.2966). The tests below therefore compare rows with pre-rounded results within the rounding step, never tighter.
+  **Implementation evidence (2026-10-13; final engine sha256 `f025183b52ab6bc1ba9da60809dc4e71659086c38482225b5a1c891d6709ebba`).**
+  *Before / after, all 696 calculators in both systems at the default state (Auto / Auto), against the engine of `d776d21`* (sha256 `9674a993…`; the engine of `0d5835b` differs from it only by the GH-DEF-027 chip rule): 6,366 rows (3,183 per system). **6,231 identical**, including all 118 rows of the retained categories and every Imperial row that is not in a preference-following category; **133 changed on purpose**, each the same physical quantity in the unit the policy names: Metric 128 rows (engine power kW → HP 80, engine torque N·m → lb-ft 24, driveline torque N·m → lb-ft 9, wheel torque 5, road-load power kW → HP 5, EV motor torque 3, wheel power 2 [1 HP, 1 WHP]) and Imperial 5 rows (EV power HP → kW 4, the hybrid engine power kW → HP 1); **2 rows outside the policy moved by 2 parts per million** (`fuel_pump_sizing` Metric, 96.3883 → 96.3885 kg/hr and 162.9659 → 162.9661 L/h: the calculator reads its power box as text, and that text is now hp instead of rounded kW: the rounded-text class of GH-EXP-003); **0 unexpected, 0 page errors.** The earlier plan's "110 rows differ today, 22 more if the recommended categories are approved" is 106 + 22 = 128 Metric rows and 4 + 1 = 5 Imperial rows (its total of 132 counted the hybrid row inside the 22).
+  *Reconciled inventory against the engine (`premium/tests/performance-census.test.js`, `premium/tests/data/power-torque-rows.json`):* all 220 inventory rows are in the table under the category the inventory gave them (0 dropped); the table has **18 more rows**: the 12 Curve Editor point boxes `curve_y_0` … `curve_y_11` in Power-vs-RPM mode (HP; the inventory had only the lb-ft variant of the same boxes, from the default Torque-vs-RPM mode) and 6 "Engine curve peak" rows (lb-ft and HP) in `sim_acceleration`, `sim_dragstrip` and `sim_top_speed`, the literal text line of the Engine Curve block, which was outside the inventory; so **238 rows in 128 calculators** (177 follow a preference: `ENGINE_POWER` 97, `ENGINE_TORQUE` 28, `EV_POWER` 24, `DRIVELINE_TORQUE` 9, `WHEEL_TORQUE` 7, `ROAD_LOAD_POWER` 5, `WHEEL_POWER` 3, `EV_TORQUE` 3, `HYBRID_SYSTEM_POWER` 1; 61 keep their convention: `RETAIN-BSFC` 16, `RETAIN-CONVERTER` 14, `RETAIN-ACCESSORY` 11, `RETAIN-COMPONENT` 10, `PTW_RATIO` 5, `RETAIN-EMISSIONS` 2, `RETAIN-RATIO` 2, `RETAIN-ALT` 1). Discrepancies with the inventory, all recorded in the test and in the data file: the `thermal_efficiency` fuel-energy input spelled "HP-equiv" reads "kW-equiv" with Power = kW; `ev_motor_power` has two rows labelled "Motor Power" (a kW row, `EV_POWER`, and an HP companion row, `RETAIN-ALT`, which does not follow the preference); `ohms_law` "Power" (watts) and the Curve Editor "Peak Power | HP" are drawn only in a stored mode (conditional rows); 12 rows are drawn by hand rather than by a helper (BSFC and 11 converters, all retained) and are checked from their source; 7 further label-heuristic hits (stiffness rows) are not power or torque.
+  *Census result (full run, all 696 calculators, both systems, every combination of the Power and Torque choices, every option of every drop-down):* 15 checks, 0 failed: 696 calculators drawn in both systems with every drop-down choice and no error; 530 power / torque unit readings on pages, every one a row of the table; 1,736 readings of preference-following rows (220 inventory rows x 4 preference pairs x 2 systems) at the unit the policy gives; 480 readings of the retained rows identical to before the change. 0 rows unclassified (`PERF_UNCLASSIFIED` empty), 0 ambiguous declarations (`PERF_PROBLEMS` empty), 0 page errors.
+- **Affected:** Engine power, `ENGINE_POWER` (82 rows, 61 calculators): `hp_quarter_mile`, `hp_trap_speed`, `et_mph_prediction`, `drivetrain_loss`, `hp_from_torque`, `torque_from_hp`, `weight_reduction`, `advanced_et`, `hp_from_0_60`, `climb_rate`, `rotating_weight`, `turbo_sizing`, `hp_from_boost`, `injector_sizing`, `fuel_pump_sizing`, `dyno_correction`, `power_to_weight`, `et_hp_change`, `hp_cr_change`, `oil_pump_hp`, `hp_from_specs`, `bsfc`, `top_speed`, `tractive_force`, `nitrous_jet`, `hp_from_airflow`, `wmi_flow`, `boost_for_hp`, `gearbox_efficiency`, `injector_duty`, `exhaust_diameter`, `insurance_estimator`, `trap_speed_hp_check`, `sim_acceleration`, `sim_braking`, `sim_cornering`, `sim_top_speed`, `sim_dragstrip`, `sim_weight_transfer`, `diesel_power_economy`, `diesel_bmep`, `diesel_torque_from_power`, `diesel_power_to_weight`, `diesel_bsfc`, `diesel_fuel_flow`, `diesel_power_from_fuel`, `diesel_load_factor`, `airflow_power_estimate`, `thermal_efficiency`, `imep_from_power`, `injector_size`, `injector_duty_cycle`, `fuel_pump_capacity`, `fuel_flow_from_hp`, `fuel_system_hp`, `supercharger_parasitic`, `tow_grade_speed`, `hybrid_power_split`, `port_area_hp_estimator`, `gearbox_efficiency_by_gear`, `sim_curve_editor`. Engine torque, `ENGINE_TORQUE` (25 rows, 12 calculators): `hp_from_torque`, `torque_from_hp`, `rotating_weight`, `optimal_shift`, `bmep`, `torque_converter`, `sim_curve_editor`, `diesel_bmep`, `diesel_torque_from_power`, `airflow_power_estimate`, `bmep_from_torque`, `tow_wheel_torque`. EV power, `EV_POWER` (24 rows, 18 calculators): `ev_charge_time`, `ev_motor_power`, `ev_motor_torque`, `ev_acceleration`, `ev_quarter_mile`, `ev_top_speed`, `ev_regen_power`, `ev_battery_current`, `ev_peak_power`, `ev_motor_efficiency`, `ev_inverter_loss`, `ev_power_conversion`, `ev_charge_added`, `ev_hvac_energy`, `hybrid_power_split`, `hybrid_regen_energy`, `fuel_cell_power`, `fuel_cell_efficiency`. EV motor torque, `EV_TORQUE` (3 rows, 3 calculators): `ev_motor_power`, `ev_motor_torque`, `ev_wheel_torque`. Wheel power, `WHEEL_POWER` (recommended) (3 rows, 2 calculators): `drivetrain_loss`, `sim_top_speed`. Road-load power, `ROAD_LOAD_POWER` (recommended) (5 rows, 5 calculators): `hp_aero_drag`, `tow_grade_power`, `aero_hp`, `tire_rolling_resistance`, `drag_downforce_tradeoff`. Hybrid system power, `HYBRID_SYSTEM_POWER` (recommended) (1 rows, 1 calculators): `hybrid_power_split`. Wheel torque, `WHEEL_TORQUE` (recommended) (7 rows, 6 calculators): `ev_tire_wear`, `torque_converter`, `ev_wheel_torque`, `tow_wheel_torque`, `sim_acceleration`, `sim_dragstrip`. Driveline torque, `DRIVELINE_TORQUE` (recommended) (9 rows, 6 calculators): `clutch_torque_capacity`, `lsd_bias_lock_effect`, `shaft_angular_deflection`, `driveshaft_diameter_sizing`, `driveshaft_torque_capacity`, `axle_shaft_torque_capacity`. Power-to-weight ratios (decision O4) (5 rows, 2 calculators): `power_to_weight`, `diesel_power_to_weight`. BSFC, emissions and other ratios (decision O7) (20 rows, 19 calculators): `turbo_sizing`, `injector_sizing`, `fuel_pump_sizing`, `hp_from_specs`, `bsfc`, `wmi_flow`, `injector_duty`, `diesel_bsfc`, `diesel_fuel_flow`, `diesel_power_from_fuel`, `airflow_power_estimate`, `injector_size`, `injector_duty_cycle`, `fuel_pump_capacity`, `fuel_flow_from_hp`, `fuel_system_hp`, `diesel_scr_efficiency`, `port_area_hp_estimator`, `drag_downforce_tradeoff`. Retained, unchanged by the policy (component torque and moment, non-engine power, converters, the hp companion row) (36 rows, 32 calculators): `power_converter`, `torque_wrench_ext`, `bolt_torque_spec`, `yaw_moment`, `brake_torque`, `pump_power_requirement`, `bearing_preload`, `brake_rotor_sizing`, `tire_heat_generation`, `nm_to_lbft`, `lbft_to_nm`, `lbin_to_nm`, `lbin_to_lbft`, `hp_to_kw`, `kw_to_hp`, `ps_to_hp`, `btu_hr_to_kw`, `ev_motor_power`, `bending_stress`, `clamp_load`, `torsional_stress`, `diesel_turbo_efficiency`, `electrical_power`, `ev_battery_heat`, `ev_coolant_flow`, `starter_current`, `turbo_power_requirement`, `wire_current_capacity`, `ohms_law`, `hp_to_ps`, `lbft_to_lbin`, `nmm_to_lbft`. Outside the calculators but under the same policy: the vehicle-profile editor (`profile_hp`, `profile_torque`), the profile list and the dashboard vehicle card (GH-DEF-026, GH-ENG-006). The category of every row, with its mechanism and effect, is in `premium/tests/data/power-torque-rows.json`.
+- **Impact:** Numbers are correct today; it is a convention mismatch, plus these implications for saved settings, comparisons and reports. (1) **Stored values are safe:** every power and torque box stores the canonical value (HP, lb-ft; kW for the 21 native boxes), and a saved test setup or a "Save to vehicle" record keeps the stored value with the unit it was declared in (`ghmCaptureCalcState`: `canonical`, `unit`, `value`), so no stored value needs migrating. (2) **The mechanism matters:** declaring the rows "native" (the GH-DEF-020 device that the 20 EV kW boxes use) is the obvious shortcut and is **not safe** for hp and lb-ft: a native box carries no unit, so a setup saved earlier in Metric (stored with the unit `HP` and the canonical value) is re-displayed through the stored unit, 425 hp would come back as "316.9" in a box now labelled hp (25 % low), and "Save to vehicle" (which needs the canonical value of the box, `ghmSaveCurrentToVehicle`) would stop writing `hp` and `torque` to the profile. (3) **Comparisons and reports:** there is no cross-calculator compare feature; the spec-sheet export (`exportSpecSheet`) prints the text of the page, so it shows whatever unit the box and the result show, and is correct as long as every unit label is produced by the same function that converts the value (the design below). A saved Metric result of "285.6 kW" and a later hp figure for the same engine are the same physical value; nothing is stored in kW except the 21 native boxes. Server-side saved calculations reference immutable engine-native `calculation_records` and are not touched. (4) **One setting would not do:** if a single performance switch followed the system switch, Metric would stay in kW; the policy requires them to be independent. (5) **A persisted account preference needs a database column** (`profiles.preferred_unit_system` exists but is display-only and unwired); that is a migration needing its own approval, so the first step keeps the preference in the browser like `ghm_unit` (O6). (6) **Side effects found while classifying the profile link:** GH-DEF-027 (the hybrid power split offers vehicle horsepower in a kW box and in a fraction box) and GH-DEF-026 (the dashboard card).
+- **Decision:** **Decided: the policy P1 to P4 in Description. Everything else below is a recommendation that needs approval; nothing changed.**
+
+  **Recommendations O1 to O7** (decided parts are marked; approval is requested in the report as A1 to A8):
+  **O1 Road-load and vehicle-demand power** (`hp_aero_drag`, `aero_hp`, `tow_grade_power`, `tire_rolling_resistance`, `drag_downforce_tradeoff`): *recommended:* category `ROAD_LOAD_POWER`, Auto **hp**, follows the power preference. These are demands that the user reads against an engine's hp ("can 300 hp hold 120 mph?"), so P1 applies by the question being asked. An EV context should **not** flip the unit through the active vehicle: a profile has a `vehicleType` (Automotive, Motorcycle, EV), but switching the active profile would then change every road-load number on an open calculator and break the independence of the preference (P3); the EV profile in the sample data also carries no hp or torque. An EV road-load calculator (none exists) would be classified `EV_POWER` when it is created, because the calculator's subject is the motor. *Alternative (approval needed to choose it):* Auto resolves `ROAD_LOAD_POWER` to kW when the active profile is an EV; one line in the resolver, but units then change when the vehicle changes.
+  **O2 Wheel and driveline power versus crankshaft output** (decided: crankshaft and flywheel output is `ENGINE_POWER`, hp): *recommended:* wheel power and transmission loss (`drivetrain_loss`, `sim_top_speed` "Wheel Power") are `WHEEL_POWER`, Auto hp (WHP label kept) and follow the power preference, so flywheel power, wheel power and loss always read in the same unit; wheel and driveline torque (`WHEEL_TORQUE`, `DRIVELINE_TORQUE`) follow the torque preference; the efficiency and loss percentages are dimensionless and never converted. Retained with their own convention: component torque and moment (fasteners, brakes, bearings, yaw, bending, torsion, clamp), accessory and electrical power (pump, tire heat, W rows), converters. *Alternative:* shaft and axle strength rows (`driveshaft_diameter_sizing`, `driveshaft_torque_capacity`, `axle_shaft_torque_capacity`, `shaft_angular_deflection`) keep N·m in Metric as component strength (the earlier draft of this entry recommended that); I recommend the first because each is read against engine torque in the same session, and a Metric user who kept lb-ft for the engine would otherwise see two torque units on one page (A3).
+  **O3 Hybrid power split** (classified per row, never one default for the calculator): combustion-engine output `ENGINE_POWER` (hp), electric-motor output `EV_POWER` (kW), combined system output `HYBRID_SYSTEM_POWER` (*recommended:* kW, which is what the box shows today and so changes nothing; hp is the alternative because US hybrid spec sheets quote it), the split fraction is dimensionless, battery and regeneration power are `EV_POWER` (kW, in the EV calculators). The panel therefore reads system kW, engine hp, motor kW by default, a mixed-unit panel by design; the explicit power choice puts all three in one unit.
+  **O4 Power-to-weight:** *recommended* convention: a power-to-weight row keeps its meaning and scale (per short ton, per 1000 lb, lb per hp stay exactly as they are in Imperial; per tonne and kg per kW stay as they are in Metric with kW) and its unit text spells the exact basis; the power part follows the power preference and the mass part follows the Metric / Imperial setting. Metric with hp (the case the policy creates) reads `hp/tonne` (per 1000 kg) and `kg/hp`; Imperial with kW reads `kW/1000 lb` and `lb/kW`. It is a composite of two independent settings, which the single-switch conversion cannot express, so it needs a small extra table of four unit pairs for the 5 rows (`power_to_weight`, `diesel_power_to_weight`, the second also needing its units registered, GH-IMP-014). Until it is approved and built, the `power_to_weight` calculator would show an hp input over kW outputs in Metric, so the two calculators are tagged only together with their outputs (A4).
+  **O5 Torque beyond engine and EV-motor output:** wheel torque `WHEEL_TORQUE` and driveline torque `DRIVELINE_TORQUE` follow the torque preference (Auto lb-ft); calculated torque demands (the shaft and differential design inputs) are the same categories; component torque keeps its established convention (N·m in Metric): `bolt_torque_spec`, `torque_wrench_ext`, `brake_torque`, `bearing_preload`, `brake_rotor_sizing`, `yaw_moment`, and the lb-in rows `bending_stress`, `torsional_stress`, `clamp_load`. EV motor torque is lb-ft (decided, P2).
+  **O6 Optional units and settings: the smallest implementation** (preference model and mechanism follow). **Browser-local is enough for the current requirement.** Everything stored is canonical, the preference is a display choice, and the Auto default is exactly the decided policy. What is lost without cross-device sync: a user who chose kW or N·m sees the policy default (hp, lb-ft, EV kW) in a new browser, on another device or in a private window until the choice is made again there; nothing stored changes and no number is wrong. That is the same limitation `ghm_unit` has today. An account-level preference would need a new `profiles` column and migration (the ENG-014 kind of approval) and is **not** part of this plan.
+  **O7 BSFC (added by the inventory):** *recommended for the first implementation:* leave the 16 BSFC rows as they are (system-governed), which means a Metric page with an hp input beside a `kg/kW-hr` BSFC input; *recommended follow-up (needs approval):* BSFC follows the power preference rather than the system (`lb/hp-hr` with hp, `kg/kW-hr` with kW, in either system), which removes the mixed display and needs no composite table. The 7 unregistered `lb/hp·hr` spellings belong to GH-IMP-014 either way.
+
+  **Decisions awaiting approval (A1 to A8).** A1 approve the recommended categories (wheel, road load, hybrid, driveline, ratios) together with the decided ones before implementation, so no calculator mixes units; or name the categories to hold back, in which case a calculator is tagged only when all its rows are approved. A2 (O1) road-load power is `ROAD_LOAD_POWER`, Auto hp; an EV context is a calculator's category, not the active profile (alternative: an EV profile resolves it to kW). A3 (O2, O5) wheel power and torque follow the performance preferences; shaft and axle strength rows follow the torque preference (alternative: keep N·m in Metric as component strength). A4 (O4) the power-to-weight convention and the four unit pairs it needs, in the first release or after it. A5 (O3) hybrid: system kW, engine hp, motor kW (alternative: system hp). A6 (O7) BSFC unchanged now; whether it later follows the power preference. A7 (O6) browser-local preference, two selectors ("Power: Auto / hp / kW", "Torque: lb-ft / N·m") beside the Imperial / Metric switch, and that an explicit hp or kW applies to every power category including EV. A8 when to fix GH-DEF-026 and GH-DEF-027 (with the implementation, recommended, or earlier). Implementation itself needs a separate explicit authorization.
+
+  **Preference model.** Three independent settings, all browser-local, all optional. (a) General measurement system, `UNIT.system` ∈ {imperial, metric}, key `ghm_unit` (exists, unchanged). (b) Performance power, `UNIT.power` ∈ {auto, hp, kW}: *auto* = each category's own default (engine, wheel and road-load hp; EV kW; hybrid system kW); *hp* or *kW* = every power category in that unit (an explicit choice beats the category default). (c) Performance torque, `UNIT.torque` ∈ {auto, lb-ft, N·m}: today every torque category defaults to lb-ft, so auto is lb-ft; the state is kept so the EV torque default can change later in one table cell. Precedence for a tagged row: explicit user choice, else the category's Auto default; **Metric / Imperial is never consulted for a tagged row, and a performance setting never touches an untagged row** (mass, length, pressure, component torque keep following the system). Two small selectors beside the existing Imperial / Metric switch: "Power: Auto / hp / kW" and "Torque: lb-ft / N·m"; unset means Auto.
+
+  **Smallest implementation** (about one table, two settings and one resolver; no general configuration engine, no per-calculator rewrite):
+  1. *Field-to-category assignment:* an explicit `PERF_POLICY` table keyed by calculator ID, generated once from `power-torque-rows.json` and reviewed: `{calc: {power: 'ENGINE_POWER'}}` assigns every power-family unit in the calculator; `{calc: {rows: {'Wheel HP': 'WHEEL_POWER', …}}}` overrides single rows. Only 6 calculators need row entries (`drivetrain_loss`, `torque_converter`, `sim_top_speed`, `ev_wheel_torque`, `tow_wheel_torque`, `hybrid_power_split`); the other 90 are one line each. Never inferred from labels or from the unit text (`lb-ft` is also component torque, `HP` also pump power).
+  2. *Where the table is read:* `field()`, `resultHTML()` and `multiResult()` already know the calculator (`currentCalc`) and the row; one `policyUnit(calc, row, unit)` swaps the unit they were handed for a category token (for example `HP` becomes `HP@ENGINE_POWER`). The tokens are registered once beside `UNIT_ALIASES` and `UNIT_DEFS` with the same factors (0.745699872, 1.355817948), so no new constant exists and the calculators' own code is unchanged.
+  3. *Conversion boundary:* one function, `effSystem(token, system)`, returns the pseudo-system the registered conversion should use: for a policy token it is derived from the preference (never from `UNIT.system`), for every other unit it returns `system` unchanged. `canonicalToUnit`, `unitToCanonical` and `metricUnit` call it first, so the **value and the label come from the same lookup** and cannot disagree; nothing else converts. The 21 native kW boxes join as a *canonical-kW* family (stored value in kW, alternative hp = value ÷ 0.745699872).
+  4. *Application defaults versus general preference:* the category's Auto default is applied before and instead of `UNIT.system` (an EV power box is kW in Imperial and in Metric; an engine power box is hp in both).
+  5. *Saved vehicle profiles and restored inputs:* profile `hp` and `torque` stay canonical (hp, lb-ft). The "use vehicle" chip shows the profile value through the box's token (so a kW box shows kW); "Save to vehicle" still reads each box's canonical value. Restoring a saved setup or remembered values re-displays the stored canonical value through the **live** box's token and ignores the saved display string for tagged boxes, so a record saved in Metric, in Imperial, under any performance setting, or before this change reloads to the same physical value. Records saved before the change for a native kW box have an empty unit; for a tagged native box they are read as canonical kW. Changing a performance setting follows `setUnit`: capture the visible canonical values, change the setting, re-render (one `setPerfUnit` of about 15 lines), so a typed value is converted exactly once.
+  6. *Comparisons and reports:* no cross-calculator comparison exists; the before / after rows inside a calculator (`et_hp_change`, `hp_cr_change`, `drag_downforce_tradeoff`, `ev_tire_wear`) sit in one category and therefore one unit; the spec-sheet export prints the page, so it follows the labels; the dashboard card, profile list and profile editor read the same resolver (GH-DEF-026, GH-ENG-006: "370 HP · 850 lb-ft · 3,402 kg · 6,686 cc" in both systems under Auto).
+  7. *Backward compatibility:* no stored value changes meaning; no new field in any record; the new keys `ghm_perf_power` and `ghm_perf_torque` are optional (absent or invalid means Auto). Server records are untouched.
+  8. *Unassigned calculators:* a calculator absent from `PERF_POLICY` is not retained silently: it keeps today's behaviour (system-governed, nothing re-conventioned) **and** the census test fails and names it until it is assigned a category or listed in an explicit `PERF_RETAIN` list. A new calculator with a power or torque row cannot ship unreviewed.
+  9. *Double conversion and wrong labels:* a tagged box is converted only through its token; the policy unit and the display come from one function (point 3); the native-box shortcut is not used for hp and lb-ft; the five literal simulator cells (`sim_acceleration`, `sim_dragstrip`, `sim_top_speed`, `sim_curve_editor` ×2) call one text helper instead of fixed `HP` / `lb-ft` literals, so an explicit kW or N·m reaches them.
+
+  **Implementation sequence** (each step reviewable and tested before the next; none is started): 0 write the regression suite (Tests); 1 add the policy table and category data, no behaviour change; 2 add `UNIT.power` / `UNIT.torque`, the resolver and the token swap, with no calculator tagged, so the whole existing regression is unchanged; 3 tag the decided categories (110 rows that change today, 22 that already conform); 4 the two selectors and `setPerfUnit`; 5 the canonical-kW family, the five simulator cells and the chip conversion; 6 after approval, the recommended categories (wheel, road load, hybrid, driveline, ratios); 7 dashboard card, profile list and profile editor (GH-DEF-026, GH-ENG-006) and GH-DEF-027; 8 full regression, before / after of all 696 calculators, closure of this entry.
+
+  **Superseded wording (kept as history):** the 2026-10-13 first plan asked six owner questions with different numbers: O1 "road-load power and driveline torque, 18 rows in 13 calculators" (recommendation: road-load power hp; wheel and converter torque lb-ft; shaft and axle strength N·m system-governed), O2 BSFC (keep system-governed), O3 power-to-weight (power input follows the performance setting, ratios keep the system's mass unit), O4 hybrid (engine hp, motor kW), O5 EV torque lb-ft as a one-entry table, O6 persistence (browser-local first). Its mechanism (a performance setting `UNIT.perf` read by tagged rows, a tag that is not the unit text, the warning against the native-box shortcut) is kept; its single "automotive / SI" switch is replaced by the two independent settings above, and the shaft and axle recommendation is revised as stated in O2.
+  **Decisions taken 2026-10-13 (the owner's brief; A1 to A8 are answered):** A1 the recommended categories are approved together with the decided ones; A2 road-load power defaults to hp, and the default comes from the calculator's application, not from the vehicle profile (the EV powertrain-analysis calculators default to kW); A3 wheel power and power loss follow the Power preference, wheel, driveline, shaft and axle torque follow the Torque preference, component torque and accessory power keep their conventions unless a row is explicitly classified; A4 power-to-weight preserves its meaning and scale and documents the units shown, with no silent rescale; A5 hybrid: engine hp, motor kW, combined system kW, fractions unitless, no single convention for the whole calculator; A6 BSFC unchanged this release; A7 two independent selectors, Power (Auto / hp / kW) and Torque (Auto / lb-ft / N·m), Auto meaning the application default, an explicit choice overriding Auto including for EV, browser-local persistence only; A8 GH-DEF-027 fixed first (`b0f507f`), GH-DEF-026 investigated and left open (not reachable). The questions that remain are in GH-IMP-020.
+- **Dependencies:** GH-IMP-013 (unit philosophy), GH-DEF-020 (the native-box mechanism and why not to reuse it for hp and lb-ft), GH-IMP-014 (BSFC, power-to-weight and ratio unit spellings, `thermal_efficiency` "HP-equiv"), GH-ENG-006 (profile editor), GH-DEF-026 (dashboard vehicle card), GH-DEF-027 (profile chips on the hybrid power split), GH-ENG-014 (only if an account-level preference is ever wanted; not part of this plan).
+- **Revisit:** Closed 2026-10-13; the questions that remain are GH-IMP-020. Before Batch 11: every new power or torque row needs a table entry (the census test fails on a row without one).
+- **Commits:** `b0f507f` (GH-DEF-027, the hybrid shortcut), `0d5835b` (GH-DEF-026 evidence and guard), `d92f5c7` (the performance-unit implementation with its tests and test data), and the documentation commit that follows it.
+- **Tests:** **Written and passing 2026-10-13** (tests first: each new suite was run against the engine of `0d5835b` and fails there; expected values are written from physics and from independent definitions, never read from the policy table):
+  - `premium/tests/performance-units.test.js` — 95 checks in real Chromium with real clicks and typing, plus 20 mutants (`premium/tests/performance-units.mutants.js`), all caught. Sections: 0 the controls; 1 Auto in both systems (hp stays hp in Metric, torque stays lb-ft, EV power kW in both systems, EV motor torque lb-ft, road-load, wheel, driveline); 2 preferences persist, stay independent of Metric / Imperial and are written only to this browser (an invalid stored value means Auto); 3 explicit hp / kW and lb-ft / N·m give the same physical result and a value typed in either unit gives the same outputs; 4 Auto does not depend on the vehicle (the five demo vehicles plus an electric one and one with no horsepower); 5 hybrid engine, motor, system and fraction under every choice, and the vehicle shortcut; 6 remembered values after a preference change; 7 saved test setups, new ones and ones saved before the change (fixtures in `premium/tests/data/legacy-setups.json`); 8 vehicle profile editor, list, "Save to vehicle" (the vehicle keeps exactly its hp and lb-ft); 9 comparison and exported report; 10 rows that keep their convention are untouched by either preference (baseline `premium/tests/data/perf-retained-baseline.json`, taken from the engine before the change); 11 simulator cells and the Curve Editor. On the engine of `0d5835b` it reports 42 checks, 23 failed.
+  - `premium/tests/performance-census.test.js` — 15 checks: the policy written out by hand; all 220 inventory rows are in the table under the category the inventory gave them; every calculator opened in both systems under each Power and Torque choice with every option of every drop-down, every power or torque unit on any page belongs to a table row, no unclassified row, no row in the table that is never drawn (conditional and hand-drawn rows listed), Auto units identical in both systems, explicit choices equal Auto in physical value, retained rows show what they showed before. On the engine of `0d5835b` it fails at once (no policy table).
+  - Existing suites whose expectations encoded the old behaviour ("kW and N·m in Metric" for rows the policy now defines as hp and lb-ft) were updated, never relaxed: `unit-system.test.js` (7 calculators: new fixed kinds `hpfix` / `lbftfix`), `native-units.test.js` (3 cases), `remembered-values.test.js` (1 case), `toggle-sweep.test.js` (the real-calculator `certValue` case now selects Torque = N·m; `drivetrain_loss` removed from the expected-rounding ledger because the sweep no longer meets the boundary under Auto: GH-EXP-001), `profile-shortcut.test.js` (hybrid engine share in hp, torque case made explicit), `airflow-readers.test.js` (Estimated Horsepower row reads HP), `unit-census.test.js` and `data/unit-census.json` (a `performance` class for HP, WHP and lb-ft: 126 rows). Every one of them still compares with independent physics.
+  **Original specification (2026-10-13, kept as written; at that time none was written):**  **Regression plan: add before any implementation, as `premium/tests/performance-units.test.js` (real browser, the same harness as the existing suites) plus extensions. Expected values are written into the test from physics and from the independent probes, never read back from `PERF_POLICY` or from the declaration table.**
+  (T1) *Combustion hp stays hp in Metric:* for every `ENGINE_POWER` row, in Metric with no stored preference, the unit text is HP (or WHP where the label says so) and the value equals the Imperial value; spot checks with typed values: `hp_from_torque` 490 lb-ft at 4,000 rpm gives 373.2 HP in both systems (closed form T × rpm ÷ 5252), `hp_quarter_mile` defaults give 383 HP in both.
+  (T2) *Combustion torque stays lb-ft in Metric:* `torque_from_hp` 425 hp at 4,000 rpm gives 558 lb-ft in both systems (closed form hp × 5252 ÷ rpm).
+  (T3) *EV motor power is kW in both systems:* `ev_acceleration`, `ev_quarter_mile`, `ev_top_speed` boxes read kW in Imperial and Metric (the 500 hp default reads 372.85 kW in both systems, and typing 372.85 kW reproduces the 4.97 s result of 500 hp), the 20 native kW boxes unchanged.
+  (T4) *EV motor torque follows the default:* `ev_motor_torque` 300 kW at 6,000 rpm gives 352.2 lb-ft in both systems (kW × 9549.3 ÷ rpm ÷ 1.3558179483 = 352.16; the page rounds the lb-ft figure to 0.1 first, so its Metric N·m reads 477.5191 against the exact 477.465: the pre-rounded-result tolerance of T7 applies).
+  (T5) *Explicit alternatives:* with Power = kW, `hp_quarter_mile` shows 285.603 kW = 383 × 0.745699872; with Torque = N·m, `torque_from_hp` shows 756.546 N·m = 558 × 1.3558179483; with Power = hp, an EV power box shows hp. The factors are typed into the test as literals, not imported.
+  (T6) *Independence:* switch Imperial → Metric → Imperial with kW selected: the performance setting in storage and on the page is unchanged each time, and a mass, length or pressure box moves with the system but not with the performance setting; with Metric selected and Auto, `bolt_torque_spec` still reads N·m and `hp_quarter_mile` reads HP.
+  (T7) *Physical result unchanged by a unit switch:* for each of the 110 rows that change today and each of the 22 that conform, type a value, switch the performance setting there and back, and compare every output to the pre-switch output (tolerance: the rounding step of pre-rounded results, `power_to_weight` being the known case).
+  (T8) *Saved vehicle values survive:* a profile of 425 hp / 490 lb-ft; open `hp_from_torque`, use the "use vehicle" chip under hp, kW and Metric; "Save to vehicle" writes 425 and 490 (not 316.9 or 664.4); navigate away and back, reload, and the boxes are the same physical values.
+  (T9) *Existing saved setups:* fixtures captured from the current engine (a setup saved in Imperial, one saved in Metric, one for a native kW box) are loaded after the change under Auto, kW and Metric, and compared with the physical value.
+  (T10) *Comparisons and reports:* `et_hp_change` (old / new hp) and `ev_tire_wear` (two torques) show one unit across the rows and the correct difference or ratio; the spec-sheet export text of a tagged calculator under each setting contains the number and the label that the page shows, and the pair converts back to the canonical value.
+  (T11) *Nothing else moved:* before / after of all 696 calculators in both systems against `c28e934`: Imperial identical except the 4 EV power rows (plus the hybrid engine share if A5 is approved), Metric different only on the approved tagged rows, 0 page errors, 0 failures in the 19 existing browser suites.
+  (T12) *Unclassified fields surfaced:* a census that renders every calculator and fails, naming calculator and row, for any power- or torque-looking unit (HP, WHP, kW, W, PS, lb-ft, ft-lbs, N·m, lb-in, in-lb) that is in neither `PERF_POLICY` nor `PERF_RETAIN`; verified by a mutant (a temporary calculator with an unassigned `HP` box must fail it) and by running it against the current engine, where it reports exactly the 220 rows of the file.
+  (T13) *Profile chips:* a scan of every box that offers a "use vehicle" chip, in both systems and under each performance setting, asserting the chip value is converted to the box's unit (this fails today on `hps_p` and `hps_f`, GH-DEF-027).
+  (T14) *Persistence and defaults:* reload keeps the choice; a missing, invalid or blocked storage value means Auto; storage failures never throw.
+  (T15) *Mutants:* swapping `EV_POWER` and `ENGINE_POWER` in the table, removing the `effSystem` call from `unitToCanonical`, and making the label come from a different function than the value must each fail at least one test above.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Fourth stage: Metric unit convention" and "Performance-unit implementation (GH-IMP-019), 2026-10-13"; the master project plan (unit philosophy, status and the log row of 2026-10-13); `premium/tests/data/power-torque-rows.json` (the reconciliation block).
+- **Verification:** **Acceptance criteria for the implementation (all must pass; none was met before the implementation).** (1) Under Auto, in both systems, every `ENGINE_POWER` row shows hp, every `ENGINE_TORQUE` row lb-ft, every `EV_POWER` row kW and every `EV_TORQUE` row lb-ft: the 110 rows that differ today (Metric 106 rows in 68 calculators, Imperial 4 rows in 3) change and the 22 that conform do not. (2) Approved recommended categories add up to 22 further rows in 17 calculators in Metric and 1 in Imperial (132 rows in 84 calculators in total if all are approved), and no other row changes. (3) Explicit hp, kW, lb-ft and N·m produce the equivalent values to the factors above, and a value typed in either unit gives the same canonical value and the same outputs. (4) The Metric / Imperial switch never moves a tagged row and a performance setting never moves an untagged row. (5) Profile hp and torque, saved test setups (including ones saved before the change, in either system) and "Save to vehicle" are unchanged in meaning. (6) Imperial numbers are identical to `c28e934` except the rows named in (1) and (2); formulas are unchanged unless a defect is documented. (7) The census reports no unassigned row, and fails on the mutant. (8) The full regression, the catalogue and register checks pass, the before / after of all 696 calculators shows only the intended rows, and GH-DEF-026 and GH-DEF-027 are closed or consciously deferred.
+  **Complete browser regression in one pass (`bash premium/tests/run-browser-tests.sh`, all 23 suites on the final engine): exit code 0, 23 suites, 0 failures (started 14:40, finished 15:59 UTC, 79 minutes on the 2-core machine; no calculator, engine or test file changed between the individual suite runs and this run)**
+  **Result (2026-10-13, final engine sha256 `f025183b52ab6bc1ba9da60809dc4e71659086c38482225b5a1c891d6709ebba`; the suites were run one at a time, counts are not summed; every suite 0 failures):** engine self-test 679 / 679 / 0; browser smoke 19/19; unit-system 1,619 checks; temperature-units 1,108 + 990; toggle-sweep 735 checks (696 calculators swept: 695 consistent, 1 inconsistent and in the known-open ledger); nav-return 696 checked, 692 consistent, 0 inconsistent; converters 2,064; label-consistency 696 of 696; native-units 29 calculator cases (8 stages each); declared-metric-units 0 unprotected; remembered-values 371 checks; dew-point 688; formula-fingerprints 577 formulas (575 identical to the production seed, 2 recorded as corrected); mass-force 703; unit-factors 514; unit-census 2,622 (new `performance` class); airflow-readers 131; legacy-fixes 61; negative-zero 20 + 696 + 696; profile-shortcut 80 + 9 mutants caught; dashboard-summary 9; **performance-units 95 + 20 mutants caught**; **performance-census 15 (all 696 calculators)**; `run-tests.sh`: catalogue OK (585 Free, 21 migrated, 90 expansion, 14 Engineering Lab), register OK (74 entries), frontend 55/55, schema 26/26. Before / after of all 696 calculators in both systems: see Evidence.
+  **The eight acceptance criteria:** (1) *Auto units.* Met: under Auto every `ENGINE_POWER` row shows hp, every `ENGINE_TORQUE` row lb-ft, every `EV_POWER` row kW and every `EV_TORQUE` row lb-ft, identically in Imperial and Metric (census: all 1,736 readings; before / after: 128 Metric and 5 Imperial rows changed, nothing else). (2) *Recommended categories.* Met: road-load and wheel power hp, wheel and driveline torque lb-ft, hybrid per row, are in the 133. (3) *Explicit choices.* Met: hp, kW, lb-ft and N·m give the exact factors (1 hp = 0.745699872 kW and 1 lb-ft = 1.3558179483 N·m, built in the test from the definitions of the pound, foot and standard gravity, never read from the engine), and a value typed in either unit gives the same canonical value and outputs (performance-units sections 3 and 8). (4) *Independence.* Met: pressing Imperial or Metric never moves a power or torque box and no preference moves a retained row (sections 2 and 10; census: 480 readings of the retained rows). (5) *Stored meaning.* Met: profile hp and torque (the vehicle keeps exactly 370 hp / 850 lb-ft after an unedited save), saved setups including ones saved before the change in either system, remembered values and "Save to vehicle" (sections 6 to 8). (6) *Imperial unchanged.* Met: every Imperial row outside a preference-following category is identical to `d776d21`, and the 5 Imperial rows that changed are the 4 EV power boxes and the hybrid engine share; formulas are unchanged (formula-fingerprints 575 identical, 2 recorded as before). (7) *Census.* Met: 238 table rows, 0 unclassified, 0 ambiguous declarations, and the census fails on a missing row (the performance-units mutant "a row dropped from the table" is caught). (8) *Regression and register.* Met: the suites above, catalogue and register checks pass; GH-DEF-027 is closed; GH-DEF-026 is consciously deferred (not reachable, guard test in place).
+  **Checked in the production-style page** (the shell `index.html` that loads the engine in a frame, driven by a browser script; screenshots kept outside the repository): the Power and Torque drop-downs are visible and work at 1,280, 390 and 360 px wide (stacked PWR / TRQ on a phone); choosing kW changes `hp_from_torque` to kW with the right number.
+- **History:** 2026-10-13 — created from the owner's unit philosophy brief; read-only inventory of 199 rows in 114 calculators; first plan written, no behaviour changed.
+  2026-10-13 — policy decided by the owner (P1 to P4) and the entry reworked: the inventory was reconciled against the current engine (220 rows in 128 calculators; 21 rows added, 0 changed; 0 unit-text mismatches on 198 DOM-checkable rows); the old O1 to O6 were answered or re-posed as O1 to O7 with row-level classification of the ambiguous rows; the single "automotive / SI" switch of the first plan was replaced by two independent settings (power and torque) beside the Metric / Imperial switch; the regression plan and acceptance criteria were specified; `premium/tests/data/power-torque-rows.json` extended with the policy fields; found and recorded GH-DEF-027. No behaviour changed; implementation awaits explicit authorization.
+  2026-10-13 — implemented on the owner's explicit authorization (brief "Performance unit implementation, hybrid defect fix and regression closeout"): repository verified first (HEAD `d776d21`, clean, synced, `main` `a4203cd`); GH-DEF-027 fixed first (`b0f507f`); GH-DEF-026 investigated (`0d5835b`, left open); tests written first (`performance-units`, `performance-census`, 20 mutants) and shown to fail on the previous engine; the Power and Torque preferences, the 17-category table (238 rows in 128 calculators) and the token resolver added in `d92f5c7`; the owner's A1 to A8 answered in the brief (Decision).
+  2026-10-13 — the full regression found the expected consequences and two things of my own: (1) seven existing suites encoded the old behaviour and were updated as listed in Tests; (2) the catalogue check (`catalog/gearhead-catalog.json` records the page's sha256) had been left stale by `b0f507f`: it was regenerated with `node catalog/build-catalog.js` in `d92f5c7` (one line, the page hash), and the run-tests suite was not run after `b0f507f`. Found and recorded, not fixed: GH-DEF-028, GH-DEF-029; questions that remain: GH-IMP-020.
+  2026-10-13 — closed on the full regression at the final commit (result in Verification): every acceptance criterion met; GH-DEF-026 consciously deferred (not reachable); GH-DEF-027 closed with it.
+
+### GH-IMP-020 — Performance-unit policy questions that remain after GH-IMP-019 was implemented
+- **Status:** DEFERRED
+- **Severity:** Low (every figure is correct and labelled; these are conventions the owner may want to settle)
+- **Priority:** P3
+- **Description:** GH-IMP-019 implemented the decided policy and the recommendations the owner confirmed on 2026-10-13. The items below were deliberately not decided or not changed, and are recorded so none is lost. **U1 BSFC** (16 rows in 16 calculators) is unchanged: it keeps today's system-governed spelling (`lb/hp-hr` in Imperial, `kg/kW-hr` in Metric) and does not follow the Power preference, so with Power = kW an Imperial BSFC row still reads per horsepower-hour and with Power = hp a Metric one per kilowatt-hour; whether BSFC should follow the Power preference is open. **U2 Power-to-weight** (`power_to_weight` 3 ratio rows, `diesel_power_to_weight` 2): the power input follows the Power preference (hp under Auto), the ratio rows keep today's meaning, scale and spelling in each system (`power_to_weight`, Imperial: HP/ton, lbs/HP, HP/klb; Metric: kW/metric ton, kg/kW, kW/tonne) and do not follow the Power preference. A Metric user on Auto therefore enters 425 HP and reads 204.27 kW/metric ton; whether the ratio should follow the Power preference (hp per tonne) is open. **U3 EV motor torque** defaults to lb-ft by the current product decision; it is one table entry (`EV_TORQUE`) if the owner later prefers N·m. **U4 Component torque and accessory power** (10 rows: bolt, wrench, brake, bearing and yaw torque; 11 accessory and electrical rows: pump power, turbo-compressor power, starter and wire current, battery and tire heat, coolant flow, in watts or kW) keep their own conventions and do not follow either preference; an explicit N·m or kW choice does not change them. Whether a torque-wrench calculator should offer lb-ft / N·m choices is open. **U5 Browser-local only:** the preferences live in the browser (`ghm_perf_power`, `ghm_perf_torque`); they do not follow the user to another browser or device. An account-level preference would be a separate change with its own approval (it touches the same area as GH-ENG-014 only if a database object is added). **U6 Text outside the row inventory** keeps literal wording: the narrative help paragraphs ("why" and "how"), the dashboard vehicle summary line and stat cards (GH-DEF-026, not reachable), and any chart title that spells hp or lb-ft as plain text. **U7 The "HP-equiv" fuel-energy input** of `thermal_efficiency` reads "kW-equiv" with Power = kW (the only row spelled this way). **U8 Shell menu (probed 2026-10-13, now GH-DEF-031):** the application shell's compact units menu (`app-shell.js`) calls a function `setUnits` that is not defined in the engine page; not reproduced locally and not verified on the production site, so the Power and Torque selectors were verified in the full page and in the production-style shell page, not in that menu. **U9 Power and torque preferences and the spec sheet / report text** follow the row's displayed unit; the stored value is unchanged (verified in `performance-units.test.js` section 9).
+- **Evidence:** The behaviour of each item was read on the page (power-to-weight under Auto and Power = kW in both systems; BSFC rows in the census; the `thermal_efficiency` row in the census). U8 is a code reading only.
+- **Affected:** `PERF_CATS` / `PERF_ROWS` in the engine page (one table entry per item U1 to U4 and U7); `app-shell.js` (U8); no calculator formula.
+- **Impact:** None on any number. Possible mild surprise where a ratio or a component torque does not follow a preference the user chose.
+- **Decision:** None taken; each is a convention for the owner. Left as implemented on 2026-10-13.
+- **Dependencies:** GH-IMP-019 (implemented), GH-IMP-014 (BSFC and ratio spellings), GH-DEF-026, GH-ENG-014 (only if an account-level preference is ever wanted).
+- **Revisit:** On the owner's answers, before Batch 11 adds more power and torque rows (each new row needs a table entry; the census test fails on a row without one).
+- **Commits:** None.
+- **Tests:** None (decisions, not defects). `premium/tests/performance-units.test.js` and `premium/tests/performance-census.test.js` pin the current behaviour of U1, U2, U4 and U7.
+- **Docs:** GH-IMP-019; `docs/PREMIUM-CATALOG.md` "Performance-unit implementation (GH-IMP-019), 2026-10-13".
+- **Verification:** For each item the owner's decision is a change to one table entry, a test update and a census run; none requires a formula change.
+- **History:** 2026-10-13 — created at the close of the GH-IMP-019 implementation from the questions the owner's brief left open (BSFC, power-to-weight, EV torque, scope of component torque) and the limitations found while implementing.
+
+---
+  2026-10-13 — U8 probed in the release-readiness review: `setUnits` is undefined in the shell page and the menu's METRIC item leaves the system Imperial; recorded as GH-DEF-031 (open). U1 to U7 and U9 unchanged.
+  2026-10-13 — the U8 observation (GH-DEF-031) was fixed and closed in the Chapter 10 closeout (`b51b500`); the decision items U1 to U9 are not reopened.
+
+## C. Engineering questions and research
+
+### GH-ENG-001 — Which of the 65 "metric-named unit" inventory entries are real defects?
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium (audited: 38 of the 65 were real defects)
+- **Priority:** P1 (authorized audit; Item 2)
+- **Description:** A static inventory found 65 Free calculators that print a Metric unit name (`cc`, `mm`, `kW`, `km/h`, …) beside a value the engine treats as Imperial. That is a *candidate* list, not a list of defects. Item 2 audited every entry against a known input and an independent factor and classified it (table below): 38 confirmed defects (9 fixed, 29 open), 27 verified correct, 0 unresolved. Not all 65 are broken, and the 27 that were checked and found correct are recorded as such.
+- **Evidence:** Inventory run 2026-10-12; classification below. Method: (a) `premium/tests/converters.test.js` group 2 types a value into each of the 27 single-purpose converters in both unit systems and compares with the exact factor; (b) `premium/tests/label-consistency.test.js` renders all 696 calculators in Imperial and Metric and flags any row whose unit text is the same but whose number differs, or whose number is the same but whose unit text changed; (c) a list of the 22 calculators whose defaults show a unit-labelled 0 (a zero hides a mix-up), five of which get typed values in the test (only `wheel_offset` turned out defective); (d) a typed-value probe on the 29 open ones: the same labelled number typed in Imperial and in Metric gives a different number in a result row whose unit text is identical in both systems for 22 of the 29 (the other seven change a row's label or unit text, or only echo the wrong number; example `tap_drill`: M10 in Imperial gives an 8.782 mm drill, in Metric "M0.3937007874015748×1.25" and −0.824 mm).
+- **Affected:** Inventory ids: `static_compression`, `milling_heads`, `tire_size`, `tire_size_comparison`, `throttle_body`, `fuel_economy`, `ev_charge_time`, `ev_motor_power`, `ev_motor_torque`, `ev_battery_current`, `wheel_offset`, `reaction_distance`, `head_gasket_vol`, `tap_drill_size`, `fraction_decimal`, `thread_engagement`, `ev_peak_power`, `ev_motor_efficiency`, `tap_drill`, `fuel_cell_power`, `fuel_cell_efficiency`, `inch_fraction_to_mm`, `decimal_inch_to_mm`, `feet_to_mm`, `feet_to_meters`, `miles_to_km`, `mph_to_kmh`, `lb_to_kg`, `quarts_to_liters`, `gallons_to_liters`, `cubic_inches_to_cc`, `cubic_inches_to_liters`, `psi_to_kpa`, `psi_to_bar`, `lbft_to_nm`, `lbin_to_nm`, `hp_to_kw`, `btu_hr_to_kw`, `ftlb_to_joules`, `btu_to_joules`, `fahrenheit_to_celsius`, `kelvin_to_celsius`, `lbforce_to_newton`, `kgf_to_newton`, `cubic_feet_to_liters`, `square_inches_to_square_mm`, `square_feet_to_square_meters`, `tpi_to_thread_pitch`, plus the ten already in GH-DEF-001 (`heat_input_per_cycle`, `ev_inverter_loss`, `ev_power_conversion`, `ev_charge_added`, `ev_hvac_energy`, `ev_coolant_flow`, `hybrid_power_split`, `hybrid_regen_energy`) and GH-DEF-002/003/012.
+- **Impact:** 38 confirmed cases showed wrong numbers or labels in Metric (9 fixed, 29 open under GH-DEF-020); 27 were correct.
+- **Decision:** Item 2 audits each entry against a known input and an independent conversion and classifies it: confirmed defect / verified correct / unresolved. No claim that all 65 are broken is made.
+- **Dependencies:** GH-DEF-001 (same files are in both lists).
+- **Revisit:** Reliability pass Item 2.
+- **Commits:** `2fea067` (audit, `label-consistency.test.js` and its ledger); the fixes it led to: `df3764b` (GH-DEF-002, GH-DEF-003), `5d469cd` (GH-DEF-012).
+- **Tests:** `premium/tests/converters.test.js` (group 2: the 27 single-purpose converters against exact factors, both systems); `premium/tests/label-consistency.test.js` with the ledger `premium/tests/data/label-consistency-open.json` (29 open, GH-DEF-020).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 2.
+- **Verification:** Every inventory id has a recorded classification with its evidence; confirmed ones move to section A.
+- **History:** 2026-10-12 — entry created.
+  2026-10-12 — after `dc9dfd8` (GH-DEF-001) the eight inventory calculators that are also in the Class A list compute correctly in Metric, but still display the Metric-named input wrongly; they are the first rows to audit in Item 2.
+
+  **Classification of the 65 inventory entries (2026-10-12)**
+
+  | Classification | Count | Calculators | Where tracked |
+  |---|---|---|---|
+  | Confirmed defect — fixed (`df3764b`) | 8 | `ev_regen_power`, `speed_converter`, `distance_converter`, `volume_converter`, `pressure_converter`, `power_converter`, `sheet_gauge`, `fraction_to_decimal_mm` | GH-DEF-002, GH-DEF-003 |
+  | Confirmed defect — fixed earlier (`5d469cd`) | 1 | `temp_converter` | GH-DEF-012 |
+  | Confirmed defect — open | 29 | the ledger `premium/tests/data/label-consistency-open.json`, grouped by cause in the entry | GH-DEF-020 |
+  | Verified correct | 27 | `inch_fraction_to_mm`, `decimal_inch_to_mm`, `feet_to_mm`, `feet_to_meters`, `miles_to_km`, `mph_to_kmh`, `lb_to_kg`, `quarts_to_liters`, `gallons_to_liters`, `cubic_inches_to_cc`, `cubic_inches_to_liters`, `psi_to_kpa`, `psi_to_bar`, `lbft_to_nm`, `lbin_to_nm`, `hp_to_kw`, `btu_hr_to_kw`, `ftlb_to_joules`, `btu_to_joules`, `fahrenheit_to_celsius`, `kelvin_to_celsius`, `lbforce_to_newton`, `kgf_to_newton`, `cubic_feet_to_liters`, `square_inches_to_square_mm`, `square_feet_to_square_meters`, `tpi_to_thread_pitch` — the typed value equals the exact factor in both systems and the two systems read identically | `converters.test.js` group 2 |
+  | Unresolved | 0 | — | — |
+
+  The 29 open ones are 21 of the 48 listed under *Affected* (which the default-values probe finds, plus `wheel_offset`, whose default 0 hides the defect until a non-zero value is typed) and the eight Metric-named calculators of GH-DEF-001. The 65 are 48 listed ids + those eight + the nine of GH-DEF-002/003/012; the earlier text said "ten", it names eight. A finding that is not shown at the shipped defaults (a defect hidden by a default of 0) can exist in a calculator that is not in the inventory: the probe covers the 22 calculators with a labelled zero and no others, so this classification is complete for the inventory and not a proof about the other 631.
+  2026-10-12 — Item 2 audit complete: all 65 entries classified (table above). Confirmed ones are in section A (GH-DEF-002, -003, -012 fixed; GH-DEF-020 open). The question is answered; the entry is closed with the final regression of this pass.
+  2026-10-13 — closed: the question was answered by the Item 2 audit (classification table above, 0 unresolved) and the closing regression of the pass confirms it: converters 2,064 checks, 0 failures (the 27 verified-correct converters and the repaired ones); label-consistency 696 calculators checked, 667 consistent, 29 inconsistent and all 29 in the GH-DEF-020 ledger, 0 failures. The audit does not prove anything about calculators outside the inventory (stated in the classification note); the unit census (GH-IMP-014) is the broader look.
+
+### GH-ENG-002 — Are all registered unit conversion factors correct?
+- **Status:** VERIFIED CLOSED
+- **Severity:** Low (audited: no wrong factor found)
+- **Priority:** P1 (done; reliability pass Item 4c)
+- **Description:** `UNIT_DEFS` / `UNIT_ALIASES` have never been audited as a whole against a trusted reference (NIST SP 811). Individual units used by the expansion were checked as they were used.
+- **Evidence:** `premium/tests/unit-factors.test.js` (`TABLE=1` prints the table) rebuilds the factor of every one of the 42 canonical units of `UNIT_DEFS` from the exact definitions (1 lb = 0.45359237 kg, 1 in = 0.0254 m, 1 ft = 0.3048 m, 1 mi = 1609.344 m, 1 US gal = 3.785411784 L, g = 9.80665 m/s², 1 hp = 550 ft·lbf/s, short ton = 2000 lb, circular mil = π/4 (0.001 in)², conventional inch of mercury 3.386389 kPa, conventional inch of water = 25.4 mm × 9.80665 Pa) and compares it with the engine. **All 42 agree within 1.63e-9 relative.** Only two are above 1e-9: `lb/in` 1.41e-9 and `lb/ft³` 1.63e-9, both because the engine writes its constant to 9 or 10 significant digits (0.175126835 against 0.1751268352; 16.0184634 against 16.01846337); the next largest is `HP/ton` / `HP/klb` 6.1e-10. Every other factor is exact or within 6e-10, `fromMetric(toMetric(x))` returns x within 1e-12, the four reference temperatures, the temperature-difference rule (× 5/9, no offset) and the mpg ↔ L/100 km reciprocal are exact. `inHg` is the SP 811 conventional value 3.386389 kPa (published to 7 digits; the 13595.1 kg/m³ definition gives 3.38638864, 1.06e-7 lower); the display shows 2 to 4 digits. `HP/ton` assumes the 2000 lb short ton. `UNIT_ALIASES` (87 entries): every alias resolves to a convertible canonical unit (two canonical units, `in-lb` and `°R`, deliberately have no conversion) and every alias that is not its own unit is the Metric label of that unit or a listed spelling. Findings that are not wrong factors: (1) five keys are written twice in the alias literal (`L/min`, `m/min`, `mm²`, `m/s`, `ft/s`); the last wins, and for four of them both targets convert identically, but for `L/min` the shadowed `cc/min` (÷1000) and the winner `CFM` (×28.3168) do not; harmless today because no calculator declares `L/min` (`unit-census.test.js` checks); (2) `qt` is aliased to `gal` although a quart is a quarter gallon; harmless today because every row that prints `qt` is a converter row printed raw (GH-DEF-003); (3) `ft-lb` is aliased to `lb-ft`, so the five energy rows declared `ft-lb` read N·m instead of J in Metric (same number, GH-IMP-001). None of the three changes a number, so none was changed.
+- **Affected:** Shared: `UNIT_DEFS`, `UNIT_ALIASES` (read, not changed).
+- **Impact:** No wrong factor exists, so no display in either system is off because of the unit table. The three findings above are latent or cosmetic.
+- **Decision:** No engine change. The question is answered by the test; the three findings are recorded here and in GH-IMP-001 instead of changing aliases that other tests and converter rows depend on. `unit-factors.test.js` fails if a factor, a Metric label, an alias target or the set of duplicated keys changes, so a new unit has to be added to its exact-factor table.
+- **Dependencies:** none.
+- **Revisit:** When a unit is added to `UNIT_DEFS` or `UNIT_ALIASES` (the test asks for its exact factor), or if a calculator ever declares `L/min` or `qt`.
+- **Commits:** `e9af30f` (tests only; the engine is unchanged).
+- **Tests:** `premium/tests/unit-factors.test.js` (515 checks, 0 failures; 4 failures with a planted wrong psi factor); `premium/tests/unit-census.test.js` (declared-unit guard).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** Table of every registered unit with its factor, the NIST value and the difference (printed by `TABLE=1 node premium/tests/unit-factors.test.js`); any difference above 1e-9 relative explained or fixed (two are explained above).
+- **History:** 2026-10-12 — entry created.
+  2026-10-12 — closed: audited in `e9af30f`; `unit-factors.test.js` 515 checks, 0 failures on the engine at that commit; largest relative difference 1.63e-9 (`lb/ft³`); no factor wrong, no change to the unit tables. Findings (duplicate alias keys, `qt`, `ft-lb`) recorded above. Re-run in the closing regression of this pass.
+  2026-10-13 — finding (3) of the alias audit (`ft-lb` aliased to the torque unit) was resolved by GH-IMP-001 (`f7abb1a`): `'ft-lb'` is now its own canonical unit and the alias test no longer lists it as a spelling of `lb-ft`. Findings (1) and (2) (duplicate alias keys, `qt` -> `gal`) are unchanged and still pinned by `unit-factors.test.js` (514 checks, 0 failures at HEAD `e818939`).
+
+### GH-ENG-003 — Do the airflow-block `an()` readers have the Head Flow Curve defect?
+- **Status:** SUPERSEDED
+- **Severity:** Medium (unknown until reproduced)
+- **Priority:** P1 (answered in reliability pass Item 4d; moved to section A)
+- **Description:** The airflow extension block (`ap_*`, `air_*` fields) reads inputs with `an()` (raw `parseFloat` of the box text, no unit conversion, unaware of a unit switch in progress), the same reader that broke Head Flow Curve's query field (GH-DEF-013). No visible failure is confirmed for them.
+- **Evidence:** Code read, then reproduced on a live page (Item 4d). `an()` has exactly three consumers, all in the airflow extension: `GHM_ENGINE_AIR_GRAPH` (the "Airflow vs RPM" graph of `engine_airflow_estimate`), `GHM_AIRFLOW_POWER` and `GHM_STAGE_AIRFLOW` (the "Stage Estimate for Power/Torque Simulator" button of `airflow_power_estimate`). No calculator result is computed with `an()`, which is why the catalogue sweep (it reads result rows) never flagged one. Two of the three consumers do have the Head Flow Curve defect: see GH-DEF-023 (unit-bearing reads) and GH-DEF-024 (the staging function also reads boxes that do not exist).
+- **Affected:** Calculators of `GH_ENGINE_AIRFLOW_CALCS` reading with `an()`.
+- **Impact:** Unknown.
+- **Decision:** Answered: yes for the graph and the staging button, no for any calculator result. The reproductions are entered as GH-DEF-023 and GH-DEF-024 and fixed in their own commits; this question entry is superseded by them (kept for history).
+- **Dependencies:** none.
+- **Revisit:** None (superseded); see GH-DEF-023 and GH-DEF-024.
+- **Commits:** None yet.
+- **Tests:** None yet.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass" → Open items 4.
+- **Verification:** Each `an()`-reading calculator is exercised in both systems against independent values; any failure becomes a section A entry.
+- **History:** 2026-10-12 — entry created.
+  2026-10-12 — reproduced in Item 4d (a graph 16.4 times too high in Metric, a staged curve 16.0 times too high); moved to section A as GH-DEF-023 and GH-DEF-024 and superseded here. Nothing deleted.
+
+### GH-ENG-004 — Do the cross-calculator "stage" handoffs write values in the right unit system?
+- **Status:** OPEN
+- **Severity:** Unknown
+- **Priority:** P2
+- **Description:** `GHM_STAGE_AIRFLOW`, `GHM_STAGE_CORRECTED_FLOW` and `useIVC` write strings straight into another calculator's remembered state. Whether those strings are in the unit system the receiving field will display in, when the page is in Metric, has not been checked.
+- **Evidence:** Code read (`CALC_PERSISTENT_STATE[...] = String(val)`); no test.
+- **Affected:** the staging helpers and their target fields (E01 `e01_q`, the power/torque simulator, dynamic compression `ica`).
+- **Impact:** Unknown.
+- **Decision:** Check as part of Item 3, because the same store is involved.
+- **Dependencies:** GH-DEF-004.
+- **Revisit:** Item 3.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** None.
+- **Verification:** Each handoff exercised in Metric against an independent expected value.
+- **History:** 2026-10-12 — entry created.
+  2026-10-12 — Item 4d looked at `GHM_STAGE_AIRFLOW`: it does not write into another calculator's remembered state but a ten-point horsepower curve (canonical horsepower, no unit string) into the Simulator's curve store; its input reads were wrong in Metric and ignored the entered displacement and BSFC (GH-DEF-023, GH-DEF-024). `GHM_STAGE_CORRECTED_FLOW` and `useIVC` are not part of that finding and stay open here.
+  2026-10-13 — narrowed by reading the two remaining helpers and probing the calculator side (still OPEN: the receiving page was not exercised). `GHM_STAGE_CORRECTED_FLOW` stages the canonical value in lb/min as typed into the button (36.02 in both systems, while the Metric calculator shows 16.34 kg/min) into the Turbo Compressor Map Builder's Corrected Flow box, which is declared `lb/min`, an unregistered unit that is displayed unconverted in both systems (GH-IMP-014), so the staged number and the box label agree by construction. `useIVC` stages a crank angle in degrees (a unit that is never converted) into `dynamic_compression.ica`. Neither looks defective, but the Turbo Compressor Map Builder is only present on the integrated page (it is not in the engine file the tests load), and no test in this branch opens it in Metric after staging; `remembered-values.test.js` covers only the write itself (a staged value drops any older record). Closing needs that integrated-page test.
+
+### GH-ENG-005 — Does leaving a calculator write its inputs into the next calculator's remembered state?
+- **Status:** SUPERSEDED
+- **Severity:** Unknown
+- **Priority:** P2
+- **Description:** `renderCalc(id)` sets the current calculator and captures every input in the container into `CALC_PERSISTENT_STATE[id]` before rendering. On navigation the container still holds the previous calculator's inputs, so they are filed under the new id. Harmless while field ids are unique across calculators; a shared id would let one calculator's value appear in another.
+- **Evidence:** Code read, then a catalogue-wide field-id collision check (2026-10-12, all 696 calculators rendered): 1,959 distinct box ids, 61 used by more than one calculator (45 calculators involved); 57 of the 61 have the same unit and default in every calculator that uses them (sibling calculators, for example `rocker_valve_lift` / `valve_lift_rocker` cam lift); 4 differ in unit: `g2` (`weight_transfer` g vs `gear_shift_rpm_drag` ratio), `epc_p` (`exhaust_port_cfm` inH2O vs `ev_pack_configuration` unit-less), `eir_i` (`exhaust_intake_flow_ratio` CFM vs `ev_internal_resistance` A), `dds_t` (`diesel_dpf_soot` hr vs `driveshaft_diameter_sizing` lb-ft). Reproduced for `g2`: 0.9 typed in Weight Transfer appears as the gear ratio in Gear Shift RPM / Drag.
+- **Affected:** Shared: `renderCalc`.
+- **Impact:** Unknown.
+- **Decision:** Answered by Item 3: reproduced and moved to section A as GH-DEF-021 (see its entry); this entry is kept as the record of the question.
+- **Dependencies:** GH-DEF-004.
+- **Revisit:** Item 3.
+- **Commits:** `def921c` (via GH-DEF-021)
+- **Tests:** `premium/tests/remembered-values.test.js` (shared-id hand-off group).
+- **Docs:** None.
+- **Verification:** Collision list produced (empty or explained); behaviour on navigation tested.
+- **History:** 2026-10-12 — entry created.
+  2026-10-12 — answered: the question is "yes" for shared ids. Reproduced with `g2`; moved to section A as GH-DEF-021 (Rule 4) and fixed in `def921c`. This entry is SUPERSEDED by GH-DEF-021 so the issue has one record.
+
+### GH-ENG-006 — Is the vehicle-profile editor covered by the unit-handling fixes?
+- **Status:** OPEN
+- **Severity:** Unknown
+- **Priority:** P2
+- **Description:** The profile editor has its own switch path (`captureProfileEditorCanonical`, `PROFILE_UNIT_SWITCH_CANONICAL`). The calculator sweep does not exercise it.
+- **Evidence:** Code read; no profile-editor test.
+- **Affected:** Profile editor fields.
+- **Impact:** Unknown.
+- **Decision:** Not part of this pass's authorized items; recorded so it is not forgotten.
+- **Dependencies:** none.
+- **Revisit:** After the reliability pass.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** None.
+- **Verification:** Browser test: edit a profile in each system, toggle, reopen; values keep their physical meaning.
+- **History:** 2026-10-12 — entry created.
+
+### GH-ENG-007 — BMEP / torque model and units (Task 4 audit item)
+- **Status:** OPEN
+- **Severity:** Unknown
+- **Priority:** P2
+- **Description:** Listed in `V1.1.0_TASK4_AUDIT_STATUS.md` under "Known audit items requiring revalidation". Not re-verified in this pass. (A related self-test reference, `bmep_from_torque`, passes.)
+- **Evidence:** The audit note only.
+- **Affected:** BMEP / torque calculators (`bmep_from_torque` and related).
+- **Impact:** Unknown.
+- **Decision:** Recorded from the older audit note; hypothesis, not a confirmed defect.
+- **Dependencies:** Task 4 certification (GH-FUT-010).
+- **Revisit:** Task 4 revalidation.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `V1.1.0_TASK4_AUDIT_STATUS.md`.
+- **Verification:** Independent known-answer vectors for the model and its units.
+- **History:** 2026-10-12 — entered from the older audit note.
+
+### GH-ENG-008 — Valve-lash pushrod-length input wiring (Task 4 audit item)
+- **Status:** OPEN
+- **Severity:** Unknown
+- **Priority:** P2
+- **Description:** Same source and status as GH-ENG-007: the audit note lists the pushrod-length input of the valve-lash calculator as needing revalidation.
+- **Evidence:** The audit note only.
+- **Affected:** Valve-lash calculator.
+- **Impact:** Unknown.
+- **Decision:** Recorded from the older audit note; hypothesis.
+- **Dependencies:** GH-FUT-010.
+- **Revisit:** Task 4 revalidation.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `V1.1.0_TASK4_AUDIT_STATUS.md`.
+- **Verification:** Every input of the calculator changes the result as its formula says.
+- **History:** 2026-10-12 — entered from the older audit note.
+
+### GH-ENG-009 — Deck-height unmatched `dk_dh` reference (Task 4 audit item)
+- **Status:** VERIFIED CLOSED
+- **Severity:** None
+- **Priority:** P2 (done)
+- **Description:** The audit note lists an unmatched `dk_dh` reference in the deck-height calculator. The self-test row for `deck_height` fails because of a reference-table error (GH-DEF-008), which is a separate matter; the `dk_dh` reference itself has not been checked.
+- **Evidence:** The audit note only (kept). Checked 2026-10-13: `dk_dh` appears nowhere in the engine (0 matches). The live renderer `RENDERS.deck_height` reads four boxes, `blk_dh`, `str_dh`, `rod_dh`, `pin_dh`, and declares exactly those four fields; its result `blk_dh - (str_dh/2 + rod_dh + pin_dh)` equals the hand value in two renderer cases of the engine self-test (9.025 / 3.75 / 6.123 / 1.02 gives 0.007 in; 9.8 / 3.48 / 5.7 / 1.56 gives 0.8 in), run with non-default inputs and with the strict field-id check (a missing id fails the test).
+- **Affected:** `deck_height` renderer.
+- **Impact:** Unknown.
+- **Decision:** The audit item is not reproduced: there is no `dk_dh` reference in the deck-height calculator. Closed with GH-DEF-008.
+- **Dependencies:** GH-DEF-008.
+- **Revisit:** Task 4 revalidation.
+- **Commits:** `b88c62e` (the two deck-height cases), `e818939` (strict field-id check).
+- **Tests:** `premium/tests/engine-selftest.js` (`deck_height 9.025/3.75/6.123/1.02`, `deck_height 9.800/3.48/5.700/1.560`).
+- **Docs:** `V1.1.0_TASK4_AUDIT_STATUS.md`.
+- **Verification:** The renderer's input ids all resolve; result equals `block − stroke/2 − rod − compression height`.
+- **History:** 2026-10-12 — entered from the older audit note.
+  2026-10-13 — closed: verification criteria met by the GH-DEF-008 work. All four input ids resolve and the result equals block - (stroke/2 + rod + compression height) in two non-default cases; the engine self-test is 679 / 679 / 0 at HEAD `e818939`.
+
+### GH-ENG-010 — HP-from-compression-ratio empirical model labelling (Task 4 audit item)
+- **Status:** OPEN
+- **Severity:** Unknown
+- **Priority:** P3
+- **Description:** The audit note asks for the empirical nature of the HP-from-compression-ratio model to be labelled.
+- **Evidence:** The audit note only.
+- **Affected:** HP-from-compression-ratio calculator.
+- **Impact:** Labelling/expectation.
+- **Decision:** Recorded; hypothesis.
+- **Dependencies:** GH-FUT-010.
+- **Revisit:** Task 4 revalidation.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `V1.1.0_TASK4_AUDIT_STATUS.md`.
+- **Verification:** Help text states the model is empirical, with its basis.
+- **History:** 2026-10-12 — entered from the older audit note.
+
+### GH-ENG-011 — Wind-ET calculator ignores its wind-direction input (Task 4 audit item)
+- **Status:** OPEN
+- **Severity:** Unknown
+- **Priority:** P2
+- **Description:** The audit note says the Wind-ET calculator has an unused wind-direction input. Not re-verified in this pass.
+- **Evidence:** The audit note only.
+- **Affected:** Wind-ET calculator.
+- **Impact:** A field that does nothing would mislead.
+- **Decision:** Recorded; hypothesis.
+- **Dependencies:** GH-FUT-010.
+- **Revisit:** Task 4 revalidation.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `V1.1.0_TASK4_AUDIT_STATUS.md`.
+- **Verification:** Changing the direction input changes the result as documented, or the input is removed/explained.
+- **History:** 2026-10-12 — entered from the older audit note.
+
+### GH-ENG-012 — Max-safe-RPM heuristic assumptions (Task 4 audit item)
+- **Status:** OPEN
+- **Severity:** Unknown
+- **Priority:** P3
+- **Description:** The audit note asks for the assumptions of the max-safe-RPM heuristic to be revalidated.
+- **Evidence:** The audit note only.
+- **Affected:** Max-safe-RPM calculator.
+- **Impact:** A heuristic presented as a limit.
+- **Decision:** Recorded; hypothesis.
+- **Dependencies:** GH-FUT-010.
+- **Revisit:** Task 4 revalidation.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `V1.1.0_TASK4_AUDIT_STATUS.md`.
+- **Verification:** Assumptions stated in the help text and checked against a cited source.
+- **History:** 2026-10-12 — entered from the older audit note.
+
+### GH-ENG-013 — Trailer-sway and brake-controller heuristic labelling (Task 4 audit item)
+- **Status:** OPEN
+- **Severity:** Unknown
+- **Priority:** P3
+- **Description:** The audit note asks for the heuristic nature of the trailer-sway and brake-controller calculators to be labelled.
+- **Evidence:** The audit note only.
+- **Affected:** Trailer-sway and brake-controller calculators.
+- **Impact:** Labelling/expectation.
+- **Decision:** Recorded; hypothesis.
+- **Dependencies:** GH-FUT-010.
+- **Revisit:** Task 4 revalidation.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `V1.1.0_TASK4_AUDIT_STATUS.md`.
+- **Verification:** Help text states the heuristic basis and limits.
+- **History:** 2026-10-12 — entered from the older audit note.
+
+### GH-ENG-014 — Two corrected formulas (`dew_point`, `distance_converter`) have new fingerprints: the production `formula_versions` table has no rows for them
+- **Status:** VERIFIED CLOSED
+- **Severity:** Medium (only once the branch is deployed: no calculation made with the corrected formula can be stored until a row exists; nothing in the current front end stores one)
+- **Priority:** P2 (decision needed before the branch is merged or deployed; no production change was made)
+- **Description:** Every registry formula has a fingerprint (`fv1-` plus an FNV-1a hash of its expressions, units, options and the formula text the page displays). The production table `formula_versions` holds one row per calculator with the fingerprint exported from the engine (`supabase/migrations/0005_reference_seed.sql`, frozen, 577 rows), and `calculation_records` points at it with the foreign key `calc_formula_version_fk`; rows are never altered or deleted (`df_never_changed`). **Two** formulas have been corrected on this branch, so the engine now computes fingerprints production has no row for: `dew_point` `fv1-260e7f34` -> `fv1-73ddeaf4` (GH-DEF-005) and `distance_converter` `fv1-36d27af2` -> `fv1-4001b424` (GH-DEF-019; found in the closeout phase). A calculation stored with either corrected formula would have no row to point at and the foreign key would refuse it. Until this branch the engine and the seed agreed for all 577 formulas; now 575 agree and the two above are recorded.
+- **Evidence:** Full analysis, the proposed SQL and the owner decisions are in **`docs/ENG-014-FORMULA-VERSION-MIGRATION-PROPOSAL.md`** (commit `6f057cc`). Engine fingerprints compared with the seed: 575 of 577 identical, the two above recorded as corrected (`premium/tests/formula-fingerprints.test.js`, which fails if a third formula changes without a record, if a recorded fingerprint changes again, or if the record goes stale). Search of the non-test code: nothing stores calculations through the formula engine today (`premium/adapters/dev-local.js` writes the placeholder `development`; the front end does not call `GH_ENGINE.calculate` to store). Schema read: `formula_versions` PK (calculator_id, formula_version), `calculation_records` immutable with the composite FK, a Premium saved calculation references a calculation record by FK and has no formula column of its own. **Throwaway-database proof** (`sh premium/tests/eng014-throwaway-db.sh`: a private PostgreSQL 16 on a unix socket, hosted-Supabase role model, every migration 0001-0407 applied, never a Supabase project): 17 run, 17 passed, 0 failed; the SQL of the proposal, run twice, exits 0 both times **Review of 2026-10-13** (`docs/ENG-014-FORMULA-VERSION-MIGRATION-PROPOSAL.md` Section 9): fingerprints, schema (primary key, `fv1-` pattern check, foreign keys to `calculators` and from `calculation_records`), idempotency and rollback re-checked against the files; the 17-of-17 evidence is still applicable (the migrations, `premium-foundation/`, the proposal and the script are byte-identical to `6f057cc`; not re-run). **Production count, read-only, 2026-10-13: 0 `calculation_records` for `dew_point` and 0 for `distance_converter`** (one aggregate `SELECT` through the project's Supabase connector; no record contents read; the connection role bypasses row-level security, so the zero is real). **How it would be applied:** production changes only through the gated workflow *Provision Supabase (manual, gated)*, which applies a pinned commit and a 17-file sha256 manifest, so `0408` needs a committed file, a workflow pin / 18-file manifest change, a dry run and the owner's typed APPLY: separate authorizations, none taken. **Catalog tooling:** builder and checker read only `0005` today; recommended to read the latest migrated row per calculator, shipped with the migration (details and effects in Section 9).
+- **Affected:** `dew_point` and `distance_converter`. Rows written under the old fingerprints (if any exist in production; this work has no access to production) keep the old result by design: formula versions are history.
+- **Impact:** None while no calculation is stored through the engine. Once saving is wired to the engine, a `dew_point` or `distance_converter` save is refused by the foreign key (SQLSTATE 23503, reproduced) until the rows below are added.
+- **Decision:** **NOT decided by the assistant and NOT applied; production was not touched and no migration file was added to `supabase/migrations/`.** Recommendation, in the proposal document: one idempotent migration (placeholder number `0408`) that inserts the two rows `('dew_point', 'fv1-73ddeaf4', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4')` and `('distance_converter', 'fv1-4001b424', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4')` with `ON CONFLICT DO NOTHING` and post-conditions, applied **before** this branch is merged or deployed and before any save is wired to the engine; old rows and old records stay (nothing is rewritten). Rollback: there is no `DELETE` rollback by design (rows are permanent); the rollback is to revert the engine, after which the two new rows sit unreferenced. Owner decisions needed: **D1** approve the two rows, number and wording; **D2** (answered 2026-10-13 by a read-only count: 0 and 0, so nothing is left to explain to users); **D3** whether `catalog/check-catalog.js` and the catalog builder should read the latest fingerprint per calculator (they pin to `0005` today and still pass); **D4** (optional) whether a written correction ledger is wanted beyond this document, the register and the `VERSIONED` list (recommendation: no new table). The same change must update `premium-foundation/tests/pf.test.js` (it pins the migration list and the reference counts, 577 -> 579).
+  - **2026-10-15:** the owner approved the four-row proposal (Section 12) and its preparation on the branch.
+    - **Prepared:** migration `supabase/migrations/0408_formula_versions_corrected_formulas.sql`, byte-identical to proposal Section 13.
+    - **Rows:** `dew_point` `fv1-73ddeaf4`, `distance_converter` `fv1-4001b424` and `bolt_torque_spec` `fv1-25b1f973` in `GH_LEGACY_FORMULAS`; `bolt_stretch` `fv1-8e827c77` in `GH_E1_FORMULAS`. All are `1.1.0` / `F1.12.4`.
+    - **Not done:** production execution, the workflow pin and manifest (Section 10, step 6), the production dry run (step 7) and the catalogue tooling (D3). They wait for authorization B.
+    - **Later on 2026-10-15 (release readiness, branch only):** the workflow pin and manifest and the catalogue tooling (D3) were done; see History. Still not done: the production dry run and the apply, which are owner-run and separately authorized.
+- **Dependencies:** GH-DEF-005.
+- **Revisit:** Before this branch is merged or deployed, or before any calculation is stored through the formula engine, whichever is first. The owner's next decision is D1 (approve the two rows as written) and D3 (catalog tooling, to ship with the migration); applying to production is a separate authorization. Any later correction of a registry formula raises the same question; the guard test fails until it is recorded.
+- **Commits:** `4bfbb48` (guard test and the `dew_point` fingerprint change), `00c31c5` (the `distance_converter` fingerprint change), `6f057cc` (proposal document and throwaway-database script). 2026-10-16: `382107e` (fail-closed dry-run gate in the provisioning workflow), the commit that production run #10 applied `0408` from. 2026-10-15: migration `0408` prepared in `0cc4fc8`; release readiness (workflow pin and 18-file manifest, D3 catalogue tooling, PROVISIONING.md procedure) in `008ab40`.
+- **Tests:** `premium/tests/formula-fingerprints.test.js` (run by `premium/tests/run-browser-tests.sh`); `premium/tests/eng014-throwaway-db.sh` (needs PostgreSQL server binaries; skips with a message without them; not part of the browser runner). 2026-10-15:
+  - `eng014-throwaway-db.sh` now runs the committed `0408` file. It checks the file against proposal Section 13, the behaviour before, a deliberately wrong copy (aborts, no partial write), idempotency, all 577 earlier rows byte-identical, and the behaviour after: **40 checks**.
+  - `premium-foundation/tests/pf.test.js`: 18 migrations, 581 formula versions, a new 0408 check, and the 0407-alone rollback scenario built to stop at 0407: **48 checks**.
+- **Docs:** `docs/ENG-014-FORMULA-VERSION-MIGRATION-PROPOSAL.md`; `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** The owner has decided and recorded the migration (or the decision not to version the correction); the migration file committed under `supabase/migrations/` equals the SQL block of the proposal; `pf.test.js` is updated for it (577 → 579); the production workflow pin and manifest are updated and the dry run shows exactly `0408` pending; the guard test's `VERSIONED` list then points at the migration; the catalog tooling reads the latest row per calculator; `eng014-throwaway-db.sh` passes on the final text (17 checks). The read-only production count (D2) is recorded: 0 and 0 on 2026-10-13, to be repeated immediately before applying.
+- **History:** 2026-10-12 — found while fixing GH-DEF-005 (the formula registry entry had to change with the calculator); entry created.
+  2026-10-13 — closeout phase: found that the yards-to-kilometres fix (GH-DEF-019, `00c31c5`) also changed a fingerprint, so the proposal now has two rows instead of one. Schema, triggers, foreign keys, migration conventions and saved-calculation behaviour read; proposal written and proved on a throwaway local database (never the project); entry stays OPEN because the migration number/wording, the production record count and the catalog-tooling choice are owner decisions. 17 run, 17 passed, 0 failed; the SQL of the proposal, run twice, exits 0 both times
+  2026-10-13 — Metric-convention phase: migration review (fingerprints, schema, idempotency, rollback, consequences of applying before a merge), read-only production count (0 dew-point and 0 distance-converter records; no contents read; nothing changed), discovery that production migrations go through a pinned-commit, 17-file-manifest workflow, and the catalog-tooling recommendation, all in Section 9 of the proposal. Status unchanged (OPEN): the migration is not applied, not added to `supabase/migrations/`, and the workflow is not touched. Fingerprints re-verified at the final commit: 575 identical, 2 recorded.
+  2026-10-13 — closeout phase: final decision brief for the owner added as Section 10 of the proposal (the SQL and schema/immutability review, migration and rollback behaviour, the latest-fingerprint catalogue tooling, what remains to be committed and verified before a merge, and the exact wording of the two separate authorizations: A prepares the package on the branch, B applies it to production through the gated workflow). Re-checked: `supabase/`, `premium-foundation/`, `.github/` and the throwaway script are byte-identical to `6f057cc`; the throwaway-database script re-run on the final text, 17 run, 17 passed, 0 failed, proposal exit codes 0/0; fingerprints 575 identical, 2 recorded. Found while writing the brief: the `0407`-alone rollback comparison in `pf.test.js` will need to stop at `0407` once `0408` exists (the rows cannot be rolled back), and the workflow header comment still says "16 file names". Status unchanged (OPEN): not applied, not added to `supabase/migrations/`, no workflow change, no deployment; this closeout is not an authorization.
+
+  2026-10-15 — **deferred action recorded, not done:** GH-DEF-034 corrected the `bolt_torque_spec` registry formula, so a third row is needed: `('bolt_torque_spec', 'fv1-25b1f973', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4')` (seed row `fv1-f63ea4c8`). It is recorded in `formula-fingerprints.test.js` `VERSIONED`; the catalogue keeps the seed fingerprint. The proposal document and its two-row SQL were **not** changed. Adding this row (and any migration, Supabase or production change) needs the owner's separate authorization, as for the other two.
+  2026-10-15 — post-GH-DEF-034 review: the third row was written up as **Section 11** of the proposal (documentation only; Sections 1–10 and the two-row SQL block unchanged, 17 of 17 re-run). A three-row variant passes 22 of 22 on a throwaway database. New decisions D5 (third row in the same migration), D6 (read-only production count for `bolt_torque_spec`) and D7 (decide GH-DEF-036 first; it may add a fourth row for `bolt_stretch`). Nothing applied; no migration file; no SQL against Supabase.
+  2026-10-15 — after GH-DEF-036: final row set written up as **Section 12** of the proposal (documentation only; Sections 1–11 and the two-row SQL block unchanged, 17 of 17). Four rows (`bolt_stretch` `fv1-8e827c77` in `GH_E1_FORMULAS`); the post-condition must compare each row with its own registry. A four-row draft passed 28 of 28 on a throwaway database, and a wrong-registry variant aborted. D6 answered: 0 `bolt_torque_spec` records in production (read-only transaction, count only, complete). New D8: an equivalent count for `bolt_stretch`. Nothing applied; no migration file.
+  2026-10-15 — **migration 0408 prepared on the branch (not applied), commit `0cc4fc8`.** Owner approval of the four rows; production counts all 0 (read-only):
+  - `bolt_torque_spec` and `bolt_stretch` on 2026-10-15;
+  - `dew_point` and `distance_converter` on 2026-10-13;
+  - role `postgres` with RLS forced and bypassed, so each count is complete.
+  **Results:**
+  - `eng014-throwaway-db.sh`: 40 of 40 (the real file exit 0 twice; the wrong copy exit 3 with nothing written);
+  - `pf.test.js`: 48 of 48, idempotency, order, rollback and upgrade ok, 24 of 24 mutants killed. A control without the rollback-scenario change failed its rollback check, as expected;
+  - `run-tests.sh`: schema contract 26 of 26 with 0408 applied, frontend 55 of 55, catalog and register OK;
+  - `formula-fingerprints`: 4 recorded corrections.
+  The status is IN PROGRESS: the entry's Verification also needs the workflow pin and manifest, the production dry run and the catalogue tooling (D3), each awaiting authorization B. No Supabase or production change.
+  2026-10-15 — **release readiness prepared on the branch (not applied).** Authorized by the owner's "GH-DEF-037 fix and migration release readiness" brief. Applying `0408`, merging and deploying were not authorized.
+  - **Workflow:** `.github/workflows/provision-supabase.yml` (branch only; `main` unchanged) pinned to `0cc4fc8d7cd2bb678a2a60a61c1a9f738ee5e4b6`, with an 18-file manifest (`0408` = `df92a3e0…80c4c49`; the other 17 hashes unchanged). Its own verify step, run locally against `0cc4fc8`, prints "18 files, approved order, all checksums match", with all 12 frozen sources OK.
+  - **Dry run:** reviewed in the workflow and in the Supabase CLI 2.119.0 source. It only reads `supabase_migrations.schema_migrations`, so it is write-free. It was not run: it needs the owner's *Run workflow* and production-gate approval.
+  - **Equivalent read-only production evidence:** 17 versions (0001–0407), 577 formula versions, none of the four new rows, the originals unchanged, 0 calculation records.
+  - **Open precondition:** whether the `production` environment allows this branch could not be verified (the environments API was not reachable).
+  - **D3 implemented:** `catalog/formula-versions.js`; `build-catalog.js` and `check-catalog.js` use the latest migrated row per calculator, and the catalogue is rebuilt (exactly the four fingerprints change); `formula-fingerprints.test.js` checks engine = latest migrated row and that the original rows remain.
+  - **Procedure:** `supabase/PROVISIONING.md` "Prepared, not applied: 0408" (execution order, preconditions, post-migration checks, failure handling); proposal Section 14.
+  - **Results:** proof script 40 of 40; `pf.test.js` 48 of 48 (24 of 24 mutants); `run-tests.sh` catalogue OK, register OK, frontend 55 of 55, schema 26 of 26; `formula-fingerprints` 573 identical + 4 recorded, 0 failures.
+  - **Status stays IN PROGRESS:** the remaining Verification items are the owner-run production dry run and apply.
+  2026-10-16 — **dry-run gate hardened (`382107e`).** The workflow's dry run now fails closed. `pending_gate` reads only the CLI's own pending list; production must show exactly `0408`. `workflow-pending-gate.test.py` has 60 checks, and 6 mutation controls (deliberately broken workflow copies) are each caught. The package, pin and manifest are unchanged.
+  2026-10-16 — **production dry run: run #9** ([38900383896](https://github.com/highandmighty354-dev/gearhead-labs/actions/runs/38900383896)), owner-authorized.
+  - The `production` environment's deployment-branch rule was verified as "No restriction" in the signed-in browser; nothing was changed.
+  - The production gate was approved for the dry run only, and the apply job was skipped.
+  - **Observed in the job summary and the gate step's log:** ` • 0408_formula_versions_corrected_formulas.sql` as the only pending entry, `verdict: PASS exactly the expected production pending list`.
+  2026-10-16 — **`0408` applied to production: run #10** ([38915379679](https://github.com/highandmighty354-dev/gearhead-labs/actions/runs/38915379679)), owner-authorized.
+  - **The run:** from `premium/full-calculator-expansion` at `382107e`, package pinned to `0cc4fc8`, mode `apply` with typed APPLY. The production gate was approved by `highandmighty354-dev` (one approval recorded). The APPLY job ran 15:16:32–15:16:43 UTC and succeeded.
+  - **Read-only verification (observed):**
+    - 18 migrations, `0408` (`formula_versions_corrected_formulas`) right after `0407`;
+    - `formula_versions` 577 → 581, with exactly the four rows of `0408`: `dew_point` `fv1-73ddeaf4`, `distance_converter` `fv1-4001b424` and `bolt_torque_spec` `fv1-25b1f973` in `GH_LEGACY_FORMULAS`, and `bolt_stretch` `fv1-8e827c77` in `GH_E1_FORMULAS`, all engine 1.1.0, first release F1.12.4;
+    - the 577 earlier rows unchanged: md5 `fa37017972b7f62600cfbc711103494d` before and after, and the four originals are still at F1.12.3;
+    - reference data, schema object counts and `calculation_records` (0) identical before and after.
+  - **Open evidence gap:** the log text of run #10's APPLY step could not be read from the session (the log download host is blocked and the browser link was offline). Its gate verdict and its "up to date" line are therefore **inferred** from the step's success and the database state, **not observed**. Details: `supabase/PROVISIONING.md` "Applied: 0408".
+  - **Closed:** the Verification criteria are met. The remaining items, the production dry run and the apply, were shown above.
+  - **Still separate owner decisions, outside this entry:** merging the branch and deploying the frontend, after which the engine's corrected fingerprints are used.
+
+---
+
+## D. Future development
+
+### GH-FUT-001 — Batch 11: Structural / Mechanical / Machining + NVH (37 calculators)
+- **Status:** VERIFIED CLOSED
+- **Severity:** n/a
+- **Priority:** P1 once authorized
+- **Description:** Chassis/Frame Torsional Stiffness, Press-Fit/Interference Fit, Recovery Strap/Rope Energy, Key/Keyway Torque Capacity, column buckling, stress analyses, fatigue, welds, bolts, threads, drilling, bending, bearing/gear/NVH frequencies and machining (full list in the project plan).
+- **Evidence:** Project plan `claude/premium-expansion-batch-plan.md`.
+- **Affected:** 37 new Premium calculators; all 37 exist (`docs/PREMIUM-CATALOG.md`, "Batch 11a", "Batch 11b", "Batch 11c").
+- **Impact:** Largest remaining batch.
+- **Decision:** Split into 11a (Structure, stress and fatigue, 15), 11b (Joints and fabrication, 13) and 11c (NVH and machining, 9). **All three authorized and done 2026-10-14 (11a, 11b, 11c): the 37 calculators of Batch 11 are built and verified.**
+- **Dependencies:** The shared unit-handling fixes of this pass should land first so the new batch is built on a reliable helper. **Landed (2026-10-13):** GH-DEF-008 (clean self-test baseline), GH-DEF-019, GH-DEF-020, GH-DEF-022 and GH-IMP-001 are VERIFIED CLOSED. Not blocking the batch but to be decided with it: GH-IMP-014 (how the new torque, inertia and stress units are registered; recommended order in `docs/IMP-014-UNREGISTERED-UNITS.md`), GH-IMP-013 (kg versus N for weights), GH-IMP-002 (inertia units), GH-ENG-014 (before any deployment).
+- **Revisit:** On authorization.
+- **Commits:** 11a: `f9cbdae` (code and tests), docs `f6f6a89`. 11b: `ff7d826` (B1), `06343d4` (B2), `2d05b9a` (B3), docs `d2e82c0`. 11c: `ff2101b` (C1), `44df31a` (C2), `605196f` (C3), docs in the following commit.
+- **Tests:** 11a: `premium/tests/structural-11a.test.js` (new) and 15 new cases in `premium/tests/unit-system.test.js`; unit tables in `unit-factors`, `unit-census`, `mass-force` (inventory) and `performance-census` (ADDED rows). 11b: `premium/tests/structural-11b.test.js` (new), 13 new `unit-system` cases, 18 engine self-test assertions. 11c: `premium/tests/structural-11c.test.js` (new), 9 new `unit-system` cases, 16 engine self-test assertions.
+- **Docs:** Project plan; `docs/PREMIUM-CATALOG.md` "Remaining".
+- **Verification:** The batch workflow of the project plan (implement, test, regression, catalog validation, commit, push, checkpoint).
+- **History:** 2026-10-12 — entry created; hard stop recorded.
+  2026-10-13 — closeout phase: dependency note updated; status unchanged. **Batch 11 is still AWAITING AUTHORIZATION; none of its 37 calculators was started.**
+  2026-10-14 — Batch 11a (15 calculators) implemented test-first, verified and pushed; status IN PROGRESS. 11b and 11c not started (need their own authorization).
+  2026-10-14 — Batch 11a follow-ups F-11A-01 to F-11A-04 recorded in `docs/PREMIUM-CATALOG.md` ("Batch 11a follow-ups"); Batch 11b plan proposed there ("Batch 11b — Joints and Fabrication (13): proposed plan"), AWAITING AUTHORIZATION. The authoritative 11b list has 13 names: Bolt Tensile Capacity and Bolt Shear Capacity are two calculators (the Chapter 10 closeout wrote them as one item). Nothing implemented.
+  2026-10-14 — Batch 11b authorized by the owner (all 13, with D-11B-1 to D-11B-4 and F-11A-01 approved) and done: test-first per sub-group, each committed separately, full browser regression passed (see `docs/PREMIUM-CATALOG.md`, "Batch 11b"). The Bolt Torque Spec concern is GH-DEF-034 (OPEN, not fixed). 11c not started.
+  2026-10-14 — Batch 11c authorized and done (9 calculators, test-first, one commit per sub-group). With 11a and 11b, all 37 Batch 11 calculators are built; entry closed on the evidence of the full browser regression after 11c (see `docs/PREMIUM-CATALOG.md`, "Batch 11c"). GH-DEF-034 stays OPEN and untouched.
+
+### GH-FUT-002 — Batch 13: Two-Stroke (4 calculators)
+- **Status:** VERIFIED CLOSED
+- **Severity:** n/a
+- **Priority:** P2
+- **Description:** Two-Stroke Scavenging/Charging Efficiency, Tuned-Pipe Length, Port Timing from Measured Geometry, Crankcase Compression Ratio.
+- **Evidence:** Project plan.
+- **Affected:** 4 new Premium calculators; all 4 exist: `port_timing_from_geometry`, `crankcase_compression_ratio`, `tuned_pipe_length`, `scavenging_charging_efficiency` (`docs/PREMIUM-CATALOG.md`, "Batch 13").
+- **Impact:** Catalog expansion.
+- **Decision:** Approved set; sequenced after Batch 11. **Authorized and done 2026-10-14** in two sub-groups (D1 geometry, D2 gas exchange). The two reconciliation "Analyzer" items are calculators (owner direction). Formula decisions: tuned length L_t = a t_ep ÷ 2 with a = √(γ R T) from an explicit exhaust-gas temperature (the fixed-constant shortcut shown only for comparison with E07); scavenging DR, TE (entered), CE = TE × DR, and the perfect-displacement and perfect-mixing ideal curves; crankcase compression ratio (V_cc + V_s) ÷ V_cc with V_cc measured at BDC; port timing by exact slider-crank inversion. Full record in the Batch 13 section of `docs/PREMIUM-CATALOG.md`.
+- **Dependencies:** E05–E07 (Engineering Lab: port time-area, blowdown, expansion-chamber reverse analysis) must not be duplicated; Tuned-Pipe Length is the forward sibling of E07 (reconciliation #133). Port Timing reuses the crank-slider geometry already used by the Batch 1 piston calculators. No dependency on another batch.
+- **Revisit:** None (closed).
+- **Commits:** `82638eb` (D1), `3dfa4e3` (D2), docs in the following commit.
+- **Tests:** `premium/tests/structural-13.test.js` (new, 251 checks), 4 new cases in `premium/tests/unit-system.test.js` (new `cubicin`, `massflow` input and `cubicin`, `density` output kinds), 5 engine self-test assertions; census suites at 737 calculators; full browser regression after D2.
+- **Docs:** Project plan; `docs/PREMIUM-CATALOG.md`, "Batch 13" (formula decision record, references, results).
+- **Verification:** Batch workflow.
+- **History:** 2026-10-12 — entry created.
+  2026-10-14 — readiness review after Batch 11 (no implementation):
+  - **Scope:** 4 named items (reconciliation #132–135), all BUILD. Two were classed "Analyzer" in the reconciliation (Scavenging / Charging Efficiency, Port Timing from Measured Geometry).
+  - **Defined well enough to build:**
+    - Crankcase Compression Ratio: (swept + crankcase volume) ÷ crankcase volume.
+    - Port Timing from Measured Geometry: crank-slider geometry from port height, stroke and rod length to open and close angles and duration.
+  - **Owner decisions needed:**
+    - Tuned-Pipe Length: which published model to use and its constants. The speed of sound must come from an exhaust-temperature input, not a fixed constant.
+    - Scavenging / Charging Efficiency: the definitions (delivery ratio, trapping, scavenging and charging efficiency from measured or entered mass ratios) and whether ideal perfect-displacement and perfect-mixing reference curves are included.
+    - Classification of the two "Analyzer" items: proposed as calculators, as in Batch 11.
+  - **Units:** volumes cc ↔ ci, lengths, temperature, RPM and degrees are all registered or neutral. No new power or torque rows are expected; mass-force only if a mass flow is added.
+  - **Risk:** the lowest of the three remaining batches.
+  2026-10-14 — Batch 13 authorized by the owner and done: formula decisions recorded, test-first per sub-group (new tests failed before the code), D1 `82638eb` and D2 `3dfa4e3` committed separately, full browser regression after D2: 32 of 33 suites clean; `nav-return` hit the GH-DEF-035 race on older calculators (none from Batch 13), passed alone and on a second whole-suite re-run. Closed on that evidence, with GH-DEF-035 still OPEN. GH-DEF-034 and GH-DEF-035 stay OPEN and untouched; Batch 14 and 16 not started.
+
+### GH-FUT-003 — Batch 14: EV / Hybrid (6 calculators)
+- **Status:** APPROVED
+- **Severity:** n/a
+- **Priority:** P2
+- **Description:** Battery Pack Heat Balance, Motor Thermal Limit, Inverter Thermal Load, DC Fast-Charge Time with CC-CV Taper, Hybrid Power-Split Device Kinematics, Regenerative Braking Energy Recovery.
+- **Evidence:** Project plan; Phase 1 notes (Regenerative Braking replaces the "braking power" input of `hybrid_regen_energy`).
+- **Affected:** 6 new Premium calculators, all 6 built (2026-10-14):
+  - stage 1: `regen_braking_energy`, `battery_pack_heat_balance`;
+  - stage 2: `motor_thermal_limit`, `inverter_thermal_load` (Mode A only);
+  - final pair: `dc_fast_charge_time`, `power_split_device_kinematics`.
+
+  See `docs/PREMIUM-CATALOG.md`, "Batch 14, stage 1", "Batch 14, stage 2", "Batch 14, final pair" and "Batch 14 closeout".
+- **Impact:** Catalog expansion.
+- **Decision:** Approved set.
+- **Dependencies:**
+  - The kW unit defects noted at creation (GH-DEF-001, GH-DEF-002, GH-ENG-001) are VERIFIED CLOSED.
+  - New power and torque rows must be classified under the GH-IMP-019 policy (EV_POWER, HYBRID_SYSTEM_POWER, EV_TORQUE, ENGINE_POWER) with `PERF_ROWS` and census entries. The policy questions still open in GH-IMP-020 (EV motor torque and the rest) may affect them.
+  - Related existing calculators: `hybrid_regen_energy`, `hybrid_power_split`, `ev_charge_time`, `ev_battery_heat`, `ev_coolant_flow`, `ev_motor_*` and Batch 7's `planetary_gearset_ratio`. Each needs a cross-link and an overlap check.
+- **Revisit:** After Batch 13 (readiness review 2026-10-14, see History).
+- **Commits:**
+  - stage 1: `6f85783` (Regenerative Braking Energy Recovery), `45a2177` (Battery Pack Heat Balance), docs `df85938`;
+  - specification rev 1.1: `71de139`;
+  - stage 2: `67f45ae` (Motor Thermal Limit), `3736b91` (Inverter Thermal Load, Mode A), docs `a50079f`;
+  - specification rev 1.2: `01bff91`;
+  - final pair: `ace5547` (DC Fast-Charge Time), `3d3a531` (Hybrid Power-Split Device Kinematics), each with its docs;
+  - closeout record: the commit that adds this line.
+- **Tests:**
+  - `premium/tests/structural-14.test.js`: new in stage 1; 622 checks after stage 2; 1,075 with all six groups.
+  - Final pair: 2 `unit-system` cases (330 and 300 checks), 2 + 2 engine self-test assertions (729 in total), and 1 + 11 `PERF_ROWS` / performance-census rows.
+  - Stage 2 adds 2 `unit-system` cases (new `jperk` output kind), 4 engine self-test assertions and 9 `PERF_ROWS` / performance-census rows. Stage 1: 2 `unit-system` cases (new `massflowmin` input and `kwh`, `watts`, `amps`, `seconds`, `tempabs` output kinds), 5 engine self-test assertions, 9 `PERF_ROWS` / performance-census rows, 2 mass rows.
+- **Docs:** Project plan.
+- **Verification:** Batch workflow.
+- **History:** 2026-10-12 — entry created.
+  2026-10-14 — readiness review after Batch 11 (no implementation):
+  - **Defined in the Phase 1 documents:**
+    - Hybrid Power-Split Device Kinematics: the Willis equation on a planetary set; promoted from MERGE.
+    - Regenerative Braking Energy Recovery: ΔKE capped by min(ΔKE × η, P_max × t); resolved from NEEDS SPECIFICATION.
+  - **Underspecified, owner decisions needed:**
+    - DC Fast-Charge Time with CC-CV Taper: the taper model (CC to a state-of-charge breakpoint, then which taper law) and the source of its parameters, with no invented charge curves.
+    - Motor Thermal Limit: the thermal model (steady-state thermal resistance or a first-order time constant) and continuous versus peak.
+    - Inverter Thermal Load: loss model (P × (1 − η) or conduction plus switching losses).
+    - Battery Pack Heat Balance: I²R generation against coolant capacity; its inputs need defining.
+  - **Shared risk:** many power, torque and energy rows touch the performance-unit policy. kWh and other electrical units are unregistered (neutral or SI), and Metric/Imperial handling of these rows needs care.
+  - **Complexity:** medium to high, the heaviest of the remaining calculator batches.
+  2026-10-14 — model-specification review (no code): models selected and verified for all six; owner decisions D-14-1 to D-14-8 listed (`docs/BATCH-14-SPECIFICATION.md`, revision 1.1 after the Stage 1 correction).
+  2026-10-14 — **stage 1 authorized and done: Regenerative Braking Energy Recovery and Battery Pack Heat Balance only**, test-first, one commit each. One specification defect corrected: the battery transient held the coolant mean at its steady value from t = 0 (τ = C ÷ UA); with the coolant's own energy balance τ = C × R_sum, and the example's time to 35 °C is 1,503 s, not 1,018 s (steady 39.76 °C and continuous 205.8 A unchanged). Full regression: 33 of 34 suites clean; `nav-return` failed on older calculators with the GH-DEF-035 signature (twice); the evidence is recorded in `docs/PREMIUM-CATALOG.md` ("Batch 14, stage 1", Verification) and GH-DEF-035 itself was not modified, as the stage-1 authorization requires. The other four calculators are not started; status stays APPROVED until they are built.
+  2026-10-14 — specification committed as `docs/BATCH-14-SPECIFICATION.md` revision 1.1 with the §2.1 battery-transient erratum (`71de139`); Stage 2 decision table S2-1 to S2-8 prepared.
+  2026-10-14 — **stage 2 authorized and done: Motor Thermal Limit and Inverter Thermal Load (Mode A only)**, with owner decisions S2-1 to S2-8, test-first, one commit each. Approved examples reproduced by independent methods (motor 198.18 s to the limit, 110.97 kW extrapolated continuous; inverter 3,092.78 W loss, heatsink 98.87 °C). The authorization's "Input power: 100 kW" for the inverter example was read as AC output, as the specification and the expected 3.09 kW loss require; noted for owner review. Full regression: 33 of 34 suites clean; `nav-return` failed on one older calculator with the GH-DEF-035 signature (evidence in `docs/PREMIUM-CATALOG.md`; GH-DEF-035 not modified). Remaining: DC Fast-Charge Time, Hybrid Power-Split Device Kinematics, and Inverter Mode B; status stays APPROVED.
+  2026-10-14 — final pair authorized by the owner (decisions D-14-5, DC-1 to DC-5, PS-1, D-14-6, D-14-2, PS-2, PS-3; specification rev 1.2 `01bff91`). **DC Fast-Charge Time done**: test-first; the three rev 1.2 examples reproduced (25.7444, 30.9587, 10.3972 min) and checked by forward integration; full browser regression 35 of 35 suites. Hybrid Power-Split Device Kinematics follows in its own commit.
+  2026-10-14 — **Hybrid Power-Split Device Kinematics done** (PS-1, D-14-6, D-14-2, PS-2, PS-3): test-first; rev 1.2 examples A–D reproduced against an oracle built from planet geometry and a free body; no direction creates energy; the stationary-ring case shows "—" with no fabricated battery power; full browser regression 35 of 35 suites. **All six Batch 14 calculators are built.** Status left APPROVED rather than closed, because Inverter Thermal Load's Mode B (D-14-4) is still outstanding and not ready; closing this entry is the owner's call.
+  2026-10-15 — **Batch 14 closeout recorded** (`docs/PREMIUM-CATALOG.md`, "Batch 14 closeout").
+  - **State:** HEAD `3d3a531`, synced with the remote and clean; `main` at `a4203cd`.
+  - **Counts:** 743 calculator-kind tools, 158 Premium calculators, 137 expansion, 757 in Premium.
+  - **Closeout run:** `run-tests.sh` (catalog, register, frontend 55/55, schema 26/26), plus a full browser regression (35 of 35 suites passed).
+  - **Status:** stays APPROVED because Inverter Mode B is outstanding.
+
+
+### GH-FUT-004 — Batch 16: Workbenches (6)
+- **Status:** APPROVED
+- **Severity:** n/a
+- **Priority:** P3
+- **Description:** Engine Balance, Drivetrain Torsional, Brake Thermal, Cooling System, SAE Coast-Down → CdA+Crr, Engine Test Curve Builder.
+- **Evidence:** Project plan.
+- **Affected:** 6 new Premium tools.
+- **Impact:** Catalog expansion.
+- **Decision:** Built last, after the calculators each depends on.
+- **Dependencies:** Earlier batches (Engine Balance needs Batch 1; SAE Coast-Down needs Batch 10 and resolves GH-IMP-012).
+- **Revisit:** After Batch 14 (readiness review 2026-10-14, see History).
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** Project plan.
+- **Verification:** Batch workflow plus each workbench reproducing its constituent calculators.
+- **History:** 2026-10-12 — entry created.
+  2026-10-14 — readiness review after Batch 11 (no implementation):
+  - **Prerequisites:** the constituent calculators now exist:
+    - Batch 1: balance and piston calculators.
+    - Batches 7 and 11: driveline, shaft and torsional calculators.
+    - Batch 9: brake thermal calculators.
+    - Batch 6: cooling calculators.
+    - Batch 10: `cda_from_coast_down`.
+    - The sim_* simulators.
+  - **Not defined:** none of the six has an inputs, outputs and model specification in the project documents (the plan names them only).
+  - **Owner decisions needed:**
+    - Where a workbench lives: the GH_ENGINE calculator frame, or the Engineering Lab module whose E01 and E10–E14 are catalogued as kind `workbench` (see GH-FUT-009).
+    - The scope of each workbench and how it reuses its constituent calculators. The register's verification rule is that each workbench must reproduce them.
+    - The overlap with E11 (Driveline Dynamics) for Drivetrain Torsional and with E12–E14 for Cooling System.
+    - The two-parameter fit method of SAE Coast-Down (resolves GH-IMP-012).
+  - **Complexity:** the highest of the remaining batches. Not ready to implement without specification work.
+
+### GH-FUT-005 — Batches 12 (Diesel) and 15 (Performance / Simulation) have no approved items
+- **Status:** DEFERRED
+- **Severity:** n/a
+- **Priority:** Deferred
+- **Description:** The approved 143 contain no Diesel-specific and no standalone Performance/Simulation candidates.
+- **Evidence:** Project plan batch table.
+- **Affected:** None.
+- **Impact:** None.
+- **Decision:** Left empty by design.
+- **Dependencies:** none.
+- **Revisit:** If new candidates are approved.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** Project plan.
+- **Verification:** n/a
+- **History:** 2026-10-12 — entry created.
+
+### GH-FUT-006 — Make some of the 29 render-only calculators saveable
+- **Status:** DEFERRED
+- **Severity:** n/a
+- **Priority:** Deferred
+- **Description:** The owner excluded 29 calculators from saved calculations on 2026-10-06 (they have no registry formula and no database row); 90 expansion calculators are excluded the same way. Making one saveable needs a registry formula plus reviewed `calculators` and `formula_versions` rows, or an explicit "not saveable" decision.
+- **Evidence:** `docs/CALCULATOR-CATALOG-RECONCILIATION.md`.
+- **Affected:** The excluded calculators.
+- **Impact:** Product capability.
+- **Decision:** Owner decision (2026-10-06): excluded for now.
+- **Dependencies:** A new reviewed migration; alias resolution before writing.
+- **Revisit:** On an owner request.
+- **Commits:** None.
+- **Tests:** `catalog/check-catalog.js` guards the exclusion.
+- **Docs:** `docs/CALCULATOR-CATALOG-RECONCILIATION.md`, `docs/PREMIUM-CATALOG.md`.
+- **Verification:** Migration reviewed; catalog check passes; service writes and reads back the record.
+- **History:** 2026-10-12 — entered from the reconciliation document.
+
+### GH-FUT-007 — Stripe billing
+- **Status:** DEFERRED
+- **Severity:** n/a
+- **Priority:** Deferred
+- **Description:** Checkout, customer portal and webhook functions are designed but not implemented; prices exist as approved offers only.
+- **Evidence:** `docs/DESIGN-PREMIUM-FOUNDATION.md` §6.3; `premium-foundation/PREMIUM-FOUNDATION.md`.
+- **Affected:** Platform (not calculators).
+- **Impact:** No paid sign-up path yet.
+- **Decision:** "Stripe later" (owner decision D-001…D-013).
+- **Dependencies:** Owner go-ahead; Supabase function secrets.
+- **Revisit:** On owner request.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** Design and foundation documents above.
+- **Verification:** Defined in the design document.
+- **History:** 2026-10-12 — pointer entry.
+
+### GH-FUT-008 — Projects (decision P-3)
+- **Status:** DEFERRED
+- **Severity:** n/a
+- **Priority:** Deferred
+- **Description:** Projects were deferred (D-003); Test Setups and saved items cover the Phase 3 use cases.
+- **Evidence:** `docs/DESIGN-PREMIUM-FOUNDATION.md` (P-3).
+- **Affected:** Platform.
+- **Impact:** None now.
+- **Decision:** Defer until a real need appears.
+- **Dependencies:** none.
+- **Revisit:** On a real need.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `docs/DESIGN-PREMIUM-FOUNDATION.md`.
+- **Verification:** n/a
+- **History:** 2026-10-12 — pointer entry.
+
+### GH-FUT-009 — Migrate E01–E14 into `GH_ENGINE`
+- **Status:** DEFERRED
+- **Severity:** n/a
+- **Priority:** Deferred
+- **Description:** Under decision D-006 the Engineering Lab runs would later go through `calculation-api` once E01–E14 are migrated into the shared engine.
+- **Evidence:** `docs/DESIGN-PREMIUM-FOUNDATION.md` (analyses table note).
+- **Affected:** E01–E14.
+- **Impact:** Architecture.
+- **Decision:** Future phase.
+- **Dependencies:** Foundation phases.
+- **Revisit:** Future phase.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** `docs/DESIGN-PREMIUM-FOUNDATION.md`.
+- **Verification:** Defined in that document.
+- **History:** 2026-10-12 — pointer entry.
+
+### GH-FUT-010 — Task 4 certification gates
+- **Status:** OPEN
+- **Severity:** n/a
+- **Priority:** P2
+- **Description:** Five gates remain before the Free calculator set can be called certified: independent known-answer vectors for every calculator; a units/conversion matrix; a boundary matrix; a regression matrix; a live-browser pass of the published build.
+- **Evidence:** `V1.1.0_TASK4_NEXT_ACTIONS.md`, `V1.1.0_TASK4_AUDIT_STATUS.md`.
+- **Affected:** The Free calculator set.
+- **Impact:** No certification badge until closed.
+- **Decision:** Open since V1.1.0; this reliability pass contributes evidence to the units/conversion gate but does not close it.
+- **Dependencies:** GH-ENG-007 … GH-ENG-013.
+- **Revisit:** A certification pass.
+- **Commits:** None.
+- **Tests:** None.
+- **Docs:** The two V1.1.0 documents.
+- **Verification:** All five gates documented as passed.
+- **History:** 2026-10-12 — entered from the V1.1.0 documents.
+
+---
+
+## E. Classified expected behaviour (not defects)
+
+### GH-EXP-001 — `drivetrain_loss` result flips by one at a half-unit rounding boundary
+- **Status:** EXPECTED BEHAVIOR
+- **Severity:** None
+- **Priority:** None
+- **Description:** 425 HP × 0.82 = 348.5 exactly. `Math.round` gives 349 from 425 HP and 348 from the 424.99996 HP held by the 316.922 kW box after a toggle. **Since GH-IMP-019 (2026-10-13) the boundary is no longer met under the default Power preference** (engine power reads hp in both systems, so the box holds 425 and no rounded kW text is read back); it can still be met with Power = kW, where the box holds the rounded kW figure.
+- **Evidence:** `toggle-sweep.test.js` `EXPECTED_ROUNDING`; reproduced and analysed 2026-10-12.
+- **Affected:** `drivetrain_loss`.
+- **Impact:** A displayed integer differs by 1 after a round trip.
+- **Decision:** Understood and intended rounding; not a unit defect.
+- **Dependencies:** none.
+- **Revisit:** If GH-IMP-004 (exact stored values) is ever done.
+- **Commits:** None.
+- **Tests:** `premium/tests/toggle-sweep.test.js` (the `EXPECTED_ROUNDING` ledger no longer lists `drivetrain_loss`: the sweep, which runs under Auto, reported the entry as stale when the engine changed, 2026-10-13).
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** n/a
+- **History:** 2026-10-12 — classified.
+  2026-10-13 — under the default (Auto) Power preference the boundary no longer occurs in the sweep; the ledger entry was removed when the test reported it stale; the behaviour remains understood and intended for Power = kW. Status unchanged.
+
+### GH-EXP-002 — `density_altitude` default lands on a half foot
+- **Status:** EXPECTED BEHAVIOR
+- **Severity:** None
+- **Priority:** None
+- **Description:** The altitude is rounded to whole feet and the default conditions land on a half foot, so the displayed value is 130 ft or 129 ft depending on the rounding of re-read inputs.
+- **Evidence:** `toggle-sweep.test.js` `EXPECTED_ROUNDING`.
+- **Affected:** `density_altitude`.
+- **Impact:** One foot.
+- **Decision:** Understood display rounding.
+- **Dependencies:** none.
+- **Revisit:** As GH-EXP-001.
+- **Commits:** None.
+- **Tests:** `premium/tests/toggle-sweep.test.js`.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** n/a
+- **History:** 2026-10-12 — classified.
+
+### GH-EXP-003 — Six-significant-digit field round trips move results by parts per million
+- **Status:** EXPECTED BEHAVIOR
+- **Severity:** None
+- **Priority:** None
+- **Description:** Input text is kept to six significant digits, so a Metric round trip can change a result in its last digit: `intake_port_cfm` 300 → 299.9999 CFM, `exhaust_port_cfm` 230 → 229.9998, `rod_bearing_pv` PV 5,543,987 → 5,544,002 (2.7 × 10⁻⁶ relative), `convection_heat_transfer` 59,523 → 59,523.3 BTU/hr. Earlier, same class: Tire Contact Patch (Batch 9), Oil / Transmission Cooler Sizing (Batch 6).
+- **Evidence:** Re-measured 2026-10-12 on HEAD `6550452`.
+- **Affected:** the calculators named.
+- **Impact:** Last displayed digit.
+- **Decision:** Expected rounding; the sweep tolerates display precision plus 0.05%.
+- **Dependencies:** GH-IMP-004.
+- **Revisit:** As GH-IMP-004.
+- **Commits:** None.
+- **Tests:** `premium/tests/toggle-sweep.test.js` tolerance.
+- **Docs:** `docs/PREMIUM-CATALOG.md` "Reliability pass".
+- **Verification:** n/a
+- **History:** 2026-10-12 — classified.

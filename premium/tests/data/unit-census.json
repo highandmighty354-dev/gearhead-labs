@@ -1,0 +1,380 @@
+{
+ "_note": "Census of the unit text of every input box and result row of every calculator, Imperial page against Metric page (reliability pass Item 4c, GH-DEF-007). A unit whose text is the same in both systems is classified here; premium/tests/unit-census.test.js fails on a unit that is not listed, so a new unit has to be classified when it is introduced. neutral = no Metric counterpart is needed (ratios, angles, time, money, counts, electrical, engine speed). si = a metric unit text declared in an Imperial calculator (GH-ENG-001 / GH-DEF-020 territory). imperial_only = a US-customary unit the engine does not register, so it reads the same in Metric: the number and the label agree, nothing is converted (GH-IMP-014). kind 'variant' = a spelling of a unit that IS registered (an alias would convert it); kind 'new' = needs a new UNIT_DEFS entry. 'metric' is the unit it would read in Metric.",
+ "converter_calcs": "_to_|^(speed|distance|volume|pressure|power|temp)_converter$|^sheet_gauge$|^fraction_to_decimal_mm$|^drill_decimal$|^decimal_fraction_universal$|^hardness_convert$",
+ "neutral": [
+  "$",
+  "$/cycle",
+  "$/hr",
+  "$/kWh",
+  "$/mo",
+  "$/yr",
+  "%",
+  "% duty",
+  "% front",
+  "(decimal, 0.06 = 6%)",
+  "/ 10",
+  ":1",
+  "A",
+  "AKI",
+  "AWG",
+  "Ah",
+  "CCA",
+  "Hz",
+  "M revolutions",
+  "Mach",
+  "RPM",
+  "V",
+  "bit/s",
+  "bits",
+  "count",
+  "cycles/hr",
+  "dB",
+  "days",
+  "deg",
+  "deg/g",
+  "est.",
+  "events",
+  "hr",
+  "hrs",
+  "in/in",
+  "lap",
+  "laps",
+  "laps/hr",
+  "mH",
+  "mJ",
+  "min",
+  "months",
+  "ms",
+  "ohm",
+  "percentage points",
+  "ratio",
+  "repairs",
+  "rev",
+  "rpm",
+  "sec",
+  "sec under",
+  "sec/lap",
+  "sizes",
+  "stops",
+  "teeth",
+  "turns",
+  "units",
+  "x",
+  "years",
+  "°",
+  "° ABDC",
+  "° ATDC",
+  "° BBDC",
+  "° BTDC",
+  "° cam",
+  "° crank",
+  "° rotation",
+  "° vs methanol",
+  "°/° roll",
+  "°CA",
+  "°CA (- = BTDC)",
+  "±5%",
+  "µF",
+  "×",
+  "× (< 1 = richer)",
+  "× more fuel",
+  "× vs gas setup",
+  "Ω",
+  "λ"
+ ],
+ "si": [
+  "C",
+  "J/K",
+  "K/W",
+  "V/K",
+  "W/K",
+  "Wh",
+  "kJ",
+  "J",
+  "J/kg",
+  "J/kg·K",
+  "L/100km",
+  "W",
+  "cP",
+  "cc",
+  "g",
+  "g/hr",
+  "g/kWh",
+  "hPa",
+  "kJ/kg",
+  "kW",
+  "kWh",
+  "kWh/mi",
+  "kg",
+  "kg/s",
+  "liters",
+  "m",
+  "mg",
+  "mm",
+  "mm pitch",
+  "mm/s",
+  "mm²·s",
+  "mm³",
+  "mm³/ms",
+  "°C"
+ ],
+ "performance": ["HP", "WHP", "lb-ft"],
+ "imperial_only": {
+  "$/acre": {
+   "kind": "new",
+   "metric": "$/ha"
+  },
+  "$/mi": {
+   "kind": "new",
+   "metric": "$/km"
+  },
+  "$/ton": {
+   "kind": "new",
+   "metric": "$/tonne"
+  },
+  "BTU": {
+   "kind": "new",
+   "metric": "kJ"
+  },
+  "BTU/hr": {
+   "kind": "new",
+   "metric": "W"
+  },
+  "BTU/hr-ft2-°F": {
+   "kind": "new",
+   "metric": "W/m²·K"
+  },
+  "BTU/hr·ft²·°F": {
+   "kind": "new",
+   "metric": "W/m²·K"
+  },
+  "BTU/hr·ft·°F": {
+   "kind": "new",
+   "metric": "W/m·K"
+  },
+  "BTU/lb": {
+   "kind": "new",
+   "metric": "kJ/kg"
+  },
+  "BTU/lb-°F": {
+   "kind": "new",
+   "metric": "kJ/kg·K"
+  },
+  "BTU/lb·°F": {
+   "kind": "new",
+   "metric": "kJ/kg·K"
+  },
+  "HP-equiv": {
+   "kind": "new",
+   "metric": "kW-equiv"
+  },
+  "MPG": {
+   "kind": "variant",
+   "of": "mpg",
+   "metric": "L/100km"
+  },
+  "TPI": {
+   "kind": "new",
+   "metric": null
+  },
+  "acre": {
+   "kind": "new",
+   "metric": "ha"
+  },
+  "cu ft": {
+   "kind": "new",
+   "metric": "m³"
+  },
+  "gal/acre": {
+   "kind": "new",
+   "metric": "L/ha"
+  },
+  "gal/cycle": {
+   "kind": "new",
+   "metric": "L/cycle"
+  },
+  "gal/hr": {
+   "kind": "variant",
+   "of": "GPH",
+   "metric": "L/h"
+  },
+  "gal/mi": {
+   "kind": "new",
+   "metric": "L/km"
+  },
+  "gal/ton": {
+   "kind": "new",
+   "metric": "L/tonne"
+  },
+  "gpm": {
+   "kind": "variant",
+   "of": "GPM",
+   "metric": "L/min"
+  },
+  "gr/lb": {
+   "kind": "new",
+   "metric": "g/kg"
+  },
+  "in-lb": {
+   "kind": "new",
+   "metric": "N·m"
+  },
+  "in/s": {
+   "kind": "new",
+   "metric": "mm/s"
+  },
+  "in/sec": {
+   "kind": "new",
+   "metric": "mm/s"
+  },
+  "in/tooth": {
+   "kind": "new",
+   "metric": "mm/tooth"
+  },
+  "in²": {
+   "kind": "variant",
+   "of": "sq in",
+   "metric": "mm²"
+  },
+  "in³": {
+   "kind": "variant",
+   "of": "ci",
+   "metric": "cc"
+  },
+  "in³/min": {
+   "kind": "new",
+   "metric": "cc/min"
+  },
+  "in³/rev": {
+   "kind": "new",
+   "metric": "cc/rev"
+  },
+  "in⁴": {
+   "kind": "new",
+   "metric": "mm⁴"
+  },
+  "kWh/100 mi": {
+   "kind": "new",
+   "metric": "kWh/100 km"
+  },
+  "lb-in": {
+   "kind": "new",
+   "metric": "N·m"
+  },
+  "lb-in/rad": {
+   "kind": "new",
+   "metric": "N·m/rad"
+  },
+  "lb/HP": {
+   "kind": "variant",
+   "of": "lbs/HP",
+   "metric": "kg/kW"
+  },
+  "lb/deg": {
+   "kind": "variant",
+   "of": "lbs/deg",
+   "metric": "kg/deg"
+  },
+  "lb/gal": {
+   "kind": "new",
+   "metric": "kg/L"
+  },
+  "lb/hp·hr": {
+   "kind": "variant",
+   "of": "lb/hp-hr",
+   "metric": "kg/kW-hr"
+  },
+  "lb/hr per HP": {
+   "kind": "new",
+   "metric": "kg/hr per kW"
+  },
+  "lb/in³": {
+   "kind": "new",
+   "metric": "kg/m³"
+  },
+  "lb/min": {
+   "kind": "variant",
+   "of": "lbs/min",
+   "metric": "kg/min"
+  },
+  "lb/min per V": {
+   "kind": "new",
+   "metric": "kg/min per V"
+  },
+  "lb/sq ft": {
+   "kind": "new",
+   "metric": "Pa"
+  },
+  "lbs·in/°": {
+   "kind": "new",
+   "metric": "N·m/°"
+  },
+  "lb·in²": {
+   "kind": "new",
+   "metric": "kg·m²"
+  },
+  "lb·s/in": {
+   "kind": "new",
+   "metric": "N·s/mm"
+  },
+  "mi": {
+   "kind": "variant",
+   "of": "miles",
+   "metric": "km"
+  },
+  "mi/kWh": {
+   "kind": "new",
+   "metric": "km/kWh"
+  },
+  "micro-reyn": {
+   "kind": "new",
+   "metric": "mPa·s"
+  },
+  "oz": {
+   "kind": "new",
+   "metric": "g"
+  },
+  "psia": {
+   "kind": "variant",
+   "of": "psi",
+   "metric": "bar (absolute)"
+  },
+  "psig": {
+   "kind": "variant",
+   "of": "psi",
+   "metric": "bar (gauge)"
+  },
+  "psi·ft/min": {
+   "kind": "new",
+   "metric": "bar·m/min"
+  },
+  "slug-ft2": {
+   "kind": "new",
+   "metric": "kg·m²"
+  },
+  "slug/ft³": {
+   "kind": "new",
+   "metric": "kg/m³"
+  },
+  "sq in·s": {
+   "kind": "new",
+   "metric": "mm²·s"
+  },
+  "ton": {
+   "kind": "new",
+   "metric": "tonne"
+  },
+  "units/gal": {
+   "kind": "new",
+   "metric": "units/L"
+  },
+  "°/in": {
+   "kind": "new",
+   "metric": "°/mm"
+  },
+  "°R": {
+   "kind": "new",
+   "metric": "K"
+  }
+ }
+}

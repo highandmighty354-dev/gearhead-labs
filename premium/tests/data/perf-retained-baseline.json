@@ -1,0 +1,849 @@
+{
+ "note": "Default-state display of every row the performance-unit policy (GH-IMP-019) leaves on its established convention (RETAIN-* categories: BSFC, converters, component torque, accessory power, ratios, emissions, the hp companion row) and of the power-to-weight ratios (PTW_RATIO), captured from the engine as it was before the change (HEAD c28e934 = d776d21 engine, both systems, nothing typed). Each entry is [displayed text, unit text]. performance-units.test.js requires every entry to be identical in every Power / Torque preference. ev_motor_power 'Motor Power (HP row)' is the second 'Motor Power' result (the companion) and is stored under that name.",
+ "rows": [
+  {
+   "calc": "turbo_sizing",
+   "kind": "IN",
+   "key": "bsfc",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.6",
+    "lb/hp-hr"
+   ],
+   "metric": [
+    "0.364966",
+    "kg/kW-hr"
+   ]
+  },
+  {
+   "calc": "injector_sizing",
+   "kind": "IN",
+   "key": "bsfc9",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.5",
+    "lb/hp-hr"
+   ],
+   "metric": [
+    "0.304139",
+    "kg/kW-hr"
+   ]
+  },
+  {
+   "calc": "fuel_pump_sizing",
+   "kind": "IN",
+   "key": "bsfc2",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.5",
+    "lb/hp-hr"
+   ],
+   "metric": [
+    "0.304139",
+    "kg/kW-hr"
+   ]
+  },
+  {
+   "calc": "power_to_weight",
+   "kind": "OUT",
+   "key": "HP per Ton",
+   "cat": "PTW_RATIO",
+   "imperial": [
+    "248.5",
+    "HP/ton"
+   ],
+   "metric": [
+    "204.2654",
+    "kW/metric ton"
+   ]
+  },
+  {
+   "calc": "power_to_weight",
+   "kind": "OUT",
+   "key": "Lbs per HP",
+   "cat": "PTW_RATIO",
+   "imperial": [
+    "8.05",
+    "lbs/HP"
+   ],
+   "metric": [
+    "4.8966",
+    "kg/kW"
+   ]
+  },
+  {
+   "calc": "power_to_weight",
+   "kind": "OUT",
+   "key": "HP per 1000 lbs",
+   "cat": "PTW_RATIO",
+   "imperial": [
+    "124.27",
+    "HP/klb"
+   ],
+   "metric": [
+    "204.2982",
+    "kW/tonne"
+   ]
+  },
+  {
+   "calc": "hp_from_specs",
+   "kind": "IN",
+   "key": "bsfc_s",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.5",
+    "lb/hp-hr"
+   ],
+   "metric": [
+    "0.304139",
+    "kg/kW-hr"
+   ]
+  },
+  {
+   "calc": "bsfc",
+   "kind": "OUT",
+   "key": "BSFC",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.499",
+    "lb/hp-hr"
+   ],
+   "metric": [
+    "0.304",
+    "kg/kW-hr"
+   ]
+  },
+  {
+   "calc": "power_converter",
+   "kind": "OUT",
+   "key": "HP (SAE)",
+   "cat": "RETAIN-CONVERTER",
+   "imperial": [
+    "425",
+    "hp"
+   ],
+   "metric": [
+    "425",
+    "hp"
+   ]
+  },
+  {
+   "calc": "power_converter",
+   "kind": "OUT",
+   "key": "kW",
+   "cat": "RETAIN-CONVERTER",
+   "imperial": [
+    "316.92",
+    "kW"
+   ],
+   "metric": [
+    "316.92",
+    "kW"
+   ]
+  },
+  {
+   "calc": "torque_wrench_ext",
+   "kind": "IN",
+   "key": "tw_set",
+   "cat": "RETAIN-COMPONENT",
+   "imperial": [
+    "100",
+    "ft-lbs"
+   ],
+   "metric": [
+    "135.582",
+    "N·m"
+   ]
+  },
+  {
+   "calc": "torque_wrench_ext",
+   "kind": "OUT",
+   "key": "Set Wrench To",
+   "cat": "RETAIN-COMPONENT",
+   "imperial": [
+    "83.3",
+    "ft-lbs"
+   ],
+   "metric": [
+    "112.9396",
+    "N·m"
+   ]
+  },
+  {
+   "calc": "wmi_flow",
+   "kind": "IN",
+   "key": "ratio_wmi",
+   "cat": "RETAIN-RATIO",
+   "imperial": [
+    "0.25",
+    "lb/hr per HP"
+   ],
+   "metric": [
+    "0.25",
+    "lb/hr per HP"
+   ]
+  },
+  {
+   "calc": "injector_duty",
+   "kind": "IN",
+   "key": "bsfc_id",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.5",
+    "lb/hp-hr"
+   ],
+   "metric": [
+    "0.304139",
+    "kg/kW-hr"
+   ]
+  },
+  {
+   "calc": "bolt_torque_spec",
+   "kind": "OUT",
+   "key": "Recommended Torque",
+   "cat": "RETAIN-COMPONENT",
+   "imperial": [
+    "43.6",
+    "ft-lbs"
+   ],
+   "metric": [
+    "59.1137",
+    "N·m"
+   ]
+  },
+  {
+   "calc": "diesel_power_to_weight",
+   "kind": "OUT",
+   "key": "HP / 1000 lb",
+   "cat": "PTW_RATIO",
+   "imperial": [
+    "53.33",
+    "HP/1000 lb"
+   ],
+   "metric": [
+    "53.33",
+    "HP/1000 lb"
+   ]
+  },
+  {
+   "calc": "diesel_power_to_weight",
+   "kind": "OUT",
+   "key": "lb / HP",
+   "cat": "PTW_RATIO",
+   "imperial": [
+    "18.75",
+    "lb/HP"
+   ],
+   "metric": [
+    "18.75",
+    "lb/HP"
+   ]
+  },
+  {
+   "calc": "diesel_bsfc",
+   "kind": "OUT",
+   "key": "BSFC",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.35",
+    "lb/hp·hr"
+   ],
+   "metric": [
+    "0.35",
+    "lb/hp·hr"
+   ]
+  },
+  {
+   "calc": "diesel_fuel_flow",
+   "kind": "IN",
+   "key": "df_bsfc",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.4",
+    "lb/hp·hr"
+   ],
+   "metric": [
+    "0.4",
+    "lb/hp·hr"
+   ]
+  },
+  {
+   "calc": "diesel_power_from_fuel",
+   "kind": "IN",
+   "key": "dpf_bsfc",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.4",
+    "lb/hp·hr"
+   ],
+   "metric": [
+    "0.4",
+    "lb/hp·hr"
+   ]
+  },
+  {
+   "calc": "airflow_power_estimate",
+   "kind": "IN",
+   "key": "ap_bs",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.5",
+    "lb/hp-hr"
+   ],
+   "metric": [
+    "0.304139",
+    "kg/kW-hr"
+   ]
+  },
+  {
+   "calc": "injector_size",
+   "kind": "IN",
+   "key": "is_bsfc",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.5",
+    "lb/hp·hr"
+   ],
+   "metric": [
+    "0.5",
+    "lb/hp·hr"
+   ]
+  },
+  {
+   "calc": "injector_duty_cycle",
+   "kind": "IN",
+   "key": "bsfc_id",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.5",
+    "lb/hp-hr"
+   ],
+   "metric": [
+    "0.304139",
+    "kg/kW-hr"
+   ]
+  },
+  {
+   "calc": "fuel_pump_capacity",
+   "kind": "IN",
+   "key": "fpc_bsfc",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.5",
+    "lb/hp·hr"
+   ],
+   "metric": [
+    "0.5",
+    "lb/hp·hr"
+   ]
+  },
+  {
+   "calc": "fuel_flow_from_hp",
+   "kind": "IN",
+   "key": "ffh_bsfc",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.5",
+    "lb/hp·hr"
+   ],
+   "metric": [
+    "0.5",
+    "lb/hp·hr"
+   ]
+  },
+  {
+   "calc": "fuel_system_hp",
+   "kind": "IN",
+   "key": "fsh_b",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.5",
+    "lb/hp·hr"
+   ],
+   "metric": [
+    "0.5",
+    "lb/hp·hr"
+   ]
+  },
+  {
+   "calc": "diesel_scr_efficiency",
+   "kind": "IN",
+   "key": "dse_i",
+   "cat": "RETAIN-EMISSIONS",
+   "imperial": [
+    "8",
+    "g/kWh"
+   ],
+   "metric": [
+    "8",
+    "g/kWh"
+   ]
+  },
+  {
+   "calc": "diesel_scr_efficiency",
+   "kind": "IN",
+   "key": "dse_o",
+   "cat": "RETAIN-EMISSIONS",
+   "imperial": [
+    "0.4",
+    "g/kWh"
+   ],
+   "metric": [
+    "0.4",
+    "g/kWh"
+   ]
+  },
+  {
+   "calc": "yaw_moment",
+   "kind": "OUT",
+   "key": "Yaw Moment",
+   "cat": "RETAIN-COMPONENT",
+   "imperial": [
+    "3,600",
+    "lb-ft"
+   ],
+   "metric": [
+    "4,880.9",
+    "N·m"
+   ]
+  },
+  {
+   "calc": "brake_torque",
+   "kind": "OUT",
+   "key": "Brake Torque",
+   "cat": "RETAIN-COMPONENT",
+   "imperial": [
+    "366.6667",
+    "lb-ft"
+   ],
+   "metric": [
+    "497.1331",
+    "N·m"
+   ]
+  },
+  {
+   "calc": "port_area_hp_estimator",
+   "kind": "IN",
+   "key": "pahe_bsfc",
+   "cat": "RETAIN-BSFC",
+   "imperial": [
+    "0.5",
+    "lb/hp-hr"
+   ],
+   "metric": [
+    "0.304139",
+    "kg/kW-hr"
+   ]
+  },
+  {
+   "calc": "pump_power_requirement",
+   "kind": "OUT",
+   "key": "Required Pump Power",
+   "cat": "RETAIN-ACCESSORY",
+   "imperial": [
+    "0.463",
+    "HP"
+   ],
+   "metric": [
+    "0.345",
+    "kW"
+   ]
+  },
+  {
+   "calc": "bearing_preload",
+   "kind": "OUT",
+   "key": "Required Installation Torque",
+   "cat": "RETAIN-COMPONENT",
+   "imperial": [
+    "46.88",
+    "lb-ft"
+   ],
+   "metric": [
+    "63.55",
+    "N·m"
+   ]
+  },
+  {
+   "calc": "brake_rotor_sizing",
+   "kind": "IN",
+   "key": "brs_t",
+   "cat": "RETAIN-COMPONENT",
+   "imperial": [
+    "800",
+    "lb-ft"
+   ],
+   "metric": [
+    "1084.65",
+    "N·m"
+   ]
+  },
+  {
+   "calc": "tire_heat_generation",
+   "kind": "OUT",
+   "key": "Heat Generation Rate",
+   "cat": "RETAIN-ACCESSORY",
+   "imperial": [
+    "1.632",
+    "HP"
+   ],
+   "metric": [
+    "1.217",
+    "kW"
+   ]
+  },
+  {
+   "calc": "drag_downforce_tradeoff",
+   "kind": "OUT",
+   "key": "Downforce per Added HP",
+   "cat": "RETAIN-RATIO",
+   "imperial": [
+    "15.6",
+    "lb/HP"
+   ],
+   "metric": [
+    "15.6",
+    "lb/HP"
+   ]
+  },
+  {
+   "calc": "nm_to_lbft",
+   "kind": "OUT",
+   "key": "lb-ft",
+   "cat": "RETAIN-CONVERTER",
+   "imperial": [
+    "0.73756215",
+    "lb-ft"
+   ],
+   "metric": [
+    "0.73756215",
+    "lb-ft"
+   ]
+  },
+  {
+   "calc": "lbft_to_nm",
+   "kind": "OUT",
+   "key": "N·m",
+   "cat": "RETAIN-CONVERTER",
+   "imperial": [
+    "1.35581795",
+    "N·m"
+   ],
+   "metric": [
+    "1.35581795",
+    "N·m"
+   ]
+  },
+  {
+   "calc": "lbin_to_nm",
+   "kind": "OUT",
+   "key": "N·m",
+   "cat": "RETAIN-CONVERTER",
+   "imperial": [
+    "0.11298483",
+    "N·m"
+   ],
+   "metric": [
+    "0.11298483",
+    "N·m"
+   ]
+  },
+  {
+   "calc": "lbin_to_lbft",
+   "kind": "OUT",
+   "key": "lb-ft",
+   "cat": "RETAIN-CONVERTER",
+   "imperial": [
+    "0.08333333",
+    "lb-ft"
+   ],
+   "metric": [
+    "0.08333333",
+    "lb-ft"
+   ]
+  },
+  {
+   "calc": "hp_to_kw",
+   "kind": "OUT",
+   "key": "kW",
+   "cat": "RETAIN-CONVERTER",
+   "imperial": [
+    "0.74569987",
+    "kW"
+   ],
+   "metric": [
+    "0.74569987",
+    "kW"
+   ]
+  },
+  {
+   "calc": "kw_to_hp",
+   "kind": "OUT",
+   "key": "Horsepower",
+   "cat": "RETAIN-CONVERTER",
+   "imperial": [
+    "1.34102209",
+    "HP"
+   ],
+   "metric": [
+    "1.34102209",
+    "HP"
+   ]
+  },
+  {
+   "calc": "ps_to_hp",
+   "kind": "OUT",
+   "key": "Horsepower",
+   "cat": "RETAIN-CONVERTER",
+   "imperial": [
+    "0.98632007",
+    "HP"
+   ],
+   "metric": [
+    "0.98632007",
+    "HP"
+   ]
+  },
+  {
+   "calc": "btu_hr_to_kw",
+   "kind": "OUT",
+   "key": "kW",
+   "cat": "RETAIN-CONVERTER",
+   "imperial": [
+    "0.00029307",
+    "kW"
+   ],
+   "metric": [
+    "0.00029307",
+    "kW"
+   ]
+  },
+  {
+   "calc": "ev_motor_power",
+   "kind": "OUT",
+   "key": "Motor Power (HP row)",
+   "cat": "RETAIN-ALT",
+   "imperial": [
+    "457",
+    "HP"
+   ],
+   "metric": [
+    "340.7848",
+    "kW"
+   ]
+  },
+  {
+   "calc": "bending_stress",
+   "kind": "IN",
+   "key": "bs_m",
+   "cat": "RETAIN-COMPONENT",
+   "imperial": [
+    "6000",
+    "lb-in"
+   ],
+   "metric": [
+    "6000",
+    "lb-in"
+   ]
+  },
+  {
+   "calc": "clamp_load",
+   "kind": "IN",
+   "key": "cml_t",
+   "cat": "RETAIN-COMPONENT",
+   "imperial": [
+    "300",
+    "in-lb"
+   ],
+   "metric": [
+    "300",
+    "in-lb"
+   ]
+  },
+  {
+   "calc": "torsional_stress",
+   "kind": "IN",
+   "key": "ts_t",
+   "cat": "RETAIN-COMPONENT",
+   "imperial": [
+    "3000",
+    "lb-in"
+   ],
+   "metric": [
+    "3000",
+    "lb-in"
+   ]
+  },
+  {
+   "calc": "diesel_turbo_efficiency",
+   "kind": "IN",
+   "key": "dte_a",
+   "cat": "RETAIN-ACCESSORY",
+   "imperial": [
+    "11500",
+    "W"
+   ],
+   "metric": [
+    "11500",
+    "W"
+   ]
+  },
+  {
+   "calc": "diesel_turbo_efficiency",
+   "kind": "IN",
+   "key": "dte_i",
+   "cat": "RETAIN-ACCESSORY",
+   "imperial": [
+    "8000",
+    "W"
+   ],
+   "metric": [
+    "8000",
+    "W"
+   ]
+  },
+  {
+   "calc": "electrical_power",
+   "kind": "OUT",
+   "key": "Electrical Power",
+   "cat": "RETAIN-ACCESSORY",
+   "imperial": [
+    "240",
+    "W"
+   ],
+   "metric": [
+    "240",
+    "W"
+   ]
+  },
+  {
+   "calc": "ev_battery_heat",
+   "kind": "OUT",
+   "key": "Battery Heat",
+   "cat": "RETAIN-ACCESSORY",
+   "imperial": [
+    "8,000",
+    "W"
+   ],
+   "metric": [
+    "8,000",
+    "W"
+   ]
+  },
+  {
+   "calc": "ev_coolant_flow",
+   "kind": "IN",
+   "key": "ecf_q",
+   "cat": "RETAIN-ACCESSORY",
+   "imperial": [
+    "8000",
+    "W"
+   ],
+   "metric": [
+    "8000",
+    "W"
+   ]
+  },
+  {
+   "calc": "starter_current",
+   "kind": "IN",
+   "key": "sc_p",
+   "cat": "RETAIN-ACCESSORY",
+   "imperial": [
+    "2000",
+    "W"
+   ],
+   "metric": [
+    "2000",
+    "W"
+   ]
+  },
+  {
+   "calc": "turbo_power_requirement",
+   "kind": "OUT",
+   "key": "Compressor Power",
+   "cat": "RETAIN-ACCESSORY",
+   "imperial": [
+    "3,750",
+    "W"
+   ],
+   "metric": [
+    "3,750",
+    "W"
+   ]
+  },
+  {
+   "calc": "wire_current_capacity",
+   "kind": "IN",
+   "key": "wcc_p",
+   "cat": "RETAIN-ACCESSORY",
+   "imperial": [
+    "240",
+    "W"
+   ],
+   "metric": [
+    "240",
+    "W"
+   ]
+  },
+  {
+   "calc": "hp_to_ps",
+   "kind": "OUT",
+   "key": "PS",
+   "cat": "RETAIN-CONVERTER",
+   "imperial": [
+    "1.01386967",
+    "PS"
+   ],
+   "metric": [
+    "1.01386967",
+    "PS"
+   ]
+  },
+  {
+   "calc": "lbft_to_lbin",
+   "kind": "OUT",
+   "key": "lb-in",
+   "cat": "RETAIN-CONVERTER",
+   "imperial": [
+    "12",
+    "lb-in"
+   ],
+   "metric": [
+    "12",
+    "lb-in"
+   ]
+  },
+  {
+   "calc": "nmm_to_lbft",
+   "kind": "OUT",
+   "key": "Torque",
+   "cat": "RETAIN-CONVERTER",
+   "imperial": [
+    "8.85074579",
+    "lb-in"
+   ],
+   "metric": [
+    "8.85074579",
+    "lb-in"
+   ]
+  },
+  {
+   "calc": "power_converter",
+   "kind": "OUT",
+   "key": "PS / CV",
+   "cat": "RETAIN-CONVERTER",
+   "imperial": [
+    "430.89",
+    "PS"
+   ],
+   "metric": [
+    "430.89",
+    "PS"
+   ]
+  }
+ ],
+ "missing": [
+  "ohms_law|OUT|Power"
+ ],
+ "missing_note": "ohms_law 'Power' is shown only in the stored Solve-for-P mode (a conditional row), so it has no default-state entry."
+}

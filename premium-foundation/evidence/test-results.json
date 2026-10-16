@@ -1,10 +1,10 @@
 {
   "suite": "PREMIUM-FOUNDATION 1.0.0",
-  "postgres": "16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)",
+  "postgres": "16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)",
   "checks": [
     {
       "group": "integrity",
-      "name": "migration directory is exactly the approved 16 files in version order",
+      "name": "migration directory is exactly the approved 18 files in version order",
       "pass": true
     },
     {
@@ -14,7 +14,12 @@
     },
     {
       "group": "integrity",
-      "name": "reference data: 583 calculators, 577 formula versions, 252 engine-proven, 47 canonical fields, 2 plans, 14 analyzers",
+      "name": "reference data: 583 calculators, 581 formula versions (577 seeded + 4 from 0408), 252 engine-proven, 47 canonical fields, 2 plans, 2 offers, 14 analyzers",
+      "pass": true
+    },
+    {
+      "group": "integrity",
+      "name": "0408 (GH-ENG-014): exactly the four corrected formula versions, each with its own registry, and the four original rows unchanged",
       "pass": true
     },
     {
@@ -78,33 +83,33 @@
       "pass": true
     },
     {
-      "group": "allowance",
-      "name": "a Free user can create one machine; a second is refused",
+      "group": "garage",
+      "name": "a Free account cannot create a garage, vehicle, component or Test Setup (never-Premium C and former-Premium A)",
       "pass": true
     },
     {
-      "group": "allowance",
-      "name": "a Free user cannot create two machines in one statement",
+      "group": "garage",
+      "name": "Premium: a garage with any number of vehicles, details, components and Test Setups",
       "pass": true
     },
     {
-      "group": "allowance",
-      "name": "A (Free, already has one machine) cannot add another",
+      "group": "garage",
+      "name": "a lapsed or former Premium account keeps read access and can soft-delete, but cannot create or edit",
       "pass": true
     },
     {
-      "group": "allowance",
-      "name": "soft-deleting the machine (or its garage) frees the allowance; deletion cannot be undone to exceed it",
+      "group": "garage",
+      "name": "Garage access follows the entitlement: a grant enables it, revoking it disables it again",
       "pass": true
     },
     {
-      "group": "allowance",
-      "name": "a Premium user can create additional machines",
+      "group": "garage",
+      "name": "soft deletion is permanent: a client cannot revive a deleted vehicle or a vehicle of a deleted garage",
       "pass": true
     },
     {
-      "group": "allowance",
-      "name": "a lapsed Premium user keeps existing machines (read/update) but cannot add more",
+      "group": "offers",
+      "name": "Premium is the only paid product: 5.99/month and 59.99/year; Stripe prices must match an approved offer",
       "pass": true
     },
     {
@@ -214,12 +219,7 @@
     },
     {
       "group": "security_definer",
-      "name": "internal definers (allowance, link checks, sign-up) are not callable by clients",
-      "pass": true
-    },
-    {
-      "group": "allowance",
-      "name": "outside READ COMMITTED the allowance fails closed (a REPEATABLE READ race could otherwise pass it)",
+      "name": "internal definers (link checks, primary move, sign-up) are not callable by clients",
       "pass": true
     },
     {
@@ -229,7 +229,7 @@
     },
     {
       "group": "test_setups",
-      "name": "owner decision (approved): Test Setups are unlimited for Free on its one machine; saved work cannot be attached to them",
+      "name": "Test Setups (Builds) are unlimited for Premium; a Free account cannot create them or attach saved work to them",
       "pass": true
     },
     {
@@ -240,11 +240,6 @@
     {
       "group": "stripe",
       "name": "late or out-of-order webhooks never overwrite a newer state or re-open access",
-      "pass": true
-    },
-    {
-      "group": "allowance",
-      "name": "concurrent first-machine inserts by one Free user: exactly one succeeds (advisory lock)",
       "pass": true
     }
   ],
@@ -261,17 +256,38 @@
       "fn pf_handle_new_auth_user() 17e3477529c22c02cc541608bbc0381",
       "trg CREATE TRIGGER pf_on_auth_user_created AFTER INSERT ON a"
     ],
-    "reprovision": true
+    "reprovision": true,
+    "rollback_0407_to_0406": true
   },
   "mutants": [
     {
-      "mutant": "restrictive allowance policy dropped",
-      "target": "a Free user can create one machine; a second is refused",
+      "mutant": "Premium garage insert policy dropped on machines",
+      "target": "a Free account cannot create a garage, vehicle, component or Test Setup (never-Premium C and former-Premium A)",
       "killed": true
     },
     {
-      "mutant": "allowance function always true",
-      "target": "A (Free, already has one machine) cannot add another",
+      "mutant": "Premium garage insert policy dropped on test_setups",
+      "target": "Test Setups (Builds) are unlimited for Premium; a Free account cannot create them or attach saved work to them",
+      "killed": true
+    },
+    {
+      "mutant": "Premium garage update policy dropped on machine_details",
+      "target": "a lapsed or former Premium account keeps read access and can soft-delete, but cannot create or edit",
+      "killed": true
+    },
+    {
+      "mutant": "garage feature removed from the Premium plan",
+      "target": "Premium: a garage with any number of vehicles, details, components and Test Setups",
+      "killed": true
+    },
+    {
+      "mutant": "Stripe prices no longer tied to the approved offers",
+      "target": "Premium is the only paid product: 5.99/month and 59.99/year; Stripe prices must match an approved offer",
+      "killed": true
+    },
+    {
+      "mutant": "a second paid product allowed",
+      "target": "Premium is the only paid product: 5.99/month and 59.99/year; Stripe prices must match an approved offer",
       "killed": true
     },
     {
@@ -350,11 +366,6 @@
       "killed": true
     },
     {
-      "mutant": "allowance isolation guard removed",
-      "target": "outside READ COMMITTED the allowance fails closed (a REPEATABLE READ race could otherwise pass it)",
-      "killed": true
-    },
-    {
       "mutant": "primary-move trigger dropped",
       "target": "marking a machine primary moves the flag; deleting the primary never locks the choice; nobody else can clear it",
       "killed": true
@@ -370,10 +381,26 @@
       "killed": true
     }
   ],
+  "upgrade": {
+    "pass": true,
+    "tables": 23,
+    "rows_before": 1263,
+    "changed_tables": [
+      "public.plan_offers",
+      "public.plans"
+    ],
+    "plans_after": [
+      "free:",
+      "premium:engineering_lab,saved_calculations,garage"
+    ],
+    "free_vehicle_readable": true,
+    "free_vehicle_edit_refused": true,
+    "free_vehicle_deletable": true
+  },
   "summary": {
-    "checks": 49,
+    "checks": 48,
     "failed": 0,
-    "mutants": 21,
+    "mutants": 24,
     "survived": 0
   }
 }

@@ -1,0 +1,1155 @@
+{
+ "about": "GH-DEF-028. Every box that the range check matched (by the first letters of its id) on the engine of c121091, in the Imperial default state of all 696 calculators, classified by what the box holds. \"boxes\" holds the quantity its range is meant for (these keep their warning); \"not_boxes\" lists the 21 boxes the id match reached by accident (these must not warn). Written 2026-10-13 from the census of the engine as it was before the fix; premium/tests/range-warnings.test.js uses it as the record of which warnings must survive.",
+ "boxes": [
+  {
+   "calc": "hp_quarter_mile",
+   "id": "wt",
+   "quantity": "weight",
+   "label": "Vehicle Weight (with driver)",
+   "unit": "lbs"
+  },
+  {
+   "calc": "hp_trap_speed",
+   "id": "wt2",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "et_mph_prediction",
+   "id": "hp_p",
+   "quantity": "HP",
+   "label": "Flywheel Horsepower",
+   "unit": "HP"
+  },
+  {
+   "calc": "et_mph_prediction",
+   "id": "wt_p",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "hp_from_torque",
+   "id": "rpm_t",
+   "quantity": "RPM",
+   "label": "RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "torque_from_hp",
+   "id": "hp2",
+   "quantity": "HP",
+   "label": "Horsepower",
+   "unit": "HP"
+  },
+  {
+   "calc": "torque_from_hp",
+   "id": "rpm2",
+   "quantity": "RPM",
+   "label": "RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "weight_reduction",
+   "id": "hp3",
+   "quantity": "HP",
+   "label": "Current Horsepower",
+   "unit": "HP"
+  },
+  {
+   "calc": "weight_reduction",
+   "id": "wt3",
+   "quantity": "weight",
+   "label": "Current Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "advanced_et",
+   "id": "hp4",
+   "quantity": "HP",
+   "label": "Flywheel HP",
+   "unit": "HP"
+  },
+  {
+   "calc": "advanced_et",
+   "id": "wt4",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "hp_from_0_60",
+   "id": "wt5",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "climb_rate",
+   "id": "hp6",
+   "quantity": "HP",
+   "label": "Horsepower",
+   "unit": "HP"
+  },
+  {
+   "calc": "climb_rate",
+   "id": "wt6",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "engine_displacement",
+   "id": "bore_d",
+   "quantity": "bore",
+   "label": "Bore",
+   "unit": "in"
+  },
+  {
+   "calc": "engine_displacement",
+   "id": "str_d",
+   "quantity": "stroke",
+   "label": "Stroke",
+   "unit": "in"
+  },
+  {
+   "calc": "static_compression",
+   "id": "bore2",
+   "quantity": "bore",
+   "label": "Bore",
+   "unit": "in"
+  },
+  {
+   "calc": "static_compression",
+   "id": "str2",
+   "quantity": "stroke",
+   "label": "Stroke",
+   "unit": "in"
+  },
+  {
+   "calc": "dynamic_compression",
+   "id": "str3",
+   "quantity": "stroke",
+   "label": "Stroke",
+   "unit": "in"
+  },
+  {
+   "calc": "mean_piston_speed",
+   "id": "str4",
+   "quantity": "stroke",
+   "label": "Stroke",
+   "unit": "in"
+  },
+  {
+   "calc": "mean_piston_speed",
+   "id": "rpm3",
+   "quantity": "RPM",
+   "label": "RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "rod_stroke_ratio",
+   "id": "str5",
+   "quantity": "stroke",
+   "label": "Stroke",
+   "unit": "in"
+  },
+  {
+   "calc": "piston_position",
+   "id": "str6",
+   "quantity": "stroke",
+   "label": "Stroke",
+   "unit": "in"
+  },
+  {
+   "calc": "milling_heads",
+   "id": "bore3",
+   "quantity": "bore",
+   "label": "Bore",
+   "unit": "in"
+  },
+  {
+   "calc": "rotating_weight",
+   "id": "rw_rpm1",
+   "quantity": "RPM",
+   "label": "Starting RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "rotating_weight",
+   "id": "rw_rpm2",
+   "quantity": "RPM",
+   "label": "Ending RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "gear_ratio_speed",
+   "id": "rpm5",
+   "quantity": "RPM",
+   "label": "Engine RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "optimal_shift",
+   "id": "ph_rpm",
+   "quantity": "RPM",
+   "label": "Peak HP RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "optimal_shift",
+   "id": "pt_rpm",
+   "quantity": "RPM",
+   "label": "Peak Torque RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "driveshaft_speed",
+   "id": "rpm7",
+   "quantity": "RPM",
+   "label": "Engine RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "brake_bias",
+   "id": "wt_bb",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "brake_rotor_temp",
+   "id": "wt_rt",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "weight_transfer",
+   "id": "wt7",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "cog_height",
+   "id": "wt8",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "supercharger_speed",
+   "id": "rpm8",
+   "quantity": "RPM",
+   "label": "Engine RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "turbo_sizing",
+   "id": "hp7",
+   "quantity": "HP",
+   "label": "Target HP",
+   "unit": "HP"
+  },
+  {
+   "calc": "turbo_sizing",
+   "id": "afr_t",
+   "quantity": "AFR",
+   "label": "Target AFR",
+   "unit": ":1"
+  },
+  {
+   "calc": "hp_from_boost",
+   "id": "hp8",
+   "quantity": "HP",
+   "label": "Naturally Aspirated HP",
+   "unit": "HP"
+  },
+  {
+   "calc": "engine_airflow",
+   "id": "rpm9",
+   "quantity": "RPM",
+   "label": "Peak RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "engine_airflow",
+   "id": "ve",
+   "quantity": "VE",
+   "label": "Volumetric Efficiency",
+   "unit": ""
+  },
+  {
+   "calc": "carb_sizing",
+   "id": "rpm10",
+   "quantity": "RPM",
+   "label": "Max RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "carb_sizing",
+   "id": "ve2",
+   "quantity": "VE",
+   "label": "Volumetric Efficiency",
+   "unit": ""
+  },
+  {
+   "calc": "injector_sizing",
+   "id": "hp9",
+   "quantity": "HP",
+   "label": "Target HP",
+   "unit": "HP"
+  },
+  {
+   "calc": "throttle_body",
+   "id": "tb_rpm",
+   "quantity": "RPM",
+   "label": "Peak RPM",
+   "unit": "rpm"
+  },
+  {
+   "calc": "intake_runner",
+   "id": "rpm11",
+   "quantity": "RPM",
+   "label": "Target RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "exhaust_header",
+   "id": "rpm12",
+   "quantity": "RPM",
+   "label": "Target RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "dyno_correction",
+   "id": "hp_raw",
+   "quantity": "HP",
+   "label": "Measured HP",
+   "unit": "HP"
+  },
+  {
+   "calc": "power_to_weight",
+   "id": "hp_p2",
+   "quantity": "HP",
+   "label": "Horsepower",
+   "unit": "HP"
+  },
+  {
+   "calc": "power_to_weight",
+   "id": "wt_p2",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "et_weight_change",
+   "id": "wt_old",
+   "quantity": "weight",
+   "label": "Current Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "et_weight_change",
+   "id": "wt_new",
+   "quantity": "weight",
+   "label": "New Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "et_hp_change",
+   "id": "hp_old",
+   "quantity": "HP",
+   "label": "Current HP",
+   "unit": "HP"
+  },
+  {
+   "calc": "et_hp_change",
+   "id": "hp_new",
+   "quantity": "HP",
+   "label": "New HP",
+   "unit": "HP"
+  },
+  {
+   "calc": "deck_height",
+   "id": "str_dh",
+   "quantity": "stroke",
+   "label": "Stroke",
+   "unit": "in"
+  },
+  {
+   "calc": "crank_journal_overlap",
+   "id": "str_cj",
+   "quantity": "stroke",
+   "label": "Stroke",
+   "unit": "in"
+  },
+  {
+   "calc": "hp_cr_change",
+   "id": "hp_cr",
+   "quantity": "HP",
+   "label": "Current HP",
+   "unit": "HP"
+  },
+  {
+   "calc": "max_rpm",
+   "id": "str_mr",
+   "quantity": "stroke",
+   "label": "Stroke",
+   "unit": "in"
+  },
+  {
+   "calc": "hp_from_specs",
+   "id": "rpm_s",
+   "quantity": "RPM",
+   "label": "Peak RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "hp_from_specs",
+   "id": "ve4",
+   "quantity": "VE",
+   "label": "Volumetric Efficiency",
+   "unit": ""
+  },
+  {
+   "calc": "hp_from_specs",
+   "id": "afr_s",
+   "quantity": "AFR",
+   "label": "Target AFR",
+   "unit": ":1"
+  },
+  {
+   "calc": "converter_slip",
+   "id": "rpm_eng",
+   "quantity": "RPM",
+   "label": "Engine RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "converter_slip",
+   "id": "rpm_out",
+   "quantity": "RPM",
+   "label": "Transmission Output RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "rpm_drop_shift",
+   "id": "rpm_shift",
+   "quantity": "RPM",
+   "label": "Shift RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "afr_lambda",
+   "id": "afr_in",
+   "quantity": "AFR",
+   "label": "Air/Fuel Ratio (AFR)",
+   "unit": ":1"
+  },
+  {
+   "calc": "bsfc",
+   "id": "hp_bsfc",
+   "quantity": "HP",
+   "label": "Horsepower",
+   "unit": "HP"
+  },
+  {
+   "calc": "alternator_rpm",
+   "id": "eng_rpm2",
+   "quantity": "RPM",
+   "label": "Engine RPM (idle)",
+   "unit": "RPM"
+  },
+  {
+   "calc": "top_speed",
+   "id": "hp_ts",
+   "quantity": "HP",
+   "label": "Horsepower",
+   "unit": "HP"
+  },
+  {
+   "calc": "top_speed",
+   "id": "wt_ts",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "tractive_force",
+   "id": "hp_tf",
+   "quantity": "HP",
+   "label": "Horsepower",
+   "unit": "HP"
+  },
+  {
+   "calc": "tractive_force",
+   "id": "wt_tf",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "squish_velocity",
+   "id": "bore_sq",
+   "quantity": "bore",
+   "label": "Bore",
+   "unit": "in"
+  },
+  {
+   "calc": "squish_velocity",
+   "id": "str_sq",
+   "quantity": "stroke",
+   "label": "Stroke",
+   "unit": "in"
+  },
+  {
+   "calc": "squish_velocity",
+   "id": "rpm_sq",
+   "quantity": "RPM",
+   "label": "RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "ring_gap",
+   "id": "bore_rg",
+   "quantity": "bore",
+   "label": "Bore",
+   "unit": "in"
+  },
+  {
+   "calc": "bore_stroke_ratio",
+   "id": "bore_bs",
+   "quantity": "bore",
+   "label": "Bore",
+   "unit": "in"
+  },
+  {
+   "calc": "bore_stroke_ratio",
+   "id": "str_bs",
+   "quantity": "stroke",
+   "label": "Stroke",
+   "unit": "in"
+  },
+  {
+   "calc": "head_gasket_vol",
+   "id": "bore_hg",
+   "quantity": "bore",
+   "label": "Bore",
+   "unit": "in"
+  },
+  {
+   "calc": "wmi_flow",
+   "id": "hp_wmi",
+   "quantity": "HP",
+   "label": "Target Engine HP",
+   "unit": "HP"
+  },
+  {
+   "calc": "boost_for_hp",
+   "id": "hp_na",
+   "quantity": "HP",
+   "label": "NA Horsepower (baseline)",
+   "unit": "HP"
+  },
+  {
+   "calc": "boost_for_hp",
+   "id": "hp_target",
+   "quantity": "HP",
+   "label": "Target HP (boosted)",
+   "unit": "HP"
+  },
+  {
+   "calc": "unsprung_weight",
+   "id": "wt_uw",
+   "quantity": "weight",
+   "label": "Total Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "lateral_accel",
+   "id": "wt_la",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "injector_duty",
+   "id": "hp_id",
+   "quantity": "HP",
+   "label": "Engine HP",
+   "unit": "HP"
+  },
+  {
+   "calc": "exhaust_diameter",
+   "id": "hp_ex",
+   "quantity": "HP",
+   "label": "Engine HP",
+   "unit": "HP"
+  },
+  {
+   "calc": "velocity_stack",
+   "id": "rpm_vs",
+   "quantity": "RPM",
+   "label": "Target Peak RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "ct_panhard_roll",
+   "id": "wt_ph",
+   "quantity": "weight",
+   "label": "Rear Axle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "ct_track_bar_adj",
+   "id": "wt_tb",
+   "quantity": "weight",
+   "label": "Rear Axle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "insurance_estimator",
+   "id": "hp_ins",
+   "quantity": "HP",
+   "label": "Horsepower",
+   "unit": "HP"
+  },
+  {
+   "calc": "trap_speed_hp_check",
+   "id": "wt_check",
+   "quantity": "weight",
+   "label": "Vehicle Weight (w/ driver)",
+   "unit": "lbs"
+  },
+  {
+   "calc": "gear_shift_rpm_drag",
+   "id": "shift_rpm_g",
+   "quantity": "RPM",
+   "label": "Shift RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "gear_shift_rpm_drag",
+   "id": "peak_hp_rpm",
+   "quantity": "RPM",
+   "label": "Peak Torque RPM (power band floor)",
+   "unit": "RPM"
+  },
+  {
+   "calc": "bearing_life",
+   "id": "rpm_br",
+   "quantity": "RPM",
+   "label": "Operating Speed",
+   "unit": "RPM"
+  },
+  {
+   "calc": "sim_curve_editor",
+   "id": "curve_rpm_0",
+   "quantity": "RPM",
+   "label": "Point 1 RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "sim_curve_editor",
+   "id": "curve_rpm_1",
+   "quantity": "RPM",
+   "label": "Point 2 RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "sim_curve_editor",
+   "id": "curve_rpm_2",
+   "quantity": "RPM",
+   "label": "Point 3 RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "sim_curve_editor",
+   "id": "curve_rpm_3",
+   "quantity": "RPM",
+   "label": "Point 4 RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "sim_curve_editor",
+   "id": "curve_rpm_4",
+   "quantity": "RPM",
+   "label": "Point 5 RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "sim_curve_editor",
+   "id": "curve_rpm_5",
+   "quantity": "RPM",
+   "label": "Point 6 RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "sim_curve_editor",
+   "id": "curve_rpm_6",
+   "quantity": "RPM",
+   "label": "Point 7 RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "sim_curve_editor",
+   "id": "curve_rpm_7",
+   "quantity": "RPM",
+   "label": "Point 8 RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "sim_curve_editor",
+   "id": "curve_rpm_8",
+   "quantity": "RPM",
+   "label": "Point 9 RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "sim_curve_editor",
+   "id": "curve_rpm_9",
+   "quantity": "RPM",
+   "label": "Point 10 RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "sim_curve_editor",
+   "id": "curve_rpm_10",
+   "quantity": "RPM",
+   "label": "Point 11 RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "sim_curve_editor",
+   "id": "curve_rpm_11",
+   "quantity": "RPM",
+   "label": "Point 12 RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "sim_acceleration",
+   "id": "sim_weight",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "sim_braking",
+   "id": "sim_weight",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "sim_cornering",
+   "id": "sim_weight",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "sim_top_speed",
+   "id": "sim_weight",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "sim_dragstrip",
+   "id": "sim_weight",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "sim_gear_rpm",
+   "id": "gr_rpm",
+   "quantity": "RPM",
+   "label": "Target RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "sim_weight_transfer",
+   "id": "sim_weight",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "diesel_bmep",
+   "id": "d_rpm",
+   "quantity": "RPM",
+   "label": "Engine RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "diesel_torque_from_power",
+   "id": "dtfp_rpm",
+   "quantity": "RPM",
+   "label": "RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "diesel_airflow",
+   "id": "da_rpm",
+   "quantity": "RPM",
+   "label": "RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "diesel_injector_flow",
+   "id": "dif_rpm",
+   "quantity": "RPM",
+   "label": "RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "imep_from_power",
+   "id": "imep_rpm",
+   "quantity": "RPM",
+   "label": "RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "ring_gap_bore",
+   "id": "bore_rg",
+   "quantity": "bore",
+   "label": "Bore",
+   "unit": "in"
+  },
+  {
+   "calc": "injector_duty_cycle",
+   "id": "hp_id",
+   "quantity": "HP",
+   "label": "Engine HP",
+   "unit": "HP"
+  },
+  {
+   "calc": "lateral_acceleration",
+   "id": "wt_la",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "weight_transfer_braking",
+   "id": "wtb_w",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "weight_transfer_accel",
+   "id": "wta_w",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "brake_energy",
+   "id": "wt_be",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "rotor_heat",
+   "id": "wt_rt",
+   "quantity": "weight",
+   "label": "Vehicle Weight",
+   "unit": "lbs"
+  },
+  {
+   "calc": "hydraulic_pump_flow",
+   "id": "hpf_rpm",
+   "quantity": "RPM",
+   "label": "Pump Speed",
+   "unit": "RPM"
+  },
+  {
+   "calc": "rpm_frequency",
+   "id": "rpm_rf",
+   "quantity": "RPM",
+   "label": "RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "engine_order",
+   "id": "rpm_eo",
+   "quantity": "RPM",
+   "label": "Engine RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "driveshaft_order",
+   "id": "rpm_dso",
+   "quantity": "RPM",
+   "label": "Driveshaft RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "piston_acceleration",
+   "id": "pa_rpm",
+   "quantity": "RPM",
+   "label": "Engine Speed",
+   "unit": "RPM"
+  },
+  {
+   "calc": "piston_inertial_force",
+   "id": "pif_rpm",
+   "quantity": "RPM",
+   "label": "Engine Speed",
+   "unit": "RPM"
+  },
+  {
+   "calc": "primary_secondary_balance_force",
+   "id": "psbf_rpm",
+   "quantity": "RPM",
+   "label": "Engine Speed",
+   "unit": "RPM"
+  },
+  {
+   "calc": "rod_bearing_pv",
+   "id": "rbpv_rpm",
+   "quantity": "RPM",
+   "label": "Journal Speed",
+   "unit": "RPM"
+  },
+  {
+   "calc": "main_bearing_load",
+   "id": "mbl_rpm",
+   "quantity": "RPM",
+   "label": "Engine Speed",
+   "unit": "RPM"
+  },
+  {
+   "calc": "bearing_surface_speed",
+   "id": "bss_rpm",
+   "quantity": "RPM",
+   "label": "Journal Speed",
+   "unit": "RPM"
+  },
+  {
+   "calc": "valve_motion_velocity",
+   "id": "vmv_rpm",
+   "quantity": "RPM",
+   "label": "Engine Speed",
+   "unit": "RPM"
+  },
+  {
+   "calc": "valve_acceleration",
+   "id": "vac_rpm",
+   "quantity": "RPM",
+   "label": "Engine Speed",
+   "unit": "RPM"
+  },
+  {
+   "calc": "cam_motion_profile",
+   "id": "cmp_rpm",
+   "quantity": "RPM",
+   "label": "Engine Speed",
+   "unit": "RPM"
+  },
+  {
+   "calc": "cam_area_time_area",
+   "id": "cata_rpm",
+   "quantity": "RPM",
+   "label": "Engine Speed",
+   "unit": "RPM"
+  },
+  {
+   "calc": "total_timing_helper",
+   "id": "tth_rpm",
+   "quantity": "RPM",
+   "label": "Current / Target RPM",
+   "unit": "RPM"
+  },
+  {
+   "calc": "final_drive_selector",
+   "id": "fds_rpm",
+   "quantity": "RPM",
+   "label": "Desired Cruising RPM",
+   "unit": ""
+  },
+  {
+   "calc": "tire_slip_ratio",
+   "id": "tsr_rpm",
+   "quantity": "RPM",
+   "label": "Wheel Angular Speed",
+   "unit": "rpm"
+  }
+ ],
+ "not_boxes": [
+  {
+   "calc": "optimal_shift",
+   "id": "hp_tq",
+   "label": "Torque at Peak HP RPM",
+   "unit": "lb-ft",
+   "matched_as": "HP",
+   "reason": "Torque at Peak HP RPM in lb-ft (id begins \"hp_\")"
+  },
+  {
+   "calc": "supercharger_speed",
+   "id": "cr3",
+   "label": "Pulley Ratio (SC:Crank)",
+   "unit": ":1",
+   "matched_as": "compression ratio",
+   "reason": "Pulley Ratio SC:Crank (id begins \"cr\")"
+  },
+  {
+   "calc": "timing_mark",
+   "id": "bore5",
+   "label": "Balancer Diameter",
+   "unit": "in",
+   "matched_as": "bore",
+   "reason": "Balancer Diameter (a damper diameter, not an engine bore)"
+  },
+  {
+   "calc": "sim_weight_transfer",
+   "id": "wt_wb",
+   "label": "Wheelbase",
+   "unit": "in",
+   "matched_as": "weight",
+   "reason": "Wheelbase (id begins \"wt\")"
+  },
+  {
+   "calc": "sim_weight_transfer",
+   "id": "wt_track",
+   "label": "Track Width",
+   "unit": "in",
+   "matched_as": "weight",
+   "reason": "Track Width (id begins \"wt\")"
+  },
+  {
+   "calc": "sim_weight_transfer",
+   "id": "wt_cg",
+   "label": "CG Height",
+   "unit": "in",
+   "matched_as": "weight",
+   "reason": "CG Height (id begins \"wt\")"
+  },
+  {
+   "calc": "sim_weight_transfer",
+   "id": "wt_accel",
+   "label": "Longitudinal Accel",
+   "unit": "g",
+   "matched_as": "weight",
+   "reason": "Longitudinal Accel in g (id begins \"wt\")"
+  },
+  {
+   "calc": "sim_weight_transfer",
+   "id": "wt_lat",
+   "label": "Lateral Accel",
+   "unit": "g",
+   "matched_as": "weight",
+   "reason": "Lateral Accel in g (id begins \"wt\")"
+  },
+  {
+   "calc": "sim_weight_transfer",
+   "id": "wt_front",
+   "label": "Static Front Weight",
+   "unit": "%",
+   "matched_as": "weight",
+   "reason": "Static Front Weight in % (id begins \"wt\")"
+  },
+  {
+   "calc": "weight_transfer_braking",
+   "id": "wtb_h",
+   "label": "CG Height",
+   "unit": "in",
+   "matched_as": "weight",
+   "reason": "CG Height (id contains \"wt\")"
+  },
+  {
+   "calc": "weight_transfer_braking",
+   "id": "wtb_l",
+   "label": "Wheelbase",
+   "unit": "in",
+   "matched_as": "weight",
+   "reason": "Wheelbase (id contains \"wt\")"
+  },
+  {
+   "calc": "weight_transfer_braking",
+   "id": "wtb_g",
+   "label": "Braking G",
+   "unit": "g",
+   "matched_as": "weight",
+   "reason": "Braking G (id contains \"wt\")"
+  },
+  {
+   "calc": "weight_transfer_accel",
+   "id": "wta_h",
+   "label": "CG Height",
+   "unit": "in",
+   "matched_as": "weight",
+   "reason": "CG Height (id contains \"wt\")"
+  },
+  {
+   "calc": "weight_transfer_accel",
+   "id": "wta_l",
+   "label": "Wheelbase",
+   "unit": "in",
+   "matched_as": "weight",
+   "reason": "Wheelbase (id contains \"wt\")"
+  },
+  {
+   "calc": "weight_transfer_accel",
+   "id": "wta_g",
+   "label": "Acceleration G",
+   "unit": "g",
+   "matched_as": "weight",
+   "reason": "Acceleration G (id contains \"wt\")"
+  },
+  {
+   "calc": "machining_rpm",
+   "id": "mrpm_v",
+   "label": "Cutting Speed",
+   "unit": "SFM",
+   "matched_as": "RPM",
+   "reason": "Cutting Speed in SFM (id begins \"mrpm\")"
+  },
+  {
+   "calc": "machining_rpm",
+   "id": "mrpm_d",
+   "label": "Tool Diameter",
+   "unit": "in",
+   "matched_as": "RPM",
+   "reason": "Tool Diameter in inches (id begins \"mrpm\")"
+  },
+  {
+   "calc": "hp_to_kw",
+   "id": "hp_to_kw_x",
+   "label": "Value",
+   "unit": "",
+   "matched_as": "HP",
+   "reason": "converter Value (id begins \"hp_\")"
+  },
+  {
+   "calc": "hp_to_ps",
+   "id": "hp_to_ps_x",
+   "label": "Value",
+   "unit": "",
+   "matched_as": "HP",
+   "reason": "converter Value (id begins \"hp_\")"
+  },
+  {
+   "calc": "rpm_to_radsec",
+   "id": "rpm_to_radsec_x",
+   "label": "Value",
+   "unit": "",
+   "matched_as": "RPM",
+   "reason": "converter Value (id contains \"rpm\")"
+  },
+  {
+   "calc": "radsec_to_rpm",
+   "id": "radsec_to_rpm_x",
+   "label": "Value",
+   "unit": "",
+   "matched_as": "RPM",
+   "reason": "converter Value (id contains \"rpm\")"
+  }
+ ]
+}
