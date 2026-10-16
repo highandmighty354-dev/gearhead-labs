@@ -136,13 +136,30 @@ Everything below uses the GitHub and Supabase web pages; nothing needs a termina
 
    Then approve the production gate. Expected:
    - verify-package prints "commit 0cc4fc8…, 18 files";
-   - the summary lists exactly one pending migration, `0408_formula_versions_corrected_formulas.sql`, and says it is "eligible for APPLY" and "No database changes were made".
+   - the job finishes **green**, and its summary names the target, the pinned commit and exactly one pending migration, `0408_formula_versions_corrected_formulas.sql`, with "✅ … eligible for APPLY" and "No database changes were made".
+   - **A red dry run means do not apply.** The dry run fails closed (the `pending_gate` in the workflow):
+     - It reads only the CLI's own list: the `DRY RUN` confirmation line, then `Would push these migrations:` with one ` • <file>` per line, or the explicit `Remote database is up to date.`. A file name anywhere else in the log is never counted.
+     - It fails on:
+       - an unreadable or empty result;
+       - a database reported up to date, while production must show 0408;
+       - a missing `DRY RUN` line;
+       - duplicate entries;
+       - a file outside the package;
+       - a reordered or skipped list;
+       - any pending list other than `PRODUCTION_EXPECTED_PENDING` (this release: 0408 only);
+       - a CLI error.
+     - Policy for the unused `rehearsal` target: any exact end of the approved order passes (a fresh, empty project shows all 18 files), as does an explicit "up to date". Production keeps the 0408-only rule.
+     - Tested by `python3 premium/tests/workflow-pending-gate.test.py`, which runs the workflow's own scripts with a fake `supabase` command.
 
-   **Open precondition:** it could not be verified whether the `production` environment only allows deployments from `main` (the environments API was not reachable from this session). If GitHub refuses the job at the gate, nothing runs. The owner then decides between allowing this branch in the environment settings and moving the pinned workflow to `main`.
+   **Open precondition:** whether the `production` environment allows runs from this branch is still unverified (re-checked 2026-10-16).
+   - The environments API is blocked from Claude's sessions.
+   - Every production deployment so far (7, all on 2026-10-06) and all 8 provisioning runs came from `main`, so the history neither confirms nor rules it out.
+   - The owner can see the rule in GitHub → *Settings* → *Environments* → *production* → *Deployment branches and tags*.
+   - If GitHub refuses the job at the gate, nothing runs. The owner then decides between allowing this branch in the environment settings and moving the pinned workflow to `main`.
 4. **Apply** (owner, separately authorized). Run the same workflow from the same branch, with mode `apply` and APPLY typed, and approve the gate. The job:
-   - repeats the dry run and refuses unless the pending list is exactly `0408`;
+   - repeats the dry run and refuses unless the pending list is exactly `0408`. Two independent checks must both pass: the original end-of-order check and the same `pending_gate` as the dry run;
    - runs `supabase db push --yes`;
-   - repeats the dry run and fails if anything is still pending.
+   - repeats the dry run and fails unless the CLI positively prints "Remote database is up to date." (an empty result is not accepted).
 5. **Post-migration read-only checks** (Claude, connector, read-only transaction):
    - 18 versions; the latest is `0408`, named `formula_versions_corrected_formulas`;
    - `formula_versions` 581;
@@ -157,7 +174,7 @@ Everything below uses the GitHub and Supabase web pages; nothing needs a termina
 ### Failure handling
 
 - **verify-package fails:** no credential was released and nothing was touched. Do not change the pin or the manifest without a new review.
-- **The dry run lists anything other than exactly `0408`,** or the project-ref check fails: stop and do not apply. Investigate read-only.
+- **The dry run is red** (it lists anything other than exactly `0408`, or its output cannot be verified), or the project-ref check fails: stop and do not apply. Investigate read-only.
 - **Apply fails inside `0408`:** the file's own transaction rolls back (for example on `PF_0408_POSTCONDITION`), and the CLI stops at the first error. Nothing is written, and the history does not record `0408`. Investigate read-only before any retry.
 - **The rows were written but the history entry was not** (a connection loss between the file and the CLI's history insert): the next dry run lists `0408` again. Re-applying is safe: the file is idempotent, and the throwaway proof (H1–H3) shows that a second apply leaves every earlier row unchanged.
 - **The verification dry run still shows something pending:** the job fails. Check read-only before doing anything else.

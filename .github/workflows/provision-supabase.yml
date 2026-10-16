@@ -13,6 +13,10 @@
 #     reviewer's approval before any credential is released.
 #   * The package is verified before any credential is touched: exact commit, exact 18 file names,
 #     exact order, exact SHA-256 of every file, and the frozen-source hashes.
+#   * The dry run FAILS (red) unless the pending list is positively verified (pending_gate below):
+#     production must show exactly PRODUCTION_EXPECTED_PENDING (this release: only 0408); a rehearsal
+#     project must show a non-empty exact end of the approved order (fresh project: all 18) or an
+#     explicit "up to date". Unparseable, empty, duplicated, reordered or skipped lists fail.
 #   * Apply refuses to run unless the target's pending list is exactly the END of the approved order:
 #     all 18 files for a fresh, empty project, or only the files after the last one already applied
 #     (production at 0407 -> only 0408). It never applies a reordered set or skips a file. The CLI also
@@ -54,6 +58,109 @@ concurrency:
 env:
   PINNED_SHA: 0cc4fc8d7cd2bb678a2a60a61c1a9f738ee5e4b6
   SUPABASE_CLI_VERSION: 2.119.0
+  # What production must show pending for THIS release (newline-separated, in order). Production is at 0407.
+  # Change it only together with a new pinned package.
+  PRODUCTION_EXPECTED_PENDING: "0408_formula_versions_corrected_formulas.sql"
+  # The pending-migration gate, defined once and loaded by the dry-run and apply jobs (they check out the
+  # pinned commit, which has no helper scripts). Tested by premium/tests/workflow-pending-gate.test.py.
+  PENDING_GATE_SH: |
+    # Pending-migration gate (fail closed). Defined once, here, and loaded by the dry-run and apply jobs.
+    # Parses ONLY the exact lines the Supabase CLI 2.119.0 prints for `db push --dry-run`
+    # (apps/cli/src/command-internal/db-push-core.ts):
+    #   "DRY RUN: migrations will *not* be pushed to the database."      once, proves the dry-run path
+    #   "Would push these migrations:" then one " • <file>.sql" per line  the pending list
+    #   "Remote database is up to date."                                  explicit: nothing pending
+    # A file name anywhere else in the output (log text, errors, warnings) is never read as pending.
+    #
+    # pending_gate TARGET CLI_OUTPUT_FILE APPROVED_LIST_FILE PRODUCTION_EXPECTED
+    #   APPROVED_LIST_FILE: the approved file names, one per line, in apply order (the pinned package).
+    #   PRODUCTION_EXPECTED: newline-separated list production must show pending, exactly (this release: 0408 only).
+    # Policy:
+    #   production  pending must equal PRODUCTION_EXPECTED exactly; "up to date" or anything else fails.
+    #   rehearsal   pending must be a non-empty exact END of the approved order (a fresh, empty project: all
+    #               18 files); an explicit "up to date" passes as "nothing pending".
+    #   other       fails.
+    # Prints "pending: <file>" lines, then "verdict: PASS <why>" (return 0) or "verdict: FAIL <why>" (return 1).
+    pending_gate() {
+      local target="$1" out="$2" approved_file="$3" prod_expected="$4"
+      local LC_ALL=C
+      local dry_line='DRY RUN: migrations will *not* be pushed to the database.'
+      local head_line='Would push these migrations:'
+      local up_line='Remote database is up to date.'
+      local bullet_re='^ • ([0-9]{4}_[a-z0-9_]+\.sql)$'
+      local clean approved line state=none n_bullets=0 dup suffix k
+      local -a pending=()
+
+      if [ ! -s "$out" ]; then echo "verdict: FAIL the CLI output is missing or empty"; return 1; fi
+      if [ ! -s "$approved_file" ]; then echo "verdict: FAIL the approved list is missing or empty"; return 1; fi
+      approved="$(grep -v '^$' "$approved_file" || true)"
+      if [ -n "$(printf '%s\n' "$approved" | sort | uniq -d)" ]; then echo "verdict: FAIL the approved list has duplicates"; return 1; fi
+      # strip colour codes and carriage returns (the CLI prints no colour in CI; this is defence only)
+      clean="$(sed -e $'s/\x1b\\[[0-9;]*[A-Za-z]//g' -e $'s/\r$//' "$out")"
+
+      if [ "$(printf '%s\n' "$clean" | grep -cxF -- "$dry_line")" != 1 ]; then
+        echo "verdict: FAIL the output does not confirm a dry run (the DRY RUN line must appear exactly once)"; return 1; fi
+      if printf '%s\n' "$clean" | grep -qE '^Would (seed|create)'; then
+        echo "verdict: FAIL the dry run would also seed data or create roles"; return 1; fi
+      local n_head n_up
+      n_head="$(printf '%s\n' "$clean" | grep -cxF -- "$head_line" || true)"
+      n_up="$(printf '%s\n' "$clean" | grep -cxF -- "$up_line" || true)"
+      if [ "$n_head" = 1 ] && [ "$n_up" = 0 ]; then
+        while IFS= read -r line; do
+          if [ "$state" = none ]; then [ "$line" = "$head_line" ] && state=list; continue; fi
+          if [ "$state" = list ]; then
+            if [[ $line =~ $bullet_re ]]; then pending+=("${BASH_REMATCH[1]}"); else state=ended; fi
+          fi
+        done <<< "$clean"
+        # every bullet line in the whole output must belong to that one list
+        n_bullets="$(printf '%s\n' "$clean" | grep -c '^ • ' || true)"
+        if [ "${#pending[@]}" = 0 ]; then echo "verdict: FAIL the pending list after the header is empty or malformed"; return 1; fi
+        if [ "$n_bullets" != "${#pending[@]}" ]; then
+          echo "verdict: FAIL the output has list entries outside the pending list, or an entry that is not a migration file name"; return 1; fi
+      elif [ "$n_up" = 1 ] && [ "$n_head" = 0 ]; then
+        if printf '%s\n' "$clean" | grep -q '^ • '; then echo "verdict: FAIL 'up to date' together with list entries"; return 1; fi
+        if [ "$target" = rehearsal ]; then echo "verdict: PASS nothing pending: the CLI reported the database up to date"; return 0; fi
+        echo "verdict: FAIL the CLI reported the database up to date, but $target must have exactly: $(printf '%s' "$prod_expected" | tr '\n' ' ')"; return 1
+      else
+        echo "verdict: FAIL the pending list cannot be read reliably (header lines: $n_head, up-to-date lines: $n_up)"; return 1
+      fi
+
+      printf 'pending: %s\n' "${pending[@]}"
+      local plist; plist="$(printf '%s\n' "${pending[@]}")"
+      dup="$(printf '%s\n' "$plist" | sort | uniq -d)"
+      if [ -n "$dup" ]; then echo "verdict: FAIL duplicate pending entries: $(printf '%s' "$dup" | tr '\n' ' ')"; return 1; fi
+      while IFS= read -r line; do
+        if ! printf '%s\n' "$approved" | grep -qxF -- "$line"; then echo "verdict: FAIL $line is not in the approved package"; return 1; fi
+      done <<< "$plist"
+      k="${#pending[@]}"
+      suffix="$(printf '%s\n' "$approved" | tail -n "$k")"
+      if [ "$(printf '%s\n' "$approved" | wc -l)" -lt "$k" ] || [ "$suffix" != "$plist" ]; then
+        echo "verdict: FAIL the pending list is not the exact end of the approved order (a file is skipped or the order differs)"; return 1; fi
+      case "$target" in
+        production)
+          if [ -z "$(printf '%s' "$prod_expected" | tr -d '[:space:]')" ]; then echo "verdict: FAIL no expected production pending list is configured"; return 1; fi
+          if [ "$plist" != "$(printf '%s\n' "$prod_expected" | grep -v '^$')" ]; then
+            echo "verdict: FAIL production must have exactly: $(printf '%s' "$prod_expected" | tr '\n' ' ')"; return 1; fi
+          echo "verdict: PASS exactly the expected production pending list"; return 0 ;;
+        rehearsal)
+          echo "verdict: PASS the pending list is an exact end of the approved order ($k of $(printf '%s\n' "$approved" | wc -l) files)"; return 0 ;;
+        *) echo "verdict: FAIL unknown target '$target'"; return 1 ;;
+      esac
+    }
+
+    # uptodate_gate CLI_OUTPUT_FILE: after APPLY, the verification dry run must positively say nothing is pending.
+    uptodate_gate() {
+      local out="$1" clean LC_ALL=C
+      if [ ! -s "$out" ]; then echo "verdict: FAIL the CLI output is missing or empty"; return 1; fi
+      clean="$(sed -e $'s/\x1b\\[[0-9;]*[A-Za-z]//g' -e $'s/\r$//' "$out")"
+      if [ "$(printf '%s\n' "$clean" | grep -cxF -- 'DRY RUN: migrations will *not* be pushed to the database.')" != 1 ]; then
+        echo "verdict: FAIL the output does not confirm a dry run"; return 1; fi
+      if [ "$(printf '%s\n' "$clean" | grep -cxF -- 'Remote database is up to date.')" = 1 ] \
+         && ! printf '%s\n' "$clean" | grep -qxF -- 'Would push these migrations:' \
+         && ! printf '%s\n' "$clean" | grep -q '^ • '; then
+        echo "verdict: PASS the CLI reported the database up to date"; return 0; fi
+      echo "verdict: FAIL the database is not positively reported up to date"; return 1
+    }
 
 jobs:
   verify-package:
@@ -130,8 +237,12 @@ jobs:
           POOLER_URL: ${{ vars.SUPABASE_POOLER_URL }}
           DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           CONFIRM_REF: ${{ inputs.confirm_project_ref }}
+          TARGET: ${{ inputs.target }}
+          NO_COLOR: "1"
         run: |
           set -euo pipefail
+          printf '%s\n' "$PENDING_GATE_SH" > "$RUNNER_TEMP/gate.sh"; . "$RUNNER_TEMP/gate.sh"
+          test "$(git rev-parse HEAD)" = "$PINNED_SHA"
           # --- resolve and check target
           ref="$(printf '%s' "$POOLER_URL" | sed -nE 's#^postgres(ql)?://postgres\.([a-z0-9]+):\[YOUR-PASSWORD\]@.*#\2#p')"
           if [ -z "$ref" ]; then
@@ -147,30 +258,39 @@ jobs:
           echo "::add-mask::$enc"
           url="${POOLER_URL/\[YOUR-PASSWORD\]/$enc}"
           echo "::add-mask::$url"
-          echo "Target project ref: $ref (environment: ${{ inputs.target }})"
-          # --- dry run
-          supabase db push --dry-run --db-url "$url" 2>&1 | tee "$RUNNER_TEMP/dry.txt"
-          pending="$(grep -oE '[0-9]{4}_[a-z0-9_]+\.sql' "$RUNNER_TEMP/dry.txt" || true)"
-          expected="$(ls -1 supabase/migrations/*.sql | xargs -n1 basename | LC_ALL=C sort)"
-          # Eligible = the pending list is a non-empty END of the approved order (fresh project: all files).
-          is_suffix() { [ -n "$1" ] && [ "$(printf '%s\n' "$2" | tail -n "$(printf '%s\n' "$1" | wc -l)")" = "$1" ]; }
+          echo "Target project ref: $ref (environment: $TARGET)"
+          # --- dry run (read-only: --dry-run only lists the applied versions; this job never calls apply)
+          for f in supabase/migrations/*.sql; do basename "$f"; done | LC_ALL=C sort > "$RUNNER_TEMP/approved.txt"
+          rc=0
+          supabase db push --dry-run --db-url "$url" > "$RUNNER_TEMP/dry.txt" 2>&1 || rc=$?
+          cat "$RUNNER_TEMP/dry.txt"
+          if [ "$rc" -ne 0 ]; then
+            echo "verdict: FAIL the Supabase CLI exited with status $rc" > "$RUNNER_TEMP/gate.txt"
+          else
+            pending_gate "$TARGET" "$RUNNER_TEMP/dry.txt" "$RUNNER_TEMP/approved.txt" "$PRODUCTION_EXPECTED_PENDING" > "$RUNNER_TEMP/gate.txt" || true
+          fi
+          verdict="$(grep '^verdict: ' "$RUNNER_TEMP/gate.txt" | tail -n 1)"
+          [ -n "$verdict" ] || verdict="verdict: FAIL the gate gave no verdict"
           {
-            echo "### Dry run — ${{ inputs.target }} ($ref)"
+            echo "### Dry run — $TARGET ($ref)"
             echo
-            echo "Pending migrations reported by the Supabase CLI: $(printf '%s\n' "$pending" | grep -c . || true)"
+            echo "- Pinned package: \`$PINNED_SHA\` ($(wc -l < "$RUNNER_TEMP/approved.txt") approved files)"
+            echo "- Supabase CLI: $SUPABASE_CLI_VERSION"
+            echo "- Pending migrations verified from the CLI's own list ($(grep -c '^pending: ' "$RUNNER_TEMP/gate.txt" || true)):"
+            grep '^pending: ' "$RUNNER_TEMP/gate.txt" | sed 's/^pending: /  - /' || echo "  - (none verified)"
             echo
-            printf '%s\n' "$pending" | sed 's/^/- /'
+            case "$verdict" in
+              "verdict: PASS"*) echo "✅ ${verdict#verdict: }. This target is eligible for APPLY." ;;
+              *) echo "❌ ${verdict#verdict: }. Do NOT apply." ;;
+            esac
             echo
-            if is_suffix "$pending" "$expected"; then
-              echo "✅ The pending list is exactly the end of the approved order (nothing skipped or reordered). This target is eligible for APPLY."
-            elif [ -z "$pending" ]; then
-              echo "ℹ️ Nothing is pending: this target already has every approved migration."
-            else
-              echo "⚠️ The pending list is NOT the end of the approved order. APPLY will refuse to run against this target."
-            fi
-            echo
-            echo "No database changes were made."
+            echo "No database changes were made (dry run)."
           } >> "$GITHUB_STEP_SUMMARY"
+          echo "$verdict"
+          case "$verdict" in
+            "verdict: PASS"*) ;;
+            *) echo "::error::Dry-run gate failed: ${verdict#verdict: FAIL }"; exit 1 ;;
+          esac
 
   apply:
     name: APPLY migrations (changes the database)
@@ -191,8 +311,12 @@ jobs:
           POOLER_URL: ${{ vars.SUPABASE_POOLER_URL }}
           DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           CONFIRM_REF: ${{ inputs.confirm_project_ref }}
+          TARGET: ${{ inputs.target }}
+          NO_COLOR: "1"
         run: |
           set -euo pipefail
+          printf '%s\n' "$PENDING_GATE_SH" > "$RUNNER_TEMP/gate.sh"; . "$RUNNER_TEMP/gate.sh"
+          test "$(git rev-parse HEAD)" = "$PINNED_SHA"
           ref="$(printf '%s' "$POOLER_URL" | sed -nE 's#^postgres(ql)?://postgres\.([a-z0-9]+):\[YOUR-PASSWORD\]@.*#\2#p')"
           if [ -z "$ref" ]; then
             echo "::error::Environment variable SUPABASE_POOLER_URL is missing or not in the expected Session pooler form (it must still contain [YOUR-PASSWORD])."
@@ -207,7 +331,7 @@ jobs:
           echo "::add-mask::$enc"
           url="${POOLER_URL/\[YOUR-PASSWORD\]/$enc}"
           echo "::add-mask::$url"
-          echo "Target project ref: $ref (environment: ${{ inputs.target }})"
+          echo "Target project ref: $ref (environment: $TARGET)"
 
           # 1) Fresh dry run immediately before applying.
           supabase db push --dry-run --db-url "$url" 2>&1 | tee "$RUNNER_TEMP/dry.txt"
@@ -217,6 +341,12 @@ jobs:
           is_suffix() { [ -n "$1" ] && [ "$(printf '%s\n' "$2" | tail -n "$(printf '%s\n' "$1" | wc -l)")" = "$1" ]; }
           if ! is_suffix "$pending" "$expected"; then
             echo "::error::The pending list is empty or is not exactly the end of the approved order. Nothing was applied."
+            exit 1
+          fi
+          # Independent second check: the same fail-closed gate as the dry-run job (production: exactly PRODUCTION_EXPECTED_PENDING).
+          for f in supabase/migrations/*.sql; do basename "$f"; done | LC_ALL=C sort > "$RUNNER_TEMP/approved.txt"
+          if ! pending_gate "$TARGET" "$RUNNER_TEMP/dry.txt" "$RUNNER_TEMP/approved.txt" "$PRODUCTION_EXPECTED_PENDING"; then
+            echo "::error::The pending-migration gate failed. Nothing was applied."
             exit 1
           fi
           echo "Pending (will be applied, in order):"; printf '%s\n' "$pending" | sed 's/^/  /'
@@ -231,8 +361,12 @@ jobs:
             echo "::error::Some migrations are still pending after apply."
             exit 1
           fi
+          if ! uptodate_gate "$RUNNER_TEMP/after.txt"; then
+            echo "::error::The verification dry run does not positively report the database up to date."
+            exit 1
+          fi
           {
-            echo "### APPLY complete — ${{ inputs.target }} ($ref)"
+            echo "### APPLY complete — $TARGET ($ref)"
             echo
             grep -E '^Applying migration' "$RUNNER_TEMP/apply.txt" | sed 's/^/- /'
             echo
