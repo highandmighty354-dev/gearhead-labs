@@ -8178,16 +8178,43 @@ function ghCategoryBlock(cat, items, open){
   </div>`;
 }
 
+/* GH-DEF-038 (2026-10-17, revised after review): ghBuildNav is the one authoritative calculator search. Each calculator is
+   placed in at most one tier; results list tier 1, then 2, then 3, each tier in catalogue (CALCS) order:
+     1. exact name: the query equals the calculator's name once case is ignored and every character that is not a letter or
+        digit (any script) is read as a space ("torque-from-hp" = "Torque from HP"; an id such as dc_fast_charge_time equals
+        "DC Fast-Charge Time");
+     2. the original rule, unchanged: the query appears in the name or the category;
+     3. word rule: the query is split at spaces. A word containing a non-ASCII character is engineering notation ("N·m", "°C",
+        "Δp") and must appear exactly, as typed, in the name or category. Any other word is split further at every character
+        that is not a-z or 0-9, and each piece must appear in the name, category or id read the same way ("fast charge",
+        "hp torque"). A query with no notation also matches when its pieces, joined, appear in that text with spaces removed
+        ("fastcharge"). A query with no notation and no pieces (punctuation only) adds nothing beyond tiers 1-2.
+   Notation is never reduced to its letters, so "°C" cannot widen into "c". Results still render through ghCalcItem. */
+function ghSearchFold(s){ return String(s==null?'':s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim(); }
+function ghSearchAscii(s){ return String(s==null?'':s).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(); }
+function ghSearchTier(c, q){
+  const name = String(c.name||'').toLowerCase(), cat = String(c.cat||'').toLowerCase();
+  const fq = ghSearchFold(q);
+  if(fq && ghSearchFold(name) === fq) return 1;
+  if(name.includes(q) || cat.includes(q)) return 2;
+  const tokens = q.split(/\s+/).filter(Boolean);
+  const notation = tokens.filter(t => /[^\x00-\x7f]/.test(t));
+  const words = ghSearchAscii(tokens.filter(t => !/[^\x00-\x7f]/.test(t)).join(' ')).split(' ').filter(Boolean);
+  if(!notation.length && !words.length) return 0;
+  const hay = ghSearchAscii(name + ' ' + cat + ' ' + (c.id||''));
+  if(notation.every(t => name.includes(t) || cat.includes(t)) && words.every(w => hay.includes(w))) return 3;
+  if(!notation.length && hay.replace(/ /g,'').includes(words.join(''))) return 3;
+  return 0;
+}
 function ghBuildNav(filter=''){
   const nav = document.getElementById('calc-nav');
   if(!nav) return;
   const q = String(filter||'').trim().toLowerCase();
 
   if(q){
-    const matches = CALCS.filter(c =>
-      c.id !== 'dashboard' &&
-      (c.name.toLowerCase().includes(q) || c.cat.toLowerCase().includes(q))
-    );
+    const tiers = [[], [], []];
+    CALCS.forEach(c => { if(c.id === 'dashboard') return; const t = ghSearchTier(c, q); if(t) tiers[t-1].push(c); });
+    const matches = tiers[0].concat(tiers[1], tiers[2]);
     nav.innerHTML = `<div class="gh-nav-search-title">${matches.length} RESULT${matches.length===1?'':'S'}</div>` +
       (matches.length ? matches.map(ghCalcItem).join('') :
       `<div class="fav-empty">No calculators match “${ghEsc(filter)}”.</div>`);
