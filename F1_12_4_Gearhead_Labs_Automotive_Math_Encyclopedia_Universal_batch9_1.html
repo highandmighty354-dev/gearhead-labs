@@ -8178,6 +8178,23 @@ function ghCategoryBlock(cat, items, open){
   </div>`;
 }
 
+/* GH-DEF-038 (2026-10-17): ghBuildNav is the one authoritative calculator search. A calculator matches when
+     (1) the query appears in its name or category exactly as before (unchanged rule, so every earlier match still matches), or
+     (2) every word of the query appears in its name, category or id once case, hyphens, underscores, slashes and other
+         punctuation are ignored ("fast charge" finds "DC Fast-Charge Time", "hp torque" finds "HP from Torque",
+         "dc_fast_charge_time" finds it by id), or
+     (3) the query with all spaces and punctuation removed appears in the same text with them removed ("fastcharge").
+   Results keep catalogue order and still render through ghCalcItem, so Premium badges are unchanged. */
+function ghSearchNormalize(s){ return String(s==null?'':s).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(); }
+function ghSearchMatches(c, q){
+  const name = String(c.name||'').toLowerCase(), cat = String(c.cat||'').toLowerCase();
+  if(name.includes(q) || cat.includes(q)) return true;
+  const words = ghSearchNormalize(q).split(' ').filter(Boolean);
+  if(!words.length) return false;
+  const hay = ghSearchNormalize(name + ' ' + cat + ' ' + (c.id||''));
+  if(words.every(w => hay.includes(w))) return true;
+  return hay.replace(/ /g,'').includes(words.join(''));
+}
 function ghBuildNav(filter=''){
   const nav = document.getElementById('calc-nav');
   if(!nav) return;
@@ -8185,8 +8202,7 @@ function ghBuildNav(filter=''){
 
   if(q){
     const matches = CALCS.filter(c =>
-      c.id !== 'dashboard' &&
-      (c.name.toLowerCase().includes(q) || c.cat.toLowerCase().includes(q))
+      c.id !== 'dashboard' && ghSearchMatches(c, q)
     );
     nav.innerHTML = `<div class="gh-nav-search-title">${matches.length} RESULT${matches.length===1?'':'S'}</div>` +
       (matches.length ? matches.map(ghCalcItem).join('') :
