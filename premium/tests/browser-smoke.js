@@ -369,7 +369,7 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
     await page.waitForFunction(() => window.GHShell && GHShell.isReady(), null, { timeout: 20000 });
     await page.waitForFunction(() => { const w = GHShell.frame.contentWindow; return w.eval('typeof currentCalc!=="undefined"?currentCalc:null') === 'turbo_sizing' && w.document.querySelector('#calc-container .gh-premium-upsell'); }, null, { timeout: 20000 });
     const upsell = await page.evaluate(() => GHShell.frame.contentWindow.document.getElementById('calc-container').innerHTML);
-    assert(/PREMIUM/.test(upsell) && /Upgrade to Premium/.test(upsell), 'anonymous visitor sees the PREMIUM upsell card, not the real calculator');
+    assert(/PREMIUM/.test(upsell) && /See Premium/.test(upsell), 'anonymous visitor sees the PREMIUM upsell card, not the real calculator');
     assert(/turbo_airflow|Turbocharger Airflow/.test(upsell), 'upsell names its real Free companion (turbo_airflow)');
     assert(!/pay to use this calculator/i.test(upsell), 'upsell avoids generic placeholder copy');
     const navBadge = await page.evaluate(() => {
@@ -394,7 +394,7 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
     await page.waitForFunction(() => window.GHShell && GHShell.isReady(), null, { timeout: 20000 });
     await page.waitForFunction(() => { const w = GHShell.frame.contentWindow; return w.eval('typeof currentCalc!=="undefined"?currentCalc:null') === 'piston_acceleration' && w.document.querySelector('#calc-container .gh-premium-upsell'); }, null, { timeout: 20000 });
     const upsell = await page.evaluate(() => GHShell.frame.contentWindow.document.getElementById('calc-container').innerHTML);
-    assert(/PREMIUM/.test(upsell) && /Upgrade to Premium/.test(upsell), 'anonymous visitor sees the PREMIUM upsell card, not the real calculator');
+    assert(/PREMIUM/.test(upsell) && /See Premium/.test(upsell), 'anonymous visitor sees the PREMIUM upsell card, not the real calculator');
     assert(!/gh-premium-companion-link/.test(upsell), 'no Free-companion link shown (none exists for this expansion calculator; premium/models.js omits free_companion)');
     assert(!/pay to use this calculator/i.test(upsell), 'upsell avoids generic placeholder copy');
     assert(/Piston Acceleration/.test(upsell), 'upsell uses this calculator\'s own promo copy, not a stale name');
