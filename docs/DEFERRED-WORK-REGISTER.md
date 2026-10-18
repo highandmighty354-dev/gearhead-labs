@@ -82,6 +82,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-IMP-018](#gh-imp-018--premium-validation-messages-quote-imperial-limits-when-the-page-is-in-metric) | Premium validation messages quote Imperial limits when the page is in Metric | OPEN | Low | P3 |
 | [GH-IMP-019](#gh-imp-019--engine-and-ev-power-and-torque-follow-the-metric-switch-hp-becomes-kw-lb-ft-becomes-nm-instead-of-the-locked-performance-unit-convention) | Engine and EV power and torque follow the Metric switch (hp becomes kW, lb-ft becomes N·m) instead of the locked performance-unit convention | VERIFIED CLOSED | Medium | P2 |
 | [GH-IMP-020](#gh-imp-020--performance-unit-policy-questions-that-remain-after-gh-imp-019-was-implemented) | Performance-unit policy questions that remain after GH-IMP-019 was implemented | DEFERRED | Low | P3 |
+| [GH-IMP-021](#gh-imp-021--profile-explains-premium-its-price-and-that-checkout-is-not-open-premium-destination-content) | Profile explains Premium, its price and that checkout is not open (Premium destination content) | FIXED — UNVERIFIED | Medium | P1 |
 | [GH-ENG-001](#gh-eng-001--which-of-the-65-metric-named-unit-inventory-entries-are-real-defects) | Which of the 65 "metric-named unit" inventory entries are real defects? | VERIFIED CLOSED | Medium | P1 |
 | [GH-ENG-002](#gh-eng-002--are-all-registered-unit-conversion-factors-correct) | Are all registered unit conversion factors correct? | VERIFIED CLOSED | Low | P1 |
 | [GH-ENG-003](#gh-eng-003--do-the-airflow-block-an-readers-have-the-head-flow-curve-defect) | Do the airflow-block `an()` readers have the Head Flow Curve defect? | SUPERSEDED | Medium | P1 |
@@ -1788,6 +1789,36 @@ This is the **single authoritative register** of known defects, deferred improve
 ---
   2026-10-13 — U8 probed in the release-readiness review: `setUnits` is undefined in the shell page and the menu's METRIC item leaves the system Imperial; recorded as GH-DEF-031 (open). U1 to U7 and U9 unchanged.
   2026-10-13 — the U8 observation (GH-DEF-031) was fixed and closed in the Chapter 10 closeout (`b51b500`); the decision items U1 to U9 are not reopened.
+
+### GH-IMP-021 — Profile explains Premium, its price and that checkout is not open (Premium destination content)
+- **Status:** FIXED — UNVERIFIED
+- **Severity:** Medium (the Premium link on every locked calculator led to a bare sign-in form: a visitor could not learn what Premium is, what it costs or that it cannot be bought yet)
+- **Priority:** P1
+- **Description:** Profile, the destination of the locked calculators' Premium link (GH-DEF-039), showed a signed-out visitor only "Sign in — We'll email you a secure sign-in link" with an email box. Nothing on it stated the price, what Premium adds, the size of the Premium catalogue, or that online checkout is not open. The locked card's link read "Upgrade to Premium →", which suggests an immediate purchase.
+- **Evidence:** read-only review of 2026-10-17 (finding B) and the live site at `885f843` / `d9e7eb5` (the Profile screenshots of the GH-DEF-039 verification show the bare sign-in form).
+- **Affected:** `premium/shell.js` (`premiumOfferCard()`, `signInCard()`, the Profile view, `upgradeCTA()`), `premium-calculator-gating.js` (the locked card), `premium/premium.css`, `index.html` / `app-shell.js` (cache tags).
+- **Impact:** Visitors could not understand or evaluate Premium before being asked to sign in. No calculation, entitlement or data is affected.
+- **Decision:** Owner decisions of 2026-10-17 (decision 1: "Explore/See Premium" while checkout is unavailable; explain the offer, price, Premium calculator count and checkout status before sign-in; preserve sign-in) and the Stage 2, Task 2 authorization of 2026-10-18. Implemented on branch `feat/premium-profile-content`:
+  - **Profile offer card** (before the sign-in form for a signed-out visitor; after the Plan card for a signed-in account without Premium; absent for Premium): both prices; "Online checkout is not open yet. Premium can’t be bought on this site today, and nothing on this page will charge you."; what Premium adds (the Premium calculators with their count, the Engineering Lab with its count and areas and saved analyses, My Garage with Test Setups); "Free stays free" with the free count; two buttons that only open existing pages (Engineering Lab preview, calculators).
+  - **Sources, no copied numbers:** prices from `M.PREMIUM_OFFERS` (mirrors `public.plan_offers`, seeded and guarded by migration `0407`); Premium calculator count from `M.PREMIUM_CALC_IDS` (158, the list the gate and `catalog/build-catalog.js` read); Engineering Lab count and areas from `M.ENGINEERING_CATALOG` / `M.ENGINEERING_CATEGORIES` (14; Turbo, Two-Stroke, Valvetrain, Chassis, Driveline, Thermal); free count from the engine's catalogue (`freeCount()`, 585).
+  - **Not claimed:** saved calculations (saving from a calculator is not available yet: `R.savedCalculations.createUnavailableReason`), any trial, discount, payment method or availability date.
+  - **Sign-in unchanged** apart from a note on Profile: "Signing in gives you a free Gearhead Labs account. It does not buy or unlock Premium." (Sign-up creates only an account and a profile row; Premium is granted only by server-side functions.)
+  - **Shared Premium line** on the Lab / Garage / Saved previews: lists the Premium calculators with their count instead of "saved calculations", and links to the offer ("See what Premium includes").
+  - **Locked calculator card:** the link reads "See Premium →" and the card states "Online checkout is not open yet." Destination and GH-DEF-039 navigation unchanged.
+- **Dependencies:** None. Checkout (GH-FUT-007) remains future work.
+- **Revisit:** The Home page's Premium sentence and the Saved preview's description ("Keep calculations with your vehicles…") were not changed; both predate this entry. When checkout opens, the status line and the "See Premium" wording must be revisited.
+- **Commits:** `9ace706` (the change and its tests).
+- **Tests:** `premium/tests/premium-profile.test.js` (new, in `premium/tests/run-browser-tests.sh`): 46 checks, real Chromium, real clicks, the browser's own Back / Forward. Expectations independent of the page code: prices parsed from migration `0407`, counts from `catalog/gearhead-catalog.json` (and the Premium count from the engine menu's PREMIUM tags). Production signed-out (`?gh_dev=0`, provisioned Supabase answered 401 / 42501, pinned supabase-js bytes from the npm registry) at 1280 × 900 and 375 × 812: locked card wording; "See Premium" opens Profile in the top-level page; offer before sign-in; exact prices and counts; visible checkout status; no purchase / payment / trial / subscription control; saved calculations not listed; existing sign-in form and note; layout fits; Back / Forward; the offer's buttons; search and HP from Torque (600 lb-ft at 4000 rpm → 457 HP); no page errors; no non-GET Supabase request. Development: Free account sees the offer after Plan, Premium grant removes it. No-backend: offer plus "Accounts are unavailable". Mutants detected: `premium/shell.js` as on `6f12a54` (24 checks fail), `premium-calculator-gating.js` as on `6f12a54` (2), `premium/models.js` with a 699-cent monthly price (2). `browser-smoke.js` and `upgrade-navigation.test.js`: link text updated to "See Premium".
+- **Docs:** This entry.
+- **Verification:**
+  1. `premium-profile.test.js` passes and detects its three mutants.
+  2. The full browser regression passes.
+  3. After the owner publishes the change: on the live site, at desktop width and a phone viewport, a signed-out visitor following "See Premium" from a locked calculator sees the offer (prices, counts, checkout status) before the sign-in form, and Back returns to the calculator.
+- **Verification result (2026-10-18, criteria 1–2, on the tree committed as `9ace706`):**
+  1. `premium-profile`: 46/46 passed; the three mutants detected.
+  2. Full browser regression (`bash premium/tests/run-browser-tests.sh`, 41 suites, Chromium 141): 0 failures. Among them: engine self-test 736/736, browser smoke 19/19, `toggle-sweep` 782 checks (742 consistent, 1 in the known-open ledger), `nav-return` 743, `shell-units` 77, `render-race` 95, `search-authority` 489/489, `upgrade-navigation` 68/68. Node checks: `frontend.test` 55/55, `check-catalog` OK, `workflow-pending-gate` 60, `register-check` OK.
+  Criterion 3 awaits publication. Not tested: Safari (including iPhone Safari) and Firefox, which are not available in this environment; the phone checks are Chromium emulation; a real signed-in Free account in production (development mode only).
+- **History:** 2026-10-17 — reported in the read-only review of release `c9db895` (finding B). 2026-10-18 — implemented in `9ace706` under the owner's Stage 2, Task 2 authorization; status FIXED — UNVERIFIED until criterion 3 is checked on the published site.
 
 ## C. Engineering questions and research
 
