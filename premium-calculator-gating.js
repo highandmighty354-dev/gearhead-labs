@@ -58,6 +58,13 @@
   function upgradeHref() {
     try { return window.parent.location.pathname + '?view=profile'; } catch (e) { return '?view=profile'; }
   }
+  /* GH-DEF-039: the app shell's router (premium/shell.js exports GHP.shell = { go, route, state }) in the parent page. */
+  function parentShell() {
+    try {
+      var sh = window.parent !== window && window.parent.GHP && window.parent.GHP.shell;
+      return sh && typeof sh.go === 'function' ? sh : null;
+    } catch (e) { return null; }
+  }
   function esc(v) {
     return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -96,7 +103,7 @@
       '<p class="gh-premium-lede">' + esc(promo.promo || ('Gearhead Labs Premium unlocks ' + meta.name + '.')) + '</p>' +
       (promo.free_companion ? ('<p class="gh-premium-companion">' + companionLink(promo.free_companion) + '</p>') : '') +
       '<p class="gh-premium-fine">Gearhead Labs Premium is ' + esc(priceText()) + '. Every other calculator on this page stays free, no account needed.</p>' +
-      '<a class="gh-premium-cta" href="' + esc(upgradeHref()) + '">Upgrade to Premium →</a>' +
+      '<a class="gh-premium-cta" href="' + esc(upgradeHref()) + '" target="_top">Upgrade to Premium →</a>' +
       '</div>';
   }
 
@@ -171,6 +178,25 @@
       wrapNavItem();
       if (typeof ghBuildNav === 'function') ghBuildNav('');
     } catch (e) { console.error('Gearhead Labs premium calculator gating failed', e); }
+  }
+
+  /* GH-DEF-039: Upgrade to Premium opens the shell's Profile view in the top-level page. The link used to be a plain href, so the
+     browser loaded the whole site INSIDE this calculator frame (two navigation bars, the top-level page still on "calculators").
+     A plain left click now goes through the parent shell's router, GHP.shell.go('profile'): the shell pushes ?view=profile on the
+     top-level history and shows its Profile view, the frame (and the calculator in it) is left untouched, so browser Back pops that
+     entry and the same calculator is on screen again. If the router is not available, the link's target="_top" makes the browser
+     replace the whole page (never just the frame). Clicks meant for a new tab or window (modifier keys, non-primary button) are left
+     to the browser. Installed once per calculator document. */
+  if (!document.__ghUpgradeNav) {
+    document.__ghUpgradeNav = true;
+    document.addEventListener('click', function (e) {
+      var a = e.target && e.target.closest ? e.target.closest('a.gh-premium-cta') : null;
+      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var shell = parentShell();
+      if (!shell) return;
+      e.preventDefault();
+      shell.go('profile');
+    });
   }
 
   apply();
