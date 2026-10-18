@@ -61,6 +61,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-035](#gh-def-035--a-navigation-made-in-the-same-instant-as-a-trip-to-the-dashboard-can-be-overwritten-by-the-dashboards-deferred-home-page-swap-intermittent-nav-return-failures) | A navigation made in the same instant as a trip to the dashboard can be overwritten by the dashboard's deferred home-page swap (intermittent nav-return failures) | VERIFIED CLOSED | Low | P3 |
 | [GH-DEF-036](#gh-def-036--bolt-stretch-applies-one-tensile-stress-area-to-the-whole-bolt-length-so-a-bolt-with-a-plain-shank-or-a-reduced-shank-gets-the-wrong-clamp-load) | Bolt Stretch applies one tensile stress area to the whole bolt length, so a bolt with a plain shank (or a reduced shank) gets the wrong clamp load | VERIFIED CLOSED | Medium | P2 |
 | [GH-DEF-037](#gh-def-037--test-harnesses-can-pass-vacuously-when-the-expected-value-is-not-finite-and-unit-system-reads-a-blank-box-as-0) | Test harnesses can pass vacuously when the expected value is not finite (and `unit-system` reads a blank box as 0) | VERIFIED CLOSED | Low | P2 |
+| [GH-DEF-038](#gh-def-038--calculator-search-intermittently-answers-no-calculators-found-for-every-query-multi-word-hyphen--space-and-id-queries-miss) | Calculator search intermittently answers "No calculators found" for every query; multi-word, hyphen / space and id queries miss | FIXED — UNVERIFIED | High | P1 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
 | [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
@@ -1130,6 +1131,46 @@ This is the **single authoritative register** of known defects, deferred improve
   The Verification criteria are met.
 - **History:** 2026-10-15 — observed while correcting GH-DEF-036 (the first draft of the `bolt_stretch` case had an infinite expected value at its first steps and still passed). Investigated on the owner's instruction: reproduced, surveyed, fix proposed and verified on temporary copies. No test infrastructure changed.
   2026-10-15 — **closed:** the shared guard was written and applied to the 25 harnesses, `numeric-guard.test.js` was added, and the reproduction now fails. The full regression passed with `unit-system` at 7,694 checks. Test infrastructure only: no engine, page, migration or production change.
+
+### GH-DEF-038 — Calculator search intermittently answers "No calculators found" for every query; multi-word, hyphen / space and id queries miss
+- **Status:** FIXED — UNVERIFIED
+- **Severity:** High (search, the main way to find one of 743 calculators, fails completely in some page loads; a visitor cannot tell why)
+- **Priority:** P1
+- **Description:** Three search implementations were present on the live site (release `c9db895`):
+  1. the engine's own `ghBuildNav` (search box `oninput` → `filterCalcs` → `buildNav = ghBuildNav`), which works;
+  2. `final-ui-fix.js` (loaded by `index.html`), which took the search box away from `ghBuildNav` (capture-phase `input` listener with `stopImmediatePropagation`, `oninput = null`) and searched `window.CALCS` — always `undefined`, because the engine declares `CALCS` with `const`. It is a race:
+     - when the script runs while the calculator frame still holds its initial blank document, it installs itself there, sets its "installed" flag, and never touches the real page (the usual case): the engine search works;
+     - when it runs after the frame's real page has loaded, it installs on the real page and **every query answers "No calculators found for …"**, with the full catalogue still listed below;
+  3. `navigation-ux.js` (injected by `app-shell.js`), which never installed (it looks for `#app` inside its own frame document) and polled every 100 ms indefinitely.
+
+  Separately, `ghBuildNav` matched the whole query as one string against name or category only: "fast charge" missed "DC Fast-Charge Time", "hp torque" missed "HP from Torque", and an id (`dc_fast_charge_time`) found nothing.
+- **Evidence:** 2026-10-17, read-only review of the live site (all nine key files byte-identical to `c9db895`, SHA-256):
+  - **Live:** in one of about nine page loads "charge" answered "No calculators found for charge." (the day before the same query listed 6 results); in that load `.gh-final-search-results` was installed on the real page. "fast charge" found nothing in every load.
+  - **Local (release files, Chromium 141):** "charge" listed 6 results when `final-ui-fix.js` ran early and "No calculators found" when it ran after the frame had loaded (delayed 3 s; also seen once in the natural order).
+  - **Source:** `final-ui-fix.js` line 49 (`Array.isArray(w.CALCS)`), line 123 (`wait()`); `navigation-ux.js` line 90 (`wait()`); engine `ghBuildNav` (line 8181 at `c9db895`).
+- **Affected:** `final-ui-fix.js`, `app-shell.js` (`ready()`), engine `F1_12_4_…html` (`ghBuildNav`), `index.html` (cache tags), `catalog/gearhead-catalog.json` (source hash). `navigation-ux.js` is no longer loaded and is left unchanged.
+- **Impact:** Visitors in an affected load could not find any calculator by search; in every load, natural queries with a space for a hyphen, several words or an id found nothing. No calculation, unit or Premium access is affected.
+- **Decision:** Owner decision 2026-10-17 ("make the engine's existing search implementation the single authoritative search system … prefer removing the redundant search interception from `final-ui-fix.js` … improve the authoritative search to support case-insensitive, multi-word matching and normalize hyphens and punctuation"). Implemented on branch `fix/gh-def-038-search-authority`:
+  - **`final-ui-fix.js`:** its search block is removed; the legacy-unit and FAB hiders and the three CSS rules they use are kept (`shell-units.test.js` depends on the hider in both script orders).
+  - **`app-shell.js`:** `navigation-ux.js` is no longer injected.
+  - **Engine `ghBuildNav`:** the original rule is kept as the first test, so every earlier match still matches. A calculator also matches when every word of the query (letters and digits) appears in its name, category or id with all other characters treated as spaces, or when the query's words joined appear in that text with spaces removed. Results keep catalogue order and render through `ghCalcItem` (Premium badges unchanged).
+  - **`index.html`:** cache tags for the engine, `app-shell.js` and `final-ui-fix.js` set to `20261017-0100`.
+  - Not done: exposing `CALCS` on `window` for the old layers (an earlier proposal, `window.__GH_SEARCH_CALCS`), which would have kept two competing search interfaces.
+  - Investigated and **not** changed: the empty-query menu rebuilds in `app-shell.js` `ready()` and in the Premium gate's `apply()`. A test load that delays the gate until after the visitor has typed shows the typed search still on screen (the engine's following route rebuilds with the box's text), and a mutant serving the release gate was not detected, so no defect was shown there.
+- **Dependencies:** None.
+- **Revisit:** None.
+- **Commits:** `f732dab` (the fix and its test).
+- **Tests:** `premium/tests/search-authority.test.js` (new, in `premium/tests/run-browser-tests.sh`): 259 checks over four loads (desktop natural order; desktop with `final-ui-fix.js` answered 2.5 s late; phone, menu opened with its own button; desktop with `premium-calculator-gating.js` answered 2.5 s late). Real keyboard typing. Exact, partial, multi-word, hyphen / space / no-space, case and id queries; every result list equals an independent re-derivation of the rule and keeps every match of the original rule; header count; no-result message; success → failure → success with no stale results; clearing restores the full catalogue (per-lab counts sum to all calculators); PREMIUM tag on exactly the Premium results for "piston"; a result opens its calculator; no page errors. Three mutants served from `c9db895` (release `final-ui-fix.js` late, release engine, release `app-shell.js`) are each detected.
+- **Docs:** This entry.
+- **Verification:**
+  1. `search-authority.test.js` passes and detects its three mutants.
+  2. The full browser regression passes with the same results as on `c9db895`.
+  3. After the owner publishes the change: on the live site, in several fresh loads on desktop and a phone, "charge", "fast charge", "Fast-Charge", "hp torque" and `dc_fast_charge_time` each list the expected calculator and no other search interface appears.
+- **Verification result (2026-10-17, criteria 1–2):**
+  1. `search-authority`: 259/259 passed; mutants detected: release `final-ui-fix.js` late (37 checks failed), release engine (14), release `app-shell.js` (2).
+  2. Full browser regression on the branch (`bash premium/tests/run-browser-tests.sh`, 39 suites, Chromium 141): 0 failures. A baseline run of the same 38 existing suites on `c9db895` in the same environment gave identical summary lines (only timings differ): engine self-test 736/736, browser smoke 19/19, `toggle-sweep` 782 checks (742 consistent, 1 in the known-open ledger), `nav-return` 743, `shell-units` 77, `render-race` 95, among others. Node checks: `check-catalog` OK, `frontend.test` 55/55, `workflow-pending-gate` 60, `register-check` OK. The database contract suite (`schema-contract.test.js`) was not run: no database-facing file changed.
+  Criterion 3 awaits publication.
+- **History:** 2026-10-17 — found in the owner-requested read-only review of release `c9db895` (live reproduction, local race reproduction, source trace). 2026-10-17 — fixed in `f732dab` under the owner's Stage 1 authorization; status FIXED — UNVERIFIED until criterion 3 is checked on the published site.
 
 ## B. Deferred improvements
 
