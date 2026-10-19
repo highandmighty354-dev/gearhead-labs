@@ -23,6 +23,7 @@
 'use strict';
 const { parseShown, mismatch, within } = require('./lib/numeric-guard');   // GH-DEF-037: every numeric check fails on a blank, NaN or infinite value
 const path = require('path'), fs = require('fs'), os = require('os'), { execSync } = require('child_process');
+const { withVehicleContext } = require('./lib/vehicle-context');   // GH-IMP-022
 const REPO = path.resolve(__dirname, '..', '..');
 const F124 = 'F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html';
 let playwright;
@@ -94,6 +95,8 @@ async function run(enginePath, tag) {
 
 (async () => {
   let engine = process.env.GH_ENGINE ? path.resolve(process.env.GH_ENGINE) : path.join(REPO, F124);
+  /* GH-IMP-022: the published Free engine has no active vehicle; this suite tests the vehicle-profile machinery, so it runs on a copy with only GH_VEHICLE_CONTEXT switched on (lib/vehicle-context.js). */
+  engine = withVehicleContext(engine);
   if (process.env.MUTANT) {
     /* the engine with the home-page swap removed: the template becomes the settled dashboard and this test must fail */
     const src = fs.readFileSync(engine, 'utf8'), find = "if(id==='dashboard'){\n      const box=document.getElementById('calc-container');\n      if(box){box.innerHTML=ghHome();}";
