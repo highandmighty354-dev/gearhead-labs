@@ -474,7 +474,7 @@ details.gh-js-impl code{display:block;background:var(--input-bg);border:1px soli
       <button class="unit-btn active" id="btn-imperial" onclick="setUnit('imperial')">Imperial</button>
       <button class="unit-btn" id="btn-metric" onclick="setUnit('metric')">Metric</button>
     </div>
-    <button class="icon-btn gh-profile-btn" onclick="showProfiles()" title="Vehicle Profiles">
+    <button class="icon-btn gh-profile-btn" onclick="showProfiles()" title="Vehicle Profiles" data-gh-vehicle-context>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
     </button>
   </div>
@@ -547,6 +547,18 @@ const GHM_STORAGE = {
 })();
 const UNIT = { system: GHM_STORAGE.get('ghm_unit','imperial') || 'imperial' };
 
+/* GH-IMP-022 (owner decisions 2026-10-17 and 2026-10-19; Stage 2, Task 3). This engine has NO active vehicle, for EVERY visitor — signed out, Free
+   and Premium alike: this file is the same for everyone and the constant below is not tied to an account. No seeded sample, benchmark or demo
+   vehicle (and no stored one) is used as the visitor's vehicle, so no box offers a "↓ use ..." vehicle value, no calculator takes a default from a
+   vehicle, the dashboard shows a neutral empty state and the vehicle-profile manager is not offered.
+   No production code connects My Garage vehicles (the Premium account's machines) to these calculators, before or after this change: the Premium
+   shell, premium-calculator-gating.js and engineering-bridge.js never read or write PROFILES. Premium vehicle-to-calculator integration is NOT
+   implemented. The profile machinery itself (PROFILES, the stored list, the editor, PROFILE_FIELD_MAP / PROFILE_LINK_RULES, the chips) is kept
+   unchanged as infrastructure for that future work; it is switched on only by this constant, which must stay false until such an integration and a
+   real entitlement check exist (tests flip it in a temporary copy of this file). Nothing in browser storage is cleared, and the stored vehicle
+   list is not rewritten on load (loadProfiles, the diesel block). */
+const GH_VEHICLE_CONTEXT = false;
+if(!GH_VEHICLE_CONTEXT) document.querySelectorAll('[data-gh-vehicle-context]').forEach(el=>{ el.style.display='none'; el.setAttribute('aria-hidden','true'); });
 const DEFAULT_PROFILES = [
   { id: 1, name: 'Sample: 1968 Barracuda 426 Hemi', vehicleType: 'Automotive', hp: 425, torque: 490, weight: 3420, bore: 4.25, stroke: 3.75, cylinders: 8, displacement: 425.6, peakRPM: 6000, active: true, benchmark: false },
 
@@ -574,7 +586,7 @@ function loadProfiles(){
       const existingIds = new Set(merged.map(p=>p.id));
       DEFAULT_PROFILES.filter(p=>p.benchmark && !existingIds.has(p.id))
         .forEach(p=>merged.push({...p, active:false}));
-      if(merged.length !== saved.length) GHM_STORAGE.set('ghm_profiles',JSON.stringify(merged));
+      if(GH_VEHICLE_CONTEXT && merged.length !== saved.length) GHM_STORAGE.set('ghm_profiles',JSON.stringify(merged));   // GH-IMP-022: the stored list is not rewritten on load
       return merged;
     }
   } catch(e){}
@@ -1535,6 +1547,7 @@ const PROFILE_FIELD_MAP = [
 ];
 
 function getActiveProfile(){
+  if(!GH_VEHICLE_CONTEXT) return null;   // GH-IMP-022: no active vehicle for any visitor
   return PROFILES.find(p=>p.active) || PROFILES[0] || null;
 }
 
@@ -1799,7 +1812,7 @@ const MASTER_LOGO_SRC = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABaoAAAIXC
 
 const RENDERS = {
   dashboard(){
-    const p = PROFILES.find(x=>x.active)||PROFILES[0];
+    const p = getActiveProfile();
     const recent = getRecentCalcs().map(id=>CALCS.find(c=>c.id===id)).filter(Boolean).slice(0,5);
     const favs = CALCS.filter(c=>isFavorite(c.id)).slice(0,5);
     const setups = typeof ghmReadTestSetups==='function' ? ghmReadTestSetups() : [];
@@ -1814,10 +1827,10 @@ const RENDERS = {
           <div>
             <div class="eyebrow">ACTIVE VEHICLE / ENGINEERING CONTEXT</div>
             <h2>${escapeHtml(vehicleName)}</h2>
-            <p>${p ? `${fmtUnitValue(p.hp,"HP")} ${metricUnit("HP")} · ${fmtUnitValue(p.torque,"lb-ft")} ${metricUnit("lb-ft")} · ${fmtUnitValue(p.weight,"lbs")} ${metricUnit("lbs")} · ${fmtUnitValue(p.displacement,"ci",1)} ${metricUnit("ci")}` : 'Create a vehicle profile to unlock saved engineering context.'}</p>
+            <p>${p ? `${fmtUnitValue(p.hp,"HP")} ${metricUnit("HP")} · ${fmtUnitValue(p.torque,"lb-ft")} ${metricUnit("lb-ft")} · ${fmtUnitValue(p.weight,"lbs")} ${metricUnit("lbs")} · ${fmtUnitValue(p.displacement,"ci",1)} ${metricUnit("ci")}` : (GH_VEHICLE_CONTEXT ? 'Create a vehicle profile to unlock saved engineering context.' : 'Calculators use their own default values.')}</p>
             <div class="gh-command-row"><span class="gh-vehicle-chip"><i></i> LOCAL VEHICLE INTELLIGENCE</span></div>
           </div>
-          <button class="gh-primary-action" onclick="showProfiles()">Manage Vehicle</button>
+          ${GH_VEHICLE_CONTEXT ? '<button class="gh-primary-action" onclick="showProfiles()">Manage Vehicle</button>' : ''}
         </div>
         <div class="gh-stat-grid">
           <div class="gh-stat"><div class="gh-stat-label">Horsepower</div><div class="gh-stat-value gold">${fmtUnitValue(p?.hp||0,"HP")}</div><div class="gh-stat-sub">${metricUnit("HP")}</div></div>
@@ -1844,7 +1857,7 @@ const RENDERS = {
           <section class="gh-panel">
             <div class="gh-section-head"><h3>Saved & Pinned</h3><span>${favs.length} favorites</span></div>
             <div class="gh-panel-list">${favHTML}</div>
-            <div class="gh-command-row"><button onclick="showProfiles()">Vehicle Profiles</button></div>
+            ${GH_VEHICLE_CONTEXT ? '<div class="gh-command-row"><button onclick="showProfiles()">Vehicle Profiles</button></div>' : ''}
             <!-- PREMIUM (Sept 2026): "Saved Test Setups" removed from free dashboard —
                  same underlying feature as the removed calc-footer Test Setups button.
                  Restore alongside that when a tier check exists:
@@ -7877,8 +7890,11 @@ const DIESEL_PROFILES = [
 
 /* Replace the V3.1 mixed verification fleet with a diesel-only fleet. */
 PROFILES.splice(0,PROFILES.length,...DIESEL_PROFILES.map(p=>({...p,active:false})));
-PROFILES[0].active=true;
-try{ GHM_STORAGE.set('ghm_profiles',JSON.stringify(PROFILES)); }catch(e){}
+/* GH-IMP-022: no demo vehicle is made active and the stored list is not overwritten on load (any visitor). */
+if(GH_VEHICLE_CONTEXT){
+  PROFILES[0].active=true;
+  try{ GHM_STORAGE.set('ghm_profiles',JSON.stringify(PROFILES)); }catch(e){}
+}
 
 /* Diesel-specific calculator renderers. These are deliberately transparent engineering estimates,
    not OEM calibration commands or emissions-control defeat tools. */
@@ -8035,7 +8051,7 @@ function d31EnhanceDashboard(){
   if((typeof currentCalc!=='undefined'?currentCalc:'')!=='dashboard') return;
   const shell=box.querySelector('.gh-dashboard-shell'); if(!shell) return;
   if(box.querySelector('#gh-d31-diesel-panel')) return;
-  const p=PROFILES.find(x=>x.active)||PROFILES[0];
+  const p=getActiveProfile();
   const panel=document.createElement('section'); panel.id='gh-d31-diesel-panel'; panel.className='gh-d31-diesel-panel';
   panel.innerHTML=`<div class="gh-d31-kicker">DIESEL PERFORMANCE & EFFICIENCY</div><h3>Make Power. Save Fuel. Know Why.</h3><p>Diesel-only engineering workspace for performance, fuel economy, towing, fleet economics, heavy equipment, air handling, fuel systems and aftertreatment education.</p><div class="gh-d31-grid"><button onclick="renderCalc('diesel_power_economy')"><b>Power vs Economy</b><span>Compare performance and fuel burn.</span></button><button onclick="renderCalc('diesel_mpg')"><b>Fuel Economy</b><span>MPG, cost/mile and measured consumption.</span></button><button onclick="renderCalc('diesel_bsfc')"><b>BSFC</b><span>Connect fuel flow to brake power.</span></button><button onclick="renderCalc('diesel_fuel_per_ton')"><b>Heavy Equipment</b><span>Cost per ton and production efficiency.</span></button><button onclick="renderCalc('diesel_def_cost')"><b>DEF / Aftertreatment</b><span>Model operating economics.</span></button></div><div class="gh-d31-note">A diesel-only extension of the Vehicle Intelligence workspace. Calculations are engineering models or estimates unless supported by measured/verified data.</div>`;
   shell.appendChild(panel);

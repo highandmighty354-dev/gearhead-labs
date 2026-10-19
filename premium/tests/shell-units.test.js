@@ -14,7 +14,7 @@
    Three loads: a desktop viewport and a phone viewport in the natural script order, and a phone viewport in which the script the shell waits for (qa-math-corrections.js) is
    answered 1.8 s late, which gives the hider the chance to run first. (The natural order is a race: without the fix the control was hidden in some loads and not in others.)
    For each load:
-     - the UNITS control is visible (it and every ancestor is displayed) and so is the header's profile button;
+     - the UNITS control is visible (it and every ancestor is displayed); the header's vehicle-profile button is in the page but hidden (GH-IMP-022: Free has no vehicle context);
      - for each of two calculators with a speed box (Dynamic Pressure, Tow Stopping Distance):
          a real click on UNITS opens a menu with IMPERIAL and METRIC;
          a real click on METRIC sets UNIT.system to "metric" and remembers it, closes the menu, and re-draws the calculator: the speed box shows the same speed in km/h
@@ -106,11 +106,11 @@ async function oneLoad(browser, port, tag, viewport, lateScript, ref) {
   const vis = await fr.evaluate(() => {
     const b = document.querySelector('.gh-compact-units > button'); const p = document.querySelector('.gh-profile-btn');
     const shown = e => { if (!e) return false; const r = e.getBoundingClientRect(); if (!(r.width > 0 && r.height > 0)) return false; for (let a = e; a; a = a.parentElement) { const cs = getComputedStyle(a); if (cs.display === 'none' || cs.visibility === 'hidden') return false; } return true; };
-    return { control: !!b, controlShown: shown(b), profileShown: shown(p), legacyButtons: !!document.getElementById('btn-metric') };
+    return { control: !!b, controlShown: shown(b), profile: !!p, profileShown: shown(p), legacyButtons: !!document.getElementById('btn-metric') };
   });
   check(`${tag}: the shell's UNITS control exists`, vis.control, JSON.stringify(vis));
   check(`${tag}: the UNITS control is visible (it and every ancestor is displayed)`, vis.controlShown, JSON.stringify(vis));
-  check(`${tag}: the header's profile button is visible`, vis.profileShown, JSON.stringify(vis));
+  check(`${tag}: the header's vehicle-profile button is kept in the page but not offered (Free has no vehicle context, GH-IMP-022)`, vis.profile && !vis.profileShown, JSON.stringify(vis));
   if (!vis.controlShown) { check(`${tag}: no page errors`, pageErrors.length === 0, pageErrors.join(' | ')); await ctx.close(); return; }
 
   for (const c of CASES) {
