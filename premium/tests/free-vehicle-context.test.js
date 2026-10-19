@@ -1,12 +1,15 @@
 #!/usr/bin/env node
-/* Gearhead Labs — the Free calculators have no active vehicle (docs/DEFERRED-WORK-REGISTER.md, GH-IMP-022; owner decision 2026-10-17, Stage 2, Task 3).
+/* Gearhead Labs — the calculators have no active vehicle, for every visitor (docs/DEFERRED-WORK-REGISTER.md, GH-IMP-022; owner decisions 2026-10-17 and
+   2026-10-19, Stage 2, Task 3). The engine is one file for everyone: the switch is not tied to an account, and no production code connects My Garage
+   vehicles to the calculators (Premium vehicle-to-calculator integration is not implemented; this test does not claim it).
 
    BEFORE. The engine's diesel block replaced the vehicle list with five seeded demo vehicles, made "2024 Ram 2500 6.7L Cummins — Diesel Demo" active and
    wrote that list to browser storage on every load (overwriting any vehicle a visitor had made). Every Free visitor therefore had a demo truck as "their"
    vehicle: 83 calculators offered "↓ use 850 / Use torque from 2024 Ram 2500 ... Diesel Demo" shortcuts, the six simulators and the two airflow calculators
    took their default inputs from it, and the dashboard named it.
    NOW. `const GH_VEHICLE_CONTEXT = false;` — getActiveProfile() returns null, no seeded or stored vehicle is used, nothing is written to storage, the
-   vehicle-profile manager is not offered (header button hidden, dashboard buttons not drawn), the dashboard template shows its existing empty state, and
+   vehicle-profile manager is not offered (header button hidden, dashboard buttons not drawn), the dashboard template shows a neutral empty state
+   ("No vehicle profile selected" / "Calculators use their own default values." instead of "Create a vehicle profile ..."), and
    the eight affected calculators open on their own coded defaults. The profile machinery itself is unchanged (tested by profile-shortcut, performance-units
    and dashboard-summary on a copy with the switch on: lib/vehicle-context.js).
 
@@ -18,16 +21,21 @@
         counts the boxes whose id the vehicle map would match (PROFILE_FIELD_MAP), which must be at least 100;
      3. browser storage: clean profile -> no vehicle list is written; stored profile -> the stored text is byte-identical after loading and browsing
         (nothing cleared, rewritten or deleted);
-     4. the header's vehicle-profile button is in the page but not displayed; the dashboard template shows "No vehicle profile selected", draws no
-        "Manage Vehicle" / "Vehicle Profiles" button and names no vehicle;
+     4. the header's vehicle-profile button is in the page but not displayed; the dashboard template shows "No vehicle profile selected" and
+        "Calculators use their own default values.", does not say "Create a vehicle profile", draws no "Manage Vehicle" / "Vehicle Profiles" button and
+        names no vehicle;
      5. the eight calculators that took vehicle defaults open on their coded defaults (four simulators are Premium-locked for a Free visitor, so their
         boxes are not drawn; for those the simulators' default source simProfile() is checked) (simulators 3,200 lb and 300 HP; Engine Airflow Estimation 350 ci,
         6,500 RPM, 8 cylinders; Airflow -> Power 350 ci, 6,500 RPM), and Engine Airflow Estimation's flow equals displacement x RPM / 2 x VE / 1728
         computed here from its own boxes;
      6. search ("hp torque") lists HP from Torque and Torque from HP, and HP from Torque at 600 lb-ft x 4,000 RPM shows 457 HP (600 x 4000 / 5252 = 456.97);
      7. no page errors.
+     P  A signed-in account granted Premium (the shell's local development sign-in and its development Premium grant, real engine file, 1280 x 900):
+        the entitlement is Premium, the Premium-locked Dragstrip draws its boxes (no upsell) on the coded 3,200 lb default, and the same holds as for a
+        visitor: no active vehicle, no shortcut on any calculator, the profile manager not offered. (The production Premium grant comes from the server;
+        the engine and premium-calculator-gating.js take the same path for either source.)
    MUTANTS (each must make the test fail; MUTANTS=0 skips): the switch turned on; the null guard removed from getActiveProfile(); the demo vehicle made active
-   and written to storage again; the stored list rewritten on load (benchmark vehicles merged in); the dashboard reading the vehicle list directly; the header button no longer hidden.
+   and written to storage again; the stored list rewritten on load (benchmark vehicles merged in); the dashboard reading the vehicle list directly; the header button no longer hidden; the old "Create a vehicle profile" empty-state text.
 
    Run: node premium/tests/free-vehicle-context.test.js   (VERBOSE=1 prints passes; GH_REPO=dir tests another checkout)
    Exit code 0 = every check passed and every mutant was caught, 1 otherwise. */
@@ -81,7 +89,7 @@ const STATE = key => {
   const b = document.querySelector('.gh-profile-btn'); let shown = false;
   if (b) { const r = b.getBoundingClientRect(); shown = r.width > 0 && r.height > 0; for (let a = b; a && shown; a = a.parentElement) { const cs = getComputedStyle(a); if (cs.display === 'none' || cs.visibility === 'hidden') shown = false; } }
   return { context: typeof GH_VEHICLE_CONTEXT === 'undefined' ? 'undefined' : GH_VEHICLE_CONTEXT, active: getActiveProfile(), stored: localStorage.getItem(key),
-    button: !!b, buttonShown: shown, dashEmpty: /No vehicle profile selected/.test(t), dashButtons: d.querySelectorAll('[onclick*="showProfiles"]').length,
+    button: !!b, buttonShown: shown, dashEmpty: /No vehicle profile selected/.test(t) && /Calculators use their own default values\./.test(t) && !/Create a vehicle profile/.test(t), dashButtons: d.querySelectorAll('[onclick*="showProfiles"]').length,
     dashNamesVehicle: /Diesel Demo|Ram 2500|My own test truck/.test(t) };
 };
 const DEFAULTS_READ = defs => {
@@ -139,8 +147,32 @@ async function scenario(browser, port, label, viewport, stored, c) {
   if (stored) c('the stored vehicle list is untouched after loading and browsing (byte-identical; nothing cleared or rewritten)', s1.stored === stored, String(s1.stored).slice(0, 160));
   else c('no vehicle list is written to browser storage', s1.stored === null, String(s1.stored).slice(0, 160));
   c('the header vehicle-profile button is in the page but not displayed', s1.button && !s1.buttonShown, JSON.stringify({ button: s1.button, shown: s1.buttonShown }));
-  c('dashboard template: the existing empty state, no profile-manager button, no vehicle named', s1.dashEmpty && s1.dashButtons === 0 && !s1.dashNamesVehicle, JSON.stringify({ empty: s1.dashEmpty, buttons: s1.dashButtons, names: s1.dashNamesVehicle }));
+  c('dashboard template: the neutral empty state (no "Create a vehicle profile"), no profile-manager button, no vehicle named', s1.dashEmpty && s1.dashButtons === 0 && !s1.dashNamesVehicle, JSON.stringify({ empty: s1.dashEmpty, buttons: s1.dashButtons, names: s1.dashNamesVehicle }));
   c('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
+  await ctx.close();
+}
+
+async function premium(browser, port, c) {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } }); const page = await ctx.newPage(); page.setDefaultTimeout(15000);
+  const pageErrors = []; page.on('pageerror', e => pageErrors.push(String(e.message || e).slice(0, 160)));
+  await page.route('**/*', rt => rt.request().url().startsWith(`http://127.0.0.1:${port}/`) ? rt.continue() : rt.abort());
+  await page.goto(`http://127.0.0.1:${port}/index.html?view=profile`);
+  await page.waitForFunction(() => document.body.classList.contains('ghp-ready'), null, { timeout: 30000 });
+  c('the shell runs its local development sign-in here (the Premium grant below is the development stand-in)', await page.evaluate(() => GHP.services.mode) === 'development', await page.evaluate(() => GHP.services.mode));
+  await page.fill('form[data-form="signin"] input[name="email"]', 'premium-vehicle@example.test');
+  await page.click('form[data-form="signin"] button[type="submit"]');
+  await page.waitForSelector('[data-action="dev-plan"][data-plan="premium"]');
+  await page.click('[data-action="dev-plan"][data-plan="premium"]');
+  await page.waitForFunction(() => GHP.services.entitlements && GHP.services.entitlements.isPremium());
+  await page.evaluate(() => GHP.shell.go('calculators')); await page.waitForTimeout(1500);
+  const fr = page.frames().find(f => f.url().includes(F124));
+  const d = await fr.evaluate(() => { renderCalc('sim_dragstrip', false); const w = document.getElementById('sim_weight');
+    return { upsell: !!document.querySelector('#calc-container .gh-premium-upsell'), weight: w ? Number(w.value) : null }; });
+  c('Premium: the Dragstrip simulator is unlocked and opens on the coded 3,200 lb default', !d.upsell && d.weight === 3200, JSON.stringify(d));
+  const s = await fr.evaluate(STATE, STORE_KEY), scan = await fr.evaluate(SCAN);
+  c('Premium: no active vehicle and no "use" shortcut on any calculator (no My Garage vehicle reaches the calculators)', s.context === false && s.active === null && scan.chips === 0 && scan.mapped >= 100, JSON.stringify({ active: s.active, chips: scan.chips, mapped: scan.mapped }));
+  c('Premium: the profile manager is not offered either (header button hidden, no dashboard button)', s.button && !s.buttonShown && s.dashButtons === 0, JSON.stringify({ shown: s.buttonShown, dash: s.dashButtons }));
+  c('Premium: no page errors', pageErrors.length === 0, pageErrors.join(' | '));
   await ctx.close();
 }
 
@@ -152,15 +184,18 @@ async function all(browser, overrides, report) {
       catch (e) { report(`${vp}, ${sc} / scenario ran`, false, e.message.split('\n')[0]); }
     }
   }
+  try { await premium(browser, port, (n, ok, d) => report(`development Premium account / ${n}`, ok, d)); }
+  catch (e) { report('development Premium account / scenario ran', false, e.message.split('\n')[0]); }
   srv.close();
 }
 
 const MUTANTS = [
   ['the vehicle switch turned on', 'const GH_VEHICLE_CONTEXT = false;', 'const GH_VEHICLE_CONTEXT = true;'],
-  ['null guard removed from getActiveProfile()', "  if(!GH_VEHICLE_CONTEXT) return null;   // GH-IMP-022: Free has no active vehicle\n", ''],
+  ['null guard removed from getActiveProfile()', "  if(!GH_VEHICLE_CONTEXT) return null;   // GH-IMP-022: no active vehicle for any visitor\n", ''],
   ['demo vehicle made active and written to storage again', "if(GH_VEHICLE_CONTEXT){\n  PROFILES[0].active=true;", "if(true){\n  PROFILES[0].active=true;"],
   ['dashboard reads the vehicle list directly', '  dashboard(){\n    const p = getActiveProfile();', '  dashboard(){\n    const p = PROFILES.find(x=>x.active)||PROFILES[0];'],
   ['the stored list rewritten on load again (benchmark vehicles merged in)', "      if(GH_VEHICLE_CONTEXT && merged.length !== saved.length) GHM_STORAGE.set(", "      if(merged.length !== saved.length) GHM_STORAGE.set("],
+  ['the old "Create a vehicle profile" empty-state text', "(GH_VEHICLE_CONTEXT ? 'Create a vehicle profile to unlock saved engineering context.' : 'Calculators use their own default values.')", "'Create a vehicle profile to unlock saved engineering context.'"],
   ['header button no longer hidden', "if(!GH_VEHICLE_CONTEXT) document.querySelectorAll('[data-gh-vehicle-context]')", "if(false) document.querySelectorAll('[data-gh-vehicle-context]')"]
 ];
 

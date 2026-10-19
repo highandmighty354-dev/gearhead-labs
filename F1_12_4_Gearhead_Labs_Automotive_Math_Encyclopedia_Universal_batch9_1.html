@@ -547,12 +547,16 @@ const GHM_STORAGE = {
 })();
 const UNIT = { system: GHM_STORAGE.get('ghm_unit','imperial') || 'imperial' };
 
-/* GH-IMP-022 (owner decision 2026-10-17; Stage 2, Task 3). The Free calculators have NO active vehicle: no seeded sample, benchmark or demo vehicle
-   (and no stored one) is used as the visitor's vehicle, so no box offers a "↓ use ..." vehicle value, no calculator takes a default from a vehicle,
-   the dashboard shows its empty state and the vehicle-profile manager is not offered. The profile machinery itself (PROFILES, the stored list, the
-   editor, PROFILE_FIELD_MAP / PROFILE_LINK_RULES, the chips) is kept unchanged for a future Premium vehicle context; it is switched on only by this
-   constant, which must stay false until a real Premium entitlement check exists (tests flip it in a temporary copy of this file). Nothing in
-   browser storage is cleared, and the stored vehicle list is not rewritten on load (loadProfiles, the diesel block). */
+/* GH-IMP-022 (owner decisions 2026-10-17 and 2026-10-19; Stage 2, Task 3). This engine has NO active vehicle, for EVERY visitor — signed out, Free
+   and Premium alike: this file is the same for everyone and the constant below is not tied to an account. No seeded sample, benchmark or demo
+   vehicle (and no stored one) is used as the visitor's vehicle, so no box offers a "↓ use ..." vehicle value, no calculator takes a default from a
+   vehicle, the dashboard shows a neutral empty state and the vehicle-profile manager is not offered.
+   No production code connects My Garage vehicles (the Premium account's machines) to these calculators, before or after this change: the Premium
+   shell, premium-calculator-gating.js and engineering-bridge.js never read or write PROFILES. Premium vehicle-to-calculator integration is NOT
+   implemented. The profile machinery itself (PROFILES, the stored list, the editor, PROFILE_FIELD_MAP / PROFILE_LINK_RULES, the chips) is kept
+   unchanged as infrastructure for that future work; it is switched on only by this constant, which must stay false until such an integration and a
+   real entitlement check exist (tests flip it in a temporary copy of this file). Nothing in browser storage is cleared, and the stored vehicle
+   list is not rewritten on load (loadProfiles, the diesel block). */
 const GH_VEHICLE_CONTEXT = false;
 if(!GH_VEHICLE_CONTEXT) document.querySelectorAll('[data-gh-vehicle-context]').forEach(el=>{ el.style.display='none'; el.setAttribute('aria-hidden','true'); });
 const DEFAULT_PROFILES = [
@@ -582,7 +586,7 @@ function loadProfiles(){
       const existingIds = new Set(merged.map(p=>p.id));
       DEFAULT_PROFILES.filter(p=>p.benchmark && !existingIds.has(p.id))
         .forEach(p=>merged.push({...p, active:false}));
-      if(GH_VEHICLE_CONTEXT && merged.length !== saved.length) GHM_STORAGE.set('ghm_profiles',JSON.stringify(merged));   // GH-IMP-022: Free does not rewrite the stored list
+      if(GH_VEHICLE_CONTEXT && merged.length !== saved.length) GHM_STORAGE.set('ghm_profiles',JSON.stringify(merged));   // GH-IMP-022: the stored list is not rewritten on load
       return merged;
     }
   } catch(e){}
@@ -1543,7 +1547,7 @@ const PROFILE_FIELD_MAP = [
 ];
 
 function getActiveProfile(){
-  if(!GH_VEHICLE_CONTEXT) return null;   // GH-IMP-022: Free has no active vehicle
+  if(!GH_VEHICLE_CONTEXT) return null;   // GH-IMP-022: no active vehicle for any visitor
   return PROFILES.find(p=>p.active) || PROFILES[0] || null;
 }
 
@@ -1823,7 +1827,7 @@ const RENDERS = {
           <div>
             <div class="eyebrow">ACTIVE VEHICLE / ENGINEERING CONTEXT</div>
             <h2>${escapeHtml(vehicleName)}</h2>
-            <p>${p ? `${fmtUnitValue(p.hp,"HP")} ${metricUnit("HP")} · ${fmtUnitValue(p.torque,"lb-ft")} ${metricUnit("lb-ft")} · ${fmtUnitValue(p.weight,"lbs")} ${metricUnit("lbs")} · ${fmtUnitValue(p.displacement,"ci",1)} ${metricUnit("ci")}` : 'Create a vehicle profile to unlock saved engineering context.'}</p>
+            <p>${p ? `${fmtUnitValue(p.hp,"HP")} ${metricUnit("HP")} · ${fmtUnitValue(p.torque,"lb-ft")} ${metricUnit("lb-ft")} · ${fmtUnitValue(p.weight,"lbs")} ${metricUnit("lbs")} · ${fmtUnitValue(p.displacement,"ci",1)} ${metricUnit("ci")}` : (GH_VEHICLE_CONTEXT ? 'Create a vehicle profile to unlock saved engineering context.' : 'Calculators use their own default values.')}</p>
             <div class="gh-command-row"><span class="gh-vehicle-chip"><i></i> LOCAL VEHICLE INTELLIGENCE</span></div>
           </div>
           ${GH_VEHICLE_CONTEXT ? '<button class="gh-primary-action" onclick="showProfiles()">Manage Vehicle</button>' : ''}
@@ -7886,7 +7890,7 @@ const DIESEL_PROFILES = [
 
 /* Replace the V3.1 mixed verification fleet with a diesel-only fleet. */
 PROFILES.splice(0,PROFILES.length,...DIESEL_PROFILES.map(p=>({...p,active:false})));
-/* GH-IMP-022: in Free no demo vehicle is made active and the stored list is not overwritten on load. */
+/* GH-IMP-022: no demo vehicle is made active and the stored list is not overwritten on load (any visitor). */
 if(GH_VEHICLE_CONTEXT){
   PROFILES[0].active=true;
   try{ GHM_STORAGE.set('ghm_profiles',JSON.stringify(PROFILES)); }catch(e){}
