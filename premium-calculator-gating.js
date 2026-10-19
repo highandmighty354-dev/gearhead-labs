@@ -102,8 +102,9 @@
       '<span class="gh-premium-badge">PREMIUM</span>' +
       '<p class="gh-premium-lede">' + esc(promo.promo || ('Gearhead Labs Premium unlocks ' + meta.name + '.')) + '</p>' +
       (promo.free_companion ? ('<p class="gh-premium-companion">' + companionLink(promo.free_companion) + '</p>') : '') +
-      '<p class="gh-premium-fine">Gearhead Labs Premium is ' + esc(priceText()) + '. Every other calculator on this page stays free, no account needed.</p>' +
-      '<a class="gh-premium-cta" href="' + esc(upgradeHref()) + '" target="_top">Upgrade to Premium →</a>' +
+      '<p class="gh-premium-fine">Gearhead Labs Premium is ' + esc(priceText()) + '. Online checkout is not open yet. Every other calculator on this page stays free, no account needed.</p>' +
+      /* "See Premium", not "Upgrade": nothing can be bought yet (owner decision 2026-10-17); the link opens the Profile offer. */
+      '<a class="gh-premium-cta" href="' + esc(upgradeHref()) + '" target="_top">See Premium →</a>' +
       '</div>';
   }
 

@@ -103,7 +103,8 @@
   const formErrors = () => '<div class="ghp-form-error" hidden></div>';
   function upgradeCTA() {
     const price = `<div class="ghp-price"><b>Gearhead Labs Premium</b> · ${esc(M.PREMIUM_PRICE_TEXT)}</div>
-      <p class="ghp-fine">Premium includes My Garage, Test Setups, saved calculations and the Engineering Lab. Online checkout is not open yet, so Premium can’t be purchased here today. Every free calculator stays free.</p>`;
+      <p class="ghp-fine">Premium includes the ${M.PREMIUM_CALC_IDS.size} Premium calculators, the Engineering Lab, and My Garage with Test Setups. Online checkout is not open yet, so Premium can’t be purchased here today. Every free calculator stays free.</p>
+      ${state.view === 'profile' ? '' : '<div class="ghp-cta-row"><button class="ghp-btn" data-go="profile">See what Premium includes</button></div>'}`;
     if (S.mode !== 'development') return price;
     return price + (S.auth.user
       ? `<div class="ghp-cta-row"><button class="ghp-btn gold" data-action="dev-plan" data-plan="trial">Start development trial</button><button class="ghp-btn" data-action="dev-plan" data-plan="premium">Enable development Premium</button></div><p class="ghp-fine ghp-warn">Development only: a local stand-in for a server-side grant.</p>`
@@ -111,15 +112,44 @@
   }
   function teaser(kind) {
     const T = { lab: ['Engineering Lab', 'Fourteen professional analyzers for turbo matching, two-stroke porting, valvetrain dynamics, chassis, driveline and thermal systems, with saved analyses linked to your vehicles and Test Setups.'],
-      saved: ['Saved calculations', 'Keep calculations with your vehicles and Test Setups, pin the important ones and add notes.'],
-      garage: ['My Garage', 'Your vehicle profiles with year, make, model, engine and transmission, unlimited Test Setups (builds) for each one, and your saved calculations and engineering analyses linked to them.'] }[kind];
+      saved: ['Saved calculations', 'A list for calculations kept with your vehicles and Test Setups, where you can pin the important ones and add notes. Saving a calculation from a calculator isn’t available yet, so this list starts empty.'],
+      garage: ['My Garage', 'Your vehicle profiles with year, make, model, engine and transmission, unlimited Test Setups (builds) for each one, and the Engineering Lab analyses you save for them.'] }[kind];
     const list = kind === 'lab' ? `<div class="ghp-teaser-list">${M.ENGINEERING_CATEGORIES.map(c => `<div><h3>${c}</h3>${M.ENGINEERING_CATALOG.filter(a => a.category === c).map(a => `<p>${icon('lock', 'ghp-inline-lock')} <b>${a.code}</b> ${esc(a.name)}</p>`).join('')}</div>`).join('')}</div>` : '';
     return page(T[0], 'PREMIUM', `<div class="ghp-card ghp-teaser"><span class="ghp-badge gold">PREMIUM</span><p class="ghp-lede">${T[1]}</p>${list}${upgradeCTA()}<p class="ghp-fine">The free calculators stay free, with no account needed.</p></div>`);
   }
-  function signInCard() {
+  /* The Premium offer shown on Profile to anyone without Premium: what it is, what it costs, what it adds, and that it cannot be bought
+     yet. Every number comes from an authoritative source, never from copy: the prices from M.PREMIUM_OFFERS (premium/models.js, which
+     mirrors public.plan_offers, seeded and guarded by migration 0407), the Premium calculator count from M.PREMIUM_CALC_IDS (the list the
+     calculator gate and catalog/build-catalog.js read), the Engineering Lab count and areas from M.ENGINEERING_CATALOG /
+     M.ENGINEERING_CATEGORIES, and the free count from the engine's own catalogue (freeCount). It offers no purchase, trial or sign-up
+     action: its buttons only open existing pages. Saving a calculation from a calculator is not available yet
+     (R.savedCalculations.createUnavailableReason), so it is not listed as a Premium feature. */
+  function premiumOfferCard() {
+    const prices = M.PREMIUM_OFFERS.map(o => {
+      const [amount, per] = String(o.label).split('/');
+      return `<div class="ghp-offer-price"><b>${esc(amount)}</b><span>${per ? 'per ' + esc(per) : ''}</span></div>`;
+    }).join('');
+    const areas = M.ENGINEERING_CATEGORIES.slice(0, -1).join(', ') + ' and ' + M.ENGINEERING_CATEGORIES.slice(-1);
+    return `<section class="ghp-card ghp-offer" data-premium-offer aria-labelledby="ghp-offer-title">
+      <span class="ghp-badge gold">PREMIUM</span>
+      <h2 id="ghp-offer-title">Gearhead Labs Premium</h2>
+      <div class="ghp-price ghp-offer-prices" aria-label="Price: ${esc(M.PREMIUM_PRICE_TEXT)}">${prices}</div>
+      <p class="ghp-offer-status" data-checkout-status><b>Online checkout is not open yet.</b> Premium can’t be bought on this site today, and nothing on this page will charge you.</p>
+      <h3>What Premium adds</h3>
+      <ul class="ghp-offer-list">
+        <li><b>${M.PREMIUM_CALC_IDS.size} Premium calculators</b>: the more advanced engineering calculators, marked PREMIUM in the calculator list. Open any of them to see what it covers.</li>
+        <li><b>The Engineering Lab</b>: ${M.ENGINEERING_CATALOG.length} engineering tools for ${esc(areas)} work, with analyses you can save.</li>
+        <li><b>My Garage</b>: your vehicle profiles, with Test Setups (builds) for each one.</li>
+      </ul>
+      <h3>Free stays free</h3>
+      <p>All ${freeCount()} free calculators work without an account and stay free.</p>
+      <div class="ghp-cta-row"><button class="ghp-btn" data-go="lab">Preview the Engineering Lab</button><button class="ghp-btn" data-go="calculators">Open the calculators</button></div>
+    </section>`;
+  }
+  function signInCard(note = '') {
     if (S.mode === 'no-backend') return `<div class="ghp-card"><h2>Accounts are unavailable right now</h2><p>Gearhead Labs accounts can’t be reached at the moment. Every calculator still works without an account.</p><button class="ghp-btn" data-go="calculators">Open the calculators</button></div>`;
     const dev = S.mode === 'development';
-    return `<div class="ghp-card"><h2>Sign in</h2>${dev ? '<p class="ghp-fine ghp-warn">Development mode: local sign-in, no password, no email. Data stays in this browser.</p>' : '<p>We’ll email you a secure sign-in link.</p>'}
+    return `<div class="ghp-card"><h2>Sign in</h2>${note}${dev ? '<p class="ghp-fine ghp-warn">Development mode: local sign-in, no password, no email. Data stays in this browser.</p>' : '<p>We’ll email you a secure sign-in link.</p>'}
       <form data-form="signin" class="ghp-form" novalidate>${formErrors()}<label>Email<input name="email" type="email" autocomplete="email" inputmode="email" required></label><button class="ghp-btn gold" type="submit">${dev ? 'Sign in (development)' : 'Email me a sign-in link'}</button></form></div>`;
   }
   const needAccount = (title, kicker) => page(title, kicker, signInCard());
@@ -157,9 +187,9 @@
         return `<button class="ghp-tile${locked ? ' locked' : ''}" data-go="${id}"><div class="ghp-tile-top"><span>${locked ? icon('lock', 'ghp-inline-lock') + ' PREMIUM' : feature ? 'PREMIUM' : 'FREE'}</span><b>${stat}</b></div><h3>${title}</h3><p>${desc}</p></button>`; };
       const garageStat = vehicles == null || !S.entitlements.has('garage') ? '' : String(vehicles);
       return `<section class="ghp-page"><div class="ghp-hero"><div class="ghp-kicker">GEARHEAD LABS / THE SCIENCE OF SPEED</div><h1>${u ? `Welcome back, ${esc(u.email)}` : 'The Automotive Math Encyclopedia'}</h1>
-        <p class="ghp-lede">${prem ? 'Your Premium workshop: garage, Test Setups, engineering analyses and saved calculations.' : `${freeCount()} free calculators, no account needed. Gearhead Labs Premium (${esc(M.PREMIUM_PRICE_TEXT)}) adds My Garage with your vehicles and Test Setups, saved calculations and the Engineering Lab.`}</p>
+        <p class="ghp-lede">${prem ? 'Your Premium workshop: garage, Test Setups, the Engineering Lab and the analyses you save there.' : `${freeCount()} free calculators, no account needed. Gearhead Labs Premium (${esc(M.PREMIUM_PRICE_TEXT)}) adds the ${M.PREMIUM_CALC_IDS.size} Premium calculators, the Engineering Lab and My Garage with your vehicles and Test Setups. Online checkout is not open yet.`}</p>
         <div class="ghp-plan-line"><span class="ghp-plan-pill ${prem ? 'premium' : ''}">${esc(M.planLabel(ent))}</span>${S.mode === 'development' ? '<span class="ghp-dev-pill">DEVELOPMENT</span>' : ''}${u ? '' : '<button class="ghp-link" data-go="profile">Sign in</button>'}</div></div>
-        <div class="ghp-tiles">${tile('calculators', 'Free Calculators', freeCount(), 'Every free automotive calculator, ready to use.')}${tile('garage', 'My Garage', garageStat, 'Your vehicles, their Test Setups and everything you saved for them.', 'garage')}${tile('lab', 'Engineering Lab', '14', 'Turbo, two-stroke, valvetrain, chassis, driveline and thermal analyzers.', 'engineering_lab')}${tile('saved', 'Saved', '★', 'Saved calculations with your vehicles and setups.', 'saved_calculations')}</div>
+        <div class="ghp-tiles">${tile('calculators', 'Free Calculators', freeCount(), 'Every free automotive calculator, ready to use.')}${tile('garage', 'My Garage', garageStat, 'Your vehicles, their Test Setups and everything you saved for them.', 'garage')}${tile('lab', 'Engineering Lab', '14', 'Turbo, two-stroke, valvetrain, chassis, driveline and thermal analyzers.', 'engineering_lab')}${tile('saved', 'Saved', '★', 'A list for calculations kept with your vehicles. Saving from a calculator isn’t available yet.', 'saved_calculations')}</div>
         ${recent.length ? `<div class="ghp-card"><h2>Recent analyses</h2>${recent.map(a => analysisRow(a, null, false)).join('')}</div>` : ''}
       </section>`;
     },
@@ -215,7 +245,7 @@
 
     async profile() {
       const u = S.auth.user;
-      if (!u) return needAccount('Profile', 'ACCOUNT');
+      if (!u) return page('Profile', 'ACCOUNT', premiumOfferCard() + signInCard('<p class="ghp-fine" data-signin-note>Signing in gives you a free Gearhead Labs account. It does not buy or unlock Premium.</p>'));
       const [p, subs] = await Promise.all([R.profile.getMine(), R.billing.subscriptions().catch(() => [])]);
       const ent = S.entitlements.state, prof = p || {};
       const initials = (prof.display_name || u.email).split(/[\s@._-]+/).filter(Boolean).slice(0, 2).map(s => s[0].toUpperCase()).join('');
@@ -237,8 +267,8 @@
           ${field('Experience level', `<select name="experience_level">${opt(enumOpts('experience_level'), prof.experience_level, 'Not set')}</select>`)}
           ${field('Preferred unit system', `<select name="preferred_unit_system">${opt(enumOpts('unit_system'), prof.preferred_unit_system || 'imperial')}</select>`, 'Saved to your profile. Calculators currently follow the calculator’s own unit setting.')}
           <button class="ghp-btn gold" type="submit">Save profile</button></form>
-        <div class="ghp-card"><h2>Plan</h2><dl class="ghp-dl">${planRows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl><p class="ghp-fine">Your plan comes from your Gearhead Labs account and can’t be changed here.</p>${ent.isPremium ? '' : upgradeCTA()}</div>
-        ${dev}<button class="ghp-btn wide" data-action="signout">Sign out</button>`);
+        <div class="ghp-card"><h2>Plan</h2><dl class="ghp-dl">${planRows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl><p class="ghp-fine">Your plan comes from your Gearhead Labs account and can’t be changed here.</p></div>
+        ${ent.isPremium ? '' : premiumOfferCard()}${dev}<button class="ghp-btn wide" data-action="signout">Sign out</button>`);
     }
   };
 

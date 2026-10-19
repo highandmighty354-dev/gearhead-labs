@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Gearhead Labs — Premium "Upgrade to Premium" navigation (docs/DEFERRED-WORK-REGISTER.md, GH-DEF-039).
 
-   THE DEFECT. On a locked Premium calculator the upgrade card's "Upgrade to Premium →" link (premium-calculator-gating.js) was a plain
+   THE DEFECT. On a locked Premium calculator the upgrade card's "Upgrade to Premium →" link (renamed "See Premium →" on 2026-10-18) (premium-calculator-gating.js) was a plain
    href to ?view=profile inside the calculator frame. The browser loaded the WHOLE site into that frame: two navigation bars (two bottom tab
    bars on a phone), the top-level page still on "calculators", its address unchanged. Back only undid the nested frame load.
 
@@ -101,7 +101,7 @@ async function oneViewport(browser, port, label, viewport, quiet) {
   await fr.locator('#calc-nav a.gh-nav-item[href="?calc=dc_fast_charge_time"]').click(); await settle();
   const before = await state(page);
   const ctaText = (await fr.locator('a.gh-premium-cta').textContent().catch(() => '')).trim();
-  c('A locked calculator shows the upgrade card with the Upgrade link and no calculator boxes', before.frame.title === 'DC Fast-Charge Time' && before.frame.gated && before.frame.cta && before.frame.inputs === 0 && /Upgrade to Premium/.test(ctaText),
+  c('A locked calculator shows the upgrade card with the Upgrade link and no calculator boxes', before.frame.title === 'DC Fast-Charge Time' && before.frame.gated && before.frame.cta && before.frame.inputs === 0 && /See Premium/.test(ctaText),
     JSON.stringify({ frame: before.frame, ctaText }));
   c('the PREMIUM gate covers 158 calculators', premiumCount === 158, `${premiumCount}`);
 
