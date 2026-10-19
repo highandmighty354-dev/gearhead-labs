@@ -35,6 +35,11 @@ const CHROMIUM = process.env.GH_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chr
 /* exact definitions */
 const LB = 0.45359237, FT = 0.3048, G0 = 9.80665;
 const KW_PER_HP = 550 * FT * LB * G0 / 1000, NM_PER_LBFT = FT * LB * G0, KMH_PER_MPH = 1.609344;
+/* GH-IMP-022: the Free engine no longer opens the simulators on the 7,500 lb demo truck (default now 3,200 lb). Top Speed's "the typed curve is really used" comparison
+   is made for an explicitly typed 7,500 lb vehicle (the vehicle this test was written against): a light car reaches nearly the same top speed on the weak redline
+   point (217 vs 218.5 mph, under the 1 % margin), a heavy one does not. Every other draw and check is unchanged and uses the page's own default vehicle. */
+const HEAVY_LB = 7500;
+const heavyText = sys => (sys === 'metric' ? String(+(HEAVY_LB * LB).toPrecision(7)) : String(HEAVY_LB));
 const approx = (got, want, rel, abs = 0) => within(got, want, abs + rel * Math.abs(want)); // GH-DEF-037: guarded
 const num = s => { const n = Number(String(s).replace(/,/g, '').trim()); return s === '' || s === null || s === undefined ? NaN : n; };
 const sig = x => String(+x.toPrecision(7));
@@ -93,11 +98,14 @@ async function run(enginePath) {
   /* the default-curve result of every simulator in a state (nothing typed in the editor) */
   async function baselines(st) {
     await setState(st); await fresh(); const out = {};
-    for (const sim of SIMS) { await goTo(sim.id); await fill('sim_weight', (await read()).weight); out[sim.id] = await result(sim); }   // settled draw
+    for (const sim of SIMS) {
+      await goTo(sim.id); await fill('sim_weight', (await read()).weight); out[sim.id] = await result(sim);   // settled draw
+      if (sim.id === 'sim_top_speed') { const w = (await read()).weight; await fill('sim_weight', heavyText(st.sys)); out[sim.id].heavy = (await result(sim)).n; await fill('sim_weight', w); }
+    }
     return out;
   }
   /* the ways a simulator is drawn after the curve was typed: first (editor page still on screen), re-typed box (the settled reference), edited weight, after another simulator, after an unrelated calculator */
-  async function draws(sim, others) {
+  async function draws(sim, others, st) {
     const out = {};
     await goTo(sim.id); out.first = await result(sim);
     await fill('sim_weight', out.first.weight); out.retyped = await result(sim);
@@ -105,6 +113,7 @@ async function run(enginePath) {
     await fill('sim_weight', out.first.weight);
     await goTo(others[0].id); await goTo(sim.id); out.afterOther = await result(sim);
     await goTo('hp_quarter_mile'); await goTo(sim.id); out.afterOtherCalc = await result(sim);
+    if (sim.id === 'sim_top_speed') { await fill('sim_weight', heavyText(st.sys)); out.heavy = await result(sim); await fill('sim_weight', out.first.weight); }
     return out;
   }
 
@@ -116,14 +125,15 @@ async function run(enginePath) {
       await setState(st); await openEditor();
       await fill('curve_y_6', typedTorque(500, st.tq));                        // 500 lb-ft at 4,000 rpm: a clear peak, well above the default 320
       await fill('curve_y_11', typedTorque(10, st.tq));                        // and a weak last point (default 250): Top Speed, which ends at the redline, now depends on the curve
-      const d = await draws(sim, others);
+      const d = await draws(sim, others, st);
       const tag = `A ${stateName(st)} ${sim.id}`;
       for (const k of ['first', 'retyped', 'afterOther', 'afterOtherCalc'])
         check(`${tag}: ${k} draw reads the typed torque curve (peak 500 lb-ft at 4000 rpm)`, isPeak(d[k].summary, 'Torque', 500, 4000), JSON.stringify(d[k].summary));
       check(`${tag}: weight edit keeps the typed curve`, isPeak(d.lighter.summary, 'Torque', 500, 4000), JSON.stringify(d.lighter.summary));
       for (const k of ['first', 'afterOther', 'afterOtherCalc'])
         check(`${tag}: ${k} result equals the re-typed (settled) draw`, approx(d[k].n, d.retyped.n, 1e-9), `retyped ${d.retyped.n}, ${k} ${d[k].n}`);
-      check(`${tag}: the typed curve is really used (differs from the default-curve result)`, Number.isFinite(d.retyped.n) && Math.abs(d.retyped.n - base[sim.id].n) > 0.01 * base[sim.id].n, `typed ${d.retyped.n}, default ${base[sim.id].n}`);
+      const [tv, dv] = sim.id === 'sim_top_speed' ? [d.heavy.n, base[sim.id].heavy] : [d.retyped.n, base[sim.id].n];   // Top Speed: for the typed 7,500 lb vehicle (HEAVY_LB)
+      check(`${tag}: the typed curve is really used (differs from the default-curve result${sim.id === 'sim_top_speed' ? ', 7,500 lb vehicle' : ''})`, Number.isFinite(tv) && Number.isFinite(dv) && Math.abs(tv - dv) > 0.01 * dv, `typed ${tv}, default ${dv}`);
       if (sim.id !== 'sim_top_speed') check(`${tag}: a lighter vehicle on the typed curve is faster than the heavier one`, d.lighter.n < d.retyped.n, `lighter ${d.lighter.n}, heavier ${d.retyped.n}`);
     }
   }
@@ -135,7 +145,7 @@ async function run(enginePath) {
       await setState(st); await openEditor(); await choose('power');
       await fill('curve_y_6', typedPower(400, st.pw));                          // 400 hp at 4,000 rpm (the default engine peaks at 320 hp)
       await fill('curve_y_11', typedPower(12, st.pw));                          // 12 hp at 6,500 rpm (the default engine makes 309 hp there)
-      const d = await draws(sim, others);
+      const d = await draws(sim, others, st);
       const tag = `B ${stateName(st)} ${sim.id}`;
       for (const k of ['first', 'retyped', 'afterOther', 'afterOtherCalc', 'lighter'])
         check(`${tag}: ${k} draw reads the typed power curve (peak 400 hp at 4000 rpm)`, isPeak(d[k].summary, 'Power', 400, 4000), JSON.stringify(d[k].summary));

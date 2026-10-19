@@ -12,7 +12,7 @@
      B. TARGETS THAT ARE ALSO MARKS: 60, 100 and 132 mph give the same time, distance and speed (to a hair) as 0.01 mph less and 0.01 mph more; the speed tile equals the target and the physical bounds hold.
      C. CROSS-VIEW OF TWO SIMULATORS: with the Acceleration target set to the Dragstrip's Trap Speed for the same vehicle, the Acceleration's Distance is the quarter mile (1,320 ft) and its Target Time is the Dragstrip's
         1/4 Mile ET, in both systems (the Dragstrip's 330 / 660 / 1000 / 1320-ft marks are by this means shown to be on the same trajectory).
-     D. UNCHANGED: the Dragstrip's and Top Speed's tiles for the default vehicle (values recorded from the engine before this fix; the Dragstrip uses the distance marks), and the Acceleration tiles for a 50 mph target.
+     D. UNCHANGED: the Dragstrip's and Top Speed's tiles for a 7,500 lb vehicle typed in (the demo truck's weight, the vehicle they were recorded for; GH-IMP-022) (values recorded from the engine before this fix; the Dragstrip uses the distance marks), and the Acceleration tiles for a 50 mph target.
      E. LABELS AND UNITS: the box is labelled Target Speed in mph, the tiles Target Time (sec), Target Speed (mph) and Distance (ft); the speed tile equals the box in mph in both systems.
      F. A TARGET THE VEHICLE CANNOT REACH (400 mph) keeps reporting the 60-second limit and the speed reached, as before.
 
@@ -123,20 +123,23 @@ async function run(enginePath) {
   }
 
   /* ================= D. unchanged: Dragstrip, Top Speed, and a 50 mph Acceleration target for the default vehicle ================= */
+  /* GH-IMP-022: the goldens were recorded when every simulator opened on the 7,500 lb demo truck; the Free engine now opens on 3,200 lb, so the vehicle they were
+     recorded for is typed explicitly (7,500 lb in the Vehicle Weight box; these tiles depend on no other vehicle value — checked on the engine before and after). */
   await setSystem('imperial');
+  const GOLDEN_WEIGHT = '7500';
   const golden = {
     sim_dragstrip: { '1/4 Mile ET': '18.230 sec', 'Trap Speed': '87.2 mph', '60 ft': '4.150 sec', '330 ft': '8.750 sec', '660 ft': '12.440 sec', '1000 ft': '15.600 sec', '1320 ft': '18.230 sec', 'Peak Wheel Torque': '3551 lb-ft' },
     sim_top_speed: { 'Estimated Top Speed': '218.5 mph', 'Top Gear RPM': '6491 RPM', 'Wheel Power': '263 HP', 'Drag + Rolling': '117 lbf' }
   };
   for (const id of Object.keys(golden)) {
-    await fresh(); await goTo(id); await fill('sim_weight', (await read()).weight); const r = await read();
-    check(`D ${id}: tiles for the default vehicle are unchanged`, JSON.stringify(r.stats) === JSON.stringify(golden[id]), `${JSON.stringify(r.stats)} (expected ${JSON.stringify(golden[id])})`);
+    await fresh(); await goTo(id); await fill('sim_weight', GOLDEN_WEIGHT); const r = await read();
+    check(`D ${id}: tiles for the 7,500 lb vehicle are unchanged`, JSON.stringify(r.stats) === JSON.stringify(golden[id]), `${JSON.stringify(r.stats)} (expected ${JSON.stringify(golden[id])})`);
   }
   {
-    await fresh(); await goTo('sim_acceleration'); await fill('sim_weight', (await read()).weight); await fill('sim_target', '50'); const r = await read();
+    await fresh(); await goTo('sim_acceleration'); await fill('sim_weight', GOLDEN_WEIGHT); await fill('sim_target', '50'); const r = await read();
     const expected = { 'Target Time': '8.220 sec', 'Target Speed': '50.0 mph', 'Distance': '290 ft', 'Gear': '2', 'Shifts': '1', 'Peak RPM': '6009 RPM', 'Peak Wheel Torque': '3551 lb-ft', 'Peak Tire Force': '3156 lbf', 'Max Accel': '0.41 g' };   // recorded from the engine before this fix
     const got = {}; for (const k of Object.keys(r.stats)) got[k] = r.stats[k].trim();
-    check('D sim_acceleration: a 50 mph target for the default vehicle is unchanged', JSON.stringify(got) === JSON.stringify(expected), `${JSON.stringify(got)} (expected ${JSON.stringify(expected)})`);
+    check('D sim_acceleration: a 50 mph target for the 7,500 lb vehicle is unchanged', JSON.stringify(got) === JSON.stringify(expected), `${JSON.stringify(got)} (expected ${JSON.stringify(expected)})`);
   }
 
   /* ================= E. labels and units ================= */
