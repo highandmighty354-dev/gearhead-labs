@@ -112,8 +112,8 @@
   }
   function teaser(kind) {
     const T = { lab: ['Engineering Lab', 'Fourteen professional analyzers for turbo matching, two-stroke porting, valvetrain dynamics, chassis, driveline and thermal systems, with saved analyses linked to your vehicles and Test Setups.'],
-      saved: ['Saved calculations', 'Keep calculations with your vehicles and Test Setups, pin the important ones and add notes.'],
-      garage: ['My Garage', 'Your vehicle profiles with year, make, model, engine and transmission, unlimited Test Setups (builds) for each one, and your saved calculations and engineering analyses linked to them.'] }[kind];
+      saved: ['Saved calculations', 'A list for calculations kept with your vehicles and Test Setups, where you can pin the important ones and add notes. Saving a calculation from a calculator isn’t available yet, so this list starts empty.'],
+      garage: ['My Garage', 'Your vehicle profiles with year, make, model, engine and transmission, unlimited Test Setups (builds) for each one, and the Engineering Lab analyses you save for them.'] }[kind];
     const list = kind === 'lab' ? `<div class="ghp-teaser-list">${M.ENGINEERING_CATEGORIES.map(c => `<div><h3>${c}</h3>${M.ENGINEERING_CATALOG.filter(a => a.category === c).map(a => `<p>${icon('lock', 'ghp-inline-lock')} <b>${a.code}</b> ${esc(a.name)}</p>`).join('')}</div>`).join('')}</div>` : '';
     return page(T[0], 'PREMIUM', `<div class="ghp-card ghp-teaser"><span class="ghp-badge gold">PREMIUM</span><p class="ghp-lede">${T[1]}</p>${list}${upgradeCTA()}<p class="ghp-fine">The free calculators stay free, with no account needed.</p></div>`);
   }
@@ -187,9 +187,9 @@
         return `<button class="ghp-tile${locked ? ' locked' : ''}" data-go="${id}"><div class="ghp-tile-top"><span>${locked ? icon('lock', 'ghp-inline-lock') + ' PREMIUM' : feature ? 'PREMIUM' : 'FREE'}</span><b>${stat}</b></div><h3>${title}</h3><p>${desc}</p></button>`; };
       const garageStat = vehicles == null || !S.entitlements.has('garage') ? '' : String(vehicles);
       return `<section class="ghp-page"><div class="ghp-hero"><div class="ghp-kicker">GEARHEAD LABS / THE SCIENCE OF SPEED</div><h1>${u ? `Welcome back, ${esc(u.email)}` : 'The Automotive Math Encyclopedia'}</h1>
-        <p class="ghp-lede">${prem ? 'Your Premium workshop: garage, Test Setups, engineering analyses and saved calculations.' : `${freeCount()} free calculators, no account needed. Gearhead Labs Premium (${esc(M.PREMIUM_PRICE_TEXT)}) adds My Garage with your vehicles and Test Setups, saved calculations and the Engineering Lab.`}</p>
+        <p class="ghp-lede">${prem ? 'Your Premium workshop: garage, Test Setups, the Engineering Lab and the analyses you save there.' : `${freeCount()} free calculators, no account needed. Gearhead Labs Premium (${esc(M.PREMIUM_PRICE_TEXT)}) adds the ${M.PREMIUM_CALC_IDS.size} Premium calculators, the Engineering Lab and My Garage with your vehicles and Test Setups. Online checkout is not open yet.`}</p>
         <div class="ghp-plan-line"><span class="ghp-plan-pill ${prem ? 'premium' : ''}">${esc(M.planLabel(ent))}</span>${S.mode === 'development' ? '<span class="ghp-dev-pill">DEVELOPMENT</span>' : ''}${u ? '' : '<button class="ghp-link" data-go="profile">Sign in</button>'}</div></div>
-        <div class="ghp-tiles">${tile('calculators', 'Free Calculators', freeCount(), 'Every free automotive calculator, ready to use.')}${tile('garage', 'My Garage', garageStat, 'Your vehicles, their Test Setups and everything you saved for them.', 'garage')}${tile('lab', 'Engineering Lab', '14', 'Turbo, two-stroke, valvetrain, chassis, driveline and thermal analyzers.', 'engineering_lab')}${tile('saved', 'Saved', '★', 'Saved calculations with your vehicles and setups.', 'saved_calculations')}</div>
+        <div class="ghp-tiles">${tile('calculators', 'Free Calculators', freeCount(), 'Every free automotive calculator, ready to use.')}${tile('garage', 'My Garage', garageStat, 'Your vehicles, their Test Setups and everything you saved for them.', 'garage')}${tile('lab', 'Engineering Lab', '14', 'Turbo, two-stroke, valvetrain, chassis, driveline and thermal analyzers.', 'engineering_lab')}${tile('saved', 'Saved', '★', 'A list for calculations kept with your vehicles. Saving from a calculator isn’t available yet.', 'saved_calculations')}</div>
         ${recent.length ? `<div class="ghp-card"><h2>Recent analyses</h2>${recent.map(a => analysisRow(a, null, false)).join('')}</div>` : ''}
       </section>`;
     },

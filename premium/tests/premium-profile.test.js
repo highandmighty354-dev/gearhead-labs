@@ -32,9 +32,17 @@
      D. Development mode, signed in (local stand-in, localhost only): a Free account sees the offer card after its Plan card; after the
         development Premium grant the offer card is gone.
      N. Supabase unreachable (no-backend): Profile shows the offer card and the existing "Accounts are unavailable" card.
+     C. Saved-calculation copy (GH-IMP-021 follow-up). While the page's own data service reports that saving a calculation is not available
+        (GHP.services.repos.savedCalculations.createUnavailableReason is set), no rendered text block may present saved calculations as a
+        working feature: every paragraph, list item, lede or tile whose sentences pair "calculation(s)" with save / saved / saving / keep /
+        kept / store / pin must, in the same block, say it is not available yet. Scanned views: Home, My Garage, Saved, Engineering Lab and
+        Profile for the signed-out production visitor (both viewports) and the development Free account, and Home, My Garage, Saved and
+        Engineering Lab after the development Premium grant. The Home Saved tile and the Saved preview must be found and pass (so the scan is
+        known to have read real copy).
    MUTANTS (each must make the test fail; SKIP_MUTANTS=1 skips them): premium/shell.js as on main before this change (no offer);
    premium-calculator-gating.js as on main (old link text, no checkout note); premium/models.js with the monthly price changed to 699 cents
-   (the page must then disagree with the migration).
+   (the page must then disagree with the migration); premium/shell.js as on 205d0c2 (the offer, but Home / Garage / Saved copy still
+   advertising saved calculations).
 
    Run: node premium/tests/premium-profile.test.js   (VERBOSE=1 prints passes; SMOKE_OUT=dir saves screenshots; GH_BASE=rev for the mutants)
    Exit code 0 = every check passed, 1 = at least one failed. */
@@ -114,6 +122,35 @@ const READ_PROFILE = () => {
     controls, overflow: document.documentElement.scrollWidth > innerWidth, offerFits: offer ? offer.getBoundingClientRect().right <= innerWidth + 0.5 && offer.getBoundingClientRect().left >= -0.5 : null
   };
 };
+/* saved-calculation copy: every rendered text block that talks about saving / keeping calculations must say it is not available yet */
+const READ_SAVED_COPY = () => {
+  const reason = (((window.GHP || {}).services || {}).repos || {}).savedCalculations ? GHP.services.repos.savedCalculations.createUnavailableReason || '' : '';
+  const v = document.getElementById('ghp-view');
+  const visible = el => { const r = el.getBoundingClientRect(), s = getComputedStyle(el); return s.display !== 'none' && s.visibility !== 'hidden' && r.width > 0 && r.height > 0; };
+  const CALC = /\bcalculations?\b/i, VERB = /\b(save|saved|saves|saving|keep|keeps|kept|keeping|store|stored|storing|pin|pinned)\b/i;
+  const AVAIL = /\b(isn[’']t|is not|are not|aren[’']t|not) (yet )?available( yet)?\b/i;
+  const blocks = [...v.querySelectorAll('p, li, .ghp-lede, .ghp-tile')].filter(el => !(el.matches('p, li') && el.closest('.ghp-tile'))).filter(visible)
+    .map(el => ({ tile: el.classList.contains('ghp-tile') ? el.getAttribute('data-go') : null, text: el.textContent.replace(/\s+/g, ' ').trim() }));
+  const claims = blocks.filter(b => b.text.split(/(?<=[.!?])\s+/).some(sn => CALC.test(sn) && VERB.test(sn)));
+  return { view: GHP.shell.state().view, reason, claims: claims.map(b => ({ text: b.text, ok: AVAIL.test(b.text) })), blocks: blocks.length,
+    savedTile: (blocks.find(b => b.tile === 'saved') || {}).text || null };
+};
+async function savedCopy(page, views, label, c, need = {}) {
+  const seen = [];
+  for (const view of views) {
+    await page.evaluate(v => GHP.shell.go(v), view);
+    await page.waitForFunction(v => GHP.shell.state().view === v && document.getElementById('ghp-view').children.length > 0, view, { timeout: 8000 }).catch(() => null);
+    await page.waitForTimeout(600);
+    seen.push(await page.evaluate(READ_SAVED_COPY));
+  }
+  const reason = seen.map(s => s.reason).find(Boolean) || '';
+  const bad = seen.flatMap(s => s.claims.filter(x => !x.ok).map(x => `${s.view}: "${x.text}"`));
+  const views_ = seen.map(s => `${s.view}(${s.blocks} blocks, ${s.claims.length} saved-calculation mentions)`).join(', ');
+  c(`${label}: saving a calculation is reported unavailable by the data service`, /not available/i.test(reason), JSON.stringify(reason));
+  c(`${label}: no rendered copy presents saved calculations as working (${views.join(', ')})`, reason ? bad.length === 0 && seen.every(s => s.blocks > 0) : true, bad.join(' | ') || views_);
+  if (need.homeTile) { const t = (seen.find(s => s.view === 'home') || {}).savedTile; c(`${label}: Home Saved tile found and says saving is not available yet`, !!t && /not available yet|isn’t available yet/i.test(t), JSON.stringify(t)); }
+  if (need.savedPreview) { const sv = seen.find(s => s.view === 'saved') || { claims: [] }; c(`${label}: Saved preview found and says saving is not available yet`, sv.claims.length > 0 && sv.claims.every(x => x.ok), JSON.stringify(sv.claims)); }
+}
 const frameOf = page => page.frames().find(f => f.url().includes(F124));
 
 async function newPage(browser, lib, viewport, supabase, port) {
@@ -207,6 +244,8 @@ async function production(browser, lib, port, label, viewport, c) {
   const result = await fr.evaluate(() => (document.querySelector('#calc-container .result-value') || {}).textContent || '');
   c('search and a Free calculator still work (600 lb-ft x 4000 rpm -> 457 HP; 600 x 4000 / 5252 = 456.97)', JSON.stringify(ids) === JSON.stringify(['?calc=hp_from_torque', '?calc=torque_from_hp']) && /^457\s*HP$/.test(result.trim()), JSON.stringify({ ids, result }));
 
+  await savedCopy(page, ['home', 'garage', 'saved', 'lab', 'profile'], 'signed-out copy', c, { homeTile: true });
+
   c('no page errors', env.pageErrors.length === 0, env.pageErrors.join(' | '));
   c('no non-GET request to Supabase', env.violations.length === 0, env.violations.join(' | '));
   await env.ctx.close();
@@ -220,10 +259,13 @@ async function development(browser, lib, port, c) {
   await page.waitForFunction(() => /Plan/.test(document.getElementById('ghp-view').textContent) && !document.querySelector('form[data-form="signin"]'));
   const free = await page.evaluate(READ_PROFILE);
   c('development, signed-in Free account: offer card after the Plan card', free.offerVisible && free.planCard && free.offerAfterPlan, JSON.stringify({ offer: free.offerVisible, plan: free.planCard, after: free.offerAfterPlan }));
+  await savedCopy(page, ['home', 'garage', 'saved', 'lab', 'profile'], 'development Free copy', c, { homeTile: true, savedPreview: true });
+  await page.evaluate(() => GHP.shell.go('profile')); await page.waitForSelector('[data-action="dev-plan"][data-plan="premium"]');
   await page.click('[data-action="dev-plan"][data-plan="premium"]');
   await page.waitForFunction(() => /Granted by Gearhead Labs/.test(document.getElementById('ghp-view').textContent));
   const prem = await page.evaluate(READ_PROFILE);
   c('development, Premium grant: no offer card', !prem.offer && prem.planCard, JSON.stringify({ offer: prem.offer, plan: prem.planCard }));
+  await savedCopy(page, ['home', 'garage', 'saved', 'lab'], 'development Premium copy', c, { homeTile: true });
   c('development: no page errors', env.pageErrors.length === 0, env.pageErrors.join(' | '));
   await env.ctx.close();
 }
@@ -260,6 +302,7 @@ async function all(browser, lib, overrides, quiet) {
     const MUTANTS = [
       [`premium/shell.js as on ${BASE} (no offer)`, { 'premium/shell.js': gitFile(BASE, 'premium/shell.js') }],
       [`premium-calculator-gating.js as on ${BASE} (old link, no checkout note)`, { 'premium-calculator-gating.js': gitFile(BASE, 'premium-calculator-gating.js') }],
+      ['premium/shell.js as on 205d0c2 (saved calculations still advertised)', { 'premium/shell.js': gitFile('205d0c2', 'premium/shell.js') }],
       ['premium/models.js monthly price 699 cents', { 'premium/models.js': Buffer.from(models.replace(PRICE, "{ interval: 'month', currency: 'usd', amount: 699, label: '$6.99/month' }")) }]
     ];
     for (const [label, overrides] of MUTANTS) {
