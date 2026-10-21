@@ -222,9 +222,17 @@ const K = {
       ['airflow_power_estimate', { ap_rho: -0.0765 }, 'OUT_OF_RANGE', 'negative density'],
       ['injector_sizing', { duty: 0 }, 'OUT_OF_RANGE', 'duty cycle 0 (division by zero)'],
       ['injector_sizing', { inj: 0 }, 'OUT_OF_RANGE', 'no injectors (division by zero)'],
-      ['port_velocity', { A: 0 }, 'OUT_OF_RANGE', 'port area 0 (division by zero)']
+      ['port_velocity', { A: 0 }, 'OUT_OF_RANGE', 'port area 0 (division by zero)'],
+      /* D1: the Fuel Pump page's rule is the registry's validity condition (the page already refused these; the registry used to return a number) */
+      ['fuel_pump_sizing', { pump_margin: 0.5 }, 'OUT_OF_RANGE', 'D1 margin 0.5'],
+      ['fuel_pump_sizing', { pump_margin: 0.99 }, 'OUT_OF_RANGE', 'D1 margin 0.99'],
+      ['fuel_pump_sizing', { hp10: 0 }, 'OUT_OF_RANGE', 'D1 horsepower 0'],
+      ['fuel_pump_sizing', { hp10: -425 }, 'OUT_OF_RANGE', 'D1 negative horsepower'],
+      ['fuel_pump_sizing', { bsfc2: 0 }, 'OUT_OF_RANGE', 'D1 BSFC 0'],
+      ['fuel_pump_sizing', { fuel_density: 0 }, 'OUT_OF_RANGE', 'D1 fuel density 0'],
+      ['fuel_pump_sizing', { fuel_density: -6.17 }, 'OUT_OF_RANGE', 'D1 negative fuel density']
     ];
-    const baseOf = { engine_airflow_estimate: AIR, airflow_power_estimate: AP, injector_sizing: INJ, engine_displacement: DISP, port_velocity: PV };
+    const baseOf = { engine_airflow_estimate: AIR, airflow_power_estimate: AP, injector_sizing: INJ, engine_displacement: DISP, port_velocity: PV, fuel_pump_sizing: K.K7.in };
     const BOX = { cfm: 'cvc_q', A: 'cvc_a' };
     for (const [id, change, state, why, registryOnly] of CASES) {
       const inp = Object.assign({}, baseOf[id], change), r = await calc(id, inp);
@@ -251,6 +259,10 @@ const K = {
     check('B AFR 0.1 and BSFC 0.05 are accepted', r.state === 'VALID' && relClose(outVal(r, 'estimated_horsepower'), h, 1e-12), `state ${r.state}, hp ${JSON.stringify(r.outputs.map(o => o.value))}, expected ${h}`);
     const one = await calc('engine_airflow_estimate', Object.assign({}, K.K2.in, { air_n: 1 }));
     check('B one cylinder is accepted', one.state === 'VALID' && relClose(outVal(one, 'cfm_per_cylinder'), flowCfm(350, 6000, 1, 4), 1e-12), `state ${one.state}`);
+    const m1 = await calc('fuel_pump_sizing', Object.assign({}, K.K7.in, { pump_margin: 1 }));
+    check('B D1 a margin of exactly 1.0 is accepted', m1.state === 'VALID' && relClose(outVal(m1, 'required_pump_delivery'), 500 * 0.5 / 6.17, 1e-12), `state ${m1.state}`);
+    const nn = await calc('fuel_pump_sizing', Object.assign({}, K.K7.in, { hp10: null }));
+    check('B D1 a box that is not a number is INCOMPLETE (no value)', nn.state === 'INCOMPLETE' && nn.outputs.every(o => o.value === null), `state ${nn.state}`);
     const ve = await calc('engine_airflow_estimate', Object.assign({}, K.K2.in, { air_ve: 1.4, air_map: 29.4 }));
     check('B VE above 1 (boosted) is accepted', ve.state === 'VALID' && relClose(outVal(ve, 'engine_volume_flow'), flowCfm(350, 6000, 1.4, 4), 1e-12), `state ${ve.state}`);
   }
