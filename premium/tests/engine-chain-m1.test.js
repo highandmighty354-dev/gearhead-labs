@@ -25,9 +25,9 @@
      M  the page in Metric: the same physical cases typed in the units the boxes show, shown rows vs SI-derived answers
      V  invalid inputs: an explicit result state from the registry and a "Validation required" box on the page, never a number
      B  boundaries that stay valid (AFR 0.1, BSFC 0.05, 1 cylinder) and give the same numbers as the formula
-     K  known issue kept unchanged in M1 (documented, not corrected): Airflow -> Power torque is computed at no less than 800 RPM
+     K  Airflow -> Power torque at 600 RPM is hp x 5252 / 600 (GH-DEF-040: the former 800 RPM floor is removed)
      S  single path: the page's numbers move when (and only when) the registry's answer is altered in the page
-     N  the Formula cards' plain-language notes (four-stroke factor, when a result is shown, the 800 RPM torque floor) and that their facts match the registry
+     N  the Formula cards' plain-language notes (four-stroke factor, when a result is shown, torque at every RPM) and that their facts match the registry
 
    Run: node premium/tests/engine-chain-m1.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine)
    Exit code 0 = every check passed, 1 = at least one failed. */
@@ -268,13 +268,13 @@ const K = {
     check('B VE above 1 (boosted) is accepted', ve.state === 'VALID' && relClose(outVal(ve, 'engine_volume_flow'), flowCfm(350, 6000, 1.4, 4), 1e-12), `state ${ve.state}`);
   }
 
-  /* ---- K: known issue kept unchanged — torque below 800 RPM ---- */
+  /* ---- K: torque at every RPM (GH-DEF-040, option A: no 800 RPM floor) — detailed checks in premium/tests/torque-def040.test.js ---- */
   {
     const inp = Object.assign({}, K.K4.in, { ap_r: 600 }), r = await calc('airflow_power_estimate', inp);
     const h = hpFrom(flowCfm(350, 600, 1, 4) * 0.0765, 12.5, 0.5);                                       // 44.625 hp
     const tq = outVal(r, 'estimated_torque');
-    check('K KNOWN ISSUE: at 600 RPM torque is computed at 800 RPM (hp x 5252 / 800 = 292.963125 lb-ft; physics at 600 RPM gives 390.6175)',
-      relClose(tq, h * 5252 / 800, 1e-12) && relClose(h * 5252 / 800, 292.963125, 1e-12), `registry torque ${tq}`);
+    check('K at 600 RPM torque is hp x 5252 / 600 = 390.6175 lb-ft (the former floor gave 292.963125)',
+      relClose(tq, h * 5252 / 600, 1e-12) && relClose(h * 5252 / 600, 390.6175, 1e-12), `registry torque ${tq}`);
   }
 
   /* ---- S: single path — alter the registry's answer inside the page and the page follows ---- */
@@ -298,7 +298,7 @@ const K = {
       engine_airflow_estimate: [/four-stroke engine fills each cylinder once every two turns/, /factor of 0\.5/, /two-stroke engine fills each cylinder on every turn, a factor of 1/,
         /greater than zero, and the number of cylinders must be a whole number of at least 1/, /Validation required/],
       airflow_power_estimate: [/four-stroke factor of 0\.5/, /no two-stroke option/, /AFR at least 0\.1 and the BSFC at least 0\.05/, /cannot be staged for the Simulator/,
-        /horsepower × 5252 ÷ RPM/, /below 800, this calculator divides by 800/, /at 600 RPM it is three-quarters/, /Horsepower is not affected/],
+        /Torque is horsepower × 5252 ÷ the RPM entered, at every engine speed/, /there is no minimum RPM and no other RPM is substituted/, /Any RPM greater than zero is accepted/],
       fuel_pump_sizing: [/Target HP, BSFC and fuel density must be greater than zero and the capacity margin at least 1\.0/, /Validation required/]
     };
     for (const [id, pats] of Object.entries(NOTES)) {
@@ -307,9 +307,9 @@ const K = {
       check(`N ${id}: every Formula card (${r.cards}) carries the plain-language notes`, r.cards === 3 && r.notes.every(n => n.length > 0), JSON.stringify(r).slice(0, 200));
       for (const re of pats) check(`N ${id}: notes say ${re}`, r.notes.every(n => re.test(n)), (r.notes[0] || '').slice(0, 300));
     }
-    /* the documented facts are the implementation's: 600 RPM torque is 3/4 of hp x 5252 / 600; the four-stroke factor; the validity limits */
-    const r6 = await calc('airflow_power_estimate', Object.assign({}, K.K4.in, { ap_r: 600 }));
-    check('N the note\'s example holds: at 600 RPM the shown torque is 3/4 of hp x 5252 / 600', relClose(outVal(r6, 'estimated_torque'), 0.75 * outVal(r6, 'estimated_horsepower') * 5252 / 600, 1e-12), JSON.stringify(r6.outputs.map(o => o.value)));
+    /* the documented facts are the implementation's: torque = hp x 5252 / RPM at 600 RPM, and the same torque at every RPM for the same engine */
+    const r6 = await calc('airflow_power_estimate', Object.assign({}, K.K4.in, { ap_r: 600 })), r60 = await calc('airflow_power_estimate', K.K4.in);
+    check('N the note holds: torque is hp x 5252 / RPM at 600 RPM and equals the torque at 6000 RPM', relClose(outVal(r6, 'estimated_torque'), outVal(r6, 'estimated_horsepower') * 5252 / 600, 1e-12) && relClose(outVal(r6, 'estimated_torque'), outVal(r60, 'estimated_torque'), 1e-12), JSON.stringify([r6.outputs.map(o => o.value), outVal(r60, 'estimated_torque')]));
     const n0 = await page.evaluate(async () => { renderCalc('injector_sizing'); await new Promise(z => setTimeout(z, 400)); return { cards: document.querySelectorAll('.gh-formula-block').length, notes: document.querySelectorAll('.gh-formula-notes').length }; });
     check('N calculators without notes are unchanged (Injector Sizing: Formula cards, no notes)', n0.cards === 3 && n0.notes === 0, JSON.stringify(n0));
   }
