@@ -2,9 +2,9 @@
 
 Review package of 2026-10-21, prepared as a separate draft PR on owner instruction (2026-10-21). That instruction also kept D1 and the `F1.12.4` label, subject to this migration review.
 
-The PR is **stacked on draft PR #12**: its base is `feat/m1-engine-chain-single-path`, because the fingerprint it records exists only with D1 (`ae4212c`).
+The PR is **stacked on draft PR #12**: its base is `feat/m1-engine-chain-single-path`, because the fingerprint it records exists only with D1 (`ae4212c`). (On 2026-10-22 this PR was merged into that branch, and PR #12 into `main`.)
 
-**Status (2026-10-22): the migration is applied; the related application code is not yet released.**
+**Status (2026-10-22): the migration is applied and the related application code is released.**
 - **Database (applied).** 0409 was applied to production on 2026-10-22 by GitHub Actions run #12 (39775079345), from `ops/provision-0409` at `099039f`, package pinned to `c69ec51`, after dry run #11 (39751412576) listed exactly 0409. Both production gates were approved by the owner; no administrator bypass was used.
 - **Post-apply checks passed** (2026-10-22, read-only, owner-authorized):
   - 19 migrations, the latest `0409`;
@@ -13,7 +13,7 @@ The PR is **stacked on draft PR #12**: its base is `feat/m1-engine-chain-single-
   - the original `fv1-c9780487` row unchanged.
 
   Details: `supabase/PROVISIONING.md`, "Applied: 0409".
-- **Application code (not released).** The engine change that produces `fv1-f5c74781` (draft PR #12), this PR's catalogue and fingerprint record (draft PR #14) and the provisioning workflow pin (draft PR #15) are not merged, and nothing was deployed. The live site still names `fv1-c9780487`, which remains valid.
+- **Application code (released 2026-10-22).** The engine change that produces `fv1-f5c74781` (PR #12), this PR's catalogue and fingerprint record (PR #14) and the provisioning workflow pin (PR #15) reached `main` in one merge: PR #12 merged into `main` on 2026-10-22 as `be20248` and published by GitHub Pages run 39809377833. The live engine, the live catalogue and the production row agree on `fv1-f5c74781`; the original `fv1-c9780487` row remains valid.
 
 The rest of this document is the review package as written before the apply (2026-10-21/22).
 
@@ -96,6 +96,6 @@ It gives 40/40 with 0409 present, and 40/40 with 0409 removed.
 3. **Production dry run:** the owner clicks *Run workflow* (dry-run mode) and approves the production gate. It must list exactly 0409.
 4. **Apply:** a separate run in apply mode, with APPLY typed and the gate approved by the owner.
 5. **Post-apply read-only checks:** 19 migrations; 582 `formula_versions` rows; the new Fuel Pump row with its metadata; the original row unchanged.
-6. Then, each under its own authorization: merge PR #12, merge this PR, deploy. **Open:** PRs #12, #14 and #15 are not merged, and nothing is deployed.
+6. Then, each under its own authorization: merge PR #12, merge this PR, deploy. **Done 2026-10-22:** PRs #15 and #14 were merged into their stacked branches, and PR #12 merged into `main` on 2026-10-22 as `be20248` and published by GitHub Pages run 39809377833.
 
 Done on 2026-10-22: step 1 (owner approval); step 2 (PR #15); step 3 (run #11); step 4 (run #12); step 5 (all four checks passed).
