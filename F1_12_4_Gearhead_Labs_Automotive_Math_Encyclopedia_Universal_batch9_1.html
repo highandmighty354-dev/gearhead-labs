@@ -389,6 +389,10 @@ header.gh-premium-header{height:78px!important;padding:0 24px!important;backgrou
 .gh-var-legend{list-style:none;padding:0;margin:14px 0 0;font-size:13px;color:var(--text-secondary);display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px 18px}
 .gh-var-legend li{padding:3px 0;border-top:1px solid var(--border-subtle)}
 .gh-var-legend li:nth-child(-n+2){border-top:none}
+.gh-formula-notes{margin:14px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.5}
+.gh-formula-notes h4{margin:0 0 6px;font-size:13px;color:var(--text)}
+.gh-formula-notes ul{margin:0;padding-left:18px}
+.gh-formula-notes li{margin:4px 0}
 .gh-method-note{font-size:14.5px;color:var(--text-secondary);line-height:1.6}
 details.gh-js-impl{margin-top:16px;border-top:1px solid var(--border-subtle);padding-top:10px}
 details.gh-js-impl summary{cursor:pointer;color:var(--muted);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;user-select:none}
@@ -7047,7 +7051,9 @@ function simCurveBox(id,fallback,mode){
 function simCurvePoints(){
   const mode=window._ghmCurveMode || document.getElementById('curve_mode')?.value || 'torque';
   if(window._ghmSimulatorCurveSource==='airflow'){
-    try{const z=JSON.parse(GHM_STORAGE.get('ghm_airflow_sim_curve')||'null');if(Array.isArray(z)&&z.length>1)return z.map(p=>({rpm:+p.rpm,y:+p.y})).filter(p=>p.rpm>0&&p.y>0)}catch(e){}
+    /* M1: a staged curve is used only if ghAirflowCurveAccepted() passes (made by the registry-validated Stage, every point usable); otherwise the
+       manual curve is used — never a partly filtered or empty list (an all-invalid list used to reach pts[0] and throw). */
+    try{const z=JSON.parse(GHM_STORAGE.get('ghm_airflow_sim_curve')||'null');if(typeof ghAirflowCurveAccepted==='function'&&ghAirflowCurveAccepted(z,GHM_STORAGE.get('ghm_airflow_sim_curve_fv')))return z.map(p=>({rpm:+p.rpm,y:+p.y}))}catch(e){}
   }
   /* the shipped default is a torque curve: read in power mode (GH-DEF-029) it is the same engine's power, not torque numbers taken for horsepower */
   const d=simDefaultCurve().map(p=>mode==='power' ? {rpm:p.rpm,y:p.y*p.rpm/5252} : p);
@@ -7646,9 +7652,14 @@ window.GHM_AIRFLOW_STATE=ast;
 window.GHM_AIRFLOW_POINTS=pts;
 window.GHM_AIRFLOW_INTERP=interp;
 window.GHM_ENGINE_AIR_GRAPH=function(){var p=getActiveProfile()||{},d=vd('air_d',p.displacement||350),ve=an('air_ve',.9),cy=an('air_cycle',4),box=document.getElementById('ghm-engine-air-graph'),a=[];if(!box)return;var met=UNIT.system==='metric';for(var i=0;i<=60;i++){var r=1000+((p.peakRPM||6500)-1000)*i/60,v=vol(d,r,ve,cy);a.push([r,met?v*28.3168466:v])}chart(box,[{n:'Engine Airflow',d:a,c:'#ff6464'}],'RPM',met?'L/min':'CFM')};
-window.GHM_AIRFLOW_POWER=function(){var p=getActiveProfile()||{},disp=vd('ap_d',p.displacement||350),rpm=vd('ap_r',p.peakRPM||6500),ve=an('ap_ve',.9),rho=vd('ap_rho',.0765),afr=an('ap_afr',14.7),bsfc=vd('ap_bs',.5),cfm=vol(disp,rpm,ve,4),m=cfm*rho,hp=airhp(m,afr,bsfc);return {cfm:cfm,mass:m,hp:hp,torque:hp*5252/Math.max(800,rpm)}};
-window.GHM_CLEAR_AIRFLOW=function(){window._ghmSimulatorCurveSource=null;try{GHM_STORAGE.remove('ghm_airflow_sim_curve');GHM_STORAGE.remove('ghm_sim_curve_source');GHM_STORAGE.remove('ghm_sim_curve_mode')}catch(e){}window._ghmCurveMode=null;showToast('Simulator returned to manual curve source')};
-window.GHM_STAGE_AIRFLOW=function(){var z=GHM_AIRFLOW_POWER(),p=getActiveProfile()||{},rpmMax=p.peakRPM||6500,curve=[];for(var i=0;i<10;i++){var rpm=1000+(rpmMax-1000)*i/9,cfm=vol(vd('ap_d',p.displacement||350),rpm,an('ap_ve',.9),4),hp=airhp(cfm*vd('ap_rho',.0765),an('ap_afr',14.7),vd('ap_bs',.5));curve.push({rpm:Math.round(rpm),y:+hp.toFixed(1)})}window._ghmAirflowTorqueCurve=curve;window._ghmSimulatorCurveSource='airflow';window._ghmCurveMode='power';try{GHM_STORAGE.set('ghm_airflow_sim_curve',JSON.stringify(curve));GHM_STORAGE.set('ghm_sim_curve_source','airflow');GHM_STORAGE.set('ghm_sim_curve_mode','power')}catch(e){}showToast('Airflow estimate staged for Simulator')};
+/* M1: the Stage path uses the same registry calculation as the page (GH_ENGINE 'airflow_power_estimate'); invalid inputs give valid:false and NaN values,
+   never a clamped number. The boxes are read exactly as the page reads them (vd). */
+window.GHM_AIRFLOW_POWER=function(){var p=getActiveProfile()||{},inp={ap_d:vd('ap_d',p.displacement||350),ap_r:vd('ap_r',p.peakRPM||6500),ap_ve:vd('ap_ve',.9),ap_rho:vd('ap_rho',.0765),ap_afr:vd('ap_afr',14.7),ap_bs:vd('ap_bs',.5)},reg=ghRegistryCalc('airflow_power_estimate',inp),R=reg.values;return {valid:reg.ok,state:reg.state,inputs:inp,cfm:reg.ok?R.estimated_airflow:NaN,mass:reg.ok?R.estimated_air_mass:NaN,hp:reg.ok?R.estimated_horsepower:NaN,torque:reg.ok?R.estimated_torque:NaN}};
+window.GHM_CLEAR_AIRFLOW=function(silent){window._ghmSimulatorCurveSource=null;try{GHM_STORAGE.remove('ghm_airflow_sim_curve');GHM_STORAGE.remove('ghm_airflow_sim_curve_fv');GHM_STORAGE.remove('ghm_sim_curve_source');GHM_STORAGE.remove('ghm_sim_curve_mode')}catch(e){}window._ghmCurveMode=null;if(!silent)showToast('Simulator returned to manual curve source')};
+/* M1: every point of the staged curve is the registry's Estimated Horsepower at that RPM. Nothing is staged (and an earlier staged curve is left as it
+   was) when the page's own inputs are not valid ("Validation required") or any point of the sweep is not VALID. The stored curve carries the registry
+   formula version it was made with (ghm_airflow_sim_curve_fv); the Simulator accepts a staged curve only with that mark (ghAirflowCurveAccepted). */
+window.GHM_STAGE_AIRFLOW=function(){var z=GHM_AIRFLOW_POWER(),p=getActiveProfile()||{},rpmMax=p.peakRPM||6500,curve=[];if(!z.valid){showToast('Not staged: the inputs are not valid (see Validation required)');return false}for(var i=0;i<10;i++){var rpm=1000+(rpmMax-1000)*i/9,r=ghRegistryCalc('airflow_power_estimate',Object.assign({},z.inputs,{ap_r:rpm}));if(!r.ok){showToast('Not staged: the curve could not be calculated at '+Math.round(rpm)+' RPM');return false}curve.push({rpm:Math.round(rpm),y:+r.values.estimated_horsepower.toFixed(1)})}if(!ghAirflowCurveShapeOk(curve)){showToast('Not staged: the calculated curve is not usable');return false}window._ghmAirflowTorqueCurve=curve;window._ghmSimulatorCurveSource='airflow';window._ghmCurveMode='power';try{GHM_STORAGE.set('ghm_airflow_sim_curve',JSON.stringify(curve));GHM_STORAGE.set('ghm_airflow_sim_curve_fv',GH_ENGINE.describe('airflow_power_estimate').formula_version);GHM_STORAGE.set('ghm_sim_curve_source','airflow');GHM_STORAGE.set('ghm_sim_curve_mode','power')}catch(e){}showToast('Airflow estimate staged for Simulator');return true};
 /* Add new category and calculators without touching existing entries. */
 var C='ENGINE AIRFLOW & VALVETRAIN';
 if(!CALCS.some(function(x){return x.id==='camshaft_duration'}))[
@@ -9882,10 +9893,13 @@ function ghFormulaBlockHTML(id, opts){
       rawLines.push(`${o.out} = ${o.expr}`);
     });
     const legend = (entry.vars || []).map((v, i) => `<li>${renderVarName(v)} = ${ghEsc((entry.labels && entry.labels[i]) || v)}</li>`).join('') + ghOptionLegendHTML(entry);
+    /* M1: plain-language notes (assumptions, when a result is shown, known issues) for the calculators listed in GH_FORMULA_NOTES; text only, no calculation */
+    const notes = (typeof GH_FORMULA_NOTES !== 'undefined' && GH_FORMULA_NOTES[id]) || [];
     return `<div class="gh-formula-block">
       ${showHeading ? '<h3>Formula</h3>' : ''}
       <div class="gh-formula-eq-wrap">${eqLines}</div>
       ${legend ? `<ul class="gh-var-legend">${legend}</ul>` : ''}
+      ${notes.length ? `<div class="gh-formula-notes"><h4>In plain language</h4><ul>${notes.map(n => `<li><strong>${ghEsc(n.title)}.</strong> ${ghEsc(n.text)}</li>`).join('')}</ul></div>` : ''}
       <details class="gh-js-impl"><summary>JS Implementation</summary><code>${ghEsc(rawLines.join('\n'))}</code></details>
     </div>`;
   }
@@ -10496,6 +10510,43 @@ function ghRegistryCalc(id, inputs){
   result.outputs.forEach(o => { values[o.key] = o.value; });
   return { ok: result.state === 'VALID', state: result.state, values, result };
 }
+/* GH_FORMULA_NOTES: plain-language notes shown on the Formula card (ghFormulaBlockHTML) of the M1 calculators whose formula has an assumption, a validity
+   rule or a known issue that the equation alone does not make clear. Documentation only: nothing here is read by a calculation. */
+const GH_FORMULA_NOTES = {
+  engine_airflow_estimate: [
+    { title: 'Four-stroke or two-stroke', text: 'A four-stroke engine fills each cylinder once every two turns of the crankshaft, so the airflow uses a factor of 0.5. A two-stroke engine fills each cylinder on every turn, a factor of 1. The Cycle box chooses which.' },
+    { title: 'When a result is shown', text: 'Displacement, RPM, VE, air density and both pressures must be greater than zero, and the number of cylinders must be a whole number of at least 1. Otherwise the calculator shows "Validation required" instead of a number. A VE above 1.0 is allowed, for boosted engines.' }
+  ],
+  airflow_power_estimate: [
+    { title: 'Four-stroke engines only', text: 'The airflow uses the four-stroke factor of 0.5 (each cylinder fills once every two turns of the crankshaft). This calculator has no two-stroke option.' },
+    { title: 'When a result is shown', text: 'Displacement, RPM, VE and air density must be greater than zero, the AFR at least 0.1 and the BSFC at least 0.05. Otherwise the calculator shows "Validation required" instead of a number, and the estimate cannot be staged for the Simulator.' },
+    { title: 'Torque below 800 RPM (known issue)', text: 'Torque is horsepower × 5252 ÷ RPM. When the RPM entered is below 800, this calculator divides by 800 instead, so the torque it shows below 800 RPM is lower than horsepower × 5252 ÷ RPM: at 600 RPM it is three-quarters of that value. Horsepower is not affected. The issue is recorded and being reviewed separately.' }
+  ],
+  fuel_pump_sizing: [
+    { title: 'When a result is shown', text: 'Target HP, BSFC and fuel density must be greater than zero and the capacity margin at least 1.0. Otherwise the calculator shows "Validation required" instead of a number.' }
+  ]
+};
+/* Staged airflow curve (Airflow -> Power "Stage Estimate for Power/Torque Simulator"). Shape: at least 2 points, every RPM a finite number > 0 and strictly
+   increasing, every power a finite number > 0. Accepted by the Simulator only with the registry formula version it was staged with. */
+function ghAirflowCurveShapeOk(c){
+  if(!Array.isArray(c) || c.length < 2) return false;
+  for(let i=0;i<c.length;i++){ const p=c[i]; if(!p || typeof p!=='object') return false; const r=+p.rpm, y=+p.y;
+    if(!Number.isFinite(r) || !Number.isFinite(y) || r<=0 || y<=0) return false; if(i && !(r > +c[i-1].rpm)) return false; }
+  return true;
+}
+let ghAirflowCurveMemo = null;
+function ghAirflowCurveAccepted(curve, fv){
+  const key = JSON.stringify(curve) + '|' + fv;
+  if(ghAirflowCurveMemo && ghAirflowCurveMemo.key === key) return ghAirflowCurveMemo.ok;
+  const ok = !!fv && fv === GH_ENGINE.describe('airflow_power_estimate').formula_version && ghAirflowCurveShapeOk(curve);
+  ghAirflowCurveMemo = { key, ok }; return ok;
+}
+/* On load: a staged curve that is not accepted (staged before M1 without the mark, or damaged) is cleared, so the Simulator does not keep an "airflow"
+   source it will not use. The person's manual curve is untouched. */
+(function(){ try{
+  if(window._ghmSimulatorCurveSource==='airflow'){ const z=JSON.parse(GHM_STORAGE.get('ghm_airflow_sim_curve')||'null');
+    if(!ghAirflowCurveAccepted(z, GHM_STORAGE.get('ghm_airflow_sim_curve_fv')) && typeof GHM_CLEAR_AIRFLOW==='function') GHM_CLEAR_AIRFLOW(true); }
+} catch(e){ /* storage unavailable: nothing staged */ } })();
 /* Same markup as the certification layer's validation box (certError), available to every script block. */
 function ghValidationBox(msg){
   return `<div class="result-box"><div class="result-label">Validation required</div><div class="result-value">\u2014</div><div class="help-note">${msg}</div></div>`;
