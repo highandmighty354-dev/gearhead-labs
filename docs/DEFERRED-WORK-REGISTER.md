@@ -1265,14 +1265,14 @@ This is the **single authoritative register** of known defects, deferred improve
     - changes the registry text of `airflow_power_estimate`, and so its fingerprint. That calculator has no production `formula_versions` or `calculators` row (it cannot be saved), so no migration is needed unless it is made saveable;
     - removes the "known issue" note from the Formula card;
     - turns section K of `engine-chain-m1.test.js` into a correctness check.
-- **Implementation (2026-10-22):** owner decision of 2026-10-21, option A, on branch `fix/gh-def-040-torque-floor` (draft PR #17, stacked on M1 PR #12):
+- **Implementation (2026-10-22):** owner decision of 2026-10-21, option A, on branch `fix/gh-def-040-torque-floor` (draft PR #17, stacked on M1 PR #12; PR #12 has since been merged, and PR #17's base is still `feat/m1-engine-chain-single-path`):
   - Estimated Torque in `GH_BACKFILL_FORMULAS.airflow_power_estimate` is now `… *5252/ap_r`; no RPM is substituted.
   - The valid domain is unchanged (the registry's validity conditions: RPM, displacement, VE and air density > 0; AFR ≥ 0.1; BSFC ≥ 0.05; otherwise "Validation required"). The calculator remains four-stroke only.
   - The Formula card's "known issue" note is replaced by the rule.
   - **Intentional output change:** only below 800 RPM (600 RPM: 292.963125 → 390.6175 lb-ft).
   - Not changed: the Simulator's own 800 RPM engine-speed limits (`simEngineAtRPM`, `simTorqueAtRPM`, gear sweeps), a separate model.
-- **Dependencies:** M1 (PR #12) must be merged first: the formula is the registry entry M1 adds.
-- **Revisit:** When the owner chooses A or B.
+- **Dependencies:** M1 (PR #12): the formula is the registry entry M1 adds. **Met:** PR #12 merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833).
+- **Revisit:** On owner review of draft PR #17 (option A, chosen 2026-10-21, is implemented there).
 - **Commits:** `b2c03e3` (branch `fix/gh-def-040-torque-floor`, draft PR #17).
 - **Tests:** `premium/tests/torque-def040.test.js` (new, in `run-browser-tests.sh`):
   - the registry at 1, 100, 400, 600, 799, 800, 801, 1000, 6000 and 9000 RPM: torque = hp × 5252 ÷ RPM = 390.6175 lb-ft, horsepower unchanged, and below 800 RPM not the floor value;
@@ -1299,6 +1299,7 @@ This is the **single authoritative register** of known defects, deferred improve
   - 2026-10-21 — found in the M1 review (PR #12) and kept unchanged by owner decision D4.
   - 2026-10-22 — recorded with a proposed correction.
   - 2026-10-22 — option A implemented on `fix/gh-def-040-torque-floor` (draft PR #17); FIXED — UNVERIFIED.
+  - 2026-10-22 — M1 (PR #12) merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833); the dependency is met. The live site still has the 800 RPM floor and its "known issue" note: PR #17 is not merged or released. Revisit updated (the owner had chosen option A on 2026-10-21).
 
 ### GH-DEF-041 — Christmas Tree Timing's registry entry gives the Pro tree 0.3 s to green; the page states 0.400 s
 - **Status:** OPEN
@@ -1316,7 +1317,7 @@ This is the **single authoritative register** of known defects, deferred improve
   - The page's Formula card shows the 0.3 s expression.
 - **Decision:** Kept separate from M1 by owner instruction (2026-10-21). Proposed correction, for approval:
   - the registry expression becomes 0.4 for the Pro tree, with a Sportsman option (0.5 s per amber, green 0.5 s after the last amber, 1.5 s from the first amber) only if the page's tree selection is carried into the registry;
-  - this changes a production-seeded fingerprint, so it needs a reviewed `formula_versions` migration, as for GH-ENG-014 / 0408 and the proposed 0409.
+  - this changes a production-seeded fingerprint, so it needs a reviewed `formula_versions` migration, as for GH-ENG-014 / 0408 and for 0409 (the Fuel Pump row, applied to production on 2026-10-22).
 - **Dependencies:** A formula-version migration (owner authorization).
 - **Revisit:** With the next formula-version migration.
 - **Commits:** None.
@@ -1352,12 +1353,12 @@ This is the **single authoritative register** of known defects, deferred improve
   - nothing else changes: same RPM sweep (1000 to the profile's peak, 61 points), same axis labels, same chart.
 
   Size: one function and one test file. It can go on PR #12 if the owner wants it inside M1, or on its own branch.
-- **Implementation (2026-10-22):** owner decision of 2026-10-21 (separate from M1), on branch `fix/gh-def-042-airflow-graph` (draft PR #16, stacked on M1 PR #12):
+- **Implementation (2026-10-22):** owner decision of 2026-10-21 (separate from M1), on branch `fix/gh-def-042-airflow-graph` (draft PR #16, stacked on M1 PR #12; PR #12 has since been merged, and PR #16's base is still `feat/m1-engine-chain-single-path`):
   - each of the 61 points is `GH_ENGINE.calculate('engine_airflow_estimate')` Engine Volume Flow at that RPM;
   - when the calculator's inputs are not valid, or any point is not VALID, no curve is drawn and the graph box says "Validation required: the graph is drawn only for valid inputs";
   - the sweep, the Metric display factor and the chart are unchanged.
-- **Dependencies:** M1 (PR #12): the registry entry `engine_airflow_estimate`.
-- **Revisit:** On approval.
+- **Dependencies:** M1 (PR #12): the registry entry `engine_airflow_estimate`. **Met:** PR #12 merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833).
+- **Revisit:** On owner review of draft PR #16.
 - **Commits:** `f909aa0` (branch `fix/gh-def-042-airflow-graph`, draft PR #16).
 - **Tests:** `premium/tests/airflow-graph-def042.test.js` (new, in `run-browser-tests.sh`):
   - valid inputs in Imperial and Metric (5 cases × 61 points) against the independent reference and, exactly, the registry;
@@ -1381,6 +1382,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:**
   - 2026-10-22 — investigated on owner instruction after the M1 review; recorded with a proposed change.
   - 2026-10-22 — fixed on `fix/gh-def-042-airflow-graph` (draft PR #16); FIXED — UNVERIFIED.
+  - 2026-10-22 — M1 (PR #12) merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833); the dependency is met. The live graph still draws curves for invalid inputs: PR #16 is not merged or released.
 
 ### GH-DEF-043 — Three Engine Build calculators still return a number for negative inputs
 - **Status:** OPEN
