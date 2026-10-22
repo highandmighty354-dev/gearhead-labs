@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "2ebecafb9a2702e5545f411b094250026aaa5e9a3d65d763329c0ee8d54fef1d"
+      "sha256": "1a810a6333000e819f35ded042dd7c0a949de0995250deac5535ec22263e112d"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -21,6 +21,10 @@
     "formula_versions_0408": {
       "file": "supabase/migrations/0408_formula_versions_corrected_formulas.sql",
       "sha256": "df92a3e050bc7cbc46d5e1c1d6fe3822a7a82db58a2ebc5fe3965138380c4c49"
+    },
+    "formula_versions_0409": {
+      "file": "supabase/migrations/0409_formula_versions_fuel_pump_validity.sql",
+      "sha256": "29cbdcd08bda08630126e65f89a99f1226766d8568c58330486f3262d61f5534"
     }
   },
   "counts": {
@@ -1190,7 +1194,7 @@
     {"id":"fuel_pressure_flow","name":"Fuel Flow vs Pressure","category":"GASOLINE / FUEL & AIR","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-da23940e","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"fuel_pressure_rise","name":"Fuel Pressure Rise","category":"FORCED INDUCTION","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-987059a6","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"fuel_pump_capacity","name":"Fuel Pump Capacity","category":"GASOLINE / FUEL & AIR","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-3e9953d8","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
-    {"id":"fuel_pump_sizing","name":"Fuel Pump Sizing","category":"FUEL, AIR & EXHAUST","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-c9780487","registry":"GH_LEGACY_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
+    {"id":"fuel_pump_sizing","name":"Fuel Pump Sizing","category":"FUEL, AIR & EXHAUST","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-f5c74781","registry":"GH_LEGACY_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"fuel_system_hp","name":"Fuel System Horsepower Capacity","category":"GASOLINE / FUEL & AIR","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-1f03063a","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"fuse_size","name":"Fuse Sizing","category":"UNIVERSAL / ELECTRICAL","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-73f953b4","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"fuse_sizing","name":"Fuse Sizing","category":"ELECTRICAL, FLUID & UTILITIES","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-13cc6b95","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},

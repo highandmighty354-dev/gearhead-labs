@@ -4,7 +4,7 @@
 #
 # Starts a private PostgreSQL server on a unix socket in a temporary directory (no network port; it never connects to a Supabase project), builds the schema the
 # way hosted Supabase does (the same role model as premium-foundation/tests: postgres = NOSUPERUSER + BYPASSRLS runs every migration), applies every migration
-# BEFORE 0408 (0001-0407), and then:
+# BEFORE 0408 (0001-0407; files sorting after 0408, such as 0409, are not applied here: each later migration has its own proof), and then:
 #   P  checks that the committed file supabase/migrations/0408_formula_versions_corrected_formulas.sql is byte-identical to the Section 13 block of the proposal;
 #   B  checks the behaviour BEFORE 0408 (577 versions; old fingerprints accepted, the four new ones refused by calc_formula_version_fk);
 #   N  applies a deliberately WRONG copy of 0408 (bolt_stretch given the GH_LEGACY_FORMULAS registry instead of its own GH_E1_FORMULAS) and checks that it
@@ -39,7 +39,7 @@ echo "CREATE DATABASE gh_throwaway OWNER supabase_admin TEMPLATE template0;" | p
 psql_ supabase_admin gh_throwaway < "$SHIM" >/dev/null || { echo "shim failed"; exit 1; }
 [ -f "$MIG" ] || { echo "FAIL: $MIG not found"; exit 1; }
 for f in $(ls "$REPO"/supabase/migrations/*.sql | sort); do
-  [ "$f" = "$MIG" ] && continue                                         # 0408 is applied below, under test
+  [ "$(basename "$f")" \< "$(basename "$MIG")" ] || continue           # only the migrations BEFORE 0408; 0408 is applied below, under test; later ones (0409 ...) have their own proofs
   psql_ postgres gh_throwaway < "$f" >/dev/null 2>"$ROOT/apply.err" || { echo "migration $(basename "$f") failed:"; cat "$ROOT/apply.err"; exit 1; }
 done
 echo "INSERT INTO auth.users (id, email) VALUES ('11111111-1111-1111-1111-111111111111', 'throwaway@example.invalid');" | psql_ supabase_admin gh_throwaway || exit 1
@@ -47,7 +47,7 @@ echo "INSERT INTO auth.users (id, email) VALUES ('11111111-1111-1111-1111-111111
 # P: the committed file against the Section 13 block of the proposal, and its place at the end of the migration order
 awk '/<!-- MIGRATION-0408-SQL-BEGIN -->/{on=1;next} /<!-- MIGRATION-0408-SQL-END -->/{on=0} on && !/^```/' "$DOC" > "$ROOT/docblock.sql"
 { shcheck 'P1 the migration file is byte-identical to the proposal Section 13 block' same "$(cmp -s "$ROOT/docblock.sql" "$MIG" && [ -s "$MIG" ] && echo same || echo differs)"
-  shcheck 'P2 0408 is the last file of supabase/migrations' 0408_formula_versions_corrected_formulas.sql "$(ls "$REPO"/supabase/migrations/*.sql | sort | tail -1 | xargs basename)"
+  shcheck 'P2 0408 directly follows 0407 in the migration order (later migrations may follow it)' 0407_premium_product_model.sql "$(ls "$REPO"/supabase/migrations/*.sql | sort | xargs -n1 basename | grep -B1 -x 0408_formula_versions_corrected_formulas.sql | head -1)"
 } > "$ROOT/pre.txt"
 
 # try(label, statement, acceptable SQLSTATEs) reports PASS/FAIL; calc(...) builds a calculation_records INSERT for the throwaway owner
