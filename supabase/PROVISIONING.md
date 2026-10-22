@@ -1,12 +1,13 @@
 # Provisioning the Gearhead Labs Premium database
 
-**Status (2026-10-16): production is at migration 0408.** All 18 migrations (0001 through 0408) are applied to the production project `jmztpjudwzjvrcdtjynd`, by the gated workflow *Provision Supabase (manual, gated)*:
+**Status (2026-10-22): production is at migration 0409.** All 19 migrations (0001 through 0409) are applied to the production project `jmztpjudwzjvrcdtjynd`, by the gated workflow *Provision Supabase (manual, gated)*:
 - 0001–0406 were applied first, from commit b2baaaa.
 - `0407_premium_product_model.sql` was applied by run #8 (see "Applied: 0407" below).
 - `0408_formula_versions_corrected_formulas.sql` (GH-ENG-014) was applied on 2026-10-16 by run #10, from `premium/full-calculator-expansion` at `382107e`, package pinned to `0cc4fc8` (see "Applied: 0408" below; the preparation record follows it under "Prepared, not applied: 0408").
 - `main` still carries the old workflow copy (pinned to `ca8e582`, 17 files) until the branch is merged; the merge is a separate owner decision.
 
-- `0409_formula_versions_fuel_pump_validity.sql` (M1 decision D1) is **prepared, not applied** (2026-10-22): see "Prepared, not applied: 0409" below.
+- `0409_formula_versions_fuel_pump_validity.sql` (M1 decision D1) was applied on 2026-10-22 by run #12, from `ops/provision-0409` at `099039f`, package pinned to `c69ec51` (see "Applied: 0409" below; the preparation record follows it under "Prepared, not applied: 0409").
+- **The database change is applied; the related application code is not yet released.** The engine change that uses the new Fuel Pump fingerprint (draft PR #12), the catalogue that names it (draft PR #14) and the provisioning workflow pinned to this package (draft PR #15) are not merged. The live site still runs the engine from `main`, which names the original fingerprint `fv1-c9780487`; that row is unchanged, so the live site and the database stay consistent until the release.
 
 Every step that writes to the project needs explicit owner approval first.
 
@@ -33,9 +34,34 @@ Every step that writes to the project needs explicit owner approval first.
 | 15 | `0405_premium_saved_calculations.sql` | PREMIUM-FOUNDATION (new) |
 | 16 | `0406_premium_engineering_analyses.sql` | PREMIUM-FOUNDATION (new) |
 
+## Applied: 0409 (Fuel Pump Sizing formula version, M1 decision D1)
+
+| # | File | Origin |
+|---|---|---|
+| 19 | `0409_formula_versions_fuel_pump_validity.sql` | PREMIUM-FOUNDATION 1.1.0 (applied to production 2026-10-22) |
+
+**Production record (2026-10-22):**
+- Project ref: `jmztpjudwzjvrcdtjynd`.
+- Migration level: **0409**. The history holds 19 versions, 0001 through 0409; version `0409` is named `formula_versions_fuel_pump_validity` and follows `0408`.
+- **How it was applied:** the workflow *Provision Supabase (manual, gated)* from `ops/provision-0409` at `099039f30741baea9414fd7a44beaf1ad0e2e6ac` (not `main`), package pinned to `c69ec51e47af7d2120ad82a4f8aa6a0e7522de67` (19-file manifest; 0409 sha256 `29cbdcd0…5534`).
+  - **Run #11** (Actions run 39751412576), 2026-10-22, target `production`, mode `dry-run`. The owner approved the production gate. verify-package succeeded; the dry run listed exactly `0409_formula_versions_fuel_pump_validity.sql` ("verdict: PASS exactly the expected production pending list"), and no database changes were made.
+  - **Run #12** (Actions run 39775079345), 2026-10-22, target `production`, mode `apply`, with APPLY typed and the owner's approval of the normal production gate (no administrator bypass). verify-package succeeded. The APPLY job's built-in fresh dry run, its two pending checks, the apply and the verification dry run all passed. The job summary reads "Applying migration 0409_formula_versions_fuel_pump_validity.sql..." and "Applied 1 approved migration(s) from commit c69ec51e47af7d2120ad82a4f8aa6a0e7522de67; nothing remains pending."
+- **Post-apply checks** (2026-10-22, read-only transaction through the Supabase connector, authorized by the owner; all passed):
+  - the migration history has 19 versions, the latest `0409` named `formula_versions_fuel_pump_validity`;
+  - `formula_versions` has 582 rows (581 before): 577 with first release `F1.12.3` and 5 with `F1.12.4` (the four 0408 rows and this one), still 577 distinct calculators;
+  - the new row exactly: `fuel_pump_sizing`, `fv1-f5c74781`, `1.1.0`, `GH_LEGACY_FORMULAS`, `F1.12.4`;
+  - the original row unchanged: `fuel_pump_sizing`, `fv1-c9780487`, `1.1.0`, `GH_LEGACY_FORMULAS`, `F1.12.3`;
+  - the only calculators with two versions are the four corrected by 0408 and `fuel_pump_sizing`;
+  - `df_never_changed` and `df_no_truncate` are still on `formula_versions`; `calculation_records` is 0.
+  - Not run: the Supabase Security and Performance advisors.
+- **Application code: not yet released.** Applying 0409 changed only the database. The engine change that produces `fv1-f5c74781` (draft PR #12), the catalogue that names it (draft PR #14) and this workflow pin (draft PR #15) are not merged, and nothing was deployed. Their release is a separate, owner-authorized step: #12, #14 and #15 reach `main` as one merge, because merging into `main` publishes the site (GitHub Pages).
+- **The workflow now shows nothing pending.** Production has no pending migration, so a production dry run with this package, or with the older copy on `main` (pinned to `0cc4fc8`, expecting 0408), now fails its gate ("up to date" while a pending file is expected). This is expected and harmless; the next migration needs a new pinned package.
+
 ## Prepared, not applied: 0409 (Fuel Pump Sizing formula version, M1 decision D1)
 
-**Status: PREPARED, NOT APPLIED.** Nothing in this section has been run against any Supabase project. Each production step below needs the owner's explicit, separate authorization.
+*Preparation record, kept as written before the apply. For what happened, see "Applied: 0409" above.*
+
+**Status at preparation: PREPARED, NOT APPLIED.** Nothing in this section had been run against any Supabase project. Each production step below needed the owner's explicit, separate authorization.
 
 **The migration.** `0409_formula_versions_fuel_pump_validity.sql` (sha256 `29cbdcd0…5534`) adds one `formula_versions` row: `fuel_pump_sizing`, `fv1-f5c74781`, engine `1.1.0`, `GH_LEGACY_FORMULAS`, first release `F1.12.4`.
 - It changes or deletes nothing, and running it twice is harmless.
