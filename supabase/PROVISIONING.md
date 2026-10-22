@@ -4,10 +4,10 @@
 - 0001–0406 were applied first, from commit b2baaaa.
 - `0407_premium_product_model.sql` was applied by run #8 (see "Applied: 0407" below).
 - `0408_formula_versions_corrected_formulas.sql` (GH-ENG-014) was applied on 2026-10-16 by run #10, from `premium/full-calculator-expansion` at `382107e`, package pinned to `0cc4fc8` (see "Applied: 0408" below; the preparation record follows it under "Prepared, not applied: 0408").
-- Until the M1 release, `main` carried an older workflow copy (pinned to `0cc4fc8`, expecting 0408, immediately before the release). Since 2026-10-22 (`be20248`), `main` carries the 0409 package (pinned to `c69ec51`, 19 files).
+- `main`'s workflow copy: pinned to `ca8e582` (17 files) when 0408 was applied; to `0cc4fc8` (18 files, expecting 0408) from `c9db895` (2026-10-16); to `c69ec51` (19 files, expecting 0409) from the M1 release, `be20248` (2026-10-22).
 
 - `0409_formula_versions_fuel_pump_validity.sql` (M1 decision D1) was applied on 2026-10-22 by run #12, from `ops/provision-0409` at `099039f`, package pinned to `c69ec51` (see "Applied: 0409" below; the preparation record follows it under "Prepared, not applied: 0409").
-- **The database change and the related application code are both released.** 0409 was applied first. Then, under a separate owner authorization, PR #15 (this workflow pin) and PR #14 (the catalogue) were merged into their stacked branches and PR #12 merged into `main` on 2026-10-22 as `be20248` and published by GitHub Pages run 39809377833, carrying the engine change that uses the new Fuel Pump fingerprint. The live engine, the live catalogue and the production `formula_versions` table agree on `fv1-f5c74781` (post-release check, 2026-10-22). The original `fv1-c9780487` row is unchanged.
+- **The database change and the related application code are both released.** 0409 was applied first (run #12, finished 12:24 UTC). Then, under a separate owner authorization: PR #15 (this workflow pin) was merged into PR #14's branch; PR #14 (the 0409 file, the catalogue and the fingerprint record) into PR #12's branch; and PR #12 (the engine change) into `main` as `be20248` at 15:55 UTC, published by GitHub Pages run #129 (39809377833). The released engine and catalogue name `fv1-f5c74781`, the fingerprint of the production row recorded under "Applied: 0409". The original `fv1-c9780487` row is unchanged.
 
 Every step that writes to the project needs explicit owner approval first.
 
@@ -54,7 +54,7 @@ Every step that writes to the project needs explicit owner approval first.
   - the only calculators with two versions are the four corrected by 0408 and `fuel_pump_sizing`;
   - `df_never_changed` and `df_no_truncate` are still on `formula_versions`; `calculation_records` is 0.
   - Not run: the Supabase Security and Performance advisors.
-- **Application code: released after the apply.** Applying 0409 changed only the database; the run deployed nothing. The release followed as a separate, owner-authorized step, with #12, #14 and #15 reaching `main` as one merge (merging into `main` publishes the site): PR #12 merged into `main` on 2026-10-22 as `be20248` and published by GitHub Pages run 39809377833. Post-release check: the live engine, the live catalogue and this row agree on `fv1-f5c74781`.
+- **Application code: released after the apply.** Applying 0409 changed only the database; the run deployed nothing. The release followed as a separate, owner-authorized step, with #12, #14 and #15 reaching `main` as one merge (merging into `main` publishes the site): PR #12 merged into `main` on 2026-10-22 as `be20248` and published by GitHub Pages run #129 (39809377833). The released engine and catalogue name `fv1-f5c74781`, this row's fingerprint.
 - **The workflow now shows nothing pending.** Production has no pending migration, so a production dry run with this package (since the M1 release, also the copy on `main`), or with the older 0408 copy (pinned to `0cc4fc8`), now fails its gate ("up to date" while a pending file is expected). This is expected and harmless; the next migration needs a new pinned package.
 
 ## Prepared, not applied: 0409 (Fuel Pump Sizing formula version, M1 decision D1)
