@@ -18,6 +18,8 @@
      C  invalid inputs with nothing staged before: nothing staged, the Simulator keeps the manual curve
      D  the receiving Simulator, page reloaded with a stored curve: a pre-M1 unmarked curve, a stale mark, damaged lists (NaN, decreasing RPM, one point, all
         zero, not a list) are not used and are cleared, no page error, a Simulator still computes; a correctly marked curve survives the reload and is used
+     D  (also) the Simulator tells the person to stage again; staging again works, is used, removes the notice and survives a reload
+     F  the page's staging note; "Return Simulator to Manual Curve" removes the notice
      E  single path: the staged points move with the registry's answer, and a sweep point the registry rejects stops the staging
      M  mutants (temporary engine copies): the validity check removed from the Stage button, the per-point check removed, the receiver's mark check removed
 
@@ -134,10 +136,38 @@ async function suite(browser, enginePath, quiet) {
       /* a Simulator still computes */
       const t = await page.evaluate(() => { try { renderCalc('sim_dragstrip', false); const v = [...document.querySelectorAll('#calc-container .sim-stat strong')].map(e => e.textContent); return v.length ? v[0] : 'no stats'; } catch (e) { return 'ERROR ' + e.message; } });
       check(`D ${why}: the Drag Strip simulator still draws`, !/ERROR|no stats/.test(t), t);
+      const note = await page.evaluate(() => ({ flag: localStorage.getItem('gearhead_d31_ghm_airflow_restage_notice'), shown: !!document.querySelector('#calc-container .ghm-restage-notice'),
+        text: (document.querySelector('#calc-container .ghm-restage-notice') || {}).textContent || '' }));
+      if (accepted) check(`D ${why}: no restage notice`, note.flag === null && !note.shown, JSON.stringify(note));
+      else check(`D ${why}: the Simulator tells the person to stage again`, note.flag === '1' && note.shown && /Stage it again from Airflow → Power Estimate/.test(note.text), JSON.stringify(note));
+      if (!accepted) {
+        /* valid restaging after the old curve was cleared: accepted, used, the notice goes away; it survives a reload */
+        await open(page, 'imperial'); await page.click('text=Stage Estimate'); await page.waitForTimeout(60);
+        const r = await st(page), fvn = await fvNow(page);
+        const gone = await page.evaluate(() => { renderCalc('sim_dragstrip', false); return { flag: localStorage.getItem('gearhead_d31_ghm_airflow_restage_notice'), shown: !!document.querySelector('#calc-container .ghm-restage-notice') }; });
+        check(`D ${why}: staging again works, is used and removes the notice`, r.live === 'airflow' && r.fv === fvn && r.sim.n === 10 && gone.flag === null && !gone.shown, JSON.stringify([r.live, r.fv, r.sim, gone]));
+        await page.reload({ waitUntil: 'load' }); await page.waitForTimeout(400);
+        const rr = await st(page);
+        check(`D ${why}: the restaged curve survives a reload`, rr.live === 'airflow' && rr.curve === r.curve && rr.sim.n === 10, JSON.stringify(rr).slice(0, 200));
+      }
       check(`D ${why}: no page error`, errors.length === 0, errors.join(' | '));
       await ctx.close();
     }
   }
+  /* ---- F: "Return Simulator to Manual Curve" removes the notice; the Airflow -> Power page says curves staged before the checks need staging again ---- */
+  {
+    const { ctx, page, errors } = await fresh({ [KEY('ghm_airflow_sim_curve')]: '[{"rpm":1000,"y":1},{"rpm":2000,"y":2}]', [KEY('ghm_sim_curve_source')]: 'airflow' });
+    const before = await page.evaluate(() => localStorage.getItem('gearhead_d31_ghm_airflow_restage_notice'));
+    await open(page, 'imperial');
+    const pageNote = await page.evaluate(() => [...document.querySelectorAll('#calc-container .sim-note')].map(n => n.textContent).join(' | '));
+    check('F the Airflow -> Power page explains staging and restaging', /nothing is staged while "Validation required" is shown/.test(pageNote) && /staged before these checks were added is not used and needs to be staged again/.test(pageNote), pageNote);
+    await page.click('text=Return Simulator to Manual Curve'); await page.waitForTimeout(40);
+    const after = await page.evaluate(() => localStorage.getItem('gearhead_d31_ghm_airflow_restage_notice'));
+    check('F returning to the manual curve removes the notice', before === '1' && after === null, `${before} -> ${after}`);
+    check('F no page error', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+
   /* ---- E: single path — the staged points ARE the registry's answers ---- */
   {
     const { ctx, page, errors } = await fresh(); await open(page, 'imperial');
