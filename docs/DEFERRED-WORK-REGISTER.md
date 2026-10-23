@@ -63,7 +63,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-037](#gh-def-037--test-harnesses-can-pass-vacuously-when-the-expected-value-is-not-finite-and-unit-system-reads-a-blank-box-as-0) | Test harnesses can pass vacuously when the expected value is not finite (and `unit-system` reads a blank box as 0) | VERIFIED CLOSED | Low | P2 |
 | [GH-DEF-038](#gh-def-038--calculator-search-intermittently-answers-no-calculators-found-for-every-query-multi-word-hyphen--space-and-id-queries-miss) | Calculator search intermittently answers "No calculators found" for every query; multi-word, hyphen / space and id queries miss | VERIFIED CLOSED | High | P1 |
 | [GH-DEF-039](#gh-def-039--upgrade-to-premium-on-a-locked-calculator-loads-the-whole-site-inside-the-calculator-frame) | "Upgrade to Premium" on a locked calculator loads the whole site inside the calculator frame | VERIFIED CLOSED | High | P1 |
-| [GH-DEF-040](#gh-def-040--airflow--power-estimate-computes-torque-at-800-rpm-when-the-rpm-entered-is-lower) | Airflow → Power Estimate computes torque at 800 RPM when the RPM entered is lower | FIXED — UNVERIFIED | Low | P3 |
+| [GH-DEF-040](#gh-def-040--airflow--power-estimate-computes-torque-at-800-rpm-when-the-rpm-entered-is-lower) | Airflow → Power Estimate computes torque at 800 RPM when the RPM entered is lower | VERIFIED CLOSED | Low | P3 |
 | [GH-DEF-041](#gh-def-041--christmas-tree-timings-registry-entry-gives-the-pro-tree-03-s-to-green-the-page-states-0400-s) | Christmas Tree Timing's registry entry gives the Pro tree 0.3 s to green; the page states 0.400 s | OPEN | Low | P3 |
 | [GH-DEF-042](#gh-def-042--the-airflow-vs-rpm-graph-draws-a-curve-for-inputs-engine-airflow-estimation-rejects) | The "Airflow vs RPM" graph draws a curve for inputs Engine Airflow Estimation rejects | FIXED — UNVERIFIED | Low | P2 |
 | [GH-DEF-043](#gh-def-043--three-engine-build-calculators-still-return-a-number-for-negative-inputs) | Three Engine Build calculators still return a number for negative inputs | OPEN | Low | P3 |
@@ -1248,7 +1248,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-10-17 — found in the owner-requested read-only review of release `c9db895`. 2026-10-18 — reproduced live on `885f843` (desktop and phone viewport); fixed in `a2f9b81` under the owner's Stage 2, Task 1 authorization; status FIXED — UNVERIFIED until criterion 3 is checked on the published site. 2026-10-18 — independent read-only audit of PR #7 at `4bb4023`: approved for merge. 2026-10-18 — PR #7 merged by the owner (`d9e7eb5`), published by Pages run 39166917027 / deployment 7160830454; **closed:** criterion 3 met on the published site (desktop and 375 px phone viewport, Chromium, in-app and direct-link arrival, Back and Forward; Safari, Firefox and Cmd-click not tested). Documentation only; no application, migration or production change.
 
 ### GH-DEF-040 — Airflow → Power Estimate computes torque at 800 RPM when the RPM entered is lower
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Low (a wrong torque figure only for engine speeds below 800 RPM; horsepower, the staged Simulator curve and every other output are unaffected)
 - **Priority:** P3
 - **Description:** Airflow → Power Estimate (`airflow_power_estimate`) shows Estimated Torque = horsepower × 5252 ÷ max(800, RPM). Below 800 RPM it divides by 800 instead of the RPM entered, so the torque shown is too low by the factor RPM ÷ 800: at 600 RPM it shows 292.96 lb-ft where horsepower × 5252 ÷ 600 gives 390.62 lb-ft (350 ci, VE 1.0, 0.0765 lb/ft³, AFR 12.5, BSFC 0.5 → 44.625 hp). The floor is a hidden clamp of the kind M1 (PR #12, decision D4) turned into explicit validation elsewhere; on owner instruction (2026-10-21) it was kept unchanged in M1 and recorded here.
@@ -1265,7 +1265,7 @@ This is the **single authoritative register** of known defects, deferred improve
     - changes the registry text of `airflow_power_estimate`, and so its fingerprint. That calculator has no production `formula_versions` or `calculators` row (it cannot be saved), so no migration is needed unless it is made saveable;
     - removes the "known issue" note from the Formula card;
     - turns section K of `engine-chain-m1.test.js` into a correctness check.
-- **Implementation (2026-10-22):** owner decision of 2026-10-21, option A, on branch `fix/gh-def-040-torque-floor` (draft PR #17, stacked on M1 PR #12; PR #12 has since been merged, and PR #17's base is still `feat/m1-engine-chain-single-path`):
+- **Implementation (2026-10-22):** owner decision of 2026-10-21, option A, on branch `fix/gh-def-040-torque-floor` (PR #17, first stacked on M1 PR #12; after PR #12 was merged, `main` was merged into the branch and PR #17 was based on `main`):
   - Estimated Torque in `GH_BACKFILL_FORMULAS.airflow_power_estimate` is now `… *5252/ap_r`; no RPM is substituted.
   - The valid domain is unchanged (the registry's validity conditions: RPM, displacement, VE and air density > 0; AFR ≥ 0.1; BSFC ≥ 0.05; otherwise "Validation required"). The calculator remains four-stroke only.
   - The Formula card's "known issue" note is replaced by the rule.
@@ -1275,8 +1275,8 @@ This is the **single authoritative register** of known defects, deferred improve
     - the page defaults as shown (6500 RPM): 369.9777 hp, torque 298.942 lb-ft before and after (unchanged).
   - Not changed: the Simulator's own 800 RPM engine-speed limits (`simEngineAtRPM`, `simTorqueAtRPM`, gear sweeps), a separate model.
 - **Dependencies:** M1 (PR #12): the formula is the registry entry M1 adds. **Met:** PR #12 merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833).
-- **Revisit:** On owner review of draft PR #17 (option A, chosen 2026-10-21, is implemented there).
-- **Commits:** `b2c03e3` (branch `fix/gh-def-040-torque-floor`, draft PR #17). Not merged into `main` and not released.
+- **Revisit:** None (closed).
+- **Commits:** `b2c03e3` (the fix), `78a166f` (merge of `main` `f0ac057`), `151c886` (test-runner comment only), branch `fix/gh-def-040-torque-floor`. Released: PR #17 merged into `main` by the owner on 2026-10-23 as `e5f86ba` (head `151c886`) and published by GitHub Pages run #131 (39959346609; deployment 7279104655, success, https://highandmighty354-dev.github.io/gearhead-labs/).
 - **Tests:** `premium/tests/torque-def040.test.js` (new, in `run-browser-tests.sh`):
   - the registry at 1, 100, 400, 600, 799, 800, 801, 1000, 6000 and 9000 RPM: torque = hp × 5252 ÷ RPM = 390.6175 lb-ft, horsepower unchanged, and below 800 RPM not the floor value;
   - the page in Imperial (400, 600, 799, 800, 801, 6000) and Metric (600, 6000);
@@ -1297,13 +1297,20 @@ This is the **single authoritative register** of known defects, deferred improve
   - 744-calculator default snapshot: unchanged apart from the M1 staging note.
   - Old-versus-new against `d44ae32` (the engine before M1): 720 random valid cases identical (all at 800 RPM or above, so they cannot show this change). Of the 23 listed edge and invalid inputs, one result differs from PR #12's own comparison: the page-default engine inputs (350 ci, VE 0.9, 0.0765 lb/ft³, AFR 14.7, BSFC 0.5) with RPM changed to 600, a valid input under the registry's rules: 34.1518 hp, torque 224.2065 → 298.942 lb-ft. With RPM at the page default of 6500 the torque is 298.942 lb-ft before and after.
   - Criterion 3 (the card note) is met in code.
-  - Live verification follows a separately authorized release.
+  - Live verification followed the release; see the next result.
+- **Verification result (2026-10-23, released and verified live):**
+  - Before merge, on a fresh checkout of `78a166f` (local, Chromium): `torque-def040` 54/0 (mutant caught), `engine-chain-m1` 177/0, `airflow-stage-m1` 198/0 (mutants 3/3), `airflow-readers` 131/0, `formula-fingerprints` 0 failures, `registry-agreement` as baselined, `run-tests.sh` exit 0, full browser regression 46/46. `151c886` changed one comment line only; `run-tests.sh` exit 0 on it. Independent old-versus-new engine comparison: only `airflow_power_estimate`'s fingerprint changes (`fv1-85a98442` → `fv1-a300b717`); 420 grid cases change only for valid RPM below 800.
+  - `main` `e5f86ba` has the same tree as the reviewed head `151c886`.
+  - Live site (2026-10-23, after Pages run #131, built-in browser): engine, catalogue and `index.html` byte-identical to `e5f86ba` (engine sha256 `b08b013c…`, cache tag `20261022-0400`); live fingerprint `fv1-a300b717`. Registry and page: the 350 ci test engine at 600 RPM shows 44.625 HP and 390.6175 lb-ft; the page-default inputs with RPM changed to 600 show 34.1518 HP and 298.942 lb-ft; the page defaults at 6500 RPM show 369.9777 HP and 298.942 lb-ft; RPM 0 and −600 are OUT_OF_RANGE with "Validation required". All 3 Formula cards state the torque rule; none mentions the floor or `max(800`. No page errors other than the expected signed-out 401 from the database check. Stored browser values were restored after the check.
+  - Criteria 1–3 are met. Not tested: Safari and Firefox.
 - **History:**
   - 2026-10-21 — found in the M1 review (PR #12) and kept unchanged by owner decision D4.
   - 2026-10-22 — recorded with a proposed correction.
   - 2026-10-22 — option A implemented on `fix/gh-def-040-torque-floor` (draft PR #17); FIXED — UNVERIFIED.
   - 2026-10-22 — M1 (PR #12) merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833); the dependency is met. The live site still has the 800 RPM floor and its "known issue" note: PR #17 is not merged or released. Revisit updated (the owner had chosen option A on 2026-10-21).
   - 2026-10-23 — evidence wording corrected on owner instruction: the 224.2065 → 298.942 lb-ft comparison is the page-default inputs with RPM changed to 600 (a valid input, previously described as an invalid-input case "at the page defaults"); the 292.963125 → 390.6175 lb-ft example is the separate 350 ci test engine. Values unchanged; recalculated independently.
+  - 2026-10-23 — PR #17 merged into `main` by the owner on 2026-10-23 as `e5f86ba` (head `151c886`) and published by GitHub Pages run #131 (39959346609; deployment 7279104655, success, https://highandmighty354-dev.github.io/gearhead-labs/). Released.
+  - 2026-10-23 — closed: verified live on the published site after the release (evidence in the 2026-10-23 verification result: tests on `78a166f`, full browser regression 46/46, live files byte-identical to `e5f86ba`, live 600 RPM and 6500 RPM values, validation and Formula card checked). Status VERIFIED CLOSED.
 
 ### GH-DEF-041 — Christmas Tree Timing's registry entry gives the Pro tree 0.3 s to green; the page states 0.400 s
 - **Status:** OPEN
