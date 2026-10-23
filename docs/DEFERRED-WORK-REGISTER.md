@@ -63,6 +63,10 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-037](#gh-def-037--test-harnesses-can-pass-vacuously-when-the-expected-value-is-not-finite-and-unit-system-reads-a-blank-box-as-0) | Test harnesses can pass vacuously when the expected value is not finite (and `unit-system` reads a blank box as 0) | VERIFIED CLOSED | Low | P2 |
 | [GH-DEF-038](#gh-def-038--calculator-search-intermittently-answers-no-calculators-found-for-every-query-multi-word-hyphen--space-and-id-queries-miss) | Calculator search intermittently answers "No calculators found" for every query; multi-word, hyphen / space and id queries miss | VERIFIED CLOSED | High | P1 |
 | [GH-DEF-039](#gh-def-039--upgrade-to-premium-on-a-locked-calculator-loads-the-whole-site-inside-the-calculator-frame) | "Upgrade to Premium" on a locked calculator loads the whole site inside the calculator frame | VERIFIED CLOSED | High | P1 |
+| [GH-DEF-040](#gh-def-040--airflow--power-estimate-computes-torque-at-800-rpm-when-the-rpm-entered-is-lower) | Airflow → Power Estimate computes torque at 800 RPM when the RPM entered is lower | VERIFIED CLOSED | Low | P3 |
+| [GH-DEF-041](#gh-def-041--christmas-tree-timings-registry-entry-gives-the-pro-tree-03-s-to-green-the-page-states-0400-s) | Christmas Tree Timing's registry entry gives the Pro tree 0.3 s to green; the page states 0.400 s | OPEN | Low | P3 |
+| [GH-DEF-042](#gh-def-042--the-airflow-vs-rpm-graph-draws-a-curve-for-inputs-engine-airflow-estimation-rejects) | The "Airflow vs RPM" graph draws a curve for inputs Engine Airflow Estimation rejects | VERIFIED CLOSED | Low | P2 |
+| [GH-DEF-043](#gh-def-043--three-engine-build-calculators-still-return-a-number-for-negative-inputs) | Three Engine Build calculators still return a number for negative inputs | OPEN | Low | P3 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
 | [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
@@ -84,6 +88,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-IMP-020](#gh-imp-020--performance-unit-policy-questions-that-remain-after-gh-imp-019-was-implemented) | Performance-unit policy questions that remain after GH-IMP-019 was implemented | DEFERRED | Low | P3 |
 | [GH-IMP-021](#gh-imp-021--profile-explains-premium-its-price-and-that-checkout-is-not-open-premium-destination-content) | Profile explains Premium, its price and that checkout is not open (Premium destination content) | VERIFIED CLOSED | Medium | P1 |
 | [GH-IMP-022](#gh-imp-022--the-calculators-had-a-seeded-demo-truck-as-every-visitors-vehicle--use--shortcuts-vehicle-defaults) | The calculators had a seeded demo truck as every visitor's vehicle ("↓ use …" shortcuts, vehicle defaults) | VERIFIED CLOSED | Medium | P2 |
+| [GH-IMP-023](#gh-imp-023--engine-airflow-results-keep-imperial-labels-in-metric-air-mass-in-lbmin-cfm-row-names) | Engine airflow results keep Imperial labels in Metric (air mass in lb/min, "CFM" row names) | DEFERRED | Low | P3 |
 | [GH-ENG-001](#gh-eng-001--which-of-the-65-metric-named-unit-inventory-entries-are-real-defects) | Which of the 65 "metric-named unit" inventory entries are real defects? | VERIFIED CLOSED | Medium | P1 |
 | [GH-ENG-002](#gh-eng-002--are-all-registered-unit-conversion-factors-correct) | Are all registered unit conversion factors correct? | VERIFIED CLOSED | Low | P1 |
 | [GH-ENG-003](#gh-eng-003--do-the-airflow-block-an-readers-have-the-head-flow-curve-defect) | Do the airflow-block `an()` readers have the Head Flow Curve defect? | SUPERSEDED | Medium | P1 |
@@ -1242,6 +1247,188 @@ This is the **single authoritative register** of known defects, deferred improve
   The Verification criteria are met.
 - **History:** 2026-10-17 — found in the owner-requested read-only review of release `c9db895`. 2026-10-18 — reproduced live on `885f843` (desktop and phone viewport); fixed in `a2f9b81` under the owner's Stage 2, Task 1 authorization; status FIXED — UNVERIFIED until criterion 3 is checked on the published site. 2026-10-18 — independent read-only audit of PR #7 at `4bb4023`: approved for merge. 2026-10-18 — PR #7 merged by the owner (`d9e7eb5`), published by Pages run 39166917027 / deployment 7160830454; **closed:** criterion 3 met on the published site (desktop and 375 px phone viewport, Chromium, in-app and direct-link arrival, Back and Forward; Safari, Firefox and Cmd-click not tested). Documentation only; no application, migration or production change.
 
+### GH-DEF-040 — Airflow → Power Estimate computes torque at 800 RPM when the RPM entered is lower
+- **Status:** VERIFIED CLOSED
+- **Severity:** Low (a wrong torque figure only for engine speeds below 800 RPM; horsepower, the staged Simulator curve and every other output are unaffected)
+- **Priority:** P3
+- **Description:** Airflow → Power Estimate (`airflow_power_estimate`) shows Estimated Torque = horsepower × 5252 ÷ max(800, RPM). Below 800 RPM it divides by 800 instead of the RPM entered, so the torque shown is too low by the factor RPM ÷ 800: at 600 RPM it shows 292.96 lb-ft where horsepower × 5252 ÷ 600 gives 390.62 lb-ft (350 ci, VE 1.0, 0.0765 lb/ft³, AFR 12.5, BSFC 0.5 → 44.625 hp). The floor is a hidden clamp of the kind M1 (PR #12, decision D4) turned into explicit validation elsewhere; on owner instruction (2026-10-21) it was kept unchanged in M1 and recorded here.
+- **Evidence:**
+  - The page code before M1 (`t=h*5252/Math.max(800,r)`) and the M1 registry entry (`… *5252/Math.max(800,ap_r)`, `GH_BACKFILL_FORMULAS.airflow_power_estimate`, PR #12) carry the same floor.
+  - `premium/tests/engine-chain-m1.test.js` (PR #12), section K, pins the current behaviour as a KNOWN ISSUE: 600 RPM → 292.963125 lb-ft.
+  - The 2026-10-21 old-versus-new comparison on PR #12 shows the 600 RPM case unchanged by M1: the page-default engine inputs (350 ci, VE 0.9, 0.0765 lb/ft³, AFR 14.7, BSFC 0.5) with RPM changed to 600.
+- **Affected:** engine `F1_12_4_…html`: `GH_BACKFILL_FORMULAS.airflow_power_estimate` (the Estimated Torque expression), `GHM_AIRFLOW_POWER()` (its `torque` value, from the registry since M1), and the Formula card note added in M1 (`GH_FORMULA_NOTES.airflow_power_estimate`, "Torque below 800 RPM (known issue)").
+- **Impact:** A person entering an idle or cranking speed below 800 RPM gets a torque figure that is too low (25 % low at 600 RPM, 50 % at 400 RPM). No other calculator reads this torque; the staged Simulator curve is horsepower only.
+- **Decision:** Proposed correction, for owner approval (not implemented when proposed; option A was later implemented on a branch, see Implementation):
+  - **Option A (recommended).** Estimated Torque = horsepower × 5252 ÷ RPM, with no floor. The existing validity rule (RPM > 0) already prevents a division by zero. At very low RPM the torque is large but correct for the inputs given.
+  - **Option B.** Keep a minimum engine speed, but as a stated validity rule (for example RPM ≥ 500 gives "Validation required") rather than a silent floor. This rejects inputs the model is not meant for, but it also refuses legitimate low-speed estimates.
+  - **Either option:**
+    - changes the registry text of `airflow_power_estimate`, and so its fingerprint. That calculator has no production `formula_versions` or `calculators` row (it cannot be saved), so no migration is needed unless it is made saveable;
+    - removes the "known issue" note from the Formula card;
+    - turns section K of `engine-chain-m1.test.js` into a correctness check.
+- **Implementation (2026-10-22):** owner decision of 2026-10-21, option A, on branch `fix/gh-def-040-torque-floor` (PR #17, first stacked on M1 PR #12; after PR #12 was merged, `main` was merged into the branch and PR #17 was based on `main`):
+  - Estimated Torque in `GH_BACKFILL_FORMULAS.airflow_power_estimate` is now `… *5252/ap_r`; no RPM is substituted.
+  - The valid domain is unchanged (the registry's validity conditions: RPM, displacement, VE and air density > 0; AFR ≥ 0.1; BSFC ≥ 0.05; otherwise "Validation required"). The calculator remains four-stroke only.
+  - The Formula card's "known issue" note is replaced by the rule.
+  - **Intentional output change:** only below 800 RPM. Horsepower and every other output are unchanged. Examples:
+    - the 350 ci test engine (VE 1.0, 0.0765 lb/ft³, AFR 12.5, BSFC 0.5) at 600 RPM: 44.625 hp, torque 292.963125 → 390.6175 lb-ft;
+    - the page-default engine inputs (350 ci, VE 0.9, 0.0765 lb/ft³, AFR 14.7, BSFC 0.5) with RPM changed to 600: 34.1518 hp, torque 224.2065 → 298.942 lb-ft;
+    - the page defaults as shown (6500 RPM): 369.9777 hp, torque 298.942 lb-ft before and after (unchanged).
+  - Not changed: the Simulator's own 800 RPM engine-speed limits (`simEngineAtRPM`, `simTorqueAtRPM`, gear sweeps), a separate model.
+- **Dependencies:** M1 (PR #12): the formula is the registry entry M1 adds. **Met:** PR #12 merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833).
+- **Revisit:** None (closed).
+- **Commits:** `b2c03e3` (the fix), `78a166f` (merge of `main` `f0ac057`), `151c886` (test-runner comment only), branch `fix/gh-def-040-torque-floor`. Released: PR #17 merged into `main` by the owner on 2026-10-23 as `e5f86ba` (head `151c886`) and published by GitHub Pages run #131 (39959346609; deployment 7279104655, success, https://highandmighty354-dev.github.io/gearhead-labs/).
+- **Tests:** `premium/tests/torque-def040.test.js` (new, in `run-browser-tests.sh`):
+  - the registry at 1, 100, 400, 600, 799, 800, 801, 1000, 6000 and 9000 RPM: torque = hp × 5252 ÷ RPM = 390.6175 lb-ft, horsepower unchanged, and below 800 RPM not the floor value;
+  - the page in Imperial (400, 600, 799, 800, 801, 6000) and Metric (600, 6000);
+  - RPM 0 and negative RPM give "Validation required";
+  - the Formula card states the rule and has no `max(800`;
+  - `GHM_AIRFLOW_POWER().torque` follows the registry, and the staged curve is unchanged;
+  - 1 mutant (the floor restored).
+
+  Also: `engine-chain-m1.test.js` section K (the corrected value) and N (the new note); `airflow-readers.test.js` (its expected torque no longer encodes the floor).
+- **Docs:** This entry; the M1 Formula card note.
+- **Verification:**
+  1. The proposed tests pass.
+  2. The full browser regression passes.
+  3. The note is removed from the card.
+- **Verification result (2026-10-22, criteria 1–2, local only):**
+  - `torque-def040`: 54 checks, 0 failures; the mutant was caught (16 checks failed).
+  - Full browser regression on the local combination of PRs #12, #14, #15, #16 and #17 (`fc26088`, 47 suites): all passed, exit 0. `fc26088` is a local combination branch that was never pushed, so this run cannot be checked on GitHub.
+  - 744-calculator default snapshot: unchanged apart from the M1 staging note.
+  - Old-versus-new against `d44ae32` (the engine before M1): 720 random valid cases identical (all at 800 RPM or above, so they cannot show this change). Of the 23 listed edge and invalid inputs, one result differs from PR #12's own comparison: the page-default engine inputs (350 ci, VE 0.9, 0.0765 lb/ft³, AFR 14.7, BSFC 0.5) with RPM changed to 600, a valid input under the registry's rules: 34.1518 hp, torque 224.2065 → 298.942 lb-ft. With RPM at the page default of 6500 the torque is 298.942 lb-ft before and after.
+  - Criterion 3 (the card note) is met in code.
+  - Live verification followed the release; see the next result.
+- **Verification result (2026-10-23, released and verified live):**
+  - Before merge, on a fresh checkout of `78a166f` (local, Chromium): `torque-def040` 54/0 (mutant caught), `engine-chain-m1` 177/0, `airflow-stage-m1` 198/0 (mutants 3/3), `airflow-readers` 131/0, `formula-fingerprints` 0 failures, `registry-agreement` as baselined, `run-tests.sh` exit 0, full browser regression 46/46. `151c886` changed one comment line only; `run-tests.sh` exit 0 on it. Independent old-versus-new engine comparison: only `airflow_power_estimate`'s fingerprint changes (`fv1-85a98442` → `fv1-a300b717`); 420 grid cases change only for valid RPM below 800.
+  - `main` `e5f86ba` has the same tree as the reviewed head `151c886`.
+  - Live site (2026-10-23, after Pages run #131, built-in browser): engine, catalogue and `index.html` byte-identical to `e5f86ba` (engine sha256 `b08b013c…`, cache tag `20261022-0400`); live fingerprint `fv1-a300b717`. Registry and page: the 350 ci test engine at 600 RPM shows 44.625 HP and 390.6175 lb-ft; the page-default inputs with RPM changed to 600 show 34.1518 HP and 298.942 lb-ft; the page defaults at 6500 RPM show 369.9777 HP and 298.942 lb-ft; RPM 0 and −600 are OUT_OF_RANGE with "Validation required". All 3 Formula cards state the torque rule; none mentions the floor or `max(800`. No page errors other than the expected signed-out 401 from the database check. Stored browser values were restored after the check.
+  - Criteria 1–3 are met. Not tested: Safari and Firefox.
+- **History:**
+  - 2026-10-21 — found in the M1 review (PR #12) and kept unchanged by owner decision D4.
+  - 2026-10-22 — recorded with a proposed correction.
+  - 2026-10-22 — option A implemented on `fix/gh-def-040-torque-floor` (draft PR #17); FIXED — UNVERIFIED.
+  - 2026-10-22 — M1 (PR #12) merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833); the dependency is met. The live site still has the 800 RPM floor and its "known issue" note: PR #17 is not merged or released. Revisit updated (the owner had chosen option A on 2026-10-21).
+  - 2026-10-23 — evidence wording corrected on owner instruction: the 224.2065 → 298.942 lb-ft comparison is the page-default inputs with RPM changed to 600 (a valid input, previously described as an invalid-input case "at the page defaults"); the 292.963125 → 390.6175 lb-ft example is the separate 350 ci test engine. Values unchanged; recalculated independently.
+  - 2026-10-23 — PR #17 merged into `main` by the owner on 2026-10-23 as `e5f86ba` (head `151c886`) and published by GitHub Pages run #131 (39959346609; deployment 7279104655, success, https://highandmighty354-dev.github.io/gearhead-labs/). Released.
+  - 2026-10-23 — closed: verified live on the published site after the release (evidence in the 2026-10-23 verification result: tests on `78a166f`, full browser regression 46/46, live files byte-identical to `e5f86ba`, live 600 RPM and 6500 RPM values, validation and Formula card checked). Status VERIFIED CLOSED.
+
+### GH-DEF-041 — Christmas Tree Timing's registry entry gives the Pro tree 0.3 s to green; the page states 0.400 s
+- **Status:** OPEN
+- **Severity:** Low (the page the visitor sees is correct; the registry entry, which would be used by a saved calculation, is wrong)
+- **Priority:** P3
+- **Description:** `GH_LEGACY_FORMULAS.christmas_tree` returns "Total Tree Time to Green (Pro tree)" = `0.1 * 3` = 0.3 s. The Christmas Tree Timing page (`RENDERS.christmas_tree`) shows no result row, only text, and states: "All 3 large amber bulbs flash together at T=0 • Green light at T=0.400 sec • Perfect reaction time = 0.400 sec". 0.400 s is the standard Pro tree, so the registry entry is the one in error.
+- **Evidence:**
+  - Found by the M1 registry-agreement review (PR #12, 2026-10-21).
+  - The page computes the same 0.3 s internally (`total_ct`) but never displays it.
+  - `premium/tests/data/registry-agreement-baseline.json` (PR #12) records `christmas_tree` as NON_COMPARABLE (no result row), with this disagreement in its review note.
+- **Affected:** `GH_LEGACY_FORMULAS.christmas_tree` (production-seeded fingerprint) and the unused `total_ct` in `RENDERS.christmas_tree`.
+- **Impact:**
+  - Nothing a visitor sees today.
+  - A saved Christmas Tree calculation would record 0.3 s.
+  - The page's Formula card shows the 0.3 s expression.
+- **Decision:** Kept separate from M1 by owner instruction (2026-10-21). Proposed correction, for approval:
+  - the registry expression becomes 0.4 for the Pro tree, with a Sportsman option (0.5 s per amber, green 0.5 s after the last amber, 1.5 s from the first amber) only if the page's tree selection is carried into the registry;
+  - this changes a production-seeded fingerprint, so it needs a reviewed `formula_versions` migration, as for GH-ENG-014 / 0408 and for 0409 (the Fuel Pump row, applied to production on 2026-10-22).
+- **Dependencies:** A formula-version migration (owner authorization).
+- **Revisit:** With the next formula-version migration.
+- **Commits:** None.
+- **Tests:** Proposed:
+  - the registry returns 0.400 s (Pro) and 1.5 s (Sportsman, if carried) against the published NHRA tree timing;
+  - the registry-agreement baseline entry is reviewed again;
+  - `formula-fingerprints` records the new version.
+- **Docs:** This entry.
+- **Verification:**
+  1. The registry returns the stated times.
+  2. Fingerprint and migration recorded.
+  3. Full regression passes.
+- **History:** 2026-10-21 — found in the M1 review; kept out of PR #12.
+
+### GH-DEF-042 — The "Airflow vs RPM" graph draws a curve for inputs Engine Airflow Estimation rejects
+- **Status:** VERIFIED CLOSED
+- **Severity:** Low (a graph only; the calculator's numbers and the Simulator are not affected)
+- **Priority:** P2 (it undercuts the validation M1 introduced on the same page)
+- **Description:** Engine Airflow Estimation's "Airflow vs RPM" button (`GHM_ENGINE_AIR_GRAPH`) keeps its own airflow formula (`vol(d, r, ve, cy)`) and its own box readers (`vd`, `an`), so it does not go through the registry that M1 made the calculator use.
+  - **Valid inputs:** its points equal the registry exactly. The investigation of 2026-10-22 found a largest relative difference of 0 in Imperial and 2.8e-10 in Metric (the graph's Metric factor 28.3168466 against the exact 28.316846592), so it does not diverge.
+  - **Invalid inputs:** the page shows "Validation required", but the graph still draws 61 points:
+    - displacement −350 gives a negative curve (−91.15 … −592.45 CFM);
+    - VE 0 gives a flat zero line;
+    - cylinders 0 or 7.5, air density 0, barometric pressure 0 and RPM 0 give the normal curve, because the graph does not use those boxes.
+- **Evidence:** 2026-10-22 investigation on PR #12 (local Chromium), all 61 points compared with `GH_ENGINE.calculate('engine_airflow_estimate', …)` at each RPM:
+  - **Valid cases:** Imperial defaults; 400 ci, VE 1.1, two-stroke; Metric defaults.
+  - **Invalid cases:** displacement −350, VE 0, cylinders 0, cylinders 7.5, air density 0, barometric 0, RPM 0.
+- **Affected:** engine `GHM_ENGINE_AIR_GRAPH` (airflow extension).
+- **Impact:** A visitor can see a confident-looking airflow curve next to "Validation required", including a negative curve. No stored data, saved result or Simulator input comes from the graph.
+- **Decision:** Proposed narrow change, for approval (not implemented when proposed, later implemented on a branch, see Implementation; outside the agreed M1 boundary, which covered the six results and the Stage path):
+  - each of the 61 points becomes `GH_ENGINE.calculate('engine_airflow_estimate', …)` at that RPM, Engine Volume Flow converted for display as today;
+  - when the page's own inputs are not valid, or any point is not VALID, the graph box shows "Validation required: the graph needs valid inputs" instead of a curve;
+  - nothing else changes: same RPM sweep (1000 to the profile's peak, 61 points), same axis labels, same chart.
+
+  Size: one function and one test file. It can go on PR #12 if the owner wants it inside M1, or on its own branch.
+- **Implementation (2026-10-22):** owner decision of 2026-10-21 (separate from M1), on branch `fix/gh-def-042-airflow-graph` (PR #16, first stacked on M1 PR #12; after PR #12 and then PR #17 were merged, `main` was merged into the branch twice and PR #16 was based on `main`)):
+  - each of the 61 points is `GH_ENGINE.calculate('engine_airflow_estimate')` Engine Volume Flow at that RPM;
+  - when the calculator's inputs are not valid, or any point is not VALID, no curve is drawn and the graph box says "Validation required: the graph is drawn only for valid inputs";
+  - the sweep, the Metric display factor and the chart are unchanged.
+- **Dependencies:** M1 (PR #12): the registry entry `engine_airflow_estimate`. **Met:** PR #12 merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833).
+- **Revisit:** None (closed).
+- **Commits:** `f909aa0` (the fix), `2896e6d` (merge of `main` `f0ac057`), `18c3848` (merge of `main` `e5f86ba`, with PR #17; resolved the shared cache tag `20261023-0100`, catalogue engine checksum `8f015f01…` and the 47-suite runner list), branch `fix/gh-def-042-airflow-graph`. Released: PR #16 merged into `main` on 2026-10-23 as `cc2d80d` (head `18c3848`, after the owner approved release) and published by GitHub Pages run #132 (39982967678; deployment 7282774779, success, https://highandmighty354-dev.github.io/gearhead-labs/).
+- **Tests:** `premium/tests/airflow-graph-def042.test.js` (new, in `run-browser-tests.sh`):
+  - valid inputs in Imperial and Metric (5 cases × 61 points) against the independent reference and, exactly, the registry;
+  - 11 invalid cases (−350 ci in Imperial and −5735.47 cc in Metric, displacement 0, VE 0, cylinders 0 / 7.5 / −8, density 0, MAP 0, barometric 0, RPM 0): no chart, the message is shown;
+  - a curve drawn before is replaced by the message;
+  - a single-path probe;
+  - 2 mutants.
+
+  `airflow-readers.test.js` case A is unchanged.
+- **Docs:** This entry.
+- **Verification:**
+  1. The proposed tests pass.
+  2. `airflow-readers` is unchanged.
+  3. Full browser regression passes.
+- **Verification result (2026-10-22, criteria 1–3, local only):**
+  - `airflow-graph-def042`: 56 checks, 0 failures; mutants 2/2 caught.
+  - Against PR #12's engine without the fix: 24 failures (the defect).
+  - `airflow-readers`: 131/131.
+  - Full browser regression on the local combination of PRs #12, #14, #15, #16 and #17 (`fc26088`, 47 suites): all passed, exit 0. `fc26088` is a local combination branch that was never pushed, so this run cannot be checked on GitHub.
+  - Live verification followed the release; see the next result.
+- **Verification result (2026-10-23, released and verified live):**
+  - Before merge, on a clean checkout of `18c3848` (local, Chromium): `airflow-graph-def042` 56/0 (mutants 2/2), `airflow-readers` 131/0, `torque-def040` 54/0, `engine-chain-m1` 177/0, `airflow-stage-m1` 198/0 (mutants 3/3), `formula-fingerprints` 0 failures, `registry-agreement` as baselined, `run-tests.sh` exit 0, full browser regression 47/47. Old-versus-new graph against `main` `e5f86ba`: 80 random valid cases × 61 points, 0 differences. Review probe: valid inputs make 62 registry calls (1 input check + 61 points) with every point equal to the registry's value; invalid inputs make 1 call and draw nothing (the probe's `vol()` counter did not work and is not used as evidence).
+  - `main` `cc2d80d` has the same tree as the reviewed head `18c3848`, and contains both this fix and GH-DEF-040.
+  - Live site (2026-10-23, after Pages run #132, built-in browser): engine, catalogue and `index.html` byte-identical to `cc2d80d` (engine sha256 `8f015f01…`, equal to the catalogue's recorded checksum); the page loads the engine with cache tag `20261023-0100`; the live `GHM_ENGINE_AIR_GRAPH` (called by the page's "Airflow vs RPM" button) uses the registry, not `vol()`. Graph, 12 cases: valid inputs (Imperial defaults; 400 ci, VE 1.1, two-stroke; Metric defaults) draw 61 points, 62 registry calls, every point equal to the registry's value and to the hand formula (defaults 91.1458 → 592.4479 CFM over 1000–6500 RPM); invalid inputs (−350 ci, VE 0, cylinders 0 and 7.5, density 0, MAP 0, barometric 0, RPM 0, and −5735.47 cc in Metric) show "Validation required" on the page, draw no curve and show the graph's validation message. GH-DEF-040 still live (390.6175 lb-ft at 600 RPM, 350 ci test engine). No page errors other than the expected signed-out 401 from the database check. Stored browser values were restored after the check.
+  - Criteria 1–3 are met. Not tested: Safari and Firefox.
+- **History:**
+  - 2026-10-22 — investigated on owner instruction after the M1 review; recorded with a proposed change.
+  - 2026-10-22 — fixed on `fix/gh-def-042-airflow-graph` (draft PR #16); FIXED — UNVERIFIED.
+  - 2026-10-22 — M1 (PR #12) merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833); the dependency is met. The live graph still draws curves for invalid inputs: PR #16 is not merged or released.
+  - 2026-10-23 — PR #16 merged into `main` on 2026-10-23 as `cc2d80d` (head `18c3848`, after the owner approved release) and published by GitHub Pages run #132 (39982967678; deployment 7282774779, success, https://highandmighty354-dev.github.io/gearhead-labs/). Released.
+  - 2026-10-23 — closed: verified live on the published site after the release (evidence in the 2026-10-23 verification result: tests on `18c3848`, full browser regression 47/47, live files byte-identical to `cc2d80d`, live graph checked for valid and invalid inputs). Status VERIFIED CLOSED.
+
+### GH-DEF-043 — Three Engine Build calculators still return a number for negative inputs
+- **Status:** OPEN
+- **Severity:** Low (the inputs are physically meaningless; the number shown is the formula applied to them)
+- **Priority:** P3
+- **Description:** M1 (PR #12) recorded these and left them unchanged, because each registry formula is production-seeded, so changing it is a versioned formula change:
+  - **Engine Displacement:** a negative bore gives a positive displacement (the bore is squared), and 0 cylinders gives 0 ci.
+  - **Fuel Injector Sizing (Quick):** a negative injector count gives a negative flow.
+  - **Port Velocity:** a negative port area gives a negative velocity.
+- **Evidence:**
+  - `premium/tests/engine-chain-m1.test.js` (PR #12), section V, pins the current registry behaviour as KNOWN.
+  - The 2026-10-21 old-versus-new comparison shows the pages unchanged for these inputs.
+- **Affected:** `GH_LEGACY_FORMULAS.engine_displacement`, `GH_LEGACY_FORMULAS.injector_sizing`, `GH_E1_FORMULAS.port_velocity`.
+- **Impact:** A mistyped minus sign gives a number instead of "Validation required".
+- **Decision:** Proposed, for approval with the next formula-version migration:
+  - explicit validity conditions (bore, stroke > 0, cylinders a whole number ≥ 1; injectors a whole number ≥ 1, duty in (0, 1]; flow ≥ 0, area > 0), as M1 did for the airflow calculators;
+  - one `formula_versions` row each.
+- **Dependencies:** A formula-version migration (owner authorization).
+- **Revisit:** With the next formula-version migration.
+- **Commits:** None.
+- **Tests:** Proposed: `engine-chain-m1.test.js` section V, the KNOWN cases become OUT_OF_RANGE checks with "Validation required" on the page; `formula-fingerprints` records the new versions.
+- **Docs:** This entry.
+- **Verification:**
+  1. The proposed tests pass.
+  2. Fingerprints and migration recorded.
+  3. Full regression passes.
+- **History:** 2026-10-22 — recorded from the M1 review (PR #12).
+
 ## B. Deferred improvements
 
 ### GH-IMP-001 — Energy in ft-lb is labelled "N·m" rather than "J" in Metric
@@ -1893,6 +2080,30 @@ This is the **single authoritative register** of known defects, deferred improve
   - Local, a clean checkout of `cc2d80d`: `free-vehicle-context` 41/41 (seven mutants caught), `profile-shortcut` 80/0, `performance-units` 95/0, `dashboard-summary` 12/0, `shell-units` 77/0, `run-tests.sh` exit 0. Full browser regression 47/47 on 2026-10-23 on `18c3848`, whose tree is identical to `cc2d80d`.
   - Criteria 1–4 are met. Not tested: Safari, Firefox, a real phone, a real server-side Premium account.
 - **History:** 2026-10-17 — owner decision: seeded demo-vehicle "use" values removed from the Free experience. 2026-10-19 — found still live on `013be72` in the read-only next-step assessment ("↓ use 850 … Diesel Demo"); the diesel block's every-load activation was traced during implementation (the assessment had named the Sample Barracuda as the default; the Ram 2500 Diesel Demo is what every visitor had). Implemented in `4fcbe0d`, `6466f0d`, `9ddd570` under the owner's Stage 2, Task 3 authorization (PR #11, draft). 2026-10-19 — read-only review of PR #11 at `42ce0a2`: full regression 42 suites, 0 failures; found that the switch is global (the PR text had called it Free-only) and that no Premium vehicle-to-calculator path exists; found the unused Engine Power box and the simulators' 32 × aero-drag error (pre-existing). 2026-10-19 — owner decisions R1–R5; implemented in `bbff459` (neutral dashboard empty state, global-scope wording, Premium scenario); this entry rewritten to match. Status FIXED — UNVERIFIED until criterion 4 is checked on the published site. 2026-10-19 — PR #11 merged into `main` as `d44ae32` and published (Pages run #128). 2026-10-23 — closed: criterion 4 met on the live site (desktop and 375 px phone viewport, empty and old-list storage; evidence in the 2026-10-23 verification result). Status VERIFIED CLOSED.
+
+### GH-IMP-023 — Engine airflow results keep Imperial labels in Metric (air mass in lb/min, "CFM" row names)
+- **Status:** DEFERRED
+- **Severity:** Low (the numbers are correct for the labels shown; the labels are not Metric)
+- **Priority:** P3
+- **Description:** With Metric selected, several results keep Imperial units or names, although the numbers shown are correct for those labels:
+  - **Engine Airflow Estimation:** "Air Mass Flow" stays in lb/min; the rows "CFM per Cylinder" and "Ambient-Equivalent CFM" keep "CFM" in their names while showing L/min.
+  - **Airflow → Power Estimate:** "Estimated Air Mass" and "Estimated Fuel Flow" stay in lb/min.
+  - **Fuel Pump Sizing:** the Fuel Density box stays in lb/gal.
+
+  (Power and torque follow the separate Power / Torque preferences, GH-IMP-019.)
+- **Evidence:** M1 review (PR #12), 2026-10-21. `premium/tests/engine-chain-m1.test.js` section M checks these rows in Metric against SI-derived values, in the units they are labelled with today.
+- **Affected:** The `multiResult` rows and field units of `engine_airflow_estimate`, `airflow_power_estimate` and `fuel_pump_sizing`.
+- **Impact:** A Metric user reads mixed units on two airflow pages.
+- **Decision:** Deferred by the owner (M1 decision D5, 2026-10-21) to a separate usability change. No calculation changes.
+- **Dependencies:** None.
+- **Revisit:** In the next usability pass.
+- **Commits:** None.
+- **Tests:** Proposed: `engine-chain-m1.test.js` section M expects kg/min (and kg/L or the chosen density unit) with the same SI-derived values; `unit-census` and `label-consistency` stay green.
+- **Docs:** This entry.
+- **Verification:**
+  1. Metric rows show Metric units with SI-correct values.
+  2. Full regression passes.
+- **History:** 2026-10-21 — deferred by owner decision D5 in the M1 review.
 
 ## C. Engineering questions and research
 
