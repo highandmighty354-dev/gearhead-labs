@@ -65,7 +65,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-039](#gh-def-039--upgrade-to-premium-on-a-locked-calculator-loads-the-whole-site-inside-the-calculator-frame) | "Upgrade to Premium" on a locked calculator loads the whole site inside the calculator frame | VERIFIED CLOSED | High | P1 |
 | [GH-DEF-040](#gh-def-040--airflow--power-estimate-computes-torque-at-800-rpm-when-the-rpm-entered-is-lower) | Airflow → Power Estimate computes torque at 800 RPM when the RPM entered is lower | VERIFIED CLOSED | Low | P3 |
 | [GH-DEF-041](#gh-def-041--christmas-tree-timings-registry-entry-gives-the-pro-tree-03-s-to-green-the-page-states-0400-s) | Christmas Tree Timing's registry entry gives the Pro tree 0.3 s to green; the page states 0.400 s | OPEN | Low | P3 |
-| [GH-DEF-042](#gh-def-042--the-airflow-vs-rpm-graph-draws-a-curve-for-inputs-engine-airflow-estimation-rejects) | The "Airflow vs RPM" graph draws a curve for inputs Engine Airflow Estimation rejects | FIXED — UNVERIFIED | Low | P2 |
+| [GH-DEF-042](#gh-def-042--the-airflow-vs-rpm-graph-draws-a-curve-for-inputs-engine-airflow-estimation-rejects) | The "Airflow vs RPM" graph draws a curve for inputs Engine Airflow Estimation rejects | VERIFIED CLOSED | Low | P2 |
 | [GH-DEF-043](#gh-def-043--three-engine-build-calculators-still-return-a-number-for-negative-inputs) | Three Engine Build calculators still return a number for negative inputs | OPEN | Low | P3 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
@@ -1344,7 +1344,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-10-21 — found in the M1 review; kept out of PR #12.
 
 ### GH-DEF-042 — The "Airflow vs RPM" graph draws a curve for inputs Engine Airflow Estimation rejects
-- **Status:** FIXED — UNVERIFIED
+- **Status:** VERIFIED CLOSED
 - **Severity:** Low (a graph only; the calculator's numbers and the Simulator are not affected)
 - **Priority:** P2 (it undercuts the validation M1 introduced on the same page)
 - **Description:** Engine Airflow Estimation's "Airflow vs RPM" button (`GHM_ENGINE_AIR_GRAPH`) keeps its own airflow formula (`vol(d, r, ve, cy)`) and its own box readers (`vd`, `an`), so it does not go through the registry that M1 made the calculator use.
@@ -1364,13 +1364,13 @@ This is the **single authoritative register** of known defects, deferred improve
   - nothing else changes: same RPM sweep (1000 to the profile's peak, 61 points), same axis labels, same chart.
 
   Size: one function and one test file. It can go on PR #12 if the owner wants it inside M1, or on its own branch.
-- **Implementation (2026-10-22):** owner decision of 2026-10-21 (separate from M1), on branch `fix/gh-def-042-airflow-graph` (draft PR #16, stacked on M1 PR #12; PR #12 has since been merged, and PR #16's base is still `feat/m1-engine-chain-single-path`):
+- **Implementation (2026-10-22):** owner decision of 2026-10-21 (separate from M1), on branch `fix/gh-def-042-airflow-graph` (PR #16, first stacked on M1 PR #12; after PR #12 and then PR #17 were merged, `main` was merged into the branch twice and PR #16 was based on `main`)):
   - each of the 61 points is `GH_ENGINE.calculate('engine_airflow_estimate')` Engine Volume Flow at that RPM;
   - when the calculator's inputs are not valid, or any point is not VALID, no curve is drawn and the graph box says "Validation required: the graph is drawn only for valid inputs";
   - the sweep, the Metric display factor and the chart are unchanged.
 - **Dependencies:** M1 (PR #12): the registry entry `engine_airflow_estimate`. **Met:** PR #12 merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833).
-- **Revisit:** On owner review of draft PR #16.
-- **Commits:** `f909aa0` (branch `fix/gh-def-042-airflow-graph`, draft PR #16). Not merged into `main` and not released.
+- **Revisit:** None (closed).
+- **Commits:** `f909aa0` (the fix), `2896e6d` (merge of `main` `f0ac057`), `18c3848` (merge of `main` `e5f86ba`, with PR #17; resolved the shared cache tag `20261023-0100`, catalogue engine checksum `8f015f01…` and the 47-suite runner list), branch `fix/gh-def-042-airflow-graph`. Released: PR #16 merged into `main` on 2026-10-23 as `cc2d80d` (head `18c3848`, after the owner approved release) and published by GitHub Pages run #132 (39982967678; deployment 7282774779, success, https://highandmighty354-dev.github.io/gearhead-labs/).
 - **Tests:** `premium/tests/airflow-graph-def042.test.js` (new, in `run-browser-tests.sh`):
   - valid inputs in Imperial and Metric (5 cases × 61 points) against the independent reference and, exactly, the registry;
   - 11 invalid cases (−350 ci in Imperial and −5735.47 cc in Metric, displacement 0, VE 0, cylinders 0 / 7.5 / −8, density 0, MAP 0, barometric 0, RPM 0): no chart, the message is shown;
@@ -1389,11 +1389,18 @@ This is the **single authoritative register** of known defects, deferred improve
   - Against PR #12's engine without the fix: 24 failures (the defect).
   - `airflow-readers`: 131/131.
   - Full browser regression on the local combination of PRs #12, #14, #15, #16 and #17 (`fc26088`, 47 suites): all passed, exit 0. `fc26088` is a local combination branch that was never pushed, so this run cannot be checked on GitHub.
-  - Live verification follows a separately authorized release.
+  - Live verification followed the release; see the next result.
+- **Verification result (2026-10-23, released and verified live):**
+  - Before merge, on a clean checkout of `18c3848` (local, Chromium): `airflow-graph-def042` 56/0 (mutants 2/2), `airflow-readers` 131/0, `torque-def040` 54/0, `engine-chain-m1` 177/0, `airflow-stage-m1` 198/0 (mutants 3/3), `formula-fingerprints` 0 failures, `registry-agreement` as baselined, `run-tests.sh` exit 0, full browser regression 47/47. Old-versus-new graph against `main` `e5f86ba`: 80 random valid cases × 61 points, 0 differences. Review probe: valid inputs make 62 registry calls (1 input check + 61 points) with every point equal to the registry's value; invalid inputs make 1 call and draw nothing (the probe's `vol()` counter did not work and is not used as evidence).
+  - `main` `cc2d80d` has the same tree as the reviewed head `18c3848`, and contains both this fix and GH-DEF-040.
+  - Live site (2026-10-23, after Pages run #132, built-in browser): engine, catalogue and `index.html` byte-identical to `cc2d80d` (engine sha256 `8f015f01…`, equal to the catalogue's recorded checksum); the page loads the engine with cache tag `20261023-0100`; the live `GHM_ENGINE_AIR_GRAPH` (called by the page's "Airflow vs RPM" button) uses the registry, not `vol()`. Graph, 12 cases: valid inputs (Imperial defaults; 400 ci, VE 1.1, two-stroke; Metric defaults) draw 61 points, 62 registry calls, every point equal to the registry's value and to the hand formula (defaults 91.1458 → 592.4479 CFM over 1000–6500 RPM); invalid inputs (−350 ci, VE 0, cylinders 0 and 7.5, density 0, MAP 0, barometric 0, RPM 0, and −5735.47 cc in Metric) show "Validation required" on the page, draw no curve and show the graph's validation message. GH-DEF-040 still live (390.6175 lb-ft at 600 RPM, 350 ci test engine). No page errors other than the expected signed-out 401 from the database check. Stored browser values were restored after the check.
+  - Criteria 1–3 are met. Not tested: Safari and Firefox.
 - **History:**
   - 2026-10-22 — investigated on owner instruction after the M1 review; recorded with a proposed change.
   - 2026-10-22 — fixed on `fix/gh-def-042-airflow-graph` (draft PR #16); FIXED — UNVERIFIED.
   - 2026-10-22 — M1 (PR #12) merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833); the dependency is met. The live graph still draws curves for invalid inputs: PR #16 is not merged or released.
+  - 2026-10-23 — PR #16 merged into `main` on 2026-10-23 as `cc2d80d` (head `18c3848`, after the owner approved release) and published by GitHub Pages run #132 (39982967678; deployment 7282774779, success, https://highandmighty354-dev.github.io/gearhead-labs/). Released.
+  - 2026-10-23 — closed: verified live on the published site after the release (evidence in the 2026-10-23 verification result: tests on `18c3848`, full browser regression 47/47, live files byte-identical to `cc2d80d`, live graph checked for valid and invalid inputs). Status VERIFIED CLOSED.
 
 ### GH-DEF-043 — Three Engine Build calculators still return a number for negative inputs
 - **Status:** OPEN
