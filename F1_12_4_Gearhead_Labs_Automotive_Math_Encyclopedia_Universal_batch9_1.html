@@ -7635,7 +7635,10 @@ function an(id,d){var e=document.getElementById(id),n=e?parseFloat(e.value):NaN;
 function interp(a,x,k){a=a.filter(function(p){return isFinite(p[k])}).sort(function(p,q){return p.lift-q.lift});if(a.length<2)return {v:null,m:'insufficient'};if(x<a[0].lift||x>a[a.length-1].lift)return {v:null,m:'outside'};for(var i=1;i<a.length;i++)if(x<=a[i].lift){var p=a[i-1],q=a[i],f=(x-p.lift)/(q.lift-p.lift||1);return {v:p[k]+(q[k]-p[k])*f,m:'interpolated'}}return {v:a[a.length-1][k],m:'measured'}}
 function pts(){var f=ast().flow,a=[];for(var i=0;i<12;i++)if(isFinite(+f.lifts[i])&&isFinite(+f.intake[i]))a.push({lift:+f.lifts[i],intake:+f.intake[i],exhaust:isFinite(+f.exhaust[i])?+f.exhaust[i]:null});return a.sort(function(a,b){return a.lift-b.lift})}
 function density(t){return .076474*(518.67/(t+459.67))} function sound(t){return 1116*Math.sqrt((t+459.67)/518.67)} function vol(d,r,ve,cy){return d*r*(cy===2?1:.5)*ve/1728} function airhp(m,afr,bsfc){return m/Math.max(.1,afr)*60/Math.max(.05,bsfc)}
-function useIVC(){var x=cam(ast().cam);CALC_PERSISTENT_STATE.dynamic_compression=CALC_PERSISTENT_STATE.dynamic_compression||{};CALC_PERSISTENT_STATE.dynamic_compression.ica=String(x.IVC.toFixed(2));renderCalc('dynamic_compression');}
+/* GH-DEF-044: with Dynamic Compression already on screen, renderCalc first copies the boxes on screen into its remembered state and the calculator reads the
+   boxes on screen, so the staged IVC was overwritten by the old box text and the result kept the old IVC. Put the IVC into the box on screen as well, exactly as
+   if it had been typed there, so that copy and the result both use it. From another page (the cam calculators) the remembered value alone is used, as before. */
+function useIVC(){var x=cam(ast().cam),ivc=String(x.IVC.toFixed(2));CALC_PERSISTENT_STATE.dynamic_compression=CALC_PERSISTENT_STATE.dynamic_compression||{};CALC_PERSISTENT_STATE.dynamic_compression.ica=ivc;if(CONTAINER_CALC==='dynamic_compression'){var box=document.querySelector('#calc-container #ica');if(box)box.value=ivc;}renderCalc('dynamic_compression');}
 window.GHM_USE_CAM_IVC=useIVC;
 window.GHM_APPLY_CAM_LSA=function(icl,ecl,lsa){
   var st=ast(); if(isFinite(icl)) st.cam.icl=icl; if(isFinite(ecl)) st.cam.lsa=isFinite(lsa)?lsa:(icl+ecl)/2; else if(isFinite(lsa)) st.cam.lsa=lsa; asave(st); renderCalc('cam_card');
