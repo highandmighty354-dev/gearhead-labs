@@ -1255,7 +1255,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Evidence:**
   - The page code before M1 (`t=h*5252/Math.max(800,r)`) and the M1 registry entry (`… *5252/Math.max(800,ap_r)`, `GH_BACKFILL_FORMULAS.airflow_power_estimate`, PR #12) carry the same floor.
   - `premium/tests/engine-chain-m1.test.js` (PR #12), section K, pins the current behaviour as a KNOWN ISSUE: 600 RPM → 292.963125 lb-ft.
-  - The 2026-10-21 old-versus-new comparison on PR #12 shows the 600 RPM case (the page-default engine inputs (350 ci, VE 0.9, 0.0765 lb/ft³, AFR 14.7, BSFC 0.5) with RPM changed to 600) unchanged by M1.
+  - The 2026-10-21 old-versus-new comparison on PR #12 shows the 600 RPM case unchanged by M1: the page-default engine inputs (350 ci, VE 0.9, 0.0765 lb/ft³, AFR 14.7, BSFC 0.5) with RPM changed to 600.
 - **Affected:** engine `F1_12_4_…html`: `GH_BACKFILL_FORMULAS.airflow_power_estimate` (the Estimated Torque expression), `GHM_AIRFLOW_POWER()` (its `torque` value, from the registry since M1), and the Formula card note added in M1 (`GH_FORMULA_NOTES.airflow_power_estimate`, "Torque below 800 RPM (known issue)").
 - **Impact:** A person entering an idle or cranking speed below 800 RPM gets a torque figure that is too low (25 % low at 600 RPM, 50 % at 400 RPM). No other calculator reads this torque; the staged Simulator curve is horsepower only.
 - **Decision:** Proposed correction, for owner approval (not implemented when proposed; option A was later implemented on a branch, see Implementation):
@@ -1302,8 +1302,8 @@ This is the **single authoritative register** of known defects, deferred improve
   - 2026-10-21 — found in the M1 review (PR #12) and kept unchanged by owner decision D4.
   - 2026-10-22 — recorded with a proposed correction.
   - 2026-10-22 — option A implemented on `fix/gh-def-040-torque-floor` (draft PR #17); FIXED — UNVERIFIED.
-  - 2026-10-23 — evidence wording corrected on owner instruction: the 224.2065 → 298.942 lb-ft comparison is the page-default inputs with RPM changed to 600 (a valid input, previously described as an invalid-input case "at the page defaults"); the 292.963125 → 390.6175 lb-ft example is the separate 350 ci test engine. Values unchanged; recalculated independently.
   - 2026-10-22 — M1 (PR #12) merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833); the dependency is met. The live site still has the 800 RPM floor and its "known issue" note: PR #17 is not merged or released. Revisit updated (the owner had chosen option A on 2026-10-21).
+  - 2026-10-23 — evidence wording corrected on owner instruction: the 224.2065 → 298.942 lb-ft comparison is the page-default inputs with RPM changed to 600 (a valid input, previously described as an invalid-input case "at the page defaults"); the 292.963125 → 390.6175 lb-ft example is the separate 350 ci test engine. Values unchanged; recalculated independently.
 
 ### GH-DEF-041 — Christmas Tree Timing's registry entry gives the Pro tree 0.3 s to green; the page states 0.400 s
 - **Status:** OPEN
