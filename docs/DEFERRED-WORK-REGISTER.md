@@ -1255,7 +1255,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Evidence:**
   - The page code before M1 (`t=h*5252/Math.max(800,r)`) and the M1 registry entry (`… *5252/Math.max(800,ap_r)`, `GH_BACKFILL_FORMULAS.airflow_power_estimate`, PR #12) carry the same floor.
   - `premium/tests/engine-chain-m1.test.js` (PR #12), section K, pins the current behaviour as a KNOWN ISSUE: 600 RPM → 292.963125 lb-ft.
-  - The 2026-10-21 old-versus-new comparison on PR #12 shows the 600 RPM case unchanged by M1.
+  - The 2026-10-21 old-versus-new comparison on PR #12 shows the 600 RPM case (the page-default engine inputs (350 ci, VE 0.9, 0.0765 lb/ft³, AFR 14.7, BSFC 0.5) with RPM changed to 600) unchanged by M1.
 - **Affected:** engine `F1_12_4_…html`: `GH_BACKFILL_FORMULAS.airflow_power_estimate` (the Estimated Torque expression), `GHM_AIRFLOW_POWER()` (its `torque` value, from the registry since M1), and the Formula card note added in M1 (`GH_FORMULA_NOTES.airflow_power_estimate`, "Torque below 800 RPM (known issue)").
 - **Impact:** A person entering an idle or cranking speed below 800 RPM gets a torque figure that is too low (25 % low at 600 RPM, 50 % at 400 RPM). No other calculator reads this torque; the staged Simulator curve is horsepower only.
 - **Decision:** Proposed correction, for owner approval (not implemented when proposed; option A was later implemented on a branch, see Implementation):
@@ -1269,7 +1269,10 @@ This is the **single authoritative register** of known defects, deferred improve
   - Estimated Torque in `GH_BACKFILL_FORMULAS.airflow_power_estimate` is now `… *5252/ap_r`; no RPM is substituted.
   - The valid domain is unchanged (the registry's validity conditions: RPM, displacement, VE and air density > 0; AFR ≥ 0.1; BSFC ≥ 0.05; otherwise "Validation required"). The calculator remains four-stroke only.
   - The Formula card's "known issue" note is replaced by the rule.
-  - **Intentional output change:** only below 800 RPM (600 RPM: 292.963125 → 390.6175 lb-ft).
+  - **Intentional output change:** only below 800 RPM. Horsepower and every other output are unchanged. Examples:
+    - the 350 ci test engine (VE 1.0, 0.0765 lb/ft³, AFR 12.5, BSFC 0.5) at 600 RPM: 44.625 hp, torque 292.963125 → 390.6175 lb-ft;
+    - the page-default engine inputs (350 ci, VE 0.9, 0.0765 lb/ft³, AFR 14.7, BSFC 0.5) with RPM changed to 600: 34.1518 hp, torque 224.2065 → 298.942 lb-ft;
+    - the page defaults as shown (6500 RPM): 369.9777 hp, torque 298.942 lb-ft before and after (unchanged).
   - Not changed: the Simulator's own 800 RPM engine-speed limits (`simEngineAtRPM`, `simTorqueAtRPM`, gear sweeps), a separate model.
 - **Dependencies:** M1 (PR #12): the formula is the registry entry M1 adds. **Met:** PR #12 merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833).
 - **Revisit:** On owner review of draft PR #17 (option A, chosen 2026-10-21, is implemented there).
@@ -1292,13 +1295,14 @@ This is the **single authoritative register** of known defects, deferred improve
   - `torque-def040`: 54 checks, 0 failures; the mutant was caught (16 checks failed).
   - Full browser regression on the local combination of PRs #12, #14, #15, #16 and #17 (`fc26088`, 47 suites): all passed, exit 0. `fc26088` is a local combination branch that was never pushed, so this run cannot be checked on GitHub.
   - 744-calculator default snapshot: unchanged apart from the M1 staging note.
-  - Old-versus-new (`d44ae32`): 720 valid cases identical; of the 23 invalid-input cases, only the 600 RPM case changed relative to PR #12 (torque 224.2065 → 298.942 lb-ft at the page defaults).
+  - Old-versus-new against `d44ae32` (the engine before M1): 720 random valid cases identical (all at 800 RPM or above, so they cannot show this change). Of the 23 listed edge and invalid inputs, one result differs from PR #12's own comparison: the page-default engine inputs (350 ci, VE 0.9, 0.0765 lb/ft³, AFR 14.7, BSFC 0.5) with RPM changed to 600, a valid input under the registry's rules: 34.1518 hp, torque 224.2065 → 298.942 lb-ft. With RPM at the page default of 6500 the torque is 298.942 lb-ft before and after.
   - Criterion 3 (the card note) is met in code.
   - Live verification follows a separately authorized release.
 - **History:**
   - 2026-10-21 — found in the M1 review (PR #12) and kept unchanged by owner decision D4.
   - 2026-10-22 — recorded with a proposed correction.
   - 2026-10-22 — option A implemented on `fix/gh-def-040-torque-floor` (draft PR #17); FIXED — UNVERIFIED.
+  - 2026-10-23 — evidence wording corrected on owner instruction: the 224.2065 → 298.942 lb-ft comparison is the page-default inputs with RPM changed to 600 (a valid input, previously described as an invalid-input case "at the page defaults"); the 292.963125 → 390.6175 lb-ft example is the separate 350 ci test engine. Values unchanged; recalculated independently.
   - 2026-10-22 — M1 (PR #12) merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833); the dependency is met. The live site still has the 800 RPM floor and its "known issue" note: PR #17 is not merged or released. Revisit updated (the owner had chosen option A on 2026-10-21).
 
 ### GH-DEF-041 — Christmas Tree Timing's registry entry gives the Pro tree 0.3 s to green; the page states 0.400 s
