@@ -47,9 +47,9 @@ try:
     APPROVED = sorted(f for f in os.listdir(os.path.join(wt, 'supabase', 'migrations')) if f.endswith('.sql'))
     approved_file = os.path.join(tmp, 'approved.txt'); open(approved_file, 'w').write('\n'.join(APPROVED) + '\n')
     gate_file = os.path.join(tmp, 'gate.sh'); open(gate_file, 'w', encoding='utf-8').write(GATE + '\n')
-    M0408 = '0408_formula_versions_corrected_formulas.sql'
-    check('package: the pinned checkout has 18 approved files, ending with 0408', len(APPROVED) == 18 and APPROVED[-1] == M0408, str(APPROVED[-3:]))
-    check('config: production must show exactly 0408 pending', EXPECTED.strip() == M0408, repr(EXPECTED))
+    MNEW = '0409_formula_versions_fuel_pump_validity.sql'
+    check('package: the pinned checkout has 19 approved files, ending with 0409', len(APPROVED) == 19 and APPROVED[-1] == MNEW, str(APPROVED[-3:]))
+    check('config: production must show exactly 0409 pending', EXPECTED.strip() == MNEW, repr(EXPECTED))
 
     DRY = 'DRY RUN: migrations will *not* be pushed to the database.'
     def cli(pending=None, uptodate=False, extra_before=(), extra_after=(), dry=True, header=True):
@@ -79,48 +79,48 @@ try:
         check(name, ok, f'rc={rc} {verdict} pending={pend}\n{raw}')
 
     # ---- A. the gate itself (the brief's cases first)
-    expect('A1 production, exactly 0408 pending: PASS', 'production', cli([M0408]), True, [M0408])
-    expect('A2 production, nothing pending ("up to date") while 0408 is expected: FAIL', 'production', cli(uptodate=True), False)
+    expect('A1 production, exactly 0409 pending: PASS', 'production', cli([MNEW]), True, [MNEW])
+    expect('A2 production, nothing pending ("up to date") while 0409 is expected: FAIL', 'production', cli(uptodate=True), False)
     expect('A2b empty CLI output: FAIL (never read as "nothing pending")', 'production', '', False)
     expect('A2c only connection chatter, no list and no "up to date": FAIL', 'production', DRY + '\nConnecting to remote database...\n', False)
-    expect('A3 an unexpected earlier migration alone (0407): FAIL', 'production', cli(['0407_premium_product_model.sql']), False)
-    expect('A4 0408 plus a migration outside the package: FAIL (not in the package)', 'production', cli([M0408, '0409_unreviewed.sql']), False, reason='not in the approved package')
-    expect('A4b 0407 + 0408 (an approved suffix, but not what production must show): FAIL', 'production', cli(APPROVED[-2:]), False)
-    expect('A5 duplicate 0408 entry: FAIL (reported as a duplicate)', 'production', cli([M0408, M0408]), False, reason='duplicate')
-    expect('A5b duplicate 0408 entry, rehearsal: FAIL (reported as a duplicate)', 'rehearsal', cli([M0408, M0408]), False, reason='duplicate')
-    expect('A6 reordered list (0408 before 0407): FAIL (not the exact end of the order)', 'rehearsal', cli([M0408, '0407_premium_product_model.sql']), False, reason='not the exact end')
-    expect('A6b skipped migration (0406 then 0408, 0407 missing): FAIL (not the exact end of the order)', 'rehearsal', cli(['0406_premium_engineering_analyses.sql', M0408]), False, reason='not the exact end')
+    expect('A3 an unexpected earlier migration alone (0408): FAIL', 'production', cli(['0408_formula_versions_corrected_formulas.sql']), False)
+    expect('A4 0409 plus a migration outside the package: FAIL (not in the package)', 'production', cli([MNEW, '0410_unreviewed.sql']), False, reason='not in the approved package')
+    expect('A4b 0408 + 0409 (an approved suffix, but not what production must show): FAIL', 'production', cli(APPROVED[-2:]), False)
+    expect('A5 duplicate 0409 entry: FAIL (reported as a duplicate)', 'production', cli([MNEW, MNEW]), False, reason='duplicate')
+    expect('A5b duplicate 0409 entry, rehearsal: FAIL (reported as a duplicate)', 'rehearsal', cli([MNEW, MNEW]), False, reason='duplicate')
+    expect('A6 reordered list (0409 before 0408): FAIL (not the exact end of the order)', 'rehearsal', cli([MNEW, '0408_formula_versions_corrected_formulas.sql']), False, reason='not the exact end')
+    expect('A6b skipped migration (0407 then 0409, 0408 missing): FAIL (not the exact end of the order)', 'rehearsal', cli(['0407_premium_product_model.sql', MNEW]), False, reason='not the exact end')
     expect('A7 header with an empty list: FAIL', 'production', cli([], header=True), False)
-    expect('A7b malformed entry (" • 0408.sql"): FAIL', 'production', cli(['0408.sql']), False)
-    expect('A7c a valid entry followed by a malformed one: FAIL', 'production', cli([M0408, 'not a file']), False)
-    expect('A7j an entry with trailing text (" • 0408_….sql (hash update)"): FAIL', 'production', cli([M0408 + ' (hash update)']), False)
+    expect('A7b malformed entry (" • 0409.sql"): FAIL', 'production', cli(['0409.sql']), False)
+    expect('A7c a valid entry followed by a malformed one: FAIL', 'production', cli([MNEW, 'not a file']), False)
+    expect('A7j an entry with trailing text (" • 0409_….sql (hash update)"): FAIL', 'production', cli([MNEW + ' (hash update)']), False)
     expect('A7k a bare file name under the header with no bullet: FAIL (not a list entry)', 'production',
-           DRY + '\nWould push these migrations:\n' + M0408 + '\nFinished supabase db push.\n', False)
-    expect('A7d unparseable text: FAIL', 'production', 'Error: something went wrong\n' + M0408 + '\n', False)
-    expect('A7e the DRY RUN confirmation is missing: FAIL', 'production', cli([M0408], dry=False), False)
-    expect('A7f the list header twice: FAIL', 'production', cli([M0408]) + 'Would push these migrations:\n • ' + M0408 + '\n', False)
-    expect('A7g a list AND "up to date": FAIL', 'production', cli([M0408], uptodate=True), False)
-    expect('A7h the dry run would also seed data: FAIL', 'production', cli([M0408], extra_after=['Would seed these files:', ' • supabase/seed.sql']), False)
-    expect('A7i a list entry outside the list block: FAIL', 'production', cli([M0408], extra_after=[' • 0407_premium_product_model.sql']), False)
-    log_only = ['WARN: 0408_formula_versions_corrected_formulas.sql was seen in the remote history check',
-                'note: supabase/migrations/0407_premium_product_model.sql unchanged']
+           DRY + '\nWould push these migrations:\n' + MNEW + '\nFinished supabase db push.\n', False)
+    expect('A7d unparseable text: FAIL', 'production', 'Error: something went wrong\n' + MNEW + '\n', False)
+    expect('A7e the DRY RUN confirmation is missing: FAIL', 'production', cli([MNEW], dry=False), False)
+    expect('A7f the list header twice: FAIL', 'production', cli([MNEW]) + 'Would push these migrations:\n • ' + MNEW + '\n', False)
+    expect('A7g a list AND "up to date": FAIL', 'production', cli([MNEW], uptodate=True), False)
+    expect('A7h the dry run would also seed data: FAIL', 'production', cli([MNEW], extra_after=['Would seed these files:', ' • supabase/seed.sql']), False)
+    expect('A7i a list entry outside the list block: FAIL', 'production', cli([MNEW], extra_after=[' • 0408_formula_versions_corrected_formulas.sql']), False)
+    log_only = ['WARN: 0409_formula_versions_fuel_pump_validity.sql was seen in the remote history check',
+                'note: supabase/migrations/0408_formula_versions_corrected_formulas.sql unchanged']
     expect('A8 a file name only in unrelated log text, database "up to date": not pending, FAIL for production', 'production',
            cli(uptodate=True, extra_before=log_only), False)
-    expect('A8b file names in log text around a real 0408 list: only the list counts (PASS, pending = 0408 only)', 'production',
-           cli([M0408], extra_before=log_only, extra_after=['log: retrying 0406_premium_engineering_analyses.sql']), True, [M0408])
+    expect('A8b file names in log text around a real 0409 list: only the list counts (PASS, pending = 0409 only)', 'production',
+           cli([MNEW], extra_before=log_only, extra_after=['log: retrying 0407_premium_product_model.sql']), True, [MNEW])
     # the same output read the old way (grep for any NNNN_*.sql anywhere) would have produced a different, wrong list
     old = subprocess.run(['bash', '-c', "grep -oE '[0-9]{4}_[a-z0-9_]+\\.sql' \"$1\" || true", '_',
                           os.path.join(tmp, 'out.txt')], capture_output=True, text=True).stdout.split()
     check('A8c contrast: the previous parser would have read 4 names from that output (the defect fixed here)', len(old) == 4, str(old))
-    expect('A9 fresh rehearsal project, all 18 approved files pending: PASS', 'rehearsal', cli(APPROVED), True, APPROVED)
-    expect('A9b fresh project with all 18 pending against production: FAIL (production stays 0408-only)', 'production', cli(APPROVED), False)
+    expect('A9 fresh rehearsal project, all 19 approved files pending: PASS', 'rehearsal', cli(APPROVED), True, APPROVED)
+    expect('A9b fresh project with all 19 pending against production: FAIL (production stays 0409-only)', 'production', cli(APPROVED), False)
     expect('A9c rehearsal explicitly "up to date": PASS as nothing pending', 'rehearsal', cli(uptodate=True), True, [])
-    expect('A9d rehearsal, an exact end of the order (0407, 0408): PASS', 'rehearsal', cli(APPROVED[-2:]), True, APPROVED[-2:])
+    expect('A9d rehearsal, an exact end of the order (0408, 0409): PASS', 'rehearsal', cli(APPROVED[-2:]), True, APPROVED[-2:])
     expect('A10 colour codes and CRLF line ends are tolerated: PASS', 'production',
-           cli([f'\x1b[1m{M0408}\x1b[0m']).replace('\n', '\r\n'), True, [M0408])
-    expect('A11 unknown target: FAIL', 'staging', cli([M0408]), False)
+           cli([f'\x1b[1m{MNEW}\x1b[0m']).replace('\n', '\r\n'), True, [MNEW])
+    expect('A11 unknown target: FAIL', 'staging', cli([MNEW]), False)
     expect('A12 uptodate_gate: explicit "up to date": PASS', '', cli(uptodate=True), True, fn='uptodate_gate')
-    expect('A12b uptodate_gate: a remaining list: FAIL', '', cli([M0408]), False, fn='uptodate_gate')
+    expect('A12b uptodate_gate: a remaining list: FAIL', '', cli([MNEW]), False, fn='uptodate_gate')
     expect('A12c uptodate_gate: empty output: FAIL (never read as "nothing pending")', '', '', False, fn='uptodate_gate')
     expect('A12d uptodate_gate: output without the DRY RUN line: FAIL', '', cli(uptodate=True, dry=False), False, fn='uptodate_gate')
 
@@ -162,19 +162,19 @@ cat "$f"; exit "$(cat "$FAKE_DIR/rc$n" 2>/dev/null || echo 0)"
         if yes_calls is not None: ok = ok and sum('--yes' in c for c in calls) == yes_calls
         check(name, ok, f'rc={rc} calls={calls}\n--- summary\n{summ}\n--- log tail\n{raw[-1500:]}')
 
-    job_case('B1 dry-run job, production with exactly 0408 pending: succeeds; summary names target, commit, list and PASS',
-             [cli([M0408])], True, must_say=('Dry run — production (jmztpjudwzjvrcdtjynd)', PINNED, f'  - {M0408}', '✅', 'No database changes were made'))
+    job_case('B1 dry-run job, production with exactly 0409 pending: succeeds; summary names target, commit, list and PASS',
+             [cli([MNEW])], True, must_say=('Dry run — production (jmztpjudwzjvrcdtjynd)', PINNED, f'  - {MNEW}', '✅', 'No database changes were made'))
     job_case('B2 dry-run job, production "up to date": FAILS (red), summary says do not apply',
              [cli(uptodate=True)], False, must_say=('❌', 'Do NOT apply', '(none verified)'))
     job_case('B3 dry-run job, empty CLI output: FAILS', [''], False, must_say=('❌',))
-    job_case('B4 dry-run job, the CLI exits with an error: FAILS', [cli([M0408])], False, rcs={1: 1}, must_say=('exited with status 1',))
-    job_case('B5 dry-run job, 0407 + 0408 against production: FAILS', [cli(APPROVED[-2:])], False, must_say=('❌',))
+    job_case('B4 dry-run job, the CLI exits with an error: FAILS', [cli([MNEW])], False, rcs={1: 1}, must_say=('exited with status 1',))
+    job_case('B5 dry-run job, 0408 + 0409 against production: FAILS', [cli(APPROVED[-2:])], False, must_say=('❌',))
     job_case('B6 dry-run job, file name only in log text: FAILS', [cli(uptodate=True, extra_before=log_only)], False)
-    job_case('B7 dry-run job, rehearsal fresh project (18 pending): succeeds', [cli(APPROVED)], True, target='rehearsal', must_say=('✅',))
+    job_case('B7 dry-run job, rehearsal fresh project (19 pending): succeeds', [cli(APPROVED)], True, target='rehearsal', must_say=('✅',))
     # B8: a mismatching typed project ref must stop the job before the CLI runs
     def run_wrong_ref():
         d = tempfile.mkdtemp(dir=tmp); log = os.path.join(d, 'calls.log'); open(log, 'w').close()
-        open(os.path.join(d, 'out.txt'), 'w').write(cli([M0408]))
+        open(os.path.join(d, 'out.txt'), 'w').write(cli([MNEW]))
         summary = os.path.join(d, 'summary.md'); open(summary, 'w').close(); rt = os.path.join(d, 'rt'); os.makedirs(rt)
         env = {'PATH': fakebin + os.pathsep + os.environ['PATH'], 'HOME': d, 'FAKE_LOG': log, 'FAKE_DIR': d, 'RUNNER_TEMP': rt,
                'GITHUB_STEP_SUMMARY': summary, 'PINNED_SHA': PINNED, 'SUPABASE_CLI_VERSION': '2.119.0', 'PENDING_GATE_SH': GATE,
@@ -188,20 +188,20 @@ cat "$f"; exit "$(cat "$FAKE_DIR/rc$n" 2>/dev/null || echo 0)"
     check('B9 the dry-run job script never contains an apply command', '--yes' not in DRY_STEP['run'] and 'db push --db-url' not in DRY_STEP['run'])
 
     # apply job: its existing checks stay, the gate is added; the fake records whether --yes was reached
-    job_case('B10 apply job, production 0408 then "up to date": succeeds, one --yes call',
-             [cli([M0408]), 'Applying migration 0408_formula_versions_corrected_formulas.sql...\nFinished supabase db push.\n', cli(uptodate=True)],
+    job_case('B10 apply job, production 0409 then "up to date": succeeds, one --yes call',
+             [cli([MNEW]), 'Applying migration 0409_formula_versions_fuel_pump_validity.sql...\nFinished supabase db push.\n', cli(uptodate=True)],
              True, step_def=APPLY_STEP, yes_calls=1, must_say=('APPLY complete — production',))
-    job_case('B11 apply job, production 0407 + 0408 (the old suffix check alone would accept it): refused, --yes never called',
+    job_case('B11 apply job, production 0408 + 0409 (the old suffix check alone would accept it): refused, --yes never called',
              [cli(APPROVED[-2:])], False, step_def=APPLY_STEP, yes_calls=0)
     job_case('B12 apply job, "up to date" before applying: refused, --yes never called',
              [cli(uptodate=True)], False, step_def=APPLY_STEP, yes_calls=0)
     job_case('B13 apply job, file name only in log text: refused, --yes never called',
              [cli(uptodate=True, extra_before=log_only)], False, step_def=APPLY_STEP, yes_calls=0)
-    job_case('B13b apply job, database already "up to date" but a log line names 0408 (the old parser read it as pending and would have applied): refused, --yes never called',
-             [cli(uptodate=True, extra_before=['WARN: checked 0408_formula_versions_corrected_formulas.sql against the remote history'])],
+    job_case('B13b apply job, database already "up to date" but a log line names 0409 (the old parser read it as pending and would have applied): refused, --yes never called',
+             [cli(uptodate=True, extra_before=['WARN: checked 0409_formula_versions_fuel_pump_validity.sql against the remote history'])],
              False, step_def=APPLY_STEP, yes_calls=0)
     job_case('B14 apply job, the verification dry run has no "up to date" line (the old empty-list check alone would pass): job fails',
-             [cli([M0408]), 'Applying migration 0408_formula_versions_corrected_formulas.sql...\nFinished supabase db push.\n',
+             [cli([MNEW]), 'Applying migration 0409_formula_versions_fuel_pump_validity.sql...\nFinished supabase db push.\n',
               DRY + '\nConnecting to remote database...\n'], False, step_def=APPLY_STEP, yes_calls=1)
     for kept in ('is_suffix "$pending" "$expected"', 'supabase db push --dry-run --db-url "$url"', 'if [ -n "$left" ]; then',
                  'if [ "$ref" != "$CONFIRM_REF" ]; then', '::add-mask::$url'):
