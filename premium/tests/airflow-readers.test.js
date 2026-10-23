@@ -166,7 +166,7 @@ const STAGE_ABS = 0.051, STAGE_REL = 1e-4;       // the staged curve is rounded 
       check(tag + ' staged curve', bad === 0, `${bad} of 10 points wrong; first: ${first}`);
       /* the programmatic estimate used by other pages: physics at the RPM in the box, and the same number the page shows */
       const z = await page.evaluate(() => JSON.parse(JSON.stringify(GHM_AIRFLOW_POWER())));
-      const cfm = flowCfm(phys.d, phys.rpm, phys.ve, 4), mass = cfm * phys.rho, hp = powerHp(phys.d, phys.rpm, phys.ve, phys.rho, phys.afr, phys.bsfc), tq = hp * 5252 / Math.max(800, phys.rpm);
+      const cfm = flowCfm(phys.d, phys.rpm, phys.ve, 4), mass = cfm * phys.rho, hp = powerHp(phys.d, phys.rpm, phys.ve, phys.rho, phys.afr, phys.bsfc), tq = hp * 5252 / phys.rpm;   // GH-DEF-040: no 800 RPM floor (these scenarios are all above 800 RPM, so the expected values are unchanged)
       points += 4;
       check(tag + ' GHM_AIRFLOW_POWER cfm', close(z.cfm, cfm, REL), `cfm ${z.cfm}, physics ${cfm}`);
       check(tag + ' GHM_AIRFLOW_POWER mass', close(z.mass, mass, STAGE_REL), `air mass ${z.mass} lb/min, physics ${mass}`);
