@@ -26,7 +26,8 @@ const VERSIONED = {
   dew_point: { version: 'fv1-73ddeaf4', seed: 'fv1-260e7f34', register: 'GH-DEF-005 / GH-ENG-014' },
   distance_converter: { version: 'fv1-4001b424', seed: 'fv1-36d27af2', register: 'GH-DEF-019 / GH-ENG-014' },  // yards -> km constant 0.000914 corrected to 0.0009144
   bolt_torque_spec: { version: 'fv1-25b1f973', seed: 'fv1-f63ea4c8', register: 'GH-DEF-034 / GH-ENG-014' },      // the thread entered (was 16 or 20 TPI) and proof strength by size; production row deferred
-  bolt_stretch: { version: 'fv1-8e827c77', seed: 'fv1-d48e7340', register: 'GH-DEF-036 / GH-ENG-014' }          // stretch -> clamp load through shank and thread in series (was load -> stretch of one uniform bar); production row deferred
+  bolt_stretch: { version: 'fv1-8e827c77', seed: 'fv1-d48e7340', register: 'GH-DEF-036 / GH-ENG-014' },         // stretch -> clamp load through shank and thread in series (was load -> stretch of one uniform bar); production row deferred
+  fuel_pump_sizing: { version: 'fv1-f5c74781', seed: 'fv1-c9780487', register: 'M1 decision D1 (PR #12) / migration 0409' }  // validity rule (HP, BSFC, density > 0; margin >= 1.0) moved into the registry; 0409 prepared, not applied
 };
 
 (async () => {

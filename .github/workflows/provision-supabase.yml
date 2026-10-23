@@ -1,7 +1,8 @@
 # Gearhead Labs — Supabase provisioning (MANUAL ONLY, APPROVAL-GATED)
 #
-# Applies the approved 18-file migration package (0001-0408), read directly from the repository at the
-# pinned commit below (0cc4fc8, the reviewed GH-ENG-014 migration commit). No SQL is retyped or transcribed anywhere.
+# Applies the approved 19-file migration package (0001-0409), read directly from the repository at the
+# pinned commit below (c69ec51, the commit that adds 0409, M1 decision D1; prepared for owner review, not applied).
+# No SQL is retyped or transcribed anywhere.
 #
 # Safety design
 #   * Runs only when a person clicks "Run workflow" (workflow_dispatch). No push / PR triggers.
@@ -11,15 +12,15 @@
 #   * You must also type the target project ref; the run stops if it does not match the Environment.
 #   * Every job that can reach a database uses the Environment, so it waits for a required
 #     reviewer's approval before any credential is released.
-#   * The package is verified before any credential is touched: exact commit, exact 18 file names,
+#   * The package is verified before any credential is touched: exact commit, exact 19 file names,
 #     exact order, exact SHA-256 of every file, and the frozen-source hashes.
 #   * The dry run FAILS (red) unless the pending list is positively verified (pending_gate below):
-#     production must show exactly PRODUCTION_EXPECTED_PENDING (this release: only 0408); a rehearsal
-#     project must show a non-empty exact end of the approved order (fresh project: all 18) or an
+#     production must show exactly PRODUCTION_EXPECTED_PENDING (this release: only 0409); a rehearsal
+#     project must show a non-empty exact end of the approved order (fresh project: all 19) or an
 #     explicit "up to date". Unparseable, empty, duplicated, reordered or skipped lists fail.
 #   * Apply refuses to run unless the target's pending list is exactly the END of the approved order:
-#     all 18 files for a fresh, empty project, or only the files after the last one already applied
-#     (production at 0407 -> only 0408). It never applies a reordered set or skips a file. The CLI also
+#     all 19 files for a fresh, empty project, or only the files after the last one already applied
+#     (production at 0408 -> only 0409). It never applies a reordered set or skips a file. The CLI also
 #     refuses if the target's recorded history contains a version that is not in this package.
 #   * Credentials: one Environment secret (database password). It is masked in logs and never printed.
 
@@ -56,11 +57,11 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  PINNED_SHA: 0cc4fc8d7cd2bb678a2a60a61c1a9f738ee5e4b6
+  PINNED_SHA: c69ec51e47af7d2120ad82a4f8aa6a0e7522de67
   SUPABASE_CLI_VERSION: 2.119.0
-  # What production must show pending for THIS release (newline-separated, in order). Production is at 0407.
+  # What production must show pending for THIS release (newline-separated, in order). Production is at 0408.
   # Change it only together with a new pinned package.
-  PRODUCTION_EXPECTED_PENDING: "0408_formula_versions_corrected_formulas.sql"
+  PRODUCTION_EXPECTED_PENDING: "0409_formula_versions_fuel_pump_validity.sql"
   # The pending-migration gate, defined once and loaded by the dry-run and apply jobs (they check out the
   # pinned commit, which has no helper scripts). Tested by premium/tests/workflow-pending-gate.test.py.
   PENDING_GATE_SH: |
@@ -74,11 +75,11 @@ env:
     #
     # pending_gate TARGET CLI_OUTPUT_FILE APPROVED_LIST_FILE PRODUCTION_EXPECTED
     #   APPROVED_LIST_FILE: the approved file names, one per line, in apply order (the pinned package).
-    #   PRODUCTION_EXPECTED: newline-separated list production must show pending, exactly (this release: 0408 only).
+    #   PRODUCTION_EXPECTED: newline-separated list production must show pending, exactly (this release: 0409 only).
     # Policy:
     #   production  pending must equal PRODUCTION_EXPECTED exactly; "up to date" or anything else fails.
     #   rehearsal   pending must be a non-empty exact END of the approved order (a fresh, empty project: all
-    #               18 files); an explicit "up to date" passes as "nothing pending".
+    #               19 files); an explicit "up to date" passes as "nothing pending".
     #   other       fails.
     # Prints "pending: <file>" lines, then "verdict: PASS <why>" (return 0) or "verdict: FAIL <why>" (return 1).
     pending_gate() {
@@ -206,17 +207,18 @@ jobs:
           75eccb9260a0265be95bbe5f5d34981ba482ad08bc4ff5ee14225839e1e43f43  supabase/migrations/0406_premium_engineering_analyses.sql
           e5e0cb582c9ed19c17134bace602f539697ae3f10af813f08486de6a5181de70  supabase/migrations/0407_premium_product_model.sql
           df92a3e050bc7cbc46d5e1c1d6fe3822a7a82db58a2ebc5fe3965138380c4c49  supabase/migrations/0408_formula_versions_corrected_formulas.sql
+          29cbdcd08bda08630126e65f89a99f1226766d8568c58330486f3262d61f5534  supabase/migrations/0409_formula_versions_fuel_pump_validity.sql
           EOF
           expected="$(awk '{print $2}' "$RUNNER_TEMP/manifest.sha256" | xargs -n1 basename)"
           actual="$(ls -1 supabase/migrations/*.sql | xargs -n1 basename | LC_ALL=C sort)"
           if [ "$expected" != "$actual" ]; then
-            echo "::error::Migration directory does not contain exactly the approved 18 files in the approved order."
+            echo "::error::Migration directory does not contain exactly the approved 19 files in the approved order."
             diff <(echo "$expected") <(echo "$actual") || true
             exit 1
           fi
           sha256sum -c "$RUNNER_TEMP/manifest.sha256"
           awk '!/^#/ && NF{print $1"  "$2}' supabase/FROZEN-SOURCES.sha256 | sha256sum -c -
-          echo "Package verified: commit $PINNED_SHA, 18 files, approved order, all checksums match."
+          echo "Package verified: commit $PINNED_SHA, 19 files, approved order, all checksums match."
 
   dry-run:
     name: Dry run (no database changes)
