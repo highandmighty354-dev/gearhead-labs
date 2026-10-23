@@ -1258,7 +1258,7 @@ This is the **single authoritative register** of known defects, deferred improve
   - The 2026-10-21 old-versus-new comparison on PR #12 shows the 600 RPM case unchanged by M1.
 - **Affected:** engine `F1_12_4_…html`: `GH_BACKFILL_FORMULAS.airflow_power_estimate` (the Estimated Torque expression), `GHM_AIRFLOW_POWER()` (its `torque` value, from the registry since M1), and the Formula card note added in M1 (`GH_FORMULA_NOTES.airflow_power_estimate`, "Torque below 800 RPM (known issue)").
 - **Impact:** A person entering an idle or cranking speed below 800 RPM gets a torque figure that is too low (25 % low at 600 RPM, 50 % at 400 RPM). No other calculator reads this torque; the staged Simulator curve is horsepower only.
-- **Decision:** Proposed correction, for owner approval (not implemented):
+- **Decision:** Proposed correction, for owner approval (not implemented when proposed; option A was later implemented on a branch, see Implementation):
   - **Option A (recommended).** Estimated Torque = horsepower × 5252 ÷ RPM, with no floor. The existing validity rule (RPM > 0) already prevents a division by zero. At very low RPM the torque is large but correct for the inputs given.
   - **Option B.** Keep a minimum engine speed, but as a stated validity rule (for example RPM ≥ 500 gives "Validation required") rather than a silent floor. This rejects inputs the model is not meant for, but it also refuses legitimate low-speed estimates.
   - **Either option:**
@@ -1273,7 +1273,7 @@ This is the **single authoritative register** of known defects, deferred improve
   - Not changed: the Simulator's own 800 RPM engine-speed limits (`simEngineAtRPM`, `simTorqueAtRPM`, gear sweeps), a separate model.
 - **Dependencies:** M1 (PR #12): the formula is the registry entry M1 adds. **Met:** PR #12 merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833).
 - **Revisit:** On owner review of draft PR #17 (option A, chosen 2026-10-21, is implemented there).
-- **Commits:** `b2c03e3` (branch `fix/gh-def-040-torque-floor`, draft PR #17).
+- **Commits:** `b2c03e3` (branch `fix/gh-def-040-torque-floor`, draft PR #17). Not merged into `main` and not released.
 - **Tests:** `premium/tests/torque-def040.test.js` (new, in `run-browser-tests.sh`):
   - the registry at 1, 100, 400, 600, 799, 800, 801, 1000, 6000 and 9000 RPM: torque = hp × 5252 ÷ RPM = 390.6175 lb-ft, horsepower unchanged, and below 800 RPM not the floor value;
   - the page in Imperial (400, 600, 799, 800, 801, 6000) and Metric (600, 6000);
@@ -1290,7 +1290,7 @@ This is the **single authoritative register** of known defects, deferred improve
   3. The note is removed from the card.
 - **Verification result (2026-10-22, criteria 1–2, local only):**
   - `torque-def040`: 54 checks, 0 failures; the mutant was caught (16 checks failed).
-  - Full browser regression on the local combination of PRs #12, #14, #15, #16 and #17 (`fc26088`, 47 suites): all passed, exit 0.
+  - Full browser regression on the local combination of PRs #12, #14, #15, #16 and #17 (`fc26088`, 47 suites): all passed, exit 0. `fc26088` is a local combination branch that was never pushed, so this run cannot be checked on GitHub.
   - 744-calculator default snapshot: unchanged apart from the M1 staging note.
   - Old-versus-new (`d44ae32`): 720 valid cases identical; of the 23 invalid-input cases, only the 600 RPM case changed relative to PR #12 (torque 224.2065 → 298.942 lb-ft at the page defaults).
   - Criterion 3 (the card note) is met in code.
@@ -1347,7 +1347,7 @@ This is the **single authoritative register** of known defects, deferred improve
   - **Invalid cases:** displacement −350, VE 0, cylinders 0, cylinders 7.5, air density 0, barometric 0, RPM 0.
 - **Affected:** engine `GHM_ENGINE_AIR_GRAPH` (airflow extension).
 - **Impact:** A visitor can see a confident-looking airflow curve next to "Validation required", including a negative curve. No stored data, saved result or Simulator input comes from the graph.
-- **Decision:** Proposed narrow change, for approval (not implemented; outside the agreed M1 boundary, which covered the six results and the Stage path):
+- **Decision:** Proposed narrow change, for approval (not implemented when proposed, later implemented on a branch, see Implementation; outside the agreed M1 boundary, which covered the six results and the Stage path):
   - each of the 61 points becomes `GH_ENGINE.calculate('engine_airflow_estimate', …)` at that RPM, Engine Volume Flow converted for display as today;
   - when the page's own inputs are not valid, or any point is not VALID, the graph box shows "Validation required: the graph needs valid inputs" instead of a curve;
   - nothing else changes: same RPM sweep (1000 to the profile's peak, 61 points), same axis labels, same chart.
@@ -1359,7 +1359,7 @@ This is the **single authoritative register** of known defects, deferred improve
   - the sweep, the Metric display factor and the chart are unchanged.
 - **Dependencies:** M1 (PR #12): the registry entry `engine_airflow_estimate`. **Met:** PR #12 merged into `main` on 2026-10-22 as `be20248` and published (Pages run 39809377833).
 - **Revisit:** On owner review of draft PR #16.
-- **Commits:** `f909aa0` (branch `fix/gh-def-042-airflow-graph`, draft PR #16).
+- **Commits:** `f909aa0` (branch `fix/gh-def-042-airflow-graph`, draft PR #16). Not merged into `main` and not released.
 - **Tests:** `premium/tests/airflow-graph-def042.test.js` (new, in `run-browser-tests.sh`):
   - valid inputs in Imperial and Metric (5 cases × 61 points) against the independent reference and, exactly, the registry;
   - 11 invalid cases (−350 ci in Imperial and −5735.47 cc in Metric, displacement 0, VE 0, cylinders 0 / 7.5 / −8, density 0, MAP 0, barometric 0, RPM 0): no chart, the message is shown;
@@ -1377,7 +1377,7 @@ This is the **single authoritative register** of known defects, deferred improve
   - `airflow-graph-def042`: 56 checks, 0 failures; mutants 2/2 caught.
   - Against PR #12's engine without the fix: 24 failures (the defect).
   - `airflow-readers`: 131/131.
-  - Full browser regression on the local combination of PRs #12, #14, #15, #16 and #17 (`fc26088`, 47 suites): all passed, exit 0.
+  - Full browser regression on the local combination of PRs #12, #14, #15, #16 and #17 (`fc26088`, 47 suites): all passed, exit 0. `fc26088` is a local combination branch that was never pushed, so this run cannot be checked on GitHub.
   - Live verification follows a separately authorized release.
 - **History:**
   - 2026-10-22 — investigated on owner instruction after the M1 review; recorded with a proposed change.
