@@ -67,6 +67,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-041](#gh-def-041--christmas-tree-timings-registry-entry-gives-the-pro-tree-03-s-to-green-the-page-states-0400-s) | Christmas Tree Timing's registry entry gives the Pro tree 0.3 s to green; the page states 0.400 s | OPEN | Low | P3 |
 | [GH-DEF-042](#gh-def-042--the-airflow-vs-rpm-graph-draws-a-curve-for-inputs-engine-airflow-estimation-rejects) | The "Airflow vs RPM" graph draws a curve for inputs Engine Airflow Estimation rejects | VERIFIED CLOSED | Low | P2 |
 | [GH-DEF-043](#gh-def-043--three-engine-build-calculators-still-return-a-number-for-negative-inputs) | Three Engine Build calculators still return a number for negative inputs | OPEN | Low | P3 |
+| [GH-DEF-044](#gh-def-044--pull-ivc-from-cam-card-on-dynamic-compression-does-not-change-the-ivc-box) | "↓ Pull IVC from Cam Card" on Dynamic Compression does not change the IVC box | OPEN | Medium | P2 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
 | [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
@@ -1428,6 +1429,36 @@ This is the **single authoritative register** of known defects, deferred improve
   2. Fingerprints and migration recorded.
   3. Full regression passes.
 - **History:** 2026-10-22 — recorded from the M1 review (PR #12).
+
+### GH-DEF-044 — "↓ Pull IVC from Cam Card" on Dynamic Compression does not change the IVC box
+- **Status:** OPEN
+- **Severity:** Medium (the button silently does nothing, so a user believes Dynamic Compression uses the cam's IVC; the DCR shown is computed with the old IVC: default cam 9.859 :1 shown instead of 9.745 :1)
+- **Priority:** P2
+- **Description:** Dynamic Compression's "↓ Pull IVC from Cam Card" button calls `GHM_USE_CAM_IVC()` (`useIVC`). That function writes the cam's IVC into `CALC_PERSISTENT_STATE.dynamic_compression.ica` and then calls `renderCalc('dynamic_compression')`. Because Dynamic Compression is the page on screen, `renderCalc` first copies every box on screen into that calculator's remembered state (the capture step kept by GH-DEF-021), which overwrites the staged value with the box's old text. The IVC box, the remembered value and the DCR result stay unchanged. The same hand-off works from the two cam pages ("↓ Use IVC in Dynamic Compression" on Intake Valve Closing — IVC, "↓ Send IVC to Dynamic Compression" on Complete Cam Card), because there the screen holds a different page's boxes.
+- **Evidence:** Local Chromium, engine of `main` `cc2d80d` (byte-identical to the live site at the time; the engine is unchanged on `ee4b993`), fresh profile per case, Imperial and Metric; identical results in both systems (in Metric the other boxes are Metric, e.g. bore 107.95 mm; IVC is in degrees in both):
+  - default cam (224° @ .050, ICL 110°, advance 4°; the IVC calculator shows 38° ABDC): IVC box 35 → 35 after the click, remembered 35, DCR 9.859 → 9.859 :1;
+  - cam changed on the IVC page to 236° / 108° / 0° (shows 46°): 35 → 35;
+  - 42 typed into the IVC box first: 42 → 42, DCR 9.577 :1 unchanged;
+  - control: the two cam-page buttons → Dynamic Compression opens with IVC 38.00 and DCR 9.745 :1.
+  - The same on the first F1.12.4 engine `08a16b0` (2026-10-05), `c9db895` and `d44ae32`: present since the function was added. No page errors.
+  - Reproduction: open Dynamic Compression Ratio (Premium), note the IVC box (35), press "↓ Pull IVC from Cam Card". Expected: the box shows the cam's IVC (38.00 for the default cam) and the DCR recalculates. Observed: nothing changes.
+- **Affected:** `useIVC` / `GHM_USE_CAM_IVC` (airflow extension) and its button on `dynamic_compression` (the `RENDERS.dynamic_compression` wrapper). The capture step in `renderCalc` is the mechanism. The buttons on `camshaft_ivc` and `cam_card` work.
+- **Impact:** A Premium user pulling the cam's IVC gets a DCR computed with Dynamic Compression's default or previous IVC, with no message.
+- **Decision:** Recorded 2026-10-23 from the GH-ENG-004 runtime check; not fixed. Proposed fix, for approval: make the hand-off survive a re-render of the same page (for example, when Dynamic Compression is on screen, put the value into the on-screen IVC box as well as the remembered state before re-rendering), without changing the capture rule that keeps typed text (GH-DEF-021, GH-DEF-004). Not a unit defect: degrees are never converted. GH-ENG-004 stays OPEN for its own question.
+- **Dependencies:** None.
+- **Revisit:** On approval.
+- **Commits:** None.
+- **Tests:** Proposed: `premium/tests/ivc-handoff-def044.test.js` (in `run-browser-tests.sh`).
+- **Docs:** This entry.
+- **Verification:**
+  1. All three buttons, Imperial and Metric, default cam and a changed cam (236° / 108° / 0° → 46.00°): the IVC box shows the cam's IVC to two decimals, and the DCR equals an independent crank-slider calculation with that IVC.
+  2. A typed IVC is replaced by the pull; text typed afterwards stays (live typing is not broken).
+  3. Bore, stroke, rod and static CR are unchanged by the pull, with Metric values not drifting.
+  4. The pulled value is still there after leaving Dynamic Compression and returning, and after a unit switch.
+  5. A mutant restoring today's `useIVC` fails the test.
+  6. `remembered-values`, `toggle-sweep` and `nav-return` pass unchanged, plus the full browser regression.
+  7. After release: the button checked on the live site.
+- **History:** 2026-10-23 — found during the owner-approved GH-ENG-004 runtime check; recorded.
 
 ## B. Deferred improvements
 
