@@ -90,7 +90,8 @@ const REF = {
 };
 const METRIC_SAYS = [...new Set(Object.values(REF).map(r => r.m))];
 const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const quotes = (msg, u) => new RegExp(`\\d\\s?${esc(u)}(?![\\w/²³·°-])`).test(msg);    // "5,000 lb", "300°F": a number followed by that unit
+/* "5,000 lb", "300°F": a number followed by that unit. "in" followed by "magnitude" is the English word (Wing Center of Pressure: "CL between 0.05 and 5 in magnitude") */
+const quotes = (msg, u) => new RegExp(`\\d\\s?${esc(u)}(?![\\w/²³·°-])${u === 'in' ? '(?! magnitude)' : ''}`).test(msg);
 
 /* the calculators that quote a converted limit (sections A and N). Checked against the engine source below: every calculator that calls unitLimit,
    directly or through a shared message (GH11A_*Msg, GH11B_threadMsg), is listed. */
