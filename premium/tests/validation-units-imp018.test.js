@@ -26,16 +26,21 @@
      N  NUMBERS: every limit converted during A (each call of unitLimit, logged) is checked against the reference factors: the same count of numbers,
         each within one step of the 4th significant figure of the exact value and on the safe side (an upper limit not above it, a lower limit not
         below it), the expected Metric spelling, and the spelling equals the unit shown beside that box. Every call site in the engine source is reached.
-     B  REPRESENTATIVE TEXTS AND BOUNDARIES, typed into the boxes: the exact Metric message of 14 calculators (one per unit family: mass, force, torque,
+     B  REPRESENTATIVE TEXTS AND BOUNDARIES, typed into the boxes: the exact Metric message of 18 calculators (one per unit family: mass, force, torque,
         length, area, speed, pressure, temperature with and without offset, temperature rise, density, stress and modulus, surface speed, volume,
-        mass flow, a thread, a power / torque preference, the A/C table note); the shown Metric limit is accepted and a value just past the real limit is
+        mass flow, a thread, a power / torque preference, the A/C table note, and the four limits that read back outside before the read-back correction:
+        Tire Vertical Stiffness, Drill Point Depth, Ground Effect Estimate, Diffuser Angle, whose limit is taken from the message on screen); the shown Metric limit is accepted and a value just past the real limit is
         rejected; in Imperial the old limit is accepted and a value just past it rejected, as before.
-     M  mutants (temporary engine copies): (1) unitLimit returns the Imperial text (the wording before the fix); (2) limits rounded to nearest instead
-        of inward. The suite must fail on each.
+     R  READ-BACK: every limit shown in another unit during A is typed back into its own box (in the drop-down state it was shown in) and read by the
+        engine's own reader (certValue, what the validation compares): it must land inside the limit, and two 4th-figure steps further out must land
+        outside. This is the check that catches a shown limit that is rejected when typed (152.4 mm reads back as 6.000000000000001 in).
+     M  mutants (temporary engine copies): (1) unitLimit returns the Imperial text (the wording before the fix); (2) the read-back correction removed;
+        (3) the read-back correction stepping outward. The suite must fail on each. (A mutant that only rounds to nearest is no longer a defect: the
+        read-back step then still moves every limit inside, and R and N still hold, so it is not used.)
 
    Run: node premium/tests/validation-units-imp018.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine;
         GH_BASE_ENGINE=path sets the "before" engine, default: the engine at the merge base with origin/main)
-   Exit code 0 = every check passed and both mutants were caught, 1 otherwise. */
+   Exit code 0 = every check passed and all three mutants were caught, 1 otherwise. */
 'use strict';
 const path = require('path'), fs = require('fs'), os = require('os'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
@@ -159,7 +164,7 @@ async function suite(browser, enginePath, basePath, quiet) {
       if (p) { setPerf('power', p.power); setPerf('torque', p.torque); }
       renderCalc('dashboard', false);
       window.__lim = [];
-      if (typeof unitLimit === 'function') { const f = unitLimit; window.unitLimit = function (id, unit, imp, dir, frag) { const out = f.apply(this, arguments); window.__lim.push({ calc: currentCalc, id, unit, imp, dir, frag, out, sys: UNIT.system, decl: id ? declaredFieldUnit(id) : unit, shown: id && document.getElementById(id) ? ((document.getElementById(id).closest('.input-wrap') || {}).querySelector ? (document.getElementById(id).closest('.input-wrap').querySelector('.field-unit') || {}).textContent : null) : null }); return out; }; }
+      if (typeof unitLimit === 'function') { const f = unitLimit; window.unitLimit = function (id, unit, imp, dir, frag) { const out = f.apply(this, arguments); window.__lim.push({ calc: currentCalc, id, unit, imp, dir, frag, out, sys: UNIT.system, sel: Object.fromEntries([...document.querySelectorAll('#calc-container select[id]')].map(s => [s.id, s.value])), decl: id ? declaredFieldUnit(id) : unit, shown: id && document.getElementById(id) ? ((document.getElementById(id).closest('.input-wrap') || {}).querySelector ? (document.getElementById(id).closest('.input-wrap').querySelector('.field-unit') || {}).textContent : null) : null }); return out; }; }
     }, [sys, perf || null]);
     await page.waitForTimeout(40);
     return { ctx, page, errors };
@@ -193,7 +198,7 @@ async function suite(browser, enginePath, basePath, quiet) {
     return out;
   }, c);
 
-  const logs = [], IMPU = {}; let a3 = 0;   /* the unit beside each box in Imperial with Auto preferences (the first run): what a converted box showed before */
+  const logs = [], IMPU = {}, rbCounts = []; let a3 = 0;   /* the unit beside each box in Imperial with Auto preferences (the first run): what a converted box showed before */
   const runA = async (sys, perf, tag) => {
     const a = await fresh(enginePath, sys, perf), b = await fresh(basePath, sys, perf);
     for (const c of CALCS) {
@@ -219,7 +224,53 @@ async function suite(browser, enginePath, basePath, quiet) {
         }
       });
     }
-    logs.push(...(await a.page.evaluate(() => window.__lim)).map(l => ({ ...l, tag })));
+    const mine = (await a.page.evaluate(() => window.__lim)).map(l => ({ ...l, tag }));
+    logs.push(...mine);
+    /* R: every limit shown in another unit, typed back into its own box and read by the engine's own reader (certValue, the reader the validation uses):
+       it must land inside the limit (so typing the number shown is accepted), and two 4th-figure steps further out must land outside (the number is tight) */
+    const seen = new Set(), todo = [];
+    for (const l of mine) {
+      if (l.out === l.imp || l.dir === 'near') continue;
+      const k = [l.calc, l.id, l.imp, l.frag, JSON.stringify(l.sel)].join('|'); if (seen.has(k)) continue; seen.add(k); todo.push(l);
+    }
+    const rb = await a.page.evaluate(todo => {
+      const C = document.getElementById('calc-container'), num = /([±−-]?)(\d[\d,]*(?:\.\d+)?)/g, out = [];
+      const read = (l, text) => {
+        C.innerHTML = ''; delete CALC_PERSISTENT_STATE[l.calc]; delete CALC_STATE_META[l.calc]; renderCalc(l.calc, false);
+        for (const [k, v] of Object.entries(l.sel || {})) { const e = document.getElementById(k); if (e && e.value !== v) { e.value = v; renderCalc(l.calc, false); } }
+        const id = l.id || ([...C.querySelectorAll('input.field-input')].map(e => e.id).find(i => /_d$/.test(i) && (FIELD_UNIT_REGISTRY[l.calc] || {})[i] === 'in'));
+        const e = id && document.getElementById(id); if (!e) return { missing: true, id };
+        e.value = text; renderCalc(l.calc, false);
+        return { v: window.GH_CERT_VALUE(id), id };
+      };
+      for (const l of todo) {
+        const a = [...(l.frag || l.imp).matchAll(num)], b = [...l.out.matchAll(num)];
+        a.forEach((m, i) => {
+          const pm = m[1] === '±', lim = Number(m[2].replace(/,/g, '')) * (m[1] && !pm ? -1 : 1), sm = b[i]; if (!sm) return;
+          const y = Number(sm[2].replace(/,/g, '')) * (sm[1] && sm[1] !== '±' ? -1 : 1);
+          const role = a.length >= 2 ? (i === 0 ? 'min' : 'max') : (pm ? 'max' : (l.dir || 'max'));
+          const step = Math.pow(10, Math.floor(Math.log10(Math.abs(y) || 1)) - 3);
+          const sides = pm ? [[y, lim, 'max'], [-y, -lim, 'min']] : [[y, lim, role]];
+          for (const [yy, ll, rr] of sides) {
+            const at = read(l, String(yy)), far = read(l, String(+(rr === 'max' ? yy + 2 * step : yy - 2 * step).toPrecision(8)));
+            out.push({ calc: l.calc, id: at.id, out: l.out, sel: l.sel, role: rr, shown: yy, lim: ll, back: at.v, farBack: far.v, missing: !!at.missing });
+          }
+        });
+      }
+      C.innerHTML = ''; renderCalc('dashboard', false);
+      return out;
+    }, todo);
+    let rbn = 0, rbm = 0;
+    for (const x of rb) {
+      const at = `${tag} ${x.calc} ${x.id} ${JSON.stringify(x.sel)} "${x.out}" ${x.role} ${x.shown}`;
+      if (x.missing) { rbm++; continue; }
+      rbn++;
+      check(`R ${tag} the limit shown, typed, reads back inside the limit [${at}]`, Number.isFinite(x.back) && (x.role === 'max' ? x.back <= x.lim : x.back >= x.lim), `reads back as ${x.back}, limit ${x.lim}`);
+      check(`R ${tag} two steps further out reads back outside (the limit shown is tight) [${at}]`, Number.isFinite(x.farBack) && (x.role === 'max' ? x.farBack > x.lim : x.farBack < x.lim), `reads back as ${x.farBack}, limit ${x.lim}`);
+    }
+    if (sys === 'metric' || perf) check(`R ${tag} limits read back`, rbn >= (sys === 'metric' ? 300 : 10),   // Imperial with hp / N·m converts only the power and torque limits
+       `${rbn} read back, ${rbm} whose box is not on screen in that drop-down state`);
+    rbCounts.push(`${tag}: ${rbn} read back (${rbm} skipped: box not on screen)`);
     check(`A ${tag} no page errors`, a.errors.length === 0, a.errors.slice(0, 3).join(' | '));
     await a.ctx.close(); await b.ctx.close();
   };
@@ -293,6 +344,12 @@ async function suite(browser, enginePath, basePath, quiet) {
     { calc: 'bolt_tensile_capacity', box: 'btc_d', bad: 1e9, text: 'Enter the major diameter 1.524–101.6 mm and 4–80 threads per inch, with the pitch no more than half the diameter; a proof strength above 0, an ultimate strength at least the proof strength and up to 2,757 MPa; and a safety factor of 1–10.', mOk: 1.524, mBad: 0.0599 * 25.4, iOk: 0.06, iBad: 0.0599, setup: { btc_tpi: 80 } },
     { calc: 'power_split_device_kinematics', perf: { power: 'auto', torque: 'N·m' }, box: 'psd_te', bad: 1e9, contains: 'an engine torque from 0 to 2,711 N·m', mOk: 2711, mBad: 2000.01 * LBF * FT, iOk: null },
     { calc: 'recovery_strap_energy', box: 'rse_m', bad: 1e9, text: 'Vehicle mass must be 90.72–22,670 kg, the speed 0.161–96.56 km/h, the strap length 0.9144–60.96 m, the breaking strength 453.6–226,700 kg and the stretch at breaking strength 1–60%. A stretch of zero would be a rigid strap, which gives an infinite force.', mOk: 22670, mBad: 50000.01 * LB, iOk: 50000, iBad: 50000.01 },
+    /* the four limits that read back outside before the read-back correction (152.4 mm = 6.000000000000001 in, 609.6 mm = 24.000000000000004 in): the number
+       typed is the one taken from the message on screen */
+    { calc: 'tire_vertical_stiffness', box: 'tvs_d', bad: 1e9, text: 'Load must be 0–2,267 kg and deflection 0–152.3 mm.', shown: /deflection 0–([\d.,]+) mm/, mOk: 152.3, mBad: 6.0001 * 25.4, iOk: 6, iBad: 6.0001 },
+    { calc: 'drill_point_depth', box: 'dpd_d', bad: 1e9, text: 'The drill diameter must be 0.254–152.3 mm, the point angle 60–180°, and the full-diameter depth 0–2,540 mm.', shown: /diameter must be [\d.,]+–([\d.,]+) mm/, mOk: 152.3, mBad: 6.0001 * 25.4, iOk: 6, iBad: 6.0001 },
+    { calc: 'ground_effect_estimate', box: 'gee_h1', bad: 1e9, contains: 'inlet gap 12.7–609.5 mm', shown: /inlet gap [\d.,]+–([\d.,]+) mm/, mOk: 609.5, mBad: 24.0001 * 25.4, iOk: 24, iBad: 24.0001 },
+    { calc: 'diffuser_angle_expansion', box: 'dae_h1', bad: 1e9, contains: 'Throat height must be 6.35–609.5 mm', shown: /Throat height must be [\d.,]+–([\d.,]+) mm/, setupM: { dae_h2: 1200 }, setupI: { dae_h2: 47 }, mOk: 609.5, mBad: 24.0001 * 25.4, iOk: 24, iBad: 24.0001 },
     { calc: 'ac_pressure', note: '⚠ Published table range used here: 26.67–48.88°C. Do not use saturation pressure alone to diagnose an operating vehicle A/C system.' }
   ];
   for (const t of B) {
@@ -304,19 +361,23 @@ async function suite(browser, enginePath, basePath, quiet) {
       check(`B ${t.calc} Imperial note unchanged`, ri.note === rb.note && /80–120°F/.test(ri.note || ''), JSON.stringify(ri.note));
       continue;
     }
-    const r = await typed(enginePath, sysM, t.perf, t.calc, t.setup, t.box, t.bad);
+    const setM = t.setupM || t.setup, setI = t.setupI || t.setup;
+    const r = await typed(enginePath, sysM, t.perf, t.calc, setM, t.box, t.bad);
     if (t.text) check(`B ${t.calc} ${tag} message text`, r.msg === t.text, `\n        got      ${JSON.stringify(r.msg)}\n        expected ${JSON.stringify(t.text)}`);
     if (t.contains) check(`B ${t.calc} ${tag} message quotes the box unit`, (r.msg || '').includes(t.contains), JSON.stringify(r.msg));
-    const ok = await typed(enginePath, sysM, t.perf, t.calc, t.setup, t.box, t.mOk);
-    check(`B ${t.calc} ${tag}: the limit shown (${t.mOk}) is accepted`, ok.msg === null, JSON.stringify(ok.msg));
-    const bad = await typed(enginePath, sysM, t.perf, t.calc, t.setup, t.box, +t.mBad.toPrecision(10));
+    let mOk = t.mOk;
+    if (t.shown) { const m = (r.msg || '').match(t.shown); check(`B ${t.calc} ${tag}: the limit is read from the message on screen`, !!m && Number(m[1].replace(/,/g, '')) === t.mOk, JSON.stringify(r.msg)); if (m) mOk = m[1].replace(/,/g, ''); }
+    const ok = await typed(enginePath, sysM, t.perf, t.calc, setM, t.box, mOk);
+    check(`B ${t.calc} ${tag}: the limit shown (${mOk}) is accepted`, ok.msg === null, JSON.stringify(ok.msg));
+    const bad = await typed(enginePath, sysM, t.perf, t.calc, setM, t.box, +t.mBad.toPrecision(10));
     check(`B ${t.calc} ${tag}: just past the real limit (${+t.mBad.toPrecision(10)}) is rejected`, bad.msg !== null, 'accepted');
     if (t.iOk !== null && t.iOk !== undefined) for (const eng of [enginePath, basePath]) {
       const w = eng === basePath ? 'before the fix' : 'now';
-      const io = await typed(eng, 'imperial', null, t.calc, t.setup, t.box, t.iOk), ib = await typed(eng, 'imperial', null, t.calc, t.setup, t.box, t.iBad);
+      const io = await typed(eng, 'imperial', null, t.calc, setI, t.box, t.iOk), ib = await typed(eng, 'imperial', null, t.calc, setI, t.box, t.iBad);
       check(`B ${t.calc} Imperial (${w}): the limit ${t.iOk} is accepted and ${t.iBad} rejected`, io.msg === null && ib.msg !== null, `${JSON.stringify(io.msg)} / ${JSON.stringify(ib.msg)}`);
     }
   }
+  lines.push(...rbCounts.map(x => '  R ' + x));
   return { checks, failures, lines };
 }
 
@@ -332,7 +393,8 @@ async function suite(browser, enginePath, basePath, quiet) {
   const html = fs.readFileSync(ENGINE, 'utf8');
   const MUT = [
     ['the wording before the fix (unitLimit returns the Imperial text)', 'function unitLimit(id,unit,imp,dir,frag){', 'function unitLimit(id,unit,imp,dir,frag){ return imp;'],
-    ['limits rounded to nearest instead of inward', "const r=dir==='min'?Math.ceil(q):dir==='max'?Math.floor(q):Math.round(q);", 'const r=Math.round(q);']
+    ['the read-back correction removed (152.4 mm shown for a 6 in limit)', "    if(d!=='near') y=pm?", "    if(false) y=pm?"],
+    ['the read-back correction steps outward instead of inward', "y=+(dir==='max'?y-k:y+k).toPrecision(6);", "y=+(dir==='max'?y+k:y-k).toPrecision(6);"]
   ];
   let caught = 0;
   for (const [name, a, b] of MUT) {

@@ -1152,15 +1152,17 @@ function fmtUnitValue(value,unit,precision=4){
      dir   for a single number: 'max' (default, an upper limit), 'min' (a lower limit) or 'near' (a typical value, not a limit); in "a–b" or "a to b"
            the first number is the lower limit and the second the upper
      frag  the part of imp that is converted, when imp also carries text meant for Imperial only (an existing "(90–22,700 kg)" note)
-   A converted limit is rounded to 4 significant figures toward the inside of the range (an upper limit down, a lower limit up), so the number shown is
-   accepted when it is typed; a typical value is rounded to 3. */
+   A converted limit is rounded to 4 significant figures toward the inside of the range (an upper limit down, a lower limit up); a typical value is rounded
+   to 3. The rounded limit is then read back exactly as the box reads a typed number (the same conversion certValue applies) and, if that lands outside the
+   limit, moved one step further inside (152.4 mm reads back as 6.000000000000001 in, above a 6 in limit, so 152.3 mm is shown), so the number shown is
+   accepted when it is typed. The validation comparison itself is not touched. */
 function unitLimitConv(id,unit){
   const reg=FIELD_UNIT_REGISTRY[currentCalc];
   const u=(id&&reg&&Object.prototype.hasOwnProperty.call(reg,id))?declaredFieldUnit(id):(unit||'');
   if(!u) return null;
-  if(isPerfToken(u)){ const p=perfParse(u); return p.shownBase===p.src?null:{f:v=>perfFromSrc(v,u),s:p.shown}; }
+  if(isPerfToken(u)){ const p=perfParse(u); return p.shownBase===p.src?null:{f:v=>perfFromSrc(v,u),b:v=>perfToSrc(v,u),s:p.shown}; }   // b: how the box reads a typed number back
   const d=UNIT_DEFS[canonicalUnit(u)];
-  return UNIT.system==='metric'&&d&&d.metric?{f:d.toMetric,s:d.metric}:null;
+  return UNIT.system==='metric'&&d&&d.metric?{f:d.toMetric,b:d.fromMetric,s:d.metric}:null;
 }
 function unitLimitRound(x,dir){
   if(!isFinite(x)||x===0) return x;
@@ -1168,6 +1170,12 @@ function unitLimitRound(x,dir){
   const sf=dir==='near'?3:4, k=Math.pow(10,Math.floor(Math.log10(Math.abs(x)))-sf+1), q=+(x/k).toPrecision(12);
   const r=dir==='min'?Math.ceil(q):dir==='max'?Math.floor(q):Math.round(q);
   return +(r*k).toPrecision(sf+2);
+}
+/* the shown limit y of the canonical limit v, moved inward one 4th-figure step at a time until the box would read it back inside v */
+function unitLimitInside(y,v,dir,c){
+  const out=t=>dir==='max'?c.b(t)>v:c.b(t)<v;
+  for(let n=0;n<4&&isFinite(y)&&y!==0&&out(y);n++){ const k=Math.pow(10,Math.floor(Math.log10(Math.abs(y)))-3); y=+(dir==='max'?y-k:y+k).toPrecision(6); }
+  return y;
 }
 function unitLimit(id,unit,imp,dir,frag){
   const c=unitLimitConv(id,unit); if(!c) return imp;
@@ -1178,7 +1186,8 @@ function unitLimit(id,unit,imp,dir,frag){
   nums.forEach((m,i)=>{
     const pm=m[1]==='±', v=Number(m[2].replace(/,/g,''))*(m[1]&&!pm?-1:1);
     const d=dir==='near'?'near':nums.length>=2?(i===0?'min':'max'):(pm?'max':(dir||'max'));
-    const y=unitLimitRound(c.f(v),d);
+    let y=unitLimitRound(c.f(v),d);
+    if(d!=='near') y=pm?Math.min(unitLimitInside(y,Math.abs(v),'max',c),-unitLimitInside(-y,-Math.abs(v),'min',c)):unitLimitInside(y,v,d,c);
     out+=src.slice(at,m.index)+(pm?'±':'')+(y<0?minus:'')+Math.abs(y).toLocaleString('en-US',{maximumFractionDigits:10});
     at=m.index+m[0].length;
   });
