@@ -17,7 +17,9 @@
    Sections (every case in a fresh browser profile)
      A  SWEEP of every calculator that quotes a converted limit (list below, checked against the engine source), every option of each of its
         drop-downs, every numeric box set out of range (1e15 and -1e15), against the engine before the fix (main):
-          A1 Imperial: the message is the same text as before, character for character, and appears for the same inputs
+          A1 Imperial: the message is the same text as before, character for character, and appears for the same inputs; the one deliberate
+             exception is an ISO thread's length limits (Blind Hole Depth, Thread Cutting Speed), whose boxes are mm in both systems: the old
+             "50 in", "0–10 in", "200 in" must be there before and are replaced by "1,270 mm", "0–254 mm", "5,080 mm" (ISO_LEN)
           A2 Metric: a message appears for exactly the same inputs as before (validation behaviour unchanged)
           A3 Metric: the message quotes no Imperial unit of a box that shows a Metric unit
           A4 Metric: every Metric unit the message quotes is a unit shown on that page (in Imperial, the three messages that already
@@ -26,21 +28,24 @@
      N  NUMBERS: every limit converted during A (each call of unitLimit, logged) is checked against the reference factors: the same count of numbers,
         each within one step of the 4th significant figure of the exact value and on the safe side (an upper limit not above it, a lower limit not
         below it), the expected Metric spelling, and the spelling equals the unit shown beside that box. Every call site in the engine source is reached.
-     B  REPRESENTATIVE TEXTS AND BOUNDARIES, typed into the boxes: the exact Metric message of 18 calculators (one per unit family: mass, force, torque,
+     B  REPRESENTATIVE TEXTS AND BOUNDARIES, typed into the boxes: the exact Metric message of 20 calculators (one per unit family: mass, force, torque,
         length, area, speed, pressure, temperature with and without offset, temperature rise, density, stress and modulus, surface speed, volume,
         mass flow, a thread, a power / torque preference, the A/C table note, and the four limits that read back outside before the read-back correction:
-        Tire Vertical Stiffness, Drill Point Depth, Ground Effect Estimate, Diffuser Angle, whose limit is taken from the message on screen); the shown Metric limit is accepted and a value just past the real limit is
-        rejected; in Imperial the old limit is accepted and a value just past it rejected, as before.
+        Tire Vertical Stiffness, Drill Point Depth, Ground Effect Estimate, Diffuser Angle, whose limit is taken from the message on screen; and the
+        three ISO-thread length limits of Blind Hole Depth and Thread Cutting Speed, quoted in mm in both systems); the shown Metric limit is accepted
+        and a value just past the real limit is rejected; in Imperial the old limit is accepted and a value just past it rejected, on this engine and
+        on the engine before the fix (the boundary is unchanged).
      R  READ-BACK: every limit shown in another unit during A is typed back into its own box (in the drop-down state it was shown in) and read by the
         engine's own reader (certValue, what the validation compares): it must land inside the limit, and two 4th-figure steps further out must land
-        outside. This is the check that catches a shown limit that is rejected when typed (152.4 mm reads back as 6.000000000000001 in).
+        outside. This is the check that catches a shown limit that is rejected when typed (152.4 mm reads back as 6.000000000000001 in). An ISO-thread
+        length box is read as mm / 25.4, as GH11B_threadRead reads it.
      M  mutants (temporary engine copies): (1) unitLimit returns the Imperial text (the wording before the fix); (2) the read-back correction removed;
-        (3) the read-back correction stepping outward. The suite must fail on each. (A mutant that only rounds to nearest is no longer a defect: the
+        (3) the ISO-thread lengths quoted in inches again; (4) the read-back correction stepping outward. The suite must fail on each. (A mutant that only rounds to nearest is no longer a defect: the
         read-back step then still moves every limit inside, and R and N still hold, so it is not used.)
 
    Run: node premium/tests/validation-units-imp018.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine;
         GH_BASE_ENGINE=path sets the "before" engine, default: the engine at the merge base with origin/main)
-   Exit code 0 = every check passed and all three mutants were caught, 1 otherwise. */
+   Exit code 0 = every check passed and all four mutants were caught, 1 otherwise. */
 'use strict';
 const path = require('path'), fs = require('fs'), os = require('os'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
@@ -91,8 +96,11 @@ const REF = {
   'lb/hr': { f: v => v * LB, m: 'kg/hr', say: ['lb/hr'] },
   'lb/hp-hr': { f: v => v * LB / HP, m: 'kg/kW-hr', say: ['lb/hp-hr'] },
   'perf:kW>hp': { f: v => v / HP, m: 'HP', say: ['kW'] },
-  'perf:lbft>Nm': { f: v => v * LBF * FT, m: 'N·m', say: ['lb-ft'] }
+  'perf:lbft>Nm': { f: v => v * LBF * FT, m: 'N·m', say: ['lb-ft'] },
+  'in>mm': { f: v => v * 25.4, m: 'mm', say: ['in'] }   // an ISO-thread length box: typed in mm in both systems, read as mm / 25.4
 };
+ /* ISO-thread length limits: the Imperial text before (inches) and after (millimetres, what the box shows): 50 in = 1,270 mm, 10 in = 254 mm, 200 in = 5,080 mm (exact; each reads back exactly) */
+const ISO_LEN = { blind_hole_depth: [['(up to 50 in)', '(up to 1,270 mm)'], ['a clearance of 0–10 in', 'a clearance of 0–254 mm']], thread_cutting_speed: [['(up to 200 in)', '(up to 5,080 mm)']] };
 const METRIC_SAYS = [...new Set(Object.values(REF).map(r => r.m))];
 const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 /* "5,000 lb", "300°F": a number followed by that unit. "in" followed by "magnitude" is the English word (Wing Center of Pressure: "CL between 0.05 and 5 in magnitude") */
@@ -122,6 +130,7 @@ function callSites(src) {
     for (const c of src.matchAll(new RegExp(`${esc(name)}\\('([a-z0-9]+)'\\)`, 'g'))) ids.add(c[1] + m[1]);
   }
   if (/unitLimit\(null,'in'/.test(src)) ids.add('(thread diameter)');
+  for (const m of src.matchAll(/GH11B_lenLimit\(t,'([a-z0-9_]+)'/g)) { ids.add(m[1]); ids.add(m[1] + 'm'); }   // a thread length: the UN box (inches) and the ISO box (mm)
   return ids;
 }
 /* the calculator each unitLimit call belongs to, read from the source (RENDERS.x = ..., object methods x(){...}, shared messages through their callers) */
@@ -164,7 +173,7 @@ async function suite(browser, enginePath, basePath, quiet) {
       if (p) { setPerf('power', p.power); setPerf('torque', p.torque); }
       renderCalc('dashboard', false);
       window.__lim = [];
-      if (typeof unitLimit === 'function') { const f = unitLimit; window.unitLimit = function (id, unit, imp, dir, frag) { const out = f.apply(this, arguments); window.__lim.push({ calc: currentCalc, id, unit, imp, dir, frag, out, sys: UNIT.system, sel: Object.fromEntries([...document.querySelectorAll('#calc-container select[id]')].map(s => [s.id, s.value])), decl: id ? declaredFieldUnit(id) : unit, shown: id && document.getElementById(id) ? ((document.getElementById(id).closest('.input-wrap') || {}).querySelector ? (document.getElementById(id).closest('.input-wrap').querySelector('.field-unit') || {}).textContent : null) : null }); return out; }; }
+      if (typeof unitLimit === 'function') { const f = unitLimit; window.unitLimit = function (id, unit, imp, dir, frag) { const out = f.apply(this, arguments); window.__lim.push({ calc: currentCalc, id, unit, imp, dir, frag, out, sys: UNIT.system, isoMm: unit === 'in>mm', sel: Object.fromEntries([...document.querySelectorAll('#calc-container select[id]')].map(s => [s.id, s.value])), decl: unit === 'in>mm' ? unit : (id ? declaredFieldUnit(id) : unit), shown: id && document.getElementById(id) ? ((document.getElementById(id).closest('.input-wrap') || {}).querySelector ? (document.getElementById(id).closest('.input-wrap').querySelector('.field-unit') || {}).textContent : null) : null }); return out; }; }
     }, [sys, perf || null]);
     await page.waitForTimeout(40);
     return { ctx, page, errors };
@@ -209,7 +218,12 @@ async function suite(browser, enginePath, basePath, quiet) {
       ra.forEach((x, i) => {
         const y = rb[i] || {}, at = `${c} ${JSON.stringify(x.v)} ${x.box}=${x.val}`;
         check(`A2 ${tag} a message for the same inputs as before [${at}]`, (x.msg === null) === (y.msg === null), `now ${JSON.stringify(x.msg)}, before ${JSON.stringify(y.msg)}`);
-        if (sys === 'imperial' && !perf) check(`A1 ${tag} message text unchanged [${at}]`, x.msg === y.msg && x.note === y.note, `now ${JSON.stringify(x.msg)}\n        before ${JSON.stringify(y.msg)}`);
+        /* the one deliberate Imperial change: an ISO thread's length boxes are typed in mm in both systems, so their limits are now quoted in mm in Imperial too */
+        let yMsg = y.msg;
+        if (sys === 'imperial' && !perf && yMsg !== null && ISO_LEN[c] && Object.values(x.v).includes('iso')) {
+          for (const [a, b] of ISO_LEN[c]) { check(`A1 ${tag} ISO thread: the old Imperial text quoted "${a}" [${at}]`, yMsg.includes(a), yMsg); yMsg = yMsg.replace(a, b); }
+        }
+        if (sys === 'imperial' && !perf) check(`A1 ${tag} message text unchanged (ISO-thread lengths now in mm) [${at}]`, x.msg === yMsg && x.note === y.note, `now ${JSON.stringify(x.msg)}\n        before ${JSON.stringify(y.msg)}`);
         for (const text of [x.msg, x.note]) {
           if (text === null) continue;
           const shownUnits = new Set(x.units.map(u => u.u));
@@ -241,7 +255,8 @@ async function suite(browser, enginePath, basePath, quiet) {
         const id = l.id || ([...C.querySelectorAll('input.field-input')].map(e => e.id).find(i => /_d$/.test(i) && (FIELD_UNIT_REGISTRY[l.calc] || {})[i] === 'in'));
         const e = id && document.getElementById(id); if (!e) return { missing: true, id };
         e.value = text; renderCalc(l.calc, false);
-        return { v: window.GH_CERT_VALUE(id), id };
+        const got = window.GH_CERT_VALUE(id);
+        return { v: l.isoMm ? got / 25.4 : got, id };   // an ISO-thread length box is read as mm / 25.4 (GH11B_threadRead)
       };
       for (const l of todo) {
         const a = [...(l.frag || l.imp).matchAll(num)], b = [...l.out.matchAll(num)];
@@ -350,6 +365,10 @@ async function suite(browser, enginePath, basePath, quiet) {
     { calc: 'drill_point_depth', box: 'dpd_d', bad: 1e9, text: 'The drill diameter must be 0.254–152.3 mm, the point angle 60–180°, and the full-diameter depth 0–2,540 mm.', shown: /diameter must be [\d.,]+–([\d.,]+) mm/, mOk: 152.3, mBad: 6.0001 * 25.4, iOk: 6, iBad: 6.0001 },
     { calc: 'ground_effect_estimate', box: 'gee_h1', bad: 1e9, contains: 'inlet gap 12.7–609.5 mm', shown: /inlet gap [\d.,]+–([\d.,]+) mm/, mOk: 609.5, mBad: 24.0001 * 25.4, iOk: 24, iBad: 24.0001 },
     { calc: 'diffuser_angle_expansion', box: 'dae_h1', bad: 1e9, contains: 'Throat height must be 6.35–609.5 mm', shown: /Throat height must be [\d.,]+–([\d.,]+) mm/, setupM: { dae_h2: 1200 }, setupI: { dae_h2: 47 }, mOk: 609.5, mBad: 24.0001 * 25.4, iOk: 24, iBad: 24.0001 },
+    /* ISO-thread length boxes (mm in both systems): the limit is quoted in mm in Imperial and Metric; the boundary is unchanged from before the fix */
+    { calc: 'blind_hole_depth', setup: { bhd_std: 'iso' }, box: 'bhd_ftm', bad: 1e9, contains: 'a full-thread depth above 0 (up to 1,270 mm); a clearance of 0–254 mm', iContains: 'a full-thread depth above 0 (up to 1,270 mm); a clearance of 0–254 mm', shown: /full-thread depth above 0 \(up to ([\d.,]+) mm\)/, mOk: 1270, mBad: 50.0001 * 25.4, iOk: 1270, iBad: 1270.01 },
+    { calc: 'blind_hole_depth', setup: { bhd_std: 'iso' }, box: 'bhd_clm', bad: 1e9, contains: 'a clearance of 0–254 mm', iContains: 'a clearance of 0–254 mm', shown: /a clearance of 0–([\d.,]+) mm/, mOk: 254, mBad: 10.0001 * 25.4, iOk: 254, iBad: 254.01 },
+    { calc: 'thread_cutting_speed', setup: { tcs_std: 'iso' }, box: 'tcs_lm', bad: 1e9, contains: 'a thread length above 0 (up to 5,080 mm)', iContains: 'a thread length above 0 (up to 5,080 mm)', shown: /thread length above 0 \(up to ([\d.,]+) mm\)/, mOk: 5080, mBad: 200.0001 * 25.4, iOk: 5080, iBad: 5080.01 },
     { calc: 'ac_pressure', note: '⚠ Published table range used here: 26.67–48.88°C. Do not use saturation pressure alone to diagnose an operating vehicle A/C system.' }
   ];
   for (const t of B) {
@@ -365,6 +384,7 @@ async function suite(browser, enginePath, basePath, quiet) {
     const r = await typed(enginePath, sysM, t.perf, t.calc, setM, t.box, t.bad);
     if (t.text) check(`B ${t.calc} ${tag} message text`, r.msg === t.text, `\n        got      ${JSON.stringify(r.msg)}\n        expected ${JSON.stringify(t.text)}`);
     if (t.contains) check(`B ${t.calc} ${tag} message quotes the box unit`, (r.msg || '').includes(t.contains), JSON.stringify(r.msg));
+    if (t.iContains) { const ri = await typed(enginePath, 'imperial', null, t.calc, setI, t.box, t.bad); check(`B ${t.calc} ${t.box} Imperial message quotes the box unit`, (ri.msg || '').includes(t.iContains), JSON.stringify(ri.msg)); }
     let mOk = t.mOk;
     if (t.shown) { const m = (r.msg || '').match(t.shown); check(`B ${t.calc} ${tag}: the limit is read from the message on screen`, !!m && Number(m[1].replace(/,/g, '')) === t.mOk, JSON.stringify(r.msg)); if (m) mOk = m[1].replace(/,/g, ''); }
     const ok = await typed(enginePath, sysM, t.perf, t.calc, setM, t.box, mOk);
@@ -394,6 +414,7 @@ async function suite(browser, enginePath, basePath, quiet) {
   const MUT = [
     ['the wording before the fix (unitLimit returns the Imperial text)', 'function unitLimit(id,unit,imp,dir,frag){', 'function unitLimit(id,unit,imp,dir,frag){ return imp;'],
     ['the read-back correction removed (152.4 mm shown for a 6 in limit)', "    if(d!=='near') y=pm?", "    if(false) y=pm?"],
+    ['the ISO-thread lengths quoted in inches again (the wording before the fix)', "const GH11B_lenLimit=(t,x,imp,dir)=>t.std==='un'?unitLimit(x,'in',imp,dir):unitLimit(x+'m','in>mm',imp,dir);", "const GH11B_lenLimit=(t,x,imp,dir)=>unitLimit(x,'in',imp,dir);"],
     ['the read-back correction steps outward instead of inward', "y=+(dir==='max'?y-k:y+k).toPrecision(6);", "y=+(dir==='max'?y+k:y-k).toPrecision(6);"]
   ];
   let caught = 0;

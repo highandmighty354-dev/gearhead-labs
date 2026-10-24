@@ -15,6 +15,10 @@
      D. all 696 calculators at their defaults, through a live Imperial -> Metric -> Imperial switch: a warning appears only on a box of the list in A, and the set of warnings is the same in both systems;
      E. the lookup itself (checkFieldRange(id, value, calc)): the same id in a calculator where it is not the quantity does not warn; an unlisted calculator or id does not warn; and the register's
         verification case: Timing Mark "Balancer Diameter" shows no warning in Imperial, none after pressing Metric, and still none for a typed 9 in.
+     F. GH-IMP-018, the warning's wording: the range is written in the unit the box shows. Imperial text is unchanged ("typical range is 1.5–6.5"); a box shown in mm, kg or kW quotes the
+        range in that unit, rounded to 4 figures toward the inside and read back inside the limit (the texts in RANGE_SHOWN, worked out by hand below). A, C and E expect the text for the unit
+        on screen; F checks each shown range against the exact factors and types its two ends into a real box (no warning) and a value just outside each end (the warning). The limits and
+        the comparison are unchanged: which boxes warn, for which values, is exactly what A–E checked before.
 
    Run: node premium/tests/range-warnings.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine; FAST=1 types 2 values per box instead of 5; MAXLINES=n prints n failures, default 60)
    Exit code 0 = every check passed, 1 otherwise. */
@@ -32,7 +36,13 @@ const RANGE = {
   bore: { min: 1.5, max: 6.5 }, stroke: { min: 1.5, max: 6.0 }, RPM: { min: 300, max: 12000 }, VE: { min: 0.3, max: 1.4 },
   weight: { min: 200, max: 12000 }, HP: { min: 20, max: 5000 }, 'compression ratio': { min: 6, max: 20 }, AFR: { min: 8, max: 20 }
 };
-const warnText = q => `Unusual ${q} — typical range is ${RANGE[q].min}–${RANGE[q].max}`;
+/* GH-IMP-018: the range as written for a box shown in another unit (exact factors; 4 significant figures toward the inside; then read back as the box reads a typed number):
+     bore   1.5–6.5 in   = 38.1–165.1 mm (exact)
+     stroke 1.5–6.0 in   = 38.1–152.4 mm, but 152.4 mm reads back as 6.000000000000001 in (above 6), so 152.3 mm
+     weight 200–12,000 lb = 90.718–5,443.1 kg -> 90.72–5,443 kg
+     HP     20–5,000 hp  = 14.914–3,728.5 kW  -> 14.92–3,728 kW */
+const RANGE_SHOWN = { 'bore|mm': '38.1–165.1 mm', 'stroke|mm': '38.1–152.3 mm', 'weight|kg': '90.72–5,443 kg', 'HP|kW': '14.92–3,728 kW' };
+const warnText = (q, unit) => `Unusual ${q} — typical range is ${RANGE_SHOWN[q + '|' + unit] || RANGE[q].min + '–' + RANGE[q].max}`;
 const outside = (q, canon) => canon < RANGE[q].min || canon > RANGE[q].max;
 /* exact unit definitions: what one displayed unit is in the canonical unit */
 const LB = 0.45359237, KW_PER_HP = 550 * 0.3048 * LB * 9.80665 / 1000;
@@ -92,7 +102,7 @@ async function run(enginePath) {
           const got = await look(b.id);
           const wantWarn = outside(q, canon / 1);   // the physical value the person meant (typed rounding is 6 digits, far from every limit used)
           const tag = `${sys} ${pw}/${tq} ${calc}.${b.id} ${q}: ${text} ${unit} (= ${typed(canon)} canonical)`;
-          if (wantWarn) check(tag, got.warn === warnText(q) && got.flagged, `wanted "${warnText(q)}", box shows ${JSON.stringify(got.warn)}`);
+          if (wantWarn) check(tag, got.warn === warnText(q, unit) && got.flagged, `wanted "${warnText(q, unit)}", box shows ${JSON.stringify(got.warn)}`);
           else check(tag, got.warn === null && !got.flagged, `wanted no warning, box shows ${JSON.stringify(got.warn)}`);
         }
       }
@@ -135,13 +145,14 @@ async function run(enginePath) {
         const vals = VALUES(b.quantity), canon = vals[(k++) % vals.length];
         const unit = (await look(b.id)).unit;
         await typeInto(b.id, typed(canon / TO_CANON[unit]));
-        want[b.id] = outside(b.quantity, canon) ? warnText(b.quantity) : null;
+        want[b.id] = outside(b.quantity, canon);   // whether it warns; the text follows the unit on screen in each system
       }
       for (const sys of ['metric', 'imperial', 'metric', 'imperial']) {
         await setSystem(sys);
         for (const b of boxes) {
           const got = await look(b.id);
-          check(`${pw} ${calc}.${b.id} after ${sys}`, got && got.warn === want[b.id], `wanted ${JSON.stringify(want[b.id])}, box shows ${JSON.stringify(got && got.warn)} (${got && got.value} ${got && got.unit})`);
+          const w = got && want[b.id] ? warnText(b.quantity, got.unit) : null;
+          check(`${pw} ${calc}.${b.id} after ${sys}`, got && got.warn === w, `wanted ${JSON.stringify(w)}, box shows ${JSON.stringify(got && got.warn)} (${got && got.value} ${got && got.unit})`);
         }
       }
     }
@@ -206,8 +217,36 @@ async function run(enginePath) {
   await page.fill('#bore2', '100'); await page.waitForTimeout(40); l = await look('bore2');
   check('Static Compression bore typed 100 mm (3.94 in): no warning (was a false one)', l && l.warn === null && l.unit === 'mm', JSON.stringify(l));
   await page.fill('#bore2', '200'); await page.waitForTimeout(40); l = await look('bore2');
-  check('Static Compression bore typed 200 mm (7.87 in): the bore warning', l && l.warn === warnText('bore'), JSON.stringify(l));
+  check('Static Compression bore typed 200 mm (7.87 in): the bore warning, with the range in mm', l && l.warn === warnText('bore', 'mm') && l.warn === 'Unusual bore — typical range is 38.1–165.1 mm', JSON.stringify(l));
   await setSystem('imperial');
+
+  /* ================= F. GH-IMP-018: the range is written in the unit the box shows ================= */
+  section = 'F';
+  const TO = { mm: 1 / 25.4, kg: 1 / LB, kW: 1 / KW_PER_HP };
+  for (const [key, text] of Object.entries(RANGE_SHOWN)) {
+    const [q, unit] = key.split('|'), m = text.match(/^([\d.,]+)–([\d.,]+) (\S+)$/);
+    const lo = Number(m[1].replace(/,/g, '')), hi = Number(m[2].replace(/,/g, '')), loC = lo * TO[unit], hiC = hi * TO[unit];
+    const step = x => Math.pow(10, Math.floor(Math.log10(x)) - 3);
+    check(`${key}: the shown ends read back inside ${RANGE[q].min}–${RANGE[q].max}, within two 4-figure steps`, m[3] === unit && loC >= RANGE[q].min && hiC <= RANGE[q].max && (lo + 2 * step(lo)) * TO[unit] > RANGE[q].min && (hi - 2 * step(hi)) * TO[unit] < RANGE[q].max, `${loC} / ${hiC}`);
+  }
+  /* typed into real boxes: each end shown gives no warning, a value just outside the real limit gives the warning in the box's unit */
+  const F_CASES = [['static_compression', 'bore2', 'bore', 'metric', 'Auto'], ['static_compression', 'str2', 'stroke', 'metric', 'Auto'], ['hp_quarter_mile', 'wt', 'weight', 'metric', 'Auto'], ['torque_from_hp', 'hp2', 'HP', 'imperial', 'kW']];
+  for (const [calc, id, q, sys, pwr] of F_CASES) {
+    await setPref('power', pwr); await setSystem(sys); await fresh(calc);
+    const unit = (await look(id)).unit, text = RANGE_SHOWN[q + '|' + unit];
+    check(`${calc}.${id} shows a converted unit`, !!text, unit);
+    if (!text) continue;
+    const m = text.match(/^([\d.,]+)–([\d.,]+)/), ends = [m[1].replace(/,/g, ''), m[2].replace(/,/g, '')];
+    for (const e of ends) { await page.fill('#' + id, e); await page.waitForTimeout(40); const g = await look(id); check(`${sys} ${pwr} ${calc}.${id} typed the shown end ${e} ${unit}: no warning`, g && g.warn === null, JSON.stringify(g)); }
+    for (const canon of [RANGE[q].min * (1 - 1e-5), RANGE[q].max * (1 + 1e-5)]) {
+      const t = typed(canon / TO[unit]); await page.fill('#' + id, t); await page.waitForTimeout(40); const g = await look(id);
+      check(`${sys} ${pwr} ${calc}.${id} typed ${t} ${unit} (just outside ${typed(canon)}): the warning in ${unit}`, g && g.warn === `Unusual ${q} — typical range is ${text}`, JSON.stringify(g));
+    }
+  }
+  await setPref('power', 'Auto'); await setSystem('imperial');
+  /* Imperial wording unchanged */
+  await fresh('static_compression'); await page.fill('#bore2', '9'); await page.waitForTimeout(40); l = await look('bore2');
+  check('Imperial: Static Compression bore 9 in keeps the Imperial text', l && l.warn === 'Unusual bore — typical range is 1.5–6.5', JSON.stringify(l));
 
   check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
   await browser.close();
