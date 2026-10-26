@@ -11,7 +11,8 @@
  *   - terminology: a term, alias or abbreviation shared by two or more concepts must be declared ambiguous, and every declared
  *     ambiguity must really be shared
  *   - Premium boundary: a Premium tool's entry carries no formula and no help text (only the public promo)
- *   - honesty: review statuses from the allowed set, "reviewed" only with a named reviewer and date; unsupported sort modes say
+ *   - honesty: review statuses from the allowed set, "reviewed" only with a named reviewer and date; citation-partial and
+ *     citation-verified only with sources (each saying what it supports), who checked and when; partial says what is missing; unsupported sort modes say
  *     why; no usage, popularity or date fields on entries while their sort mode is unsupported
  *   - order: entries are in deterministic A–Z order (the key the page uses) and each entry's letter matches its term
  * Usage: node catalog/check-encyclopedia.js   (exit 0 = OK) */
@@ -31,7 +32,8 @@ const catalog = JSON.parse(fs.readFileSync(path.join(REPO, 'catalog/gearhead-cat
 const tools = Object.fromEntries(catalog.tools.map(t => [t.id, t]));
 const sectionsInCatalog = new Set(catalog.tools.map(t => t.lab + '|' + t.category));
 const ROUTED_LABS = new Set(['gasoline', 'diesel', 'ev', 'towing', 'universal']);
-const REVIEW = new Set(['draft-unreviewed', 'generated', 'reviewed']);
+const REVIEW = new Set(['draft-unreviewed', 'citation-partial', 'citation-verified', 'generated', 'reviewed']);
+const CITED = new Set(['citation-partial', 'citation-verified']);
 const METRIC_FIELDS = { 'most-used': ['uses', 'use_count', 'views'], 'least-used': ['uses', 'use_count', 'views'], 'most-popular': ['popularity', 'score', 'rank'], 'recently-added': ['added', 'created'], 'recently-updated': ['updated', 'modified'] };
 
 if (D.schema !== 'gearhead-encyclopedia/1') fail(`schema ${D.schema}`);
@@ -91,6 +93,15 @@ for (const c of concepts) {
     if (t && t.type === 'concept' && !t.related.some(x => x.to === c.id && x.type === INV[r.type])) fail(`${c.id}: no inverse ${INV[r.type]} on ${r.to}`);
   }
   for (const s of (c.sources || [])) if (!s || !s.title || !s.url) fail(`${c.id}: a source without title and url`);
+  const st = c.review && c.review.status;
+  if (CITED.has(st) && !(c.sources || []).length) fail(`${c.id}: ${st} with no source`);
+  if (CITED.has(st) && !(c.review.checked && c.review.checked_by)) fail(`${c.id}: ${st} without who checked it and when`);
+  if (st === 'citation-partial' && !c.review.notes) fail(`${c.id}: citation-partial must say what is not yet supported`);
+  if (st === 'draft-unreviewed' && (c.sources || []).length) fail(`${c.id}: draft-unreviewed but has sources; set citation-partial or citation-verified`);
+  for (const s of (c.sources || [])) {
+    if (s && !s.supports) fail(`${c.id}: source "${s.title}" does not say which claim it supports`);
+    if (s && !/^https:\/\/[^\s]+$/.test(s.url || '')) fail(`${c.id}: source "${s.title}" url is not an https link`);
+  }
 }
 
 /* terminology collisions */

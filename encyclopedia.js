@@ -181,13 +181,21 @@
       return `<li>${lab.route ? `<a href="${esc(lab.route)}" target="_top">${esc(lab.label)}</a>` : esc(lab.label || s.lab)} › <a href="?cat=${encodeURIComponent(s.category)}" data-cat="${esc(s.category)}">${esc(catLabel(s.category))}</a></li>`;
     }).join('')}</ul>`;
   }
+  function sourcesHTML(e) {
+    if (!(e.sources || []).length) return '';
+    return `<h3>Sources</h3><ul class="srcs">${e.sources.map(s => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a> <span class="muted">— ${esc([s.publisher, s.author, s.date].filter(Boolean).join(', '))}</span>${s.supports ? `<br><span class="small muted">Supports: ${esc(s.supports)}</span>` : ''}</li>`).join('')}</ul>`;
+  }
   function reviewHTML(e) {
     const st = e.review.status;
+    const r = e.review;
     const txt = st === 'generated' ? 'Generated from the calculator catalogue and the calculator page; not separately reviewed.'
       : st === 'draft-unreviewed' ? 'Draft definition, not yet reviewed. No source cited yet.'
-        : `Reviewed by ${esc(e.review.reviewer)} on ${esc(e.review.verified)}.`;
+        : st === 'citation-partial' ? `Partly checked against the sources below (${esc(r.checked)}); not yet approved by a reviewer.`
+          : st === 'citation-verified' ? `Checked against the sources below (${esc(r.checked)}); not yet approved by a reviewer.`
+            : `Reviewed by ${esc(r.reviewer)} on ${esc(r.verified)}.`;
     const inc = (e.incomplete || []).filter(x => !(st === 'draft-unreviewed' && x === 'sources'));
-    return `<p class="rev rev-${st}">${txt}${inc.length ? ' Missing: ' + inc.map(esc).join(', ') + '.' : ''}</p>`;
+    const notes = (st === 'citation-partial' || st === 'draft-unreviewed') && r.notes ? ` <span class="rev-notes">Open question: ${esc(r.notes)}</span>` : '';
+    return `<p class="rev rev-${st}">${txt}${notes}${inc.length ? ' Missing: ' + inc.map(esc).join(', ') + '.' : ''}</p>`;
   }
 
   function renderEntry() {
@@ -218,7 +226,7 @@
       if (e.former_ids.length) h += `<h3>Former links</h3><p class="muted">${e.former_ids.map(esc).join(', ')} (still open this calculator)</p>`;
       h += `<p class="muted small">ID: <code>${esc(e.calculator)}</code></p>`;
     }
-    h += sectionsHTML(e) + reviewHTML(e);
+    h += sectionsHTML(e) + sourcesHTML(e) + reviewHTML(e);
     box.innerHTML = h;
   }
 

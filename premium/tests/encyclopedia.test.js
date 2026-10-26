@@ -2,7 +2,7 @@
 /* Gearhead Labs — Engineering Encyclopedia (Issue #23): data, validator, search and the page.
 
    WHAT IS CHECKED (real Chromium; the repository served over http, nothing outside it reachable):
-     V  the validator (catalog/check-encyclopedia.js) passes on the committed data and FAILS on each of 13 broken copies (duplicate id,
+     V  the validator (catalog/check-encyclopedia.js) passes on the committed data and FAILS on each of 19 broken copies (duplicate id, citation status without sources or open questions, unsourced claims,
         a calculator that does not exist, an undeclared alias collision, an invalid relation type, a not-equivalent link without a note,
         a Premium formula leak, an invented usage count, broken A–Z order, an invented section, a missing calculator entry, "reviewed"
         without a reviewer, a stale source checksum, two relations to the same concept); the generator's --check (the committed JSON is what the sources produce)
@@ -62,6 +62,12 @@ function validator() {
     ['a catalogue tool with no entry', d => { d.entries = d.entries.filter(e => e.id !== 'calc.ujoint_angles'); }],
     ['"reviewed" with no reviewer', d => { find(d, 'term.wheel-rate').review.status = 'reviewed'; }],
     ['a stale source checksum', d => { d.generated_from.enrichment.sha256 = '0'.repeat(64); }],
+    ['a citation-verified concept with no source', d => { find(d, 'term.camber').sources = []; }],
+    ['a citation-partial concept that does not say what is missing', d => { find(d, 'term.imep').review.notes = null; }],
+    ['a source that does not say what it supports', d => { delete find(d, 'term.camber').sources[0].supports; }],
+    ['a source with a non-https link', d => { find(d, 'term.camber').sources[0].url = 'javascript:alert(1)'; }],
+    ['a draft-unreviewed concept carrying sources', d => { const e = find(d, 'term.camber'); e.review.status = 'draft-unreviewed'; }],
+    ['a source check with no date', d => { find(d, 'term.camber').review.checked = null; }],
     ['two relations to the same concept', d => { const e = find(d, 'term.wheel-rate'); e.related.push({ to: e.related[0].to, type: 'related', note: null, declared: true }); }]
   ];
   for (const [name, mut] of MUT) {
@@ -211,6 +217,12 @@ async function pages(browser, port) {
     const wr = await page.evaluate(() => ({ t: document.getElementById('entry-title') && document.getElementById('entry-title').textContent, links: [...document.querySelectorAll('#entry a')].map(a => a.getAttribute('href') + '|' + (a.getAttribute('target') || '') + '|' + (a.dataset.id || '')) }));
     check(tag('?entry= opens that entry directly'), wr.t === 'Wheel Rate', JSON.stringify(wr.t));
     check(tag('the entry links to its calculators through index.html?calc= at top level'), ['wheel_rate', 'wheel_motion', 'anti_roll_bar_wheel_rate'].every(id => wr.links.includes(`index.html?calc=${id}|_top|`)), wr.links.join(' '));
+    await ready('encyclopedia.html?entry=term.imep');
+    const im = await page.evaluate(() => ({ h: [...document.querySelectorAll('#entry h3')].map(x => x.textContent), src: document.querySelectorAll('#entry ul.srcs li').length, rev: (document.querySelector('#entry .rev') || {}).textContent || '' }));
+    check(tag('a source-checked entry lists its sources and says it is not owner-approved'), im.h.includes('Sources') && im.src >= 1 && /Partly checked against the sources below/.test(im.rev) && /not yet approved by a reviewer/.test(im.rev) && /Open question:/.test(im.rev), JSON.stringify(im));
+    await ready('encyclopedia.html?entry=term.crankcase-compression-ratio');
+    const cc = await page.evaluate(() => ({ src: document.querySelectorAll('#entry ul.srcs li').length, rev: (document.querySelector('#entry .rev') || {}).textContent || '' }));
+    check(tag('an unsourced entry still says it is an unreviewed draft with no source'), cc.src === 0 && /Draft definition, not yet reviewed\. No source cited yet\./.test(cc.rev), JSON.stringify(cc));
     await ready('encyclopedia.html?entry=term.does-not-exist');
     check(tag('an unknown ?entry= says so instead of failing'), /Entry not found/.test(await page.textContent('#entry')), await page.textContent('#entry'));
     await ready('encyclopedia.html?q=zzzz-nothing');
@@ -233,15 +245,16 @@ async function pages(browser, port) {
       const bad = [];
       for (const e of DATA.entries.filter(x => x.type !== 'calculator')) {
         await page.evaluate(id => { history.replaceState(null, '', '?entry=' + id); dispatchEvent(new PopStateEvent('popstate')); }, e.id);
-        const links = await page.evaluate(() => [...document.querySelectorAll('#entry a')].map(a => ({ href: a.getAttribute('href'), id: a.dataset.id || null, cat: a.dataset.cat || null })));
+        const links = await page.evaluate(() => [...document.querySelectorAll('#entry a')].map(a => ({ href: a.getAttribute('href'), id: a.dataset.id || null, cat: a.dataset.cat || null, target: a.getAttribute('target'), rel: a.getAttribute('rel') || '' })));
         for (const l of links) {
+          if (/^https:/.test(l.href || '')) { if (!(e.sources || []).some(s => s.url === l.href) || l.target !== '_blank' || !/noopener/.test(l.rel)) bad.push(`${e.id} -> external ${l.href}`); continue; }
           if (l.id) { if (!DATA.entries.some(x => x.id === l.id)) bad.push(`${e.id} -> ${l.id}`); continue; }
           if (l.cat) { if (!DATA.facets.categories.some(c => c.name === l.cat)) bad.push(`${e.id} -> section ${l.cat}`); continue; }
           const m = /^index\.html\?(calc|lab)=([a-z0-9_]+)$/.exec(l.href || '');
           if (!m || (m[1] === 'calc' && !TOOL[m[2]]) || (m[1] === 'lab' && !['gasoline', 'diesel', 'ev', 'towing', 'universal'].includes(m[2]))) bad.push(`${e.id} -> ${l.href}`);
         }
       }
-      check(`P every link on the ${DATA.counts.concepts + DATA.counts.abbreviations} concept and abbreviation entries resolves (entries, sections, calculators, labs)`, bad.length === 0, bad.slice(0, 8).join(' | '));
+      check(`P every link on the ${DATA.counts.concepts + DATA.counts.abbreviations} concept and abbreviation entries resolves (entries, sections, calculators, labs; external links only to the entry's own cited sources, new tab, noopener)`, bad.length === 0, bad.slice(0, 8).join(' | '));
     }
     const longest = DATA.entries.slice().sort((a, b) => JSON.stringify(b).length - JSON.stringify(a).length).slice(0, 3);
     for (const e of longest) { await ready('encyclopedia.html?entry=' + encodeURIComponent(e.id)); check(tag(`no horizontal overflow on a long entry (${e.id})`), (await overflow()) <= 0, await overflow()); }

@@ -3,7 +3,7 @@
   "description": "Hand-written source for the Engineering Encyclopedia: concept entries that the catalogue does not hold (definitions, synonyms, abbreviations, shop terms, relations between concepts) and the calculators each concept is calculated with. Calculator identities, names, labs, categories, tiers and aliases come from catalog/gearhead-catalog.json and the engine, never from here. catalog/build-encyclopedia.js joins the two into catalog/gearhead-encyclopedia.json; catalog/check-encyclopedia.js validates both.",
   "provenance_default": {
     "definition_source": "draft",
-    "note": "Definitions in this file were drafted for the Issue #23 proof of concept (2026-10-26). They have NOT been reviewed by the owner or checked against a cited source: review.status is draft-unreviewed and sources is empty until someone reviews them. Do not change a status to reviewed without a named reviewer and date."
+    "note": "Definitions in this file were drafted for the Issue #23 proof of concept (2026-10-26) and source-checked the same day. review_status: draft-unreviewed = no source verified; citation-partial = some claims supported by the cited sources, the rest listed in review_notes; citation-verified = every claim checked against the cited sources by Claude (not owner-approved); reviewed = approved by a named reviewer on a date (owner only). Every source was fetched and read for the claim in its \"supports\" field. Do not set reviewed without a named reviewer and date."
   },
   "relation_types": {
     "broader": "the target is the more general concept (this entry is a kind or part of it)",
@@ -64,7 +64,21 @@
           "to": "term.engine-displacement",
           "type": "prerequisite"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "How To Calculate Engine Compression Ratio And Displacement",
+          "publisher": "JE Pistons",
+          "author": "Robert Poole",
+          "date": "2017-12-06",
+          "url": "https://info.jepistons.com/how-to-calculate-engine-compression-ratio-and-displacement",
+          "supports": "CR = cylinder volume at BDC / compressed volume at TDC; compressed volume = chamber + gasket + deck + piston dome or dish."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "Definition supported. The distinctions (not gauge pressure, not dynamic CR) are cross-references to other entries, not claims needing a source."
     },
     {
       "id": "term.dynamic-compression-ratio",
@@ -101,7 +115,19 @@
           "to": "term.rod-stroke-ratio",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-partial",
+      "sources": [
+        {
+          "title": "Compression ratio calculator: what compression ratio actually means",
+          "publisher": "YOUCANIC",
+          "url": "https://www.youcanic.com/compression-ratio-calculator",
+          "supports": "Dynamic CR depends on cam timing, specifically the intake valve closing event."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "Source ties dynamic CR to intake valve closing but gives no formula. Not yet verified: the exact calculation (piston position at IVC) and the role of rod length. Only forum material was found for those; a manufacturer or textbook source is still needed."
     },
     {
       "id": "term.crankcase-compression-ratio",
@@ -127,7 +153,12 @@
           "type": "not-equivalent",
           "note": "Measured in the crankcase of a two-stroke, not in the cylinder."
         }
-      ]
+      ],
+      "review_status": "draft-unreviewed",
+      "sources": [],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "No authoritative source found in this check (searches returned forums only). Needs a two-stroke reference (for example a two-stroke design text) before it can be cited."
     },
     {
       "id": "term.intake-valve-closing",
@@ -150,7 +181,21 @@
         "cam_card",
         "dynamic_compression"
       ],
-      "related": []
+      "related": [],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Back To Basics: Understanding A Cam Card With Erson Cams",
+          "publisher": "EngineLabs",
+          "author": "Jeff Smith",
+          "date": "2020-12-22",
+          "url": "https://www.enginelabs.com/?p=6309",
+          "supports": "Intake closing given in crankshaft degrees ABDC; 0.050-in and advertised (about 0.004-0.006 in) figures are taken at different lifts and differ."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.engine-displacement",
@@ -180,7 +225,21 @@
           "to": "term.bore-stroke-ratio",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "How To Calculate Engine Compression Ratio And Displacement",
+          "publisher": "JE Pistons",
+          "author": "Robert Poole",
+          "date": "2017-12-06",
+          "url": "https://info.jepistons.com/how-to-calculate-engine-compression-ratio-and-displacement",
+          "supports": "Displacement from bore, stroke and number of cylinders; swept volume kept separate from the compressed (clearance) volume."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.bore-stroke-ratio",
@@ -210,7 +269,19 @@
           "to": "term.engine-displacement",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Stroke ratio",
+          "publisher": "Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/Stroke_ratio",
+          "supports": "Bore divided by stroke; above 1:1 oversquare, 1:1 square, below 1:1 undersquare."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.rod-stroke-ratio",
@@ -242,7 +313,25 @@
           "to": "term.mean-piston-speed",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Engine anatomy: rod to stroke ratio (Engine Building Fundamentals course)",
+          "publisher": "High Performance Academy",
+          "url": "https://www.hpacademy.com/courses/engine-building-fundamentals/engine-anatomy-rod-to-stroke-ratio/",
+          "supports": "Rod length (big-end centre to wrist-pin centre) divided by stroke; a higher ratio reduces rod angularity and increases piston dwell near TDC."
+        },
+        {
+          "title": "How A Stroker Crankshaft Affects Piston Speed and Inertia",
+          "publisher": "Engine Builder Magazine (sponsored by Wiseco)",
+          "url": "https://www.enginebuildermag.com/2018/03/how-a-stroker-crankshaft-affects-piston-speed-and-inertia/",
+          "supports": "Rod angularity in relation to stroke."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.mean-piston-speed",
@@ -268,7 +357,19 @@
           "to": "term.rod-stroke-ratio",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "How A Stroker Crankshaft Affects Piston Speed and Inertia",
+          "publisher": "Engine Builder Magazine (sponsored by Wiseco)",
+          "url": "https://www.enginebuildermag.com/2018/03/how-a-stroker-crankshaft-affects-piston-speed-and-inertia/",
+          "supports": "MPS = (stroke x 2 x RPM) / 12 (ft/min with stroke in inches)."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.bmep",
@@ -300,7 +401,19 @@
           "to": "term.engine-displacement",
           "type": "prerequisite"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Mean effective pressure",
+          "publisher": "Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/Mean_effective_pressure",
+          "supports": "BMEP is calculated from measured (dynamometer) brake torque; MEP compares engines of different sizes."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.imep",
@@ -312,7 +425,7 @@
       "abbreviations": [
         "IMEP"
       ],
-      "definition": "The mean effective pressure from the work done by the gas on the pistons, before friction and pumping losses.",
+      "definition": "The mean effective pressure worked out from the cylinder pressure acting on the pistons over the complete engine cycle. Over the complete cycle it already includes the pumping work, but not mechanical friction.",
       "units": [
         "psi",
         "bar"
@@ -327,6 +440,23 @@
           "type": "not-equivalent",
           "note": "BMEP is IMEP minus the friction and pumping losses (FMEP)."
         }
+      ],
+      "distinctions": "Some texts quote a gross IMEP over the compression and expansion strokes only, which leaves out the pumping work; check which one a figure uses. BMEP is lower than IMEP by the friction mean effective pressure.",
+      "review_status": "citation-partial",
+      "sources": [
+        {
+          "title": "Mean effective pressure",
+          "publisher": "Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/Mean_effective_pressure",
+          "supports": "IMEP is calculated from in-cylinder pressure over the complete cycle, so it includes pumping work; friction is accounted for by FMEP = IMEP - BMEP."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "Revised 2026-10-26: the draft said IMEP is taken \"before friction and pumping losses\", which the source contradicts for IMEP over the complete cycle (net IMEP). The gross/net distinction in the \"watch out\" text is standard usage but was not confirmed in the fetched source.",
+      "review_revised": [
+        "definition",
+        "distinctions"
       ]
     },
     {
@@ -356,7 +486,19 @@
           "to": "term.bmep",
           "type": "prerequisite"
         }
-      ]
+      ],
+      "review_status": "citation-partial",
+      "sources": [
+        {
+          "title": "Mean effective pressure",
+          "publisher": "Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/Mean_effective_pressure",
+          "supports": "FMEP = IMEP - BMEP."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "Supported: FMEP = IMEP - BMEP. Not confirmed in the source: whether pumping is counted in FMEP depends on whether net or gross IMEP is used; the definition keeps that hedge."
     },
     {
       "id": "term.cranking-compression",
@@ -387,7 +529,19 @@
           "to": "term.dynamic-compression-ratio",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-partial",
+      "sources": [
+        {
+          "title": "How to perform a cranking compression test",
+          "publisher": "ALLDATA",
+          "url": "https://alldata.com/ca/en/support/tech-assist/article/how-perform-cranking-compression-test",
+          "supports": "Measured with a compression gauge in the plug hole while the engine is cranked by the starter; cranking speed, throttle opening and number of strokes affect the reading; it tests sealing."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "Supported except \"valve timing\" as a factor, which the source does not mention."
     },
     {
       "id": "term.piston-ring-gap",
@@ -407,7 +561,19 @@
         "ring_gap",
         "ring_gap_bore"
       ],
-      "related": []
+      "related": [],
+      "review_status": "citation-partial",
+      "sources": [
+        {
+          "title": "How to measure and set proper ring end gap",
+          "publisher": "CP-Carrillo",
+          "url": "https://www.cp-carrillo.com/n-12119-proper-piston-ring-end-gap.html",
+          "supports": "Ring placed square in the bore below the deck and the end gap measured with a feeler gauge."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "The source describes how the gap is measured but does not give a formal definition."
     },
     {
       "id": "term.final-drive-ratio",
@@ -442,7 +608,19 @@
           "to": "term.transmission-gear-ratio",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-partial",
+      "sources": [
+        {
+          "title": "Final drive ratio (car glossary)",
+          "publisher": "cars-data.com",
+          "url": "https://cars-data.com/en/car-glossary/final-drive-ratio",
+          "supports": "The final drive is the last reduction, in the differential (pinion and ring gear); overall ratio = gearbox ratio x final drive."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "Supported except the transfer-case / drop-box clause in \"watch out\", which the source does not mention."
     },
     {
       "id": "term.ring-and-pinion",
@@ -471,7 +649,19 @@
           "to": "term.limited-slip-differential",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-partial",
+      "sources": [
+        {
+          "title": "Final drive ratio (car glossary)",
+          "publisher": "cars-data.com",
+          "url": "https://cars-data.com/en/car-glossary/final-drive-ratio",
+          "supports": "The final drive reduction is made by the pinion and ring gear in the differential."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "Not confirmed in the source: that the tooth-count ratio is called the axle ratio."
     },
     {
       "id": "term.transmission-gear-ratio",
@@ -504,7 +694,12 @@
           "to": "term.planetary-gearset",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "draft-unreviewed",
+      "sources": [],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "No source fetched that defines a transmission gear ratio as input speed / output speed. cars-data.com only uses \"gearbox ratio\" in the overall-ratio formula."
     },
     {
       "id": "term.planetary-gearset",
@@ -525,7 +720,19 @@
           "to": "term.transmission-gear-ratio",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Epicyclic (Planetary) Gears Explained",
+          "publisher": "EduMech",
+          "url": "https://www.edumech.co.uk/learn/transmission-and-driveline/epicyclic-gear-sets",
+          "supports": "Sun, planets on a carrier and ring; holding or driving different members gives different ratios; fundamental to automatic transmissions."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.torque-converter-stall",
@@ -550,7 +757,21 @@
           "to": "term.transmission-gear-ratio",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "High Performance Converters: Stall Speed, Core Selection, and More",
+          "publisher": "Sonnax",
+          "author": "Joe Allen and Andy Dumas",
+          "date": "2004-01-02",
+          "url": "https://www.sonnax.com/tech_resources/86-high-performance-converters-stall-speed-core-selection-and-more",
+          "supports": "Stall is the highest engine RPM with the transmission output held, set by engine torque and converter design; flash stall and brake (transbrake) stall differ."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.limited-slip-differential",
@@ -575,7 +796,20 @@
           "to": "term.ring-and-pinion",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-partial",
+      "sources": [
+        {
+          "title": "How it Works - the 'Simple' Version (Part 1)",
+          "publisher": "Torsen",
+          "date": "2016-11-18",
+          "url": "https://torsen.com/category/tech-info/",
+          "supports": "Limited-slip differentials generate internal friction to resist a speed difference and send torque to the wheel with grip."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "Not confirmed in the source: the \"watch out\" statement about lockers."
     },
     {
       "id": "term.torque-bias-ratio",
@@ -599,7 +833,20 @@
           "to": "term.limited-slip-differential",
           "type": "broader"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Ask Torsen: Torque Bias Ratio Functional Questions",
+          "publisher": "Torsen",
+          "date": "2017-08-28",
+          "url": "https://torsen.com/category/tech-info/",
+          "supports": "TBR is a traction ratio: the high-traction wheel can receive up to the low-traction wheel's torque times the TBR."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.ujoint-operating-angle",
@@ -612,7 +859,7 @@
         "working angle"
       ],
       "abbreviations": [],
-      "definition": "The angle between the two shafts joined by a universal joint. A single U-joint running at an angle makes the output speed fluctuate twice per revolution; equal and opposite angles at the two ends of a driveshaft cancel it.",
+      "definition": "The angle between the two shafts joined by a universal joint. A single U-joint running at an angle makes the output speed rise and fall twice per revolution. On a two-joint driveshaft this cancels out only when the operating angles at both ends are equal and the two inboard yokes are in line (in phase).",
       "units": [
         "°"
       ],
@@ -626,6 +873,21 @@
           "to": "term.driveshaft-critical-speed",
           "type": "related"
         }
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Universal Joints (product catalogue, technical section)",
+          "publisher": "Huco",
+          "url": "https://theengineer.markallengroup.com/production/content/uploads/2012/05/universal_joints.pdf",
+          "supports": "A single joint at an angle makes the output gain and lag twice per revolution; with two joints the effect cancels when the angles at both ends are equal and the inboard yokes are in line."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "Revised 2026-10-26: the draft said \"equal and opposite angles\" cancel the fluctuation and did not mention yoke phasing. The source requires equal angles and the inboard yokes in line.",
+      "review_revised": [
+        "definition"
       ]
     },
     {
@@ -652,7 +914,19 @@
           "to": "term.ujoint-operating-angle",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Driveshaft Tech",
+          "publisher": "Mark Williams Enterprises",
+          "url": "https://www.markwilliams.com/driveshafttech.html",
+          "supports": "Critical speed is the speed at which the shaft becomes unstable, where the whirling frequency equals its natural frequency."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.clutch-torque-capacity",
@@ -671,7 +945,21 @@
       "calculators": [
         "clutch_torque_capacity"
       ],
-      "related": []
+      "related": [],
+      "review_status": "citation-partial",
+      "sources": [
+        {
+          "title": "Fundamentals of clutches",
+          "publisher": "GlobalSpec Insights",
+          "author": "Temitayo Oketola",
+          "date": "2022-07-12",
+          "url": "https://insights.globalspec.com/article/18989/fundamentals-of-clutches",
+          "supports": "Torque capacity depends on friction coefficient, normal (clamp) force, number of friction surfaces and the inner and outer radii."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "The source shows the formula only as an image, which could not be read; the variables are confirmed, the exact form (mean radius) is not."
     },
     {
       "id": "term.suspension-spring-rate",
@@ -708,7 +996,20 @@
           "type": "not-equivalent",
           "note": "Same words, a different spring (valvetrain)."
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Spring rate in racing suspension: wheel rate, motion ratio and how to calculate what your tire actually feels",
+          "publisher": "Penske Racing Shocks",
+          "date": "2026-05-12",
+          "url": "https://www.penskeshocks.com/blog/spring-rate-in-racing-suspension-wheel-rate-motion-ratio-and-how-to-calculate-what-your-tire-actually-feels",
+          "supports": "Spring rate is force per unit compression; wheel rate = spring rate x motion ratio squared."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.valve-spring-rate",
@@ -736,7 +1037,19 @@
           "type": "not-equivalent",
           "note": "Same words, a different spring (suspension)."
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Under Pressure: The Importance of Getting the Right Amount of Spring Pressure",
+          "publisher": "Engine Builder Magazine",
+          "url": "https://www.enginebuildermag.com/?p=26006",
+          "supports": "Rate is the force to compress the spring one inch (lb/in); open pressure = installed pressure + rate x lift."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.motion-ratio",
@@ -765,7 +1078,26 @@
           "to": "term.suspension-spring-rate",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Spring rate in racing suspension: wheel rate, motion ratio and how to calculate what your tire actually feels",
+          "publisher": "Penske Racing Shocks",
+          "date": "2026-05-12",
+          "url": "https://www.penskeshocks.com/blog/spring-rate-in-racing-suspension-wheel-rate-motion-ratio-and-how-to-calculate-what-your-tire-actually-feels",
+          "supports": "Motion ratio = spring (or damper) displacement / wheel displacement; the opposite convention is also used."
+        },
+        {
+          "title": "Motion ratio",
+          "publisher": "Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/Motion_ratio",
+          "supports": "Shock travel / wheel travel; the inverse is also used; also called installation ratio."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.wheel-rate",
@@ -790,7 +1122,20 @@
           "to": "term.motion-ratio",
           "type": "prerequisite"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Spring rate in racing suspension: wheel rate, motion ratio and how to calculate what your tire actually feels",
+          "publisher": "Penske Racing Shocks",
+          "date": "2026-05-12",
+          "url": "https://www.penskeshocks.com/blog/spring-rate-in-racing-suspension-wheel-rate-motion-ratio-and-how-to-calculate-what-your-tire-actually-feels",
+          "supports": "Wheel rate = spring rate x motion ratio squared, with motion ratio as spring over wheel travel."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.ride-frequency",
@@ -814,7 +1159,20 @@
           "to": "term.wheel-rate",
           "type": "prerequisite"
         }
-      ]
+      ],
+      "review_status": "citation-partial",
+      "sources": [
+        {
+          "title": "Glossary of Suspension Terms",
+          "publisher": "SPRINGRATES",
+          "date": "2018-06-08",
+          "url": "https://www.springrates.com/blogs/blog/glossary-of-suspension-terms",
+          "supports": "Wheel (ride) frequency = square root of wheel rate over sprung mass."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "Not confirmed in the source: the units (Hz or cycles per minute)."
     },
     {
       "id": "term.roll-center",
@@ -826,7 +1184,7 @@
         "RC height"
       ],
       "abbreviations": [],
-      "definition": "The point, in a front or rear view, about which the sprung mass rolls relative to the ground under a lateral force, found from the suspension link geometry.",
+      "definition": "A notional point, in a front or rear view, at which the cornering forces in the suspension are reacted into the sprung body. It is found from the suspension link geometry and moves as the suspension moves.",
       "calculators": [
         "rc_roll_center",
         "ct_panhard_roll"
@@ -840,6 +1198,28 @@
           "to": "term.weight-transfer",
           "type": "related"
         }
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Roll center",
+          "publisher": "Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/Roll_center",
+          "supports": "A notional point at which the cornering forces in the suspension are reacted to the body; found from the link geometry; it moves as the suspension moves."
+        },
+        {
+          "title": "Glossary of Suspension Terms",
+          "publisher": "SPRINGRATES",
+          "date": "2018-06-08",
+          "url": "https://www.springrates.com/blogs/blog/glossary-of-suspension-terms",
+          "supports": "Roll centre definition."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "Revised 2026-10-26: the draft described it as the point the body rolls about; the source treats it as a notional point where cornering forces are reacted, and notes that it moves.",
+      "review_revised": [
+        "definition"
       ]
     },
     {
@@ -871,7 +1251,20 @@
           "to": "term.wheel-rate",
           "type": "prerequisite"
         }
-      ]
+      ],
+      "review_status": "citation-partial",
+      "sources": [
+        {
+          "title": "Glossary of Suspension Terms",
+          "publisher": "SPRINGRATES",
+          "date": "2018-06-08",
+          "url": "https://www.springrates.com/blogs/blog/glossary-of-suspension-terms",
+          "supports": "Roll stiffness comes from the springs and anti-roll bars and is given as torque per degree of roll."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "Not confirmed in the source: the \"watch out\" statement on roll couple distribution."
     },
     {
       "id": "term.anti-squat",
@@ -882,7 +1275,7 @@
         "anti-squat percentage"
       ],
       "abbreviations": [],
-      "definition": "The share of the rear weight transfer under acceleration that the suspension geometry carries through the links instead of the springs, given as a percentage.",
+      "definition": "How much of the rear load transfer under acceleration the suspension geometry carries through its links instead of the springs, given as a percentage. At 100% the rear suspension does not compress (squat) from acceleration forces.",
       "units": [
         "%"
       ],
@@ -899,6 +1292,21 @@
           "to": "term.weight-transfer",
           "type": "prerequisite"
         }
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Anti-squat, dive and lift geometry",
+          "publisher": "Suspension Secrets",
+          "url": "https://suspensionsecrets.co.uk/anti-squat-dive-and-lift-geometry/",
+          "supports": "With 100% anti-squat the rear suspension does not compress from acceleration forces; anti geometry sets how much load goes through the springs."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "Revised 2026-10-26: wording aligned with the source (what 100% means).",
+      "review_revised": [
+        "definition"
       ]
     },
     {
@@ -910,7 +1318,7 @@
         "anti-dive percentage"
       ],
       "abbreviations": [],
-      "definition": "The share of the front weight transfer under braking that the suspension geometry carries through the links instead of the springs, given as a percentage.",
+      "definition": "How much of the front load transfer under braking the suspension geometry carries through its links instead of the springs, given as a percentage. At 100% the front suspension does not compress (dive) from braking forces.",
       "units": [
         "%"
       ],
@@ -926,6 +1334,21 @@
           "to": "term.weight-transfer",
           "type": "prerequisite"
         }
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Anti-squat, dive and lift geometry",
+          "publisher": "Suspension Secrets",
+          "url": "https://suspensionsecrets.co.uk/anti-squat-dive-and-lift-geometry/",
+          "supports": "With 100% anti-dive the front suspension does not compress from braking forces; it also depends on brake bias."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "Revised 2026-10-26: wording aligned with the source (what 100% means).",
+      "review_revised": [
+        "definition"
       ]
     },
     {
@@ -952,7 +1375,19 @@
           "to": "term.roll-center",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Weight transfer",
+          "publisher": "Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/Weight_transfer",
+          "supports": "Change of the load borne by the wheels under acceleration, braking or cornering, caused by the centre of mass being above the ground; the total load is redistributed, not changed."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.toe",
@@ -975,7 +1410,26 @@
         "bump_steer",
         "bump_steer_curve"
       ],
-      "related": []
+      "related": [],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Mastering the Basics: Wheel Alignment",
+          "publisher": "MOTOR magazine",
+          "url": "https://dev-www.motor.com/magazine-summary/mastering-the-basics-wheel-alignment/",
+          "supports": "Toe-in and toe-out definitions."
+        },
+        {
+          "title": "Wheel Alignment Basics Explained",
+          "publisher": "Haynes",
+          "date": "2017-02",
+          "url": "https://us.haynes.com/blogs/tips-tutorials/what-wheel-alignment-and-what-does-it-do",
+          "supports": "Toe seen from above relative to the centreline."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.bump-steer",
@@ -986,7 +1440,7 @@
         "toe gain"
       ],
       "abbreviations": [],
-      "definition": "The change of toe as the suspension moves up and down, from the steering linkage not following the suspension arcs.",
+      "definition": "The change of toe as the suspension moves up and down, which steers the wheel without any steering input. It happens when the tie rod and the suspension links swing through different arcs, so the tie rod's effective length changes.",
       "units": [
         "°/in",
         "°/mm"
@@ -1000,6 +1454,21 @@
           "to": "term.toe",
           "type": "broader"
         }
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Bump steer",
+          "publisher": "Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/Bump_steer",
+          "supports": "The wheel steers itself (toe change) as the suspension moves, because the steering and suspension links travel on different arcs and the effective tie-rod length changes."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": "Revised 2026-10-26: cause wording made specific (different arcs, effective tie-rod length).",
+      "review_revised": [
+        "definition"
       ]
     },
     {
@@ -1024,7 +1493,26 @@
           "to": "term.camber",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Mastering the Basics: Wheel Alignment",
+          "publisher": "MOTOR magazine",
+          "url": "https://dev-www.motor.com/magazine-summary/mastering-the-basics-wheel-alignment/",
+          "supports": "Caster is the fore-aft tilt of the steering axis; positive caster tilts the top rearward."
+        },
+        {
+          "title": "Wheel Alignment Basics Explained",
+          "publisher": "Haynes",
+          "date": "2017-02",
+          "url": "https://us.haynes.com/blogs/tips-tutorials/what-wheel-alignment-and-what-does-it-do",
+          "supports": "Caster seen from the side."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.camber",
@@ -1048,7 +1536,26 @@
           "to": "term.caster",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Mastering the Basics: Wheel Alignment",
+          "publisher": "MOTOR magazine",
+          "url": "https://dev-www.motor.com/magazine-summary/mastering-the-basics-wheel-alignment/",
+          "supports": "Camber is the inward or outward tilt of the wheel from the front; negative camber tilts the top inward."
+        },
+        {
+          "title": "Wheel Alignment Basics Explained",
+          "publisher": "Haynes",
+          "date": "2017-02",
+          "url": "https://us.haynes.com/blogs/tips-tutorials/what-wheel-alignment-and-what-does-it-do",
+          "supports": "Camber seen from the front."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     },
     {
       "id": "term.ackermann",
@@ -1072,7 +1579,19 @@
           "to": "term.toe",
           "type": "related"
         }
-      ]
+      ],
+      "review_status": "citation-verified",
+      "sources": [
+        {
+          "title": "Ackermann steering geometry",
+          "publisher": "Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/Ackermann_steering_geometry",
+          "supports": "The inside wheel turns more than the outside so all wheels turn about a common centre on the rear-axle line."
+        }
+      ],
+      "review_checked": "2026-10-26",
+      "review_checked_by": "Claude (source check; not owner-approved)",
+      "review_notes": null
     }
   ]
 }

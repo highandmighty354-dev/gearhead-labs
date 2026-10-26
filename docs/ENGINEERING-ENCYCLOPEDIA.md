@@ -1,6 +1,6 @@
 # Engineering Encyclopedia — audit, design and status (Issue #23)
 
-Status: **proof of concept in a draft PR. Not merged, not deployed.** Concept definitions are drafts awaiting owner review.
+Status: **proof of concept in a draft PR. Not merged, not deployed.** Concept definitions have been source-checked by Claude (25 checked, 11 partly checked, 2 not checked). None is owner-approved. See `docs/ENCYCLOPEDIA-DEFINITION-REVIEW.md`.
 
 ## 1. Audit (what exists, checked in the repository on 2026-10-26, main `bfe8d78`)
 
@@ -20,7 +20,7 @@ Status: **proof of concept in a draft PR. Not merged, not deployed.** Concept de
 
 1. **A separate, public page** (`encyclopedia.html` + `encyclopedia.js`), not a change to the 4.6 MB engine. It reads one generated data file and links into the app; it loads no Premium code and no profile data.
 2. **No second registry.** `catalog/build-encyclopedia.js` joins the catalogue (identity), the engine (Free help text and formula inputs/outputs), `premium/models.js` (Premium promo) and a small hand-written source, `catalog/encyclopedia-enrichment.json`, into `catalog/gearhead-encyclopedia.json`. The catalogue is not edited; `--check` fails when the committed data is stale.
-3. **Enrichment holds only what the catalogue cannot:** concept entries with definitions, distinctions, synonyms, abbreviations, units, relations and the calculators each concept is calculated with. Every concept is `draft-unreviewed` with no sources; the page says so.
+3. **Enrichment holds only what the catalogue cannot:** concept entries with definitions, distinctions, synonyms, abbreviations, units, relations and the calculators each concept is calculated with. Each concept carries a review status, the sources it was checked against (each with the claim it supports) and any open questions; the page shows them.
 4. **Multi-section discovery without new sections:** a concept's sections are derived from its calculators' existing (lab, category) pairs, so one concept is found from every section it touches (15 of 38 concepts are in more than one section). A calculator keeps one entry and one implementation.
 5. **True synonyms only as aliases.** Related-but-different terms are separate entries joined by `not-equivalent` links with a note. Terms shared by several concepts must be declared ambiguous (`CR`, `compression ratio`, `spring rate`); search then shows every meaning and a notice.
 6. **Honest sorting:** A–Z and Z–A (deterministic: folded term, then id) and best match. Most used / least used / most popular / recently added / recently updated are present but disabled, with the reason.
@@ -29,7 +29,13 @@ Status: **proof of concept in a draft PR. Not merged, not deployed.** Concept de
 
 - Entry types: `concept` (`term.<slug>`), `abbreviation` (`abbr.<slug>`, generated from concepts), `calculator` (`calc.<catalogue id>`, one per catalogue tool, including analyzers and workbenches).
 - Relation types: `broader`, `narrower`, `prerequisite`, `prerequisite-for` (inverse, generated), `related`, `not-equivalent` (note required). Inverses are added by the generator; one relation per pair.
-- Every entry carries `review.status` (`generated`, `draft-unreviewed`, or `reviewed` with reviewer and date) and `incomplete` flags; concepts carry `sources` (empty today).
+- Every entry carries `review.status` and `incomplete` flags. The statuses are:
+  - `generated`: calculators;
+  - `draft-unreviewed`: no source verified;
+  - `citation-partial`: open questions listed;
+  - `citation-verified`: every claim checked against cited sources; not owner-approved;
+  - `reviewed`: owner or named reviewer, with a date.
+- Concepts carry `sources` (title, publisher, url, the claim it supports) and `review.checked`, `checked_by`, `notes` and `revised`.
 
 ## 4. Coverage (generated data at the time of the PR)
 
@@ -43,28 +49,40 @@ Status: **proof of concept in a draft PR. Not merged, not deployed.** Concept de
 | Concept → calculator links | 81 (67 calculators linked to at least one concept) |
 | Relations | 52 declared, 70 with inverses |
 | Declared ambiguous terms | 3 |
-| Review state | 0 reviewed; 49 draft-unreviewed (concepts and abbreviations); 757 generated (calculators) |
-| Incomplete | 38 concepts without a source; 14 calculator entries without a public description (Engineering Lab tools); 21 Free calculators without a registry formula |
+| Review state | 0 owner-reviewed. Concepts: 25 citation-verified, 11 citation-partial, 2 draft-unreviewed. 11 abbreviations draft-unreviewed. 757 generated (calculators) |
+| Incomplete | 2 concepts without a source (Crankcase Compression Ratio, Transmission Gear Ratio); 14 calculator entries without a public description (Engineering Lab tools); 21 Free calculators without a registry formula |
 
 ## 5. Validation
 
 - `node catalog/check-encyclopedia.js` (also in `premium/tests/run-tests.sh`): freshness against the source checksums; one entry per catalogue tool with the catalogue's name, lab, category and tier; valid references, sections, lab routes, relation types and inverses; declared ambiguity; the Premium boundary; review honesty; no usage or date fields while those sorts are unsupported; deterministic order.
-- `node premium/tests/encyclopedia.test.js` (in `premium/tests/run-browser-tests.sh`): the validator rejects 13 kinds of broken data; the generator's `--check`; search, order, filters and sort modes on the real data; the page on desktop and iPhone; the Premium gate in the app; the entry point.
+- `node premium/tests/encyclopedia.test.js` (in `premium/tests/run-browser-tests.sh`): the validator rejects 19 kinds of broken data, including citation statuses without sources or open questions; the generator's `--check`; search, order, filters and sort modes on the real data; the page on desktop and iPhone; the Premium gate in the app; the entry point.
 
 ## 6. Known limitations
 
-- Concept definitions are **drafts** written for this proof of concept: not reviewed, no citations. Do not mark them reviewed without a named reviewer.
+- Concept definitions are source-checked but **not owner-approved**. 13 concepts still have open questions or no source (`docs/ENCYCLOPEDIA-DEFINITION-REVIEW.md`). The sources include web references, and no textbook or SAE standard could be fetched. Do not mark a concept reviewed without a named reviewer.
 - Only 38 concepts; most of the 757 calculator entries are reached by name, id, section, help text and formula words, not by curated synonyms.
 - No usage, popularity or date sorting until a privacy-conscious measurement and reliable dates exist.
 - There is no category deep link in the app; a section link stays inside the encyclopedia (filtered list). The Engineering Lab has no lab page route.
 - The data file is about 0.84 MB (about 0.11 MB compressed as GitHub Pages serves it); loaded once per visit.
-- The encyclopedia is reached from the calculator search; there is no top-level navigation item yet (a design decision for the owner).
+- Transmission and Differential are not app sections yet. The mapping and plan are in `docs/ENCYCLOPEDIA-TAXONOMY-PLAN.md`; the change needs an engine edit, so it is deferred to its own PR.
 
 ## 7. Roadmap
 
-1. **Review the 38 concepts** (owner or a named reviewer), add citations, set `review.status: reviewed` with reviewer and date.
+1. **Owner review of the 38 concepts:** approve or correct; resolve the open questions; set `reviewed` with reviewer and date.
 2. **Expand concepts by section in batches** (about 20–40 per batch), starting with sections with the most calculators: unit conversions, vehicle dynamics, engine airflow and valvetrain, electrical, diesel, EV, towing. Each batch: enrichment entries → `build-encyclopedia.js` → `check-encyclopedia.js` → test.
 3. **Shop-language aliases for calculators** (not just concepts) through the same enrichment file, validated for collisions.
-4. **Section decisions:** if Transmission and Differential should become real sections, decide it in the catalogue's taxonomy (owner), not in the encyclopedia.
+4. **Transmission and Differential sections:** approve the mapping in `docs/ENCYCLOPEDIA-TAXONOMY-PLAN.md`, then implement it in the engine and catalogue in a separate PR.
 5. **Usage-based sorting** only after a privacy-conscious, cost-free measurement design is approved (for example aggregate counts kept by the existing backend), with a documented metric definition.
-6. **Navigation:** decide where the encyclopedia appears in the app's main navigation; optionally show "Concepts" on each calculator page from the same data.
+6. **Calculator pages:** optionally show the related concepts on each calculator page, from the same data.
+
+## 8. Navigation (added in PR #24)
+
+- **Main navigation:** an **Encyclopedia** item, after Calculators.
+  - Its short label on phones is **Terms**.
+  - Its accessible name is "Engineering Encyclopedia".
+  - It is a real link (`<a>`), so it opens in a new tab, can be copied and works from the keyboard.
+- **Query preservation:** when the calculator search has text, both the nav item and the contextual link under the search open `encyclopedia.html?q=<text>`. With nothing typed, the plain page opens.
+- **History:** these are ordinary top-level navigations, so Back returns to the calculator page (for example `index.html?calc=final_drive_ratio`), and Forward works.
+- **Gating:** "Open calculator" goes through `index.html?calc=<id>`, so the app's existing gate decides access. Signed out, a Premium tool still shows the Premium card.
+- **Tests:** section N of `premium/tests/encyclopedia.test.js`, at 1280 px, 390 px (iPhone) and 320 px.
+

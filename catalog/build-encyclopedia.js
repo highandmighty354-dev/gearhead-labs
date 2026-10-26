@@ -8,7 +8,7 @@
  *                                          message) and the formula registry's input labels and outputs (what the page shows)
  *   - premium/models.js                    for PREMIUM tools only: the public promo line the Premium upsell already shows
  *   - catalog/encyclopedia-enrichment.json concept entries (definitions, synonyms, abbreviations, relations, the calculators each
- *                                          concept is calculated with), all marked draft-unreviewed
+ *                                          concept is calculated with), each with its review status and verified sources
  * Premium boundary: a Premium tool's entry carries only what a signed-out visitor already sees (name, category, lab, the promo
  * line). No formula, help text or inputs of a Premium tool are copied.
  * Derived, not typed: a concept's sections (existing lab + category) are the sections of the calculators it links to; inverse
@@ -97,7 +97,7 @@ async function build() {
       calculators: calcs.filter(id => byId[id]),
       related: (c.related || []).map(r => ({ to: r.to, type: r.type, note: r.note || null, declared: true })),
       provenance: { definition: c.definition ? (c.definition_source || enrich.provenance_default.definition_source) : null, file: ENRICH },
-      review: { status: c.review_status || 'draft-unreviewed', reviewer: c.reviewer || null, verified: c.verified || null },
+      review: { status: c.review_status || 'draft-unreviewed', reviewer: c.reviewer || null, verified: c.verified || null, checked: c.review_checked || null, checked_by: c.review_checked_by || null, notes: c.review_notes || null, revised: (c.review_revised || []).slice() },
       sources: (c.sources || []).slice(),
       incomplete: [!c.definition && 'definition', !(c.sources || []).length && 'sources', !(c.calculators || []).length && 'calculators'].filter(Boolean)
     };
@@ -180,7 +180,7 @@ async function build() {
       concept_relations_declared: concepts.reduce((n, c) => n + c.related.filter(r => r.declared).length, 0),
       concept_relations_total: concepts.reduce((n, c) => n + c.related.length, 0),
       calculators_linked_to_a_concept: count(e => e.type === 'calculator' && e.concepts.length),
-      review_draft_unreviewed: count(e => e.review.status === 'draft-unreviewed'), review_generated: count(e => e.review.status === 'generated'), review_reviewed: count(e => e.review.status === 'reviewed'),
+      review_draft_unreviewed: count(e => e.review.status === 'draft-unreviewed'), review_citation_partial: count(e => e.review.status === 'citation-partial'), review_citation_verified: count(e => e.review.status === 'citation-verified'), review_generated: count(e => e.review.status === 'generated'), review_reviewed: count(e => e.review.status === 'reviewed'),
       incomplete_description: count(e => e.type === 'calculator' && e.incomplete.includes('description')),
       incomplete_formula: count(e => e.type === 'calculator' && e.incomplete.includes('formula')),
       concepts_without_sources: count(e => e.type === 'concept' && !e.sources.length)
