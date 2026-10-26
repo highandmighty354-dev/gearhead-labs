@@ -20,6 +20,10 @@
      G  Premium boundary: a Premium tool's entry shows no inputs, results or help text; the page loads only its own files; opening
         a Premium tool from the encyclopedia through index.html?calc= still shows the app's Premium gate to a signed-out visitor
      E  the entry point: the calculator search (inside the app) links to the encyclopedia with what was typed, and opens it at top level
+     N  main navigation, desktop and iPhone (390 and 320 wide): "Encyclopedia" is an item of the app's navigation bar (a real link with an
+        accessible name, reachable by keyboard), it carries what is typed in the calculator search (?q=), Back returns to the app and Forward
+        to the search, the encyclopedia's calculator links land on that calculator in the app (Free opens, Premium shows the gate), and the
+        bar has no horizontal overflow with the extra item
    Run: node premium/tests/encyclopedia.test.js   (VERBOSE=1 prints passes)   Exit code 0 = every check passed. */
 'use strict';
 const path = require('path'), fs = require('fs'), http = require('http'), os = require('os'), vm = require('vm'), { execSync, spawnSync } = require('child_process');
@@ -270,12 +274,57 @@ async function pages(browser, port) {
   await ctx.close();
 }
 
+/* ================= N. main navigation ================= */
+async function navigation(browser, port) {
+  const base = `http://127.0.0.1:${port}/`;
+  for (const [label, viewport, mobile] of [['desktop', { width: 1280, height: 900 }, false], ['iPhone 390', { width: 390, height: 844 }, true], ['narrow phone 320', { width: 320, height: 640 }, true]]) {
+    const ctx = await browser.newContext({ viewport, isMobile: mobile, hasTouch: mobile }), page = await ctx.newPage(); page.setDefaultTimeout(15000);
+    const errs = []; page.on('pageerror', e => errs.push(e.message));
+    await page.route('**/*', rt => rt.request().url().startsWith(base) ? rt.continue() : rt.abort());
+    const tag = s => `N ${label}: ${s}`;
+    const frame = () => page.frames().find(f => f.url().includes(F124));
+    await page.goto(base + 'index.html?calc=final_drive_ratio', { waitUntil: 'load' }); await page.waitForTimeout(2500);
+    const item = await page.evaluate(() => { const a = document.querySelector('#ghp-nav a[data-nav-link="encyclopedia"]'); if (!a) return null; const r = a.getBoundingClientRect();
+      return { deco: getComputedStyle(a).textDecorationLine, color: getComputedStyle(a).color, sibling: getComputedStyle(document.querySelector('#ghp-nav button.ghp-nav-item:not(.active)')).color, href: a.getAttribute('href'), name: a.getAttribute('aria-label'), visible: r.width > 0 && r.height > 0 && getComputedStyle(a).visibility !== 'hidden', tab: a.tabIndex, text: a.textContent.trim(),
+        items: document.querySelectorAll('#ghp-nav .ghp-nav-item').length, navOverflow: document.getElementById('ghp-nav').scrollWidth - document.getElementById('ghp-nav').clientWidth,
+        pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, overlap: (() => { const b = [...document.querySelectorAll('#ghp-nav .ghp-nav-item')].map(x => x.getBoundingClientRect()); return b.some((x, i) => i && x.left < b[i - 1].right - 0.5); })() }; });
+    check(tag('the navigation bar has an "Encyclopedia" link, visible, with the accessible name "Engineering Encyclopedia"'), !!item && item.visible && item.name === 'Engineering Encyclopedia' && item.href === 'encyclopedia.html' && item.items === 7, JSON.stringify(item));
+    check(tag('it looks like the other items (no underline, same colour)'), !!item && item.deco === 'none' && item.color === item.sibling, JSON.stringify(item && { deco: item.deco, color: item.color, sibling: item.sibling }));
+    check(tag('it is reachable by keyboard (a link with an href, not removed from the tab order)'), !!item && item.tab >= 0, JSON.stringify(item && item.tab));
+    check(tag('the bar has no horizontal overflow and no overlapping items with 7 items'), !!item && item.navOverflow <= 0 && item.pageOverflow <= 0 && !item.overlap, JSON.stringify(item));
+    /* query preservation: what is typed in the calculator search */
+    await frame().evaluate(() => { const i = document.getElementById('search-input'); i.value = 'posi'; i.dispatchEvent(new Event('input')); });
+    await page.click('#ghp-nav a[data-nav-link="encyclopedia"]');
+    await page.waitForURL(/encyclopedia\.html/); await page.waitForFunction(() => document.getElementById('enc') && document.getElementById('enc').getAttribute('aria-busy') === 'false');
+    check(tag('following it opens the encyclopedia with the calculator search carried over (?q=posi, search run)'), /\/encyclopedia\.html\?q=posi$/.test(page.url()) && await page.evaluate(() => document.getElementById('q').value === 'posi' && document.querySelector('a.item').dataset.id === 'term.limited-slip-differential'), page.url());
+    await page.goBack({ waitUntil: 'load' }); await page.waitForTimeout(2000);
+    check(tag('Back returns to the app at the calculator that was open'), /\/index\.html\?calc=final_drive_ratio$/.test(page.url()) && await frame().evaluate(() => (document.querySelector('#calc-container .calc-title') || {}).textContent === 'Final Drive Ratio'), page.url());
+    await page.goForward({ waitUntil: 'load' }); await page.waitForFunction(() => document.getElementById('enc') && document.getElementById('enc').getAttribute('aria-busy') === 'false');
+    check(tag('Forward returns to the encyclopedia search'), /\/encyclopedia\.html\?q=posi$/.test(page.url()) && await page.evaluate(() => document.getElementById('q').value === 'posi'), page.url());
+    /* an empty calculator search opens the encyclopedia without a query */
+    await page.goto(base + 'index.html', { waitUntil: 'load' }); await page.waitForTimeout(2000);
+    await page.click('#ghp-nav a[data-nav-link="encyclopedia"]'); await page.waitForURL(/encyclopedia\.html/);
+    check(tag('with nothing typed it opens the plain encyclopedia'), /\/encyclopedia\.html$/.test(page.url()), page.url());
+    /* encyclopedia -> app: a Free calculator opens, a Premium one shows the gate */
+    await page.goto(base + 'encyclopedia.html?entry=term.final-drive-ratio', { waitUntil: 'load' }); await page.waitForFunction(() => document.getElementById('enc').getAttribute('aria-busy') === 'false');
+    if (mobile) await page.waitForSelector('#entry a.open');
+    await page.click('#entry a.open[href="index.html?calc=final_drive_ratio"]'); await page.waitForURL(/index\.html\?calc=final_drive_ratio/); await page.waitForTimeout(2500);
+    check(tag('"Open calculator" lands on that calculator in the app (Free: inputs shown)'), await frame().evaluate(() => (document.querySelector('#calc-container .calc-title') || {}).textContent === 'Final Drive Ratio' && document.querySelectorAll('#calc-container .calc-body input').length > 0 && !document.querySelector('.gh-premium-upsell')), page.url());
+    await page.goto(base + 'encyclopedia.html?entry=term.limited-slip-differential', { waitUntil: 'load' }); await page.waitForFunction(() => document.getElementById('enc').getAttribute('aria-busy') === 'false');
+    await page.click('#entry a.open[href="index.html?calc=lsd_bias_lock_effect"]'); await page.waitForURL(/index\.html\?calc=lsd_bias_lock_effect/); await page.waitForTimeout(2500);
+    check(tag('a Premium calculator opened from the encyclopedia shows the Premium gate when signed out (no inputs)'), await frame().evaluate(() => !!document.querySelector('.gh-premium-upsell') && document.querySelectorAll('#calc-container .calc-body input').length === 0), page.url());
+    check(tag('no page errors'), errs.length === 0, errs.slice(0, 3).join(' | '));
+    if (label === 'iPhone 390') { await page.goto(base + 'index.html', { waitUntil: 'load' }); await page.waitForTimeout(2000); await page.screenshot({ path: path.join(os.tmpdir(), 'gh-enc-nav-iphone.png') }); }
+    await ctx.close();
+  }
+}
+
 (async () => {
   const t0 = Date.now();
   validator();
   logic();
   const srv = await serve(), browser = await playwright.chromium.launch(CHROMIUM ? { executablePath: CHROMIUM } : {});
-  try { await pages(browser, srv.address().port); } finally { await browser.close(); srv.close(); }
+  try { await pages(browser, srv.address().port); await navigation(browser, srv.address().port); } finally { await browser.close(); srv.close(); }
   lines.forEach(l => console.log(l));
   perf.forEach(p => console.log('  perf ' + p));
   console.log(`encyclopedia: ${checks} checks, ${failures} failures (${Math.round((Date.now() - t0) / 1000)} s); screenshots in ${os.tmpdir()}/gh-enc-desktop.png and gh-enc-iphone.png`);
