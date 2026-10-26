@@ -8,7 +8,7 @@
   },
   "enrichment": {
    "file": "catalog/encyclopedia-enrichment.json",
-   "sha256": "7b6f68a5f6fc034ecfb1bba004160796c5bad88fcde996925c8010dd9dac211a"
+   "sha256": "6bad4295217c739c71b4b3cb3356a37ac31afec69fbb6b8f0d37f09cf313e3a3"
   },
   "page": {
    "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
@@ -18670,7 +18670,7 @@
     {
      "to": "term.bmep",
      "type": "not-equivalent",
-     "note": "BMEP is IMEP minus the friction and pumping losses (FMEP).",
+     "note": "BMEP is IMEP minus FMEP: friction, plus pumping when gross IMEP is used.",
      "declared": true
     },
     {

@@ -438,7 +438,7 @@
         {
           "to": "term.bmep",
           "type": "not-equivalent",
-          "note": "BMEP is IMEP minus the friction and pumping losses (FMEP)."
+          "note": "BMEP is IMEP minus FMEP: friction, plus pumping when gross IMEP is used."
         }
       ],
       "distinctions": "Some texts quote a gross IMEP over the compression and expansion strokes only, which leaves out the pumping work; check which one a figure uses. BMEP is lower than IMEP by the friction mean effective pressure.",
