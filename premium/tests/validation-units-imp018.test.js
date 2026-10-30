@@ -44,7 +44,7 @@
         read-back step then still moves every limit inside, and R and N still hold, so it is not used.)
 
    Run: node premium/tests/validation-units-imp018.test.js   (VERBOSE=1 prints passes; GH_ENGINE=path tests another copy of the engine;
-        GH_BASE_ENGINE=path sets the "before" engine, default: the engine at the merge base with origin/main)
+        GH_BASE_ENGINE=path sets the "before" engine, default: the pre-fix engine at d65a914, pinned)
    Exit code 0 = every check passed and all four mutants were caught, 1 otherwise. */
 'use strict';
 const path = require('path'), fs = require('fs'), os = require('os'), { execSync } = require('child_process');
@@ -56,12 +56,17 @@ try { playwright = require('playwright'); } catch (e) { playwright = require(pat
 const CHROMIUM = process.env.GH_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chromium-1194/chrome-linux/chrome') ? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' : undefined);
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'gh-imp018-'));
 
+/* The engine before the fix: main at d65a914 (the parent of the first GH-IMP-018 commit 5e1ed28 and the first parent of the PR #22
+   merge bfe8d78). Pinned, not "the merge base with origin/main": once PR #22 was merged that merge base was the fixed engine itself,
+   and A1 then compared the fix with itself (40 false failures on main). A base that already contains the fix is refused. */
+const BASE_COMMIT = 'd65a914d9305a8e892b65cc2d5ca04351536d01f';
 function baseEngine() {
-  if (process.env.GH_BASE_ENGINE) return path.resolve(process.env.GH_BASE_ENGINE);
-  const p = path.join(TMP, 'base-' + F124);
-  let ref = 'origin/main';
-  try { ref = execSync('git merge-base HEAD origin/main', { cwd: REPO, encoding: 'utf8' }).trim(); } catch (e) { }
-  fs.writeFileSync(p, execSync(`git show ${ref}:${F124}`, { cwd: REPO, maxBuffer: 1 << 28 }));
+  const p = process.env.GH_BASE_ENGINE ? path.resolve(process.env.GH_BASE_ENGINE) : path.join(TMP, 'base-' + F124);
+  if (!process.env.GH_BASE_ENGINE) {
+    try { fs.writeFileSync(p, execSync(`git show ${BASE_COMMIT}:${F124}`, { cwd: REPO, maxBuffer: 1 << 28 })); }
+    catch (e) { throw new Error(`the pre-fix engine ${BASE_COMMIT.slice(0, 7)} is not in this clone (a shallow clone? run git fetch --unshallow, or set GH_BASE_ENGINE)`); }
+  }
+  if (/function unitLimit\(/.test(fs.readFileSync(p, 'utf8'))) throw new Error(`the "before" engine ${path.basename(p)} already contains the GH-IMP-018 fix (unitLimit); the comparison would be meaningless`);
   return p;
 }
 
