@@ -4,7 +4,7 @@
  "generated_from": {
   "catalog": {
    "file": "catalog/gearhead-catalog.json",
-   "sha256": "a7f2c2753e61ee0dc7473dff3e360217a0f5e8e4b31c48e6a184df514de21e0a"
+   "sha256": "23690c004a5335ec53bf4308d4fc0586b92deabdf0a38a2cbceb4910134d281e"
   },
   "enrichment": {
    "file": "catalog/encyclopedia-enrichment.json",
@@ -12,7 +12,7 @@
   },
   "page": {
    "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-   "sha256": "d9a08fe84595e2b9394a775784984a9c94b93973390362ce06f5151f77675d58"
+   "sha256": "fb3992e1e10f29b8c10486f27882d3f74200a1dc06e2ee2bce664fef30f5788b"
   },
   "models": {
    "file": "premium/models.js",
@@ -34902,7 +34902,7 @@
     }
    ],
    "former_ids": [],
-   "description": "Wheel Rate = Spring Rate × Motion Ratio². Motion ratio = wheel travel / spring travel.",
+   "description": "Wheel Rate = Spring Rate × Motion Ratio². Motion ratio = spring travel / wheel travel.",
    "formula": {
     "inputs": [
      "Spring Rate",
@@ -34996,7 +34996,7 @@
     }
    ],
    "former_ids": [],
-   "description": "Wheel Rate = Spring Rate × Motion Ratio². Motion ratio = wheel travel / spring travel.",
+   "description": "Wheel Rate = Spring Rate × Motion Ratio². Motion ratio = spring travel / wheel travel.",
    "formula": {
     "inputs": [
      "Spring Rate",
