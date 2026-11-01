@@ -2960,7 +2960,7 @@ const RENDERS = {
   wheel_motion(){
     const sr2=vd('sr2',200), mr=vd('mr',0.75);
     const wr2 = +(sr2*Math.pow(mr,2)).toFixed(1);
-    return `${headerHTML('Wheel Motion (Wheel Rate)','Wheel Rate = Spring Rate × Motion Ratio². Motion ratio = wheel travel / spring travel.')}
+    return `${headerHTML('Wheel Motion (Wheel Rate)','Wheel Rate = Spring Rate × Motion Ratio². Motion ratio = spring travel / wheel travel.')}
     <div class="calc-body">
       ${field('Spring Rate','sr2',200,'lbs/in')}
       ${field('Motion Ratio','mr',0.75,'')}
