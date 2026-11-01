@@ -22,6 +22,7 @@ body.ghp-mode-premium #app{visibility:hidden}
 .ghp-nav-items{display:flex;gap:2px;flex:1;min-width:0;justify-content:center}
 .ghp-nav-item{position:relative;display:flex;align-items:center;gap:7px;min-height:40px;padding:0 12px;border:0;border-radius:9px;background:none;color:#aeb6c1;font:700 12px/1 var(--ghp-font);letter-spacing:.04em;cursor:pointer;white-space:nowrap}
 .ghp-nav-item:hover{color:var(--ghp-gold-hi);background:rgba(215,161,31,.07)}
+a.ghp-nav-item{text-decoration:none}   /* the Encyclopedia item is a link (Issue #23): same look as the buttons */
 .ghp-nav-item.active{color:var(--ghp-gold-hi);background:rgba(215,161,31,.12)}
 .ghp-nav-short{display:none}
 .ghp-nav-lock{width:12px;height:12px;opacity:.7}

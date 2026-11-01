@@ -156,11 +156,11 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
   /* ---------------------------------------------------------------- B / C. development and Premium development */
   {
     const env = await open(base + '?view=home', { supabase: 'offline' }), page = env.page;
-    await step('B1. dev mode boots on the integrated page; navigation has Garage and Saved, no Projects', async () => {
+    await step('B1. dev mode boots on the integrated page; navigation has Encyclopedia, Garage and Saved, no Projects', async () => {
       const f = await bootFacts(page);
       same([f.mode, f.createClient], ['development', 1], 'mode / single client');
       const labels = await page.$$eval('#ghp-nav .ghp-nav-long', n => n.map(x => x.textContent));
-      same(labels, ['Home', 'Calculators', 'Engineering Lab', 'My Garage', 'Saved', 'Profile'], 'nav');
+      same(labels, ['Home', 'Calculators', 'Encyclopedia', 'Engineering Lab', 'My Garage', 'Saved', 'Profile'], 'nav');
       assert(!(await page.content()).match(/\bProjects?\b/), 'Projects text present');
     });
     await step('B2. Free: My Garage is Premium — teaser with the price, no add button, locked in the navigation', async () => {

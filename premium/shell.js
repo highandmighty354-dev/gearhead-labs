@@ -16,6 +16,7 @@
   const analyzerMeta = id => M.ENGINEERING_CATALOG.find(a => a.id === id);
   const SOURCE_LABEL = { stripe: 'Subscription', manual: 'Granted by Gearhead Labs', trial: 'Trial', promo: 'Promotion' };
   const ICON = {
+    encyclopedia: '<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5A2.5 2.5 0 0 1 6.5 19H20v3H6.5"/><path d="M9 7h7M9 10.5h5"/>',
     home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
     calculators: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 18h2M12 18h4"/>',
     lab: '<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7.5 15h9"/>',
@@ -28,6 +29,8 @@
   const NAV = [
     { id: 'home', label: 'Home', short: 'Home' },
     { id: 'calculators', label: 'Calculators', short: 'Calcs' },
+    /* Issue #23: the Engineering Encyclopedia is a separate public page (encyclopedia.html), so this item is a real link, not a shell view */
+    { id: 'encyclopedia', label: 'Encyclopedia', short: 'Terms', href: 'encyclopedia.html', title: 'Engineering Encyclopedia' },
     { id: 'lab', label: 'Engineering Lab', short: 'Lab', feature: 'engineering_lab' },
     { id: 'garage', label: 'My Garage', short: 'Garage', feature: 'garage' },
     { id: 'saved', label: 'Saved', short: 'Saved', feature: 'saved_calculations' },
@@ -92,10 +95,14 @@
     const ent = S.entitlements.state, active = state.view === 'run' ? 'lab' : state.view;
     nav.innerHTML = `<button class="ghp-brand" data-go="home" aria-label="Gearhead Labs home"><b>GEARHEAD</b> LABS</button>
       <div class="ghp-nav-items">${NAV.map(n => { const locked = n.feature && !S.entitlements.has(n.feature);
+        if (n.href) return `<a class="ghp-nav-item" href="${n.href}" data-nav-link="${n.id}" aria-label="${esc(n.title)}" title="${esc(n.title)}">${icon(n.id)}<span class="ghp-nav-long">${n.label}</span><span class="ghp-nav-short">${n.short}</span></a>`;
         return `<button class="ghp-nav-item${active === n.id ? ' active' : ''}" data-go="${n.id}"${active === n.id ? ' aria-current="page"' : ''}>${icon(n.id)}<span class="ghp-nav-long">${n.label}</span><span class="ghp-nav-short">${n.short}</span>${locked ? icon('lock', 'ghp-nav-lock') : ''}</button>`; }).join('')}</div>
       <div class="ghp-nav-status">${S.mode === 'development' ? '<span class="ghp-dev-pill" title="Development adapter: local data and local entitlement in this browser only">DEV</span>' : ''}<span class="ghp-plan-pill ${ent.isPremium ? 'premium' : ''}">${esc(M.planLabel(ent).toUpperCase())}</span></div>`;
   }
   nav.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
+  /* the encyclopedia link carries what is typed in the calculator search (?q=), set just before it is followed, hovered or focused */
+  const encHref = () => { let q = ''; try { const f = (window.GHShell && window.GHShell.frame) || document.getElementById('app'), i = f.contentDocument.getElementById('search-input'); q = (i && i.value || '').trim(); } catch (e) { } return 'encyclopedia.html' + (q ? '?q=' + encodeURIComponent(q) : ''); };
+  ['click', 'pointerenter', 'focusin', 'touchstart'].forEach(t => nav.addEventListener(t, e => { const a = e.target.closest && e.target.closest('[data-nav-link="encyclopedia"]'); if (a) a.setAttribute('href', encHref()); }, { capture: true, passive: true }));
 
   /* ---------- shared fragments ---------- */
   const page = (title, kicker, body, actions = '') => `<section class="ghp-page"><header class="ghp-page-head"><div><div class="ghp-kicker">${kicker}</div><h1>${title}</h1></div>${actions}</header>${body}</section>`;
