@@ -34,6 +34,8 @@ const sectionsInCatalog = new Set(catalog.tools.map(t => t.lab + '|' + t.categor
 const ROUTED_LABS = new Set(['gasoline', 'diesel', 'ev', 'towing', 'universal']);
 const REVIEW = new Set(['draft-unreviewed', 'citation-partial', 'citation-verified', 'generated', 'reviewed']);
 const CITED = new Set(['citation-partial', 'citation-verified']);
+const TECH_CONF = new Set(['High', 'Medium', 'Needs revision']), SRC_CONF = new Set(['Strong', 'Adequate', 'Needs stronger evidence']);
+const TIERS = new Set(['Manufacturer', 'Engineering', 'Trade', 'Secondary']), ROLES = new Set(['calculates', 'input', 'uses', 'illustrates']);
 const METRIC_FIELDS = { 'most-used': ['uses', 'use_count', 'views'], 'least-used': ['uses', 'use_count', 'views'], 'most-popular': ['popularity', 'score', 'rank'], 'recently-added': ['added', 'created'], 'recently-updated': ['updated', 'modified'] };
 
 if (D.schema !== 'gearhead-encyclopedia/1') fail(`schema ${D.schema}`);
@@ -98,6 +100,24 @@ for (const c of concepts) {
   if (CITED.has(st) && !(c.review.checked && c.review.checked_by)) fail(`${c.id}: ${st} without who checked it and when`);
   if (st === 'citation-partial' && !c.review.notes) fail(`${c.id}: citation-partial must say what is not yet supported`);
   if (st === 'draft-unreviewed' && (c.sources || []).length) fail(`${c.id}: draft-unreviewed but has sources; set citation-partial or citation-verified`);
+  /* Wave 1 review metadata: confidence ratings from the declared sets, source tiers, calculator roles for linked calculators only;
+     an owner-reviewed concept carries sources, both ratings, a tier for every source and a role for every calculator */
+  if (c.confidence) {
+    if (c.confidence.technical !== null && !TECH_CONF.has(c.confidence.technical)) fail(`${c.id}: technical confidence ${c.confidence.technical} not allowed`);
+    if (c.confidence.sources !== null && !SRC_CONF.has(c.confidence.sources)) fail(`${c.id}: source confidence ${c.confidence.sources} not allowed`);
+  }
+  for (const s of (c.sources || [])) if (s && s.tier !== undefined && !TIERS.has(s.tier)) fail(`${c.id}: source "${s.title}" tier ${s.tier} not allowed`);
+  for (const [id, r] of Object.entries(c.calculator_roles || {})) {
+    if (!c.calculators.includes(id)) fail(`${c.id}: calculator role for ${id}, which the concept does not link`);
+    if (!r || !ROLES.has(r.role)) fail(`${c.id}: calculator ${id} role ${r && r.role} not allowed`);
+  }
+  if (!Array.isArray(c.caveats || [])) fail(`${c.id}: caveats must be a list`);
+  if (st === 'reviewed') {
+    if (!(c.sources || []).length) fail(`${c.id}: reviewed with no source`);
+    if (!(c.confidence && c.confidence.technical && c.confidence.sources)) fail(`${c.id}: reviewed without technical and source confidence`);
+    for (const s of (c.sources || [])) if (s && !s.tier) fail(`${c.id}: reviewed, but source "${s.title}" has no tier`);
+    for (const id of c.calculators) if (!(c.calculator_roles || {})[id]) fail(`${c.id}: reviewed, but calculator ${id} has no stated role`);
+  }
   for (const s of (c.sources || [])) {
     if (s && !s.supports) fail(`${c.id}: source "${s.title}" does not say which claim it supports`);
     if (s && !/^https:\/\/[^\s]+$/.test(s.url || '')) fail(`${c.id}: source "${s.title}" url is not an https link`);

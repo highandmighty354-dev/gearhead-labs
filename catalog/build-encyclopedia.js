@@ -99,6 +99,10 @@ async function build() {
       provenance: { definition: c.definition ? (c.definition_source || enrich.provenance_default.definition_source) : null, file: ENRICH },
       review: { status: c.review_status || 'draft-unreviewed', reviewer: c.reviewer || null, verified: c.verified || null, checked: c.review_checked || null, checked_by: c.review_checked_by || null, notes: c.review_notes || null, revised: (c.review_revised || []).slice() },
       sources: (c.sources || []).slice(),
+      /* Wave 1 review metadata (owner decision 2026-10-31): kept apart from the definition; technical and source confidence are separate ratings */
+      confidence: (c.technical_confidence || c.source_confidence) ? { technical: c.technical_confidence || null, sources: c.source_confidence || null } : null,
+      caveats: (c.caveats || []).slice(),
+      calculator_roles: c.calculator_roles ? Object.fromEntries(calcs.filter(id => byId[id] && c.calculator_roles[id]).map(id => [id, { role: c.calculator_roles[id].role, note: c.calculator_roles[id].note || null }])) : null,
       incomplete: [!c.definition && 'definition', !(c.sources || []).length && 'sources', !(c.calculators || []).length && 'calculators'].filter(Boolean)
     };
   });

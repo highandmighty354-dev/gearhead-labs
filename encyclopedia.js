@@ -170,9 +170,12 @@
     return r;
   }
 
-  function linkCalc(id, label) {
+  /* how a linked calculator relates to the concept (owner-reviewed entries state it; a calculator that only takes a value as an input is never presented as predicting it) */
+  const ROLE_LABEL = { calculates: 'Calculates it', input: 'Takes it as an input', uses: 'Uses it in a related calculation', illustrates: 'Illustrates a related concept' };
+  function linkCalc(id, label, role) {
     const e = IX.byId.get('calc.' + id);
-    return `<li><a href="${esc(entryHref('calc.' + id))}" data-id="calc.${esc(id)}">${esc(label || (e ? e.term : id))}</a>${e && e.tier === 'premium' ? ' <span class="b b-prem">Premium</span>' : ''} · <a class="open" href="${esc(calcHref(id))}" target="_top">Open calculator →</a></li>`;
+    const how = role ? `<br><span class="small muted role"><strong>${esc(ROLE_LABEL[role.role] || role.role)}.</strong>${role.note ? ' ' + esc(role.note) : ''}</span>` : '';
+    return `<li><a href="${esc(entryHref('calc.' + id))}" data-id="calc.${esc(id)}">${esc(label || (e ? e.term : id))}</a>${e && e.tier === 'premium' ? ' <span class="b b-prem">Premium</span>' : ''} · <a class="open" href="${esc(calcHref(id))}" target="_top">Open calculator →</a>${how}</li>`;
   }
   function sectionsHTML(e) {
     if (!(e.sections || []).length) return '';
@@ -183,7 +186,7 @@
   }
   function sourcesHTML(e) {
     if (!(e.sources || []).length) return '';
-    return `<h3>Sources</h3><ul class="srcs">${e.sources.map(s => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a> <span class="muted">— ${esc([s.publisher, s.author, s.date].filter(Boolean).join(', '))}</span>${s.supports ? `<br><span class="small muted">Supports: ${esc(s.supports)}</span>` : ''}</li>`).join('')}</ul>`;
+    return `<h3>Sources</h3><ul class="srcs">${e.sources.map(s => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a> <span class="muted">— ${esc([s.publisher, s.author, s.date, s.tier].filter(Boolean).join(', '))}</span>${s.supports ? `<br><span class="small muted">Supports: ${esc(s.supports)}</span>` : ''}${s.warning ? `<br><span class="small src-warn">Limitation: ${esc(s.warning)}</span>` : ''}</li>`).join('')}</ul>`;
   }
   function reviewHTML(e) {
     const st = e.review.status;
@@ -193,9 +196,10 @@
         : st === 'citation-partial' ? `Partly checked against the sources below (${esc(r.checked)}); not yet approved by a reviewer.`
           : st === 'citation-verified' ? `Checked against the sources below (${esc(r.checked)}); not yet approved by a reviewer.`
             : `Reviewed by ${esc(r.reviewer)} on ${esc(r.verified)}.`;
+    const conf = e.confidence ? ` Technical confidence: ${esc(e.confidence.technical || 'not rated')} · Source confidence: ${esc(e.confidence.sources || 'not rated')}.` : '';
     const inc = (e.incomplete || []).filter(x => !(st === 'draft-unreviewed' && x === 'sources'));
     const notes = (st === 'citation-partial' || st === 'draft-unreviewed') && r.notes ? ` <span class="rev-notes">Open question: ${esc(r.notes)}</span>` : '';
-    return `<p class="rev rev-${st}">${txt}${notes}${inc.length ? ' Missing: ' + inc.map(esc).join(', ') + '.' : ''}</p>`;
+    return `<p class="rev rev-${st}">${txt}${conf}${notes}${inc.length ? ' Missing: ' + inc.map(esc).join(', ') + '.' : ''}</p>`;
   }
 
   function renderEntry() {
@@ -211,10 +215,13 @@
     if (e.type === 'concept') {
       if (e.definition) h += `<p class="def">${esc(e.definition)}</p>`;
       if (e.distinctions) h += `<p class="dist"><strong>Watch out:</strong> ${esc(e.distinctions)}</p>`;
+      if ((e.caveats || []).length) h += `<h3>Notes on the evidence</h3><ul class="caveats">${e.caveats.map(c => `<li class="small">${esc(c)}</li>`).join('')}</ul>`;
       const syn = e.aliases.concat(e.abbreviations);
       if (syn.length) h += `<h3>Also called</h3><p class="syn">${syn.map(esc).join(' · ')}</p>`;
       if (e.units.length) h += `<h3>Units</h3><p>${e.units.map(esc).join(', ')}</p>`;
-      if (e.calculators.length) h += `<h3>Calculate it</h3><ul class="calcs">${e.calculators.map(id => linkCalc(id)).join('')}</ul>`;
+      if (e.calculators.length) h += e.calculator_roles
+        ? `<h3>Calculators</h3><ul class="calcs">${e.calculators.map(id => linkCalc(id, null, e.calculator_roles[id])).join('')}</ul>`
+        : `<h3>Calculate it</h3><ul class="calcs">${e.calculators.map(id => linkCalc(id)).join('')}</ul>`;
       if (e.related.length) h += `<h3>Related concepts</h3><ul class="rel">${e.related.map(r => `<li><span class="rt">${esc(REL_LABEL[r.type] || r.type)}</span> <a href="${esc(entryHref(r.to))}" data-id="${esc(r.to)}">${esc(IX.byId.get(r.to).term)}</a>${r.note ? ` — <span class="note">${esc(r.note)}</span>` : ''}</li>`).join('')}</ul>`;
     }
     if (e.type === 'calculator') {

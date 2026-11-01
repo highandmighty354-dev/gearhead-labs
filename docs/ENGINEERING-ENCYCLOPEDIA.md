@@ -1,6 +1,6 @@
 # Engineering Encyclopedia — audit, design and status (Issue #23)
 
-Status: **proof of concept in a draft PR. Not merged, not deployed.** Concept definitions have been source-checked by Claude (25 checked, 11 partly checked, 2 not checked). None is owner-approved. See `docs/ENCYCLOPEDIA-DEFINITION-REVIEW.md`.
+Status: **proof of concept in a draft PR. Not merged, not deployed.** 17 concepts are owner-approved (Wave 1, 31 Oct 2026); the other 21 were source-checked by Claude and are not owner-approved. See `docs/ENCYCLOPEDIA-DEFINITION-REVIEW.md`.
 
 ## 1. Audit (what exists, checked in the repository on 2026-10-26, main `bfe8d78`)
 
@@ -35,7 +35,13 @@ Status: **proof of concept in a draft PR. Not merged, not deployed.** Concept de
   - `citation-partial`: open questions listed;
   - `citation-verified`: every claim checked against cited sources; not owner-approved;
   - `reviewed`: owner or named reviewer, with a date.
-- Concepts carry `sources` (title, publisher, url, the claim it supports) and `review.checked`, `checked_by`, `notes` and `revised`.
+- Concepts carry `sources` (title, publisher, author, date, url, the claim it supports) and `review.checked`, `checked_by`, `notes` and `revised`.
+- Wave 1 review metadata (optional; required for `reviewed` concepts):
+    - `confidence` (`technical`: High / Medium / Needs revision; `sources`: Strong / Adequate / Needs stronger evidence);
+    - `caveats` (editorial caveats and source limitations);
+    - `calculator_roles` (for each linked calculator: `calculates`, `input`, `uses` or `illustrates`, with a note);
+    - on each source, `tier` (Manufacturer, Engineering, Trade, Secondary) and `warning`.
+- In the enrichment file these are written as `technical_confidence`, `source_confidence`, `caveats` and `calculator_roles`.
 
 ## 4. Coverage (generated data at the time of the PR)
 
@@ -59,7 +65,7 @@ Status: **proof of concept in a draft PR. Not merged, not deployed.** Concept de
 
 ## 6. Known limitations
 
-- Concept definitions are source-checked but **not owner-approved**. 13 concepts still have open questions or no source (`docs/ENCYCLOPEDIA-DEFINITION-REVIEW.md`). The sources include web references, and no textbook or SAE standard could be fetched. Do not mark a concept reviewed without a named reviewer.
+- 21 concept definitions are source-checked but **not owner-approved**. 10 of them still have open questions or no source (`docs/ENCYCLOPEDIA-DEFINITION-REVIEW.md`). The sources include web references, and no textbook or SAE standard could be fetched. Do not mark a concept reviewed without a named reviewer.
 - Only 38 concepts; most of the 757 calculator entries are reached by name, id, section, help text and formula words, not by curated synonyms.
 - No usage, popularity or date sorting until a privacy-conscious measurement and reliable dates exist.
 - There is no category deep link in the app; a section link stays inside the encyclopedia (filtered list). The Engineering Lab has no lab page route.
@@ -68,7 +74,7 @@ Status: **proof of concept in a draft PR. Not merged, not deployed.** Concept de
 
 ## 7. Roadmap
 
-1. **Owner review of the 38 concepts:** approve or correct; resolve the open questions; set `reviewed` with reviewer and date.
+1. **Owner review of the remaining 21 concepts** (Wave 1's 17 approved 31 Oct 2026): approve or correct; resolve the open questions; set `reviewed` with reviewer and date.
 2. **Expand concepts by section in batches** (about 20–40 per batch), starting with sections with the most calculators: unit conversions, vehicle dynamics, engine airflow and valvetrain, electrical, diesel, EV, towing. Each batch: enrichment entries → `build-encyclopedia.js` → `check-encyclopedia.js` → test.
 3. **Shop-language aliases for calculators** (not just concepts) through the same enrichment file, validated for collisions.
 4. **Transmission and Differential sections:** approve the mapping in `docs/ENCYCLOPEDIA-TAXONOMY-PLAN.md`, then implement it in the engine and catalogue in a separate PR.

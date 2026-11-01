@@ -8,7 +8,7 @@
   },
   "enrichment": {
    "file": "catalog/encyclopedia-enrichment.json",
-   "sha256": "6bad4295217c739c71b4b3cb3356a37ac31afec69fbb6b8f0d37f09cf313e3a3"
+   "sha256": "0572e22434f5b234056022447b680782511a0d6df3a96dee9dcc06167b28b904"
   },
   "page": {
    "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
@@ -529,15 +529,15 @@
   "calculators": 757,
   "calculators_free": 585,
   "calculators_premium": 172,
-  "concept_calculator_links": 81,
+  "concept_calculator_links": 79,
   "concept_relations_declared": 52,
   "concept_relations_total": 70,
   "calculators_linked_to_a_concept": 67,
   "review_draft_unreviewed": 13,
-  "review_citation_partial": 11,
-  "review_citation_verified": 25,
+  "review_citation_partial": 8,
+  "review_citation_verified": 11,
   "review_generated": 757,
-  "review_reviewed": 0,
+  "review_reviewed": 17,
   "incomplete_description": 14,
   "incomplete_formula": 21,
   "concepts_without_sources": 2
@@ -1130,6 +1130,9 @@
      "supports": "The inside wheel turns more than the outside so all wheels turn about a common centre on the rear-axle line."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -2050,6 +2053,9 @@
      "supports": "With 100% anti-dive the front suspension does not compress from braking forces; it also depends on brake bias."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -2198,6 +2204,9 @@
      "supports": "With 100% anti-squat the rear suspension does not compress from acceleration forces; anti geometry sets how much load goes through the springs."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -3517,8 +3526,8 @@
     "square engine"
    ],
    "abbreviations": [],
-   "definition": "Cylinder bore divided by piston stroke. Above 1 the engine is called oversquare, below 1 undersquare.",
-   "distinctions": null,
+   "definition": "Cylinder bore divided by piston stroke. At exactly 1 the engine is called square; above 1 it is oversquare, below 1 undersquare.",
+   "distinctions": "Mean piston speed is set by the stroke and the engine speed, not by the bore. As a general design tendency, oversquare engines often pair a shorter stroke with a larger bore that leaves room for larger valves. A shorter stroke means lower piston speed at a given rpm, but the bore-to-stroke ratio alone does not guarantee a higher safe rpm.",
    "units": [
     ":1"
    ],
@@ -3546,13 +3555,13 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-verified",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
     "notes": null,
@@ -3560,12 +3569,36 @@
    },
    "sources": [
     {
+     "title": "How bore vs. stroke can affect horsepower",
+     "publisher": "Hagerty Media",
+     "author": "Brandan Gillogly",
+     "date": "2020-01-08",
+     "url": "https://hagerty.com/media/?p=8808",
+     "tier": "Trade",
+     "supports": "Oversquare \"is able to rev very high without extreme piston speed\"; a larger bore offers \"more real estate to fit larger intake and exhaust valves that flow more air\"."
+    },
+    {
      "title": "Stroke ratio",
      "publisher": "Wikipedia",
      "url": "https://en.wikipedia.org/wiki/Stroke_ratio",
-     "supports": "Bore divided by stroke; above 1:1 oversquare, 1:1 square, below 1:1 undersquare."
+     "tier": "Secondary",
+     "supports": "\"Square\" = 1:1, and oversquare as higher rpm \"by lowering maximum piston speed\"."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Adequate"
+   },
+   "caveats": [
+    "The mean-piston-speed formula sources (Mean Piston Speed entry) support \"set by the stroke and the engine speed\" and \"lower piston speed at a given rpm\".",
+    "\"Does not guarantee a higher safe rpm\" is a deliberate editorial limit on the claim, not a sourced statement."
+   ],
+   "calculator_roles": {
+    "bore_stroke_ratio": {
+     "role": "calculates",
+     "note": "Computes it."
+    }
+   },
    "incomplete": []
   },
   {
@@ -4012,6 +4045,9 @@
      "supports": "BMEP is calculated from measured (dynamometer) brake torque; MEP compares engines of different sizes."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -4717,6 +4753,9 @@
      "supports": "The wheel steers itself (toe change) as the suspension moves, because the steering and suspension links travel on different arcs and the effective tie-rod length changes."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -4949,8 +4988,8 @@
     "camber angle"
    ],
    "abbreviations": [],
-   "definition": "The inward or outward tilt of the wheel seen from the front; negative camber tilts the top of the wheel inward.",
-   "distinctions": null,
+   "definition": "The inward or outward tilt of the wheel seen from the front; negative camber tilts the top of the wheel inward, positive camber tilts it outward.",
+   "distinctions": "Camber is set to keep the tread as flat as possible on the road while cornering, for grip; excessive negative camber can contribute to inner-edge tire wear, though toe and other alignment conditions also affect wear.",
    "units": [
     "°"
    ],
@@ -4978,13 +5017,13 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-verified",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
     "notes": null,
@@ -4992,19 +5031,42 @@
    },
    "sources": [
     {
-     "title": "Mastering the Basics: Wheel Alignment",
-     "publisher": "MOTOR magazine",
-     "url": "https://dev-www.motor.com/magazine-summary/mastering-the-basics-wheel-alignment/",
-     "supports": "Camber is the inward or outward tilt of the wheel from the front; negative camber tilts the top inward."
+     "title": "What is Wheel Alignment? A Complete Guide",
+     "publisher": "John Bean (Snap-on Equipment)",
+     "date": "2024-06-11 (updated 2026-03-25)",
+     "url": "https://johnbean.com/us/?p=16973",
+     "tier": "Manufacturer",
+     "supports": "The definition, keeping the tread \"as flat as possible on the road during turning\", inner-side wear when there is too much negative camber (\"too much can cause the inside of the tire to wear down quickly\"), and toe affecting wear (\"Toe affects the tires' directional control and wear patterns\")."
     },
     {
      "title": "Wheel Alignment Basics Explained",
-     "publisher": "Haynes",
+     "publisher": "Haynes Manuals North America",
      "date": "2017-02",
      "url": "https://us.haynes.com/blogs/tips-tutorials/what-wheel-alignment-and-what-does-it-do",
-     "supports": "Camber seen from the front."
+     "tier": "Trade",
+     "warning": "No author.",
+     "supports": "The negative and positive camber definitions."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Strong"
+   },
+   "caveats": [],
+   "calculator_roles": {
+    "rc_camber_gain": {
+     "role": "calculates",
+     "note": "Computes dynamic camber."
+    },
+    "caster_trail_effect": {
+     "role": "calculates",
+     "note": "Outputs camber gain."
+    },
+    "caster_from_camber": {
+     "role": "input",
+     "note": "Uses camber readings as inputs."
+    }
+   },
    "incomplete": []
   },
   {
@@ -5569,6 +5631,9 @@
      "supports": "Caster seen from the side."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -6400,6 +6465,9 @@
      "supports": "Torque capacity depends on friction coefficient, normal (clamp) force, number of friction surfaces and the inner and outer radii."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -7367,6 +7435,9 @@
     "revised": []
    },
    "sources": [],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": [
     "sources"
    ]
@@ -7485,6 +7556,9 @@
      "supports": "Measured with a compression gauge in the plug hole while the engine is cranked by the starter; cranking speed, throttle opening and number of strokes affect the reading; it tests sealing."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -8908,9 +8982,7 @@
      }
     ]
    },
-   "concepts": [
-    "term.rod-stroke-ratio"
-   ],
+   "concepts": [],
    "provenance": {
     "identity": "catalog/gearhead-catalog.json",
     "description": "engine help text (headerHTML)",
@@ -11145,9 +11217,7 @@
     }
    ],
    "calculators": [
-    "driveshaft_critical",
-    "driveshaft_diameter_sizing",
-    "driveshaft_speed"
+    "driveshaft_critical"
    ],
    "related": [
     {
@@ -11158,13 +11228,13 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-verified",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
     "notes": null,
@@ -11175,9 +11245,22 @@
      "title": "Driveshaft Tech",
      "publisher": "Mark Williams Enterprises",
      "url": "https://www.markwilliams.com/driveshafttech.html",
-     "supports": "Critical speed is the speed at which the shaft becomes unstable, where the whirling frequency equals its natural frequency."
+     "tier": "Manufacturer",
+     "warning": "Undated.",
+     "supports": "\"Critical speed is the speed at which a spinning shaft will become unstable\", and vibration is amplified when the whirling frequency matches the natural frequency."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Strong"
+   },
+   "caveats": [],
+   "calculator_roles": {
+    "driveshaft_critical": {
+     "role": "calculates",
+     "note": "Computes it."
+    }
+   },
    "incomplete": []
   },
   {
@@ -11199,9 +11282,7 @@
    "former_ids": [],
    "description": "Gearhead Labs Premium unlocks Driveshaft Diameter Sizing — the strength-based sizing question the Free Driveshaft Critical Speed calculator doesn’t answer: the minimum diameter a solid shaft needs for a given torque and allowable stress.",
    "formula": null,
-   "concepts": [
-    "term.driveshaft-critical-speed"
-   ],
+   "concepts": [],
    "provenance": {
     "identity": "catalog/gearhead-catalog.json",
     "description": "Premium promo (premium/models.js)",
@@ -11287,10 +11368,7 @@
      }
     ]
    },
-   "concepts": [
-    "term.driveshaft-critical-speed",
-    "term.ujoint-operating-angle"
-   ],
+   "concepts": [],
    "provenance": {
     "identity": "catalog/gearhead-catalog.json",
     "description": "engine help text (headerHTML)",
@@ -11542,6 +11620,9 @@
      "supports": "Dynamic CR depends on cam timing, specifically the intake valve closing event."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -12071,13 +12152,13 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-verified",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
     "notes": null,
@@ -12090,9 +12171,25 @@
      "author": "Robert Poole",
      "date": "2017-12-06",
      "url": "https://info.jepistons.com/how-to-calculate-engine-compression-ratio-and-displacement",
-     "supports": "Displacement from bore, stroke and number of cylinders; swept volume kept separate from the compressed (clearance) volume."
+     "tier": "Manufacturer",
+     "supports": "Swept volume from bore, stroke and cylinders, kept separate from compressed volume."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Strong"
+   },
+   "caveats": [],
+   "calculator_roles": {
+    "engine_displacement": {
+     "role": "calculates",
+     "note": "Computes it."
+    },
+    "reverse_displacement": {
+     "role": "calculates",
+     "note": "Solves the same relation for bore or stroke."
+    }
+   },
    "incomplete": []
   },
   {
@@ -12201,7 +12298,9 @@
      }
     ]
    },
-   "concepts": [],
+   "concepts": [
+    "term.final-drive-ratio"
+   ],
    "provenance": {
     "identity": "catalog/gearhead-catalog.json",
     "description": "engine help text (headerHTML)",
@@ -14694,12 +14793,11 @@
     "final drive",
     "axle ratio",
     "rear end ratio",
-    "gears",
     "diff ratio"
    ],
    "abbreviations": [],
-   "definition": "The last gear reduction between the transmission output and the driven wheels, normally the differential's ring-and-pinion ratio.",
-   "distinctions": "The overall ratio in a given gear is the transmission gear ratio times the final drive ratio (times any transfer case or drop-box ratio).",
+   "definition": "The last fixed gear reduction between the transmission and the driven wheels. On a typical rear-drive axle it is the ring-and-pinion ratio in the differential; on front-wheel-drive vehicles the final drive is located inside the transaxle.",
+   "distinctions": "The overall ratio in a given gear is the transmission gear ratio times the final drive ratio; for example, 2.52 × 4.56 = 11.49. Some aftermarket charts call that overall figure the 'final drive', so check which number a chart means.",
    "units": [
     ":1"
    ],
@@ -14718,7 +14816,9 @@
     "ring_pinion",
     "final_drive_selector",
     "effective_gear_ratio",
-    "gear_ratio_speed"
+    "gear_ratio_speed",
+    "engine_rpm_speed",
+    "speedo_driven_gear"
    ],
    "related": [
     {
@@ -14735,26 +14835,118 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-partial",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
-    "notes": "Supported except the transfer-case / drop-box clause in \"watch out\", which the source does not mention.",
+    "notes": null,
     "revised": []
    },
    "sources": [
     {
-     "title": "Final drive ratio (car glossary)",
+     "title": "Final Drives",
+     "publisher": "Peerless Gear",
+     "url": "https://www.peerlessgear.com/products/final-drives/",
+     "tier": "Manufacturer",
+     "warning": "Undated product page.",
+     "supports": "\"In front-wheel drive vehicles, the final drive is located inside the transaxle.\""
+    },
+    {
+     "title": "Mechanical Power Transmission Fundamentals",
+     "publisher": "Decatur Professional Development, LLC",
+     "author": "Robert P. Tata, P.E.",
+     "url": "https://pds.pdhengineer.com/data/previews/pdf/m/1/M-1051.pdf",
+     "tier": "Engineering",
+     "warning": "Professional-development course; undated preview.",
+     "supports": "\"The equation for the overall ratio of the compound gear train is the product of the two individual ratios\": the general basis of the watch-out."
+    },
+    {
+     "title": "What Is Rear End Gear Ratio and How Is It Calculated?",
+     "publisher": "GearStar Performance Transmissions (Akron, Ohio)",
+     "author": "Gearstar Performance (company byline)",
+     "date": "2021-09-29",
+     "url": "https://gearstar.com/blog/what-is-rear-end-gear-ratio-and-how-is-it-calculated/",
+     "tier": "Manufacturer",
+     "warning": "It calls the product the \"final drive ratio\", which is the terminology note in the watch-out.",
+     "supports": "\"Most automobiles use gear ratios in the drive axle and the transmission to multiply power. When you multiply the two ratios, it equals the final drive ratio.\" The product rule for a vehicle."
+    },
+    {
+     "title": "GM Drive Ratios",
+     "publisher": "Gear Vendors (overdrive manufacturer)",
+     "url": "https://www.gearvendors.com/?p=1185",
+     "tier": "Manufacturer",
+     "warning": "No author; undated (page metadata modified 21 Jul 2016). The page states no formula; the product is shown by its numbers, not in words.",
+     "supports": "Primary data: TH350 1st gear 2.52 with a 4.56 axle listed as a \"final drive\" of 11.49; 4L80E 2.48 with a 5.13 axle as 12.72. Both equal gear × axle. Supports the example and the terminology note."
+    },
+    {
+     "title": "Tractive Effort Curves in Gearbox Analyse",
+     "publisher": "TMT 2011 conference, Prague",
+     "author": "N. Repčić, I. Šarić, V. Avdić (Faculty of Mechanical Engineering, Sarajevo)",
+     "date": "2011-09",
+     "url": "https://www.tmt.unze.ba/zbornik/TMT2011/235-TMT11-007.pdf",
+     "tier": "Engineering",
+     "warning": "Its equation did not extract, so it is not cited for the multiplication itself.",
+     "supports": "\"Tractive effort is obtained by multiplying engine torque and the overall gear ratio (gear and final drive)\": the overall ratio combines the gear and the final drive."
+    },
+    {
+     "title": "Final drive ratio",
      "publisher": "cars-data.com",
      "url": "https://cars-data.com/en/car-glossary/final-drive-ratio",
-     "supports": "The final drive is the last reduction, in the differential (pinion and ring gear); overall ratio = gearbox ratio x final drive."
+     "tier": "Secondary",
+     "warning": "Anonymous. Corroboration only; no claim rests on it alone.",
+     "supports": "Corroboration of the product rule."
+    },
+    {
+     "title": "Ring and Pinion Gear Selection for Optimal Performance",
+     "publisher": "CarTech Books (excerpt from High Performance Axles, Differentials and Drivelines)",
+     "url": "https://www.cartechbooks.com/techtips/ring-and-pinion-gear-selection-for-optimal-performance",
+     "tier": "Trade",
+     "warning": "Author not named on the page.",
+     "supports": "The ring-and-pinion ratio."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Adequate"
+   },
+   "caveats": [
+    "No OEM service manual or automotive textbook passage could be opened online for the overall-ratio rule."
+   ],
+   "calculator_roles": {
+    "final_drive_ratio": {
+     "role": "calculates",
+     "note": "Computes it."
+    },
+    "ring_pinion": {
+     "role": "calculates",
+     "note": "Computes it from tooth counts."
+    },
+    "final_drive_selector": {
+     "role": "uses",
+     "note": "Selects one."
+    },
+    "effective_gear_ratio": {
+     "role": "input",
+     "note": "Adjusts it for tire size."
+    },
+    "gear_ratio_speed": {
+     "role": "input",
+     "note": "Uses it."
+    },
+    "engine_rpm_speed": {
+     "role": "input",
+     "note": "Uses it."
+    },
+    "speedo_driven_gear": {
+     "role": "input",
+     "note": "Uses it."
+    }
+   },
    "incomplete": []
   },
   {
@@ -15136,6 +15328,9 @@
      "supports": "FMEP = IMEP - BMEP."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -17042,7 +17237,9 @@
      }
     ]
    },
-   "concepts": [],
+   "concepts": [
+    "term.static-compression-ratio"
+   ],
    "provenance": {
     "identity": "catalog/gearhead-catalog.json",
     "description": "engine help text (headerHTML)",
@@ -18704,6 +18901,9 @@
      "supports": "IMEP is calculated from in-cylinder pressure over the complete cycle, so it includes pumping work; friction is accounted for by FMEP = IMEP - BMEP."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -19012,8 +19212,8 @@
    "abbreviations": [
     "IVC"
    ],
-   "definition": "The crankshaft angle, usually given in degrees after bottom dead centre, at which the intake valve closes.",
-   "distinctions": "Cam cards give it at a stated lift (advertised or 0.050 in); figures at different lift references are not interchangeable.",
+   "definition": "The crankshaft angle, usually given in degrees after bottom dead centre, at which the intake valve closes. Closing it later lets the rising piston push some of the charge back into the intake at low engine speed, lowering cylinder pressure and low-speed torque; at high engine speed the moving air column keeps filling the cylinder, which is why high-rpm engines use a later closing.",
+   "distinctions": "Cam cards give it at a stated lift (advertised or 0.050 in); figures at different lift references are not interchangeable. The card values also assume the cam is installed as intended: retarding the cam delays intake closing and advancing moves the intake event earlier, which is why cams are degreed to check the events.",
    "units": [
     "° ABDC"
    ],
@@ -19041,13 +19241,13 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-verified",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
     "notes": null,
@@ -19055,14 +19255,71 @@
    },
    "sources": [
     {
+     "title": "Valve Timing Events And The Order Of Importance",
+     "publisher": "Underhood Service",
+     "author": "Rick Kertes",
+     "date": "2016-04-18",
+     "url": "https://www.underhoodservice.com/valve-timing-events-and-the-order-of-importance/",
+     "tier": "Trade",
+     "warning": "Author and dates confirmed only through Muck Rack's author listing (https://muckrack.com/rick-kertes/articles); neither article page displays a byline or date. Also printed by Engine Builder, 15 Apr 2016 (https://www.enginebuildermag.com/?p=16181).",
+     "supports": "\"If the valve is closed late, the air charge will flow back into the intake manifold\"; late closing \"limits low-end power\"; \"High RPM race engines benefit immensely from a continuation of airflow.\""
+    },
+    {
+     "title": "Camshaft Tech 101",
+     "publisher": "DSPORT",
+     "author": "Michael Ferrara",
+     "date": "2015-06-28",
+     "url": "https://dsportmag.com/the-tech/camshaft-tech-101/3/",
+     "tier": "Trade",
+     "supports": "\"the piston may pump some of the intake charge out of the cylinder.\""
+    },
+    {
+     "title": "Demystifying the Camshaft: Part 1 – Valve Events",
+     "publisher": "MotoIQ",
+     "author": "Colin Holte",
+     "date": "2015-06-08",
+     "url": "https://motoiq.com/demystifying-the-camshaft-part-1-valve-events/5/",
+     "tier": "Trade",
+     "supports": "Low-speed reversion and high-rpm charge momentum."
+    },
+    {
+     "title": "Effect Of Changes In Cam Timing And Lobe Separation Angle",
+     "publisher": "COMP Cams",
+     "url": "https://www.compcams.com/cam-timing-lobe-separation-angle",
+     "tier": "Manufacturer",
+     "warning": "No author or date.",
+     "supports": "Retarding \"Delays Intake Closing Event\"; advancing \"Begins Intake Event Sooner\"."
+    },
+    {
      "title": "Back To Basics: Understanding A Cam Card With Erson Cams",
      "publisher": "EngineLabs",
      "author": "Jeff Smith",
      "date": "2020-12-22",
      "url": "https://www.enginelabs.com/?p=6309",
-     "supports": "Intake closing given in crankshaft degrees ABDC; 0.050-in and advertised (about 0.004-0.006 in) figures are taken at different lifts and differ."
+     "tier": "Trade",
+     "warning": "Trade article with manufacturer input.",
+     "supports": "The lift references, and repositioning a cam whose degreed events are out."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Adequate"
+   },
+   "caveats": [],
+   "calculator_roles": {
+    "camshaft_ivc": {
+     "role": "calculates",
+     "note": "Computes IVC."
+    },
+    "cam_card": {
+     "role": "calculates",
+     "note": "Outputs all valve events, including IVC."
+    },
+    "dynamic_compression": {
+     "role": "input",
+     "note": "Uses IVC as an input."
+    }
+   },
    "incomplete": []
   },
   {
@@ -20834,6 +21091,9 @@
      "supports": "Limited-slip differentials generate internal friction to resist a speed difference and send torque to the wheel with grip."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -21786,8 +22046,8 @@
    "abbreviations": [
     "MPS"
    ],
-   "definition": "The average speed of the piston over a crank revolution: twice the stroke times the engine speed.",
-   "distinctions": null,
+   "definition": "The average speed of the piston over a crank revolution. The piston travels two strokes per revolution, so mean piston speed is twice the stroke times the engine speed. With stroke in inches and engine speed in rpm: feet per minute = stroke × 2 × rpm ÷ 12.",
+   "distinctions": "It is an average over the revolution. Connecting-rod length does not change it at a given stroke and rpm; rod length changes how the piston's instantaneous speed varies through the stroke, including where and how high its peak speed is.",
    "units": [
     "ft/min",
     "m/s"
@@ -21810,13 +22070,13 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-verified",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
     "notes": null,
@@ -21824,12 +22084,44 @@
    },
    "sources": [
     {
+     "title": "IC engine lecture notes",
+     "publisher": "FAMU-FSU College of Engineering course web space",
+     "url": "https://web1.eng.famu.fsu.edu/~shih/propulsion/lecture%20notes/IC%20engine.PDF",
+     "tier": "Engineering",
+     "warning": "No author or date on the document.",
+     "supports": "The mean piston speed \"Vp = 2NS\", independent of rod length."
+    },
+    {
      "title": "How A Stroker Crankshaft Affects Piston Speed and Inertia",
-     "publisher": "Engine Builder Magazine (sponsored by Wiseco)",
+     "publisher": "Engine Builder",
+     "date": "2018-03",
      "url": "https://www.enginebuildermag.com/2018/03/how-a-stroker-crankshaft-affects-piston-speed-and-inertia/",
-     "supports": "MPS = (stroke x 2 x RPM) / 12 (ft/min with stroke in inches)."
+     "tier": "Trade",
+     "warning": "Sponsored by Wiseco; no byline.",
+     "supports": "The shop-unit formula, \"Mean Piston Speed (fpm)=(Stroke x 2 x RPM)/12\", and that the true maximum needs rod length and angularity."
+    },
+    {
+     "title": "Engine anatomy: rod to stroke ratio",
+     "publisher": "High Performance Academy",
+     "url": "https://www.hpacademy.com/courses/engine-building-fundamentals/engine-anatomy-rod-to-stroke-ratio/",
+     "tier": "Trade",
+     "warning": "Educational course page; undated.",
+     "supports": "Rod length changes how long the piston dwells near TDC."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Adequate"
+   },
+   "caveats": [
+    "No textbook (Heywood) could be accessed; the independent engineering source is an unattributed course document."
+   ],
+   "calculator_roles": {
+    "mean_piston_speed": {
+     "role": "calculates",
+     "note": "Computes it."
+    }
+   },
    "incomplete": []
   },
   {
@@ -22417,15 +22709,13 @@
    "term": "Motion Ratio",
    "letter": "M",
    "aliases": [
-    "installation ratio",
-    "leverage ratio",
-    "lever ratio"
+    "installation ratio"
    ],
    "abbreviations": [
     "MR"
    ],
    "definition": "The ratio of spring or damper travel to wheel travel for a given suspension movement.",
-   "distinctions": "Some sources define it the other way up (wheel travel over spring travel); check which convention a calculator uses.",
+   "distinctions": "Some sources define it the other way up (wheel travel over spring travel); check which convention a calculator uses. It is also called the installation ratio; under either name, some references mean the inverse ratio. Gearhead Labs' Suspension Motion Ratio and Motion Ratio (Road Course) calculators use spring travel ÷ wheel travel.",
    "units": [
     ":1"
    ],
@@ -22463,13 +22753,13 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-verified",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
     "notes": null,
@@ -22479,17 +22769,42 @@
     {
      "title": "Spring rate in racing suspension: wheel rate, motion ratio and how to calculate what your tire actually feels",
      "publisher": "Penske Racing Shocks",
+     "author": "Aaron Lambert",
      "date": "2026-05-12",
      "url": "https://www.penskeshocks.com/blog/spring-rate-in-racing-suspension-wheel-rate-motion-ratio-and-how-to-calculate-what-your-tire-actually-feels",
-     "supports": "Motion ratio = spring (or damper) displacement / wheel displacement; the opposite convention is also used."
+     "tier": "Manufacturer",
+     "supports": "Spring ÷ wheel displacement, and \"Some calculate it as wheel travel divided by spring travel.\""
     },
     {
      "title": "Motion ratio",
      "publisher": "Wikipedia",
      "url": "https://en.wikipedia.org/wiki/Motion_ratio",
-     "supports": "Shock travel / wheel travel; the inverse is also used; also called installation ratio."
+     "tier": "Secondary",
+     "supports": "The name \"installation ratio\", and that the term is \"sometimes\" used for the reciprocal."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Strong"
+   },
+   "caveats": [
+    "\"Installation ratio\" is kept only with the qualification in the watch-out; \"leverage ratio\" and \"lever ratio\" are not used because no reliable source supports them as synonyms.",
+    "The calculator conventions come from the calculators' own help text: \"Motion Ratio = Spring Travel ÷ Wheel Travel\" and \"Motion ratio = spring travel / wheel travel\"."
+   ],
+   "calculator_roles": {
+    "motion_ratio": {
+     "role": "calculates",
+     "note": "Computes it (spring ÷ wheel)."
+    },
+    "rc_motion_ratio_rc": {
+     "role": "calculates",
+     "note": "Computes it (spring ÷ wheel)."
+    },
+    "wheel_motion": {
+     "role": "input",
+     "note": "Uses it (its formula uses spring ÷ wheel)."
+    }
+   },
    "incomplete": []
   },
   {
@@ -23845,7 +24160,6 @@
     ]
    },
    "concepts": [
-    "term.ring-and-pinion",
     "term.ujoint-operating-angle"
    ],
    "provenance": {
@@ -23978,8 +24292,8 @@
     "end gap"
    ],
    "abbreviations": [],
-   "definition": "The gap between the two ends of a piston ring when it is installed square in the cylinder bore.",
-   "distinctions": null,
+   "definition": "The gap between the two ends of a piston ring when it is installed square in the cylinder bore. It is measured with a feeler gauge with the ring pushed square into the bore below the deck, with a torque plate fitted where the engine builder uses one.",
+   "distinctions": "Too tight and the ring ends can butt together, which can destroy the piston; too wide and combustion gas leaks past, costing power. Higher-boost engines use wider gaps, and the gap grows by about 3.14 times any increase in bore diameter.",
    "units": [
     "in",
     "mm"
@@ -24000,26 +24314,43 @@
    ],
    "related": [],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-partial",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
-    "notes": "The source describes how the gap is measured but does not give a formal definition.",
+    "notes": null,
     "revised": []
    },
    "sources": [
     {
-     "title": "How to measure and set proper ring end gap",
+     "title": "How to measure and set proper ring end gap for your pistons",
      "publisher": "CP-Carrillo",
      "url": "https://www.cp-carrillo.com/n-12119-proper-piston-ring-end-gap.html",
-     "supports": "Ring placed square in the bore below the deck and the end gap measured with a feeler gauge."
+     "tier": "Manufacturer",
+     "warning": "Undated.",
+     "supports": "Every sentence, including \"for every .001″ over … the ring gap increases by .00314″\"."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Strong"
+   },
+   "caveats": [],
+   "calculator_roles": {
+    "ring_gap": {
+     "role": "calculates",
+     "note": "Computes it."
+    },
+    "ring_gap_bore": {
+     "role": "calculates",
+     "note": "Computes it from bore size."
+    }
+   },
    "incomplete": []
   },
   {
@@ -24277,6 +24608,9 @@
      "supports": "Sun, planets on a carrier and ring; holding or driving different members gives different ratios; fundamental to automatic transmissions."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -25982,6 +26316,9 @@
      "supports": "Wheel (ride) frequency = square root of wheel rate over sprung mass."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -26043,7 +26380,7 @@
     "ring gear and pinion"
    ],
    "abbreviations": [],
-   "definition": "The pair of gears in a differential: the pinion on the driveshaft input turns the ring gear on the differential carrier. Their tooth-count ratio is the axle ratio.",
+   "definition": "The pair of gears in a differential: the pinion on the driveshaft input turns the ring gear on the differential carrier. The number of ring-gear teeth divided by the number of pinion teeth is the axle ratio; for example, 41 ÷ 10 = 4.10:1.",
    "distinctions": null,
    "units": [
     ":1"
@@ -26055,8 +26392,7 @@
     }
    ],
    "calculators": [
-    "ring_pinion",
-    "pinion_angle_change"
+    "ring_pinion"
    ],
    "related": [
     {
@@ -26073,26 +26409,47 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-partial",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
-    "notes": "Not confirmed in the source: that the tooth-count ratio is called the axle ratio.",
+    "notes": null,
     "revised": []
    },
    "sources": [
     {
-     "title": "Final drive ratio (car glossary)",
+     "title": "Ring and Pinion Gear Selection for Optimal Performance",
+     "publisher": "CarTech Books (excerpt from High Performance Axles, Differentials and Drivelines)",
+     "url": "https://www.cartechbooks.com/techtips/ring-and-pinion-gear-selection-for-optimal-performance",
+     "tier": "Trade",
+     "warning": "Author not named on the page.",
+     "supports": "\"take the number of ring gear teeth and divide by the number of pinion teeth\", with the 41 ÷ 10 = 4.10 example."
+    },
+    {
+     "title": "Final drive ratio",
      "publisher": "cars-data.com",
      "url": "https://cars-data.com/en/car-glossary/final-drive-ratio",
-     "supports": "The final drive reduction is made by the pinion and ring gear in the differential."
+     "tier": "Secondary",
+     "warning": "Anonymous. Corroboration only; no claim rests on it alone.",
+     "supports": "Corroboration only."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Adequate"
+   },
+   "caveats": [],
+   "calculator_roles": {
+    "ring_pinion": {
+     "role": "calculates",
+     "note": "Computes it."
+    }
+   },
    "incomplete": []
   },
   {
@@ -26314,7 +26671,7 @@
    ],
    "abbreviations": [],
    "definition": "Connecting rod centre-to-centre length divided by the crankshaft stroke.",
-   "distinctions": "It sets the connecting rod angle and how the piston moves near top and bottom dead centre.",
+   "distinctions": "A higher ratio reduces the connecting rod's angle, which lowers the side thrust of the piston skirt against the cylinder wall and keeps the piston near top dead centre slightly longer (dwell). Production engines commonly fall between about 1.4 and 1.8 or more, but the right ratio depends on the engine's purpose and rpm range rather than one universal target.",
    "units": [
     ":1"
    ],
@@ -26330,8 +26687,7 @@
    ],
    "calculators": [
     "rod_stroke_ratio",
-    "connecting_rod_angularity",
-    "deck_height"
+    "connecting_rod_angularity"
    ],
    "related": [
     {
@@ -26354,13 +26710,13 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-verified",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
     "notes": null,
@@ -26368,18 +26724,38 @@
    },
    "sources": [
     {
-     "title": "Engine anatomy: rod to stroke ratio (Engine Building Fundamentals course)",
+     "title": "Engine anatomy: rod to stroke ratio",
      "publisher": "High Performance Academy",
      "url": "https://www.hpacademy.com/courses/engine-building-fundamentals/engine-anatomy-rod-to-stroke-ratio/",
-     "supports": "Rod length (big-end centre to wrist-pin centre) divided by stroke; a higher ratio reduces rod angularity and increases piston dwell near TDC."
+     "tier": "Trade",
+     "warning": "Educational course page; undated.",
+     "supports": "Reduced angularity, lower skirt side thrust, dwell, \"1.4 through to 1.8 or more\", and different ratios suggested for different rpm ranges."
     },
     {
      "title": "How A Stroker Crankshaft Affects Piston Speed and Inertia",
-     "publisher": "Engine Builder Magazine (sponsored by Wiseco)",
+     "publisher": "Engine Builder",
+     "date": "2018-03",
      "url": "https://www.enginebuildermag.com/2018/03/how-a-stroker-crankshaft-affects-piston-speed-and-inertia/",
-     "supports": "Rod angularity in relation to stroke."
+     "tier": "Trade",
+     "warning": "Sponsored by Wiseco; no byline.",
+     "supports": "Secondary support only."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Adequate"
+   },
+   "caveats": [],
+   "calculator_roles": {
+    "rod_stroke_ratio": {
+     "role": "calculates",
+     "note": "Computes it."
+    },
+    "connecting_rod_angularity": {
+     "role": "uses",
+     "note": "Is the angle this ratio sets."
+    }
+   },
    "incomplete": []
   },
   {
@@ -26454,6 +26830,9 @@
      "supports": "Roll centre definition."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -26691,6 +27070,9 @@
      "supports": "Roll stiffness comes from the springs and anti-roll bars and is given as torque per degree of roll."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -28067,7 +28449,9 @@
      }
     ]
    },
-   "concepts": [],
+   "concepts": [
+    "term.final-drive-ratio"
+   ],
    "provenance": {
     "identity": "catalog/gearhead-catalog.json",
     "description": "engine help text (headerHTML)",
@@ -28137,7 +28521,7 @@
    ],
    "abbreviations": [],
    "definition": "The force needed to compress a suspension spring by a unit distance, measured at the spring.",
-   "distinctions": "It is not the wheel rate: the rate felt at the wheel is reduced by the motion ratio squared.",
+   "distinctions": "It is not the wheel rate: the rate felt at the wheel is the spring rate multiplied by the motion ratio squared, so it is lower than the spring rate whenever the motion ratio is below 1 (for example, 400 lb/in × 0.7² = 196 lb/in).",
    "units": [
     "lb/in",
     "N/mm"
@@ -28173,13 +28557,13 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-verified",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
     "notes": null,
@@ -28189,11 +28573,28 @@
     {
      "title": "Spring rate in racing suspension: wheel rate, motion ratio and how to calculate what your tire actually feels",
      "publisher": "Penske Racing Shocks",
+     "author": "Aaron Lambert",
      "date": "2026-05-12",
      "url": "https://www.penskeshocks.com/blog/spring-rate-in-racing-suspension-wheel-rate-motion-ratio-and-how-to-calculate-what-your-tire-actually-feels",
-     "supports": "Spring rate is force per unit compression; wheel rate = spring rate x motion ratio squared."
+     "tier": "Manufacturer",
+     "supports": "\"the force required to compress or extend a spring by one unit of distance\", and WR = k × MR² with the 196 lb/in example."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Strong"
+   },
+   "caveats": [],
+   "calculator_roles": {
+    "coil_spring": {
+     "role": "calculates",
+     "note": "Computes it from geometry."
+    },
+    "dual_spring_rate": {
+     "role": "calculates",
+     "note": "Computes a combined rate."
+    }
+   },
    "incomplete": []
   },
   {
@@ -28207,8 +28608,8 @@
     "valve spring stiffness"
    ],
    "abbreviations": [],
-   "definition": "The force needed to compress a valve spring by a unit distance, used with installed height and lift to find seat and open pressures.",
-   "distinctions": null,
+   "definition": "The force needed to compress a valve spring by a unit distance, usually quoted in lb/in. For a spring with a constant rate, open pressure = installed (seat) pressure + rate × lift.",
+   "distinctions": "The spring manufacturer's specifications take precedence. Leave clearance between the coils at full lift so the spring cannot coil-bind; Engine Builder suggests at least 0.060 in for the applications it discusses, but that is a guideline for those applications, not a universal minimum for every spring.",
    "units": [
     "lb/in",
     "N/mm"
@@ -28237,13 +28638,13 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-verified",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
     "notes": null,
@@ -28252,11 +28653,34 @@
    "sources": [
     {
      "title": "Under Pressure: The Importance of Getting the Right Amount of Spring Pressure",
-     "publisher": "Engine Builder Magazine",
+     "publisher": "Engine Builder",
      "url": "https://www.enginebuildermag.com/?p=26006",
-     "supports": "Rate is the force to compress the spring one inch (lb/in); open pressure = installed pressure + rate x lift."
+     "tier": "Trade",
+     "warning": "No byline or date shown.",
+     "supports": "The lb/in definition, open = installed + rate × lift, and \"keep a minimum of .060 between coils\"."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Adequate"
+   },
+   "caveats": [
+    "\"The spring manufacturer's specifications take precedence\" is editorial guidance, not a sourced technical claim."
+   ],
+   "calculator_roles": {
+    "valve_spring_rate": {
+     "role": "calculates",
+     "note": "Computes it."
+    },
+    "spring_rate": {
+     "role": "calculates",
+     "note": "Computes it from a load test."
+    },
+    "spring_force_at_lift": {
+     "role": "uses",
+     "note": "Uses the rate."
+    }
+   },
    "incomplete": []
   },
   {
@@ -28650,7 +29074,7 @@
    "abbreviations": [
     "SCR"
    ],
-   "definition": "The ratio of the cylinder volume with the piston at bottom dead centre to the volume with it at top dead centre, from the full swept volume plus the clearance volume (chamber, gasket, deck and piston dome or dish).",
+   "definition": "The ratio of the total cylinder volume with the piston at bottom dead centre to the compressed volume with it at top dead centre: (swept volume + clearance volume) ÷ clearance volume. The clearance volume is the combustion chamber, head gasket, deck clearance and piston volume added together; a domed piston reduces it, while a dish or valve reliefs add to it.",
    "distinctions": "It is fixed by geometry. It is not the pressure measured on a compression gauge, and it is not the dynamic ratio, which starts compression only when the intake valve closes.",
    "units": [
     ":1"
@@ -28663,7 +29087,8 @@
    ],
    "calculators": [
     "static_compression",
-    "boost_cr"
+    "boost_cr",
+    "head_gasket_vol"
    ],
    "related": [
     {
@@ -28692,16 +29117,16 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-verified",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
-    "notes": "Definition supported. The distinctions (not gauge pressure, not dynamic CR) are cross-references to other entries, not claims needing a source.",
+    "notes": null,
     "revised": []
    },
    "sources": [
@@ -28711,9 +29136,29 @@
      "author": "Robert Poole",
      "date": "2017-12-06",
      "url": "https://info.jepistons.com/how-to-calculate-engine-compression-ratio-and-displacement",
-     "supports": "CR = cylinder volume at BDC / compressed volume at TDC; compressed volume = chamber + gasket + deck + piston dome or dish."
+     "tier": "Manufacturer",
+     "supports": "The volume ratio and its four components. A dome is \"expressed as a negative volume\"; a dish or valve reliefs are \"expressed as a positive\"."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Strong"
+   },
+   "caveats": [],
+   "calculator_roles": {
+    "static_compression": {
+     "role": "calculates",
+     "note": "Computes it."
+    },
+    "boost_cr": {
+     "role": "input",
+     "note": "Takes static CR as an input."
+    },
+    "head_gasket_vol": {
+     "role": "uses",
+     "note": "Computes one of the clearance-volume components."
+    }
+   },
    "incomplete": []
   },
   {
@@ -30697,6 +31142,9 @@
      "supports": "Toe seen from above relative to the centreline."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -30910,7 +31358,7 @@
     "TBR"
    ],
    "definition": "For a limited-slip differential, the largest ratio of torque between the high-traction and low-traction wheels that it can sustain before the wheels slip relative to each other.",
-   "distinctions": null,
+   "distinctions": "For a torque-biasing differential such as a Torsen, the high-traction wheel can receive at most the low-traction wheel's torque multiplied by the TBR. With one wheel in the air, that is zero times the TBR, which is still zero; applying the brakes lightly gives the differential reaction torque to work against.",
    "units": [
     ":1"
    ],
@@ -30932,13 +31380,13 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-verified",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
     "notes": null,
@@ -30949,10 +31397,23 @@
      "title": "Ask Torsen: Torque Bias Ratio Functional Questions",
      "publisher": "Torsen",
      "date": "2017-08-28",
-     "url": "https://torsen.com/category/tech-info/",
-     "supports": "TBR is a traction ratio: the high-traction wheel can receive up to the low-traction wheel's torque times the TBR."
+     "url": "https://torsen.com/ask-torsen-torque-bias-ratio-functional-questions/",
+     "tier": "Manufacturer",
+     "warning": "Date from Torsen's archive listing; the post page itself shows no date.",
+     "supports": "\"T(high) = T(low) X TBR\", \"zero multiplied by 4.5 still equals zero\", and brakes providing reaction torque."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Strong"
+   },
+   "caveats": [],
+   "calculator_roles": {
+    "lsd_bias_lock_effect": {
+     "role": "input",
+     "note": "Uses TBR as an input."
+    }
+   },
    "incomplete": []
   },
   {
@@ -31000,8 +31461,8 @@
     "stall"
    ],
    "abbreviations": [],
-   "definition": "The engine speed reached with the converter output held stationary at full throttle, set by the converter design and the engine torque.",
-   "distinctions": "Flash stall (on a launch) and brake stall (against the brakes) are measured differently and differ.",
+   "definition": "The highest engine speed reached at full throttle with the transmission output held stationary (brake stall). It is set by the converter's internal blade geometry and the engine's torque, so the same converter stalls at a different speed behind a different engine.",
+   "distinctions": "Flash stall is the speed the engine flashes to right after the brake or transbrake is released on a launch. It also depends on vehicle weight, tires and suspension, so it is hard to predict. Brake stall is more predictable, but any calculated figure is an estimate; the stall measured with the actual engine and converter is what counts.",
    "units": [
     "RPM"
    ],
@@ -31023,13 +31484,13 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-verified",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
     "notes": null,
@@ -31041,10 +31502,24 @@
      "publisher": "Sonnax",
      "author": "Joe Allen and Andy Dumas",
      "date": "2004-01-02",
-     "url": "https://www.sonnax.com/tech_resources/86-high-performance-converters-stall-speed-core-selection-and-more",
-     "supports": "Stall is the highest engine RPM with the transmission output held, set by engine torque and converter design; flash stall and brake (transbrake) stall differ."
+     "url": "https://sonnax.com/tech_resources/86-high-performance-converters-stall-speed-core-selection-and-more",
+     "tier": "Manufacturer",
+     "supports": "The definition, flash stall and its dependence on weight, tires and suspension, and brake stall being calculable."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Strong"
+   },
+   "caveats": [
+    "\"Any calculated figure is an estimate\" and \"the measured stall is what counts\" are a more cautious editorial qualification, not a new sourced claim."
+   ],
+   "calculator_roles": {
+    "torque_converter": {
+     "role": "input",
+     "note": "Torque Converter Stall / Launch: Uses a known converter stall speed as an input to calculate launch speed and theoretical wheel torque. It does not predict or calculate stall speed. The actual stall speed must come from the converter manufacturer or a measured stall test."
+    }
+   },
    "incomplete": []
   },
   {
@@ -32227,6 +32702,9 @@
     "revised": []
    },
    "sources": [],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": [
     "sources"
    ]
@@ -32669,8 +33147,8 @@
     "working angle"
    ],
    "abbreviations": [],
-   "definition": "The angle between the two shafts joined by a universal joint. A single U-joint running at an angle makes the output speed rise and fall twice per revolution. On a two-joint driveshaft this cancels out only when the operating angles at both ends are equal and the two inboard yokes are in line (in phase).",
-   "distinctions": null,
+   "definition": "The angle between the two shafts joined by a universal joint. A single U-joint running at an angle makes the output speed rise and fall twice per revolution. On a conventional two-joint driveshaft this cancels out only when the operating angles at both ends are equal and the two inboard yokes are in line (in phase); that rule is specific to the two-joint layout and is not a rule for every driveline.",
+   "distinctions": "The cancellation rule above is a general kinematic principle. Recommended angle limits are application-specific: for its driveshafts, Mark Williams Enterprises gives about ½° as optimal and about 2° as the most for racing, with the transmission and pinion centerlines parallel within ½°. Uneven angles cause a vibration that is easily mistaken for an out-of-balance shaft.",
    "units": [
     "°"
    ],
@@ -32682,8 +33160,7 @@
    ],
    "calculators": [
     "ujoint_angles",
-    "pinion_angle_change",
-    "driveshaft_speed"
+    "pinion_angle_change"
    ],
    "related": [
     {
@@ -32694,28 +33171,54 @@
     }
    ],
    "provenance": {
-    "definition": "draft",
+    "definition": "Wave 1 Owner-Review Package Revision 4 (owner-approved 2026-10-31)",
     "file": "catalog/encyclopedia-enrichment.json"
    },
    "review": {
-    "status": "citation-verified",
-    "reviewer": null,
-    "verified": null,
+    "status": "reviewed",
+    "reviewer": "Trent Steeves (owner)",
+    "verified": "2026-10-31",
     "checked": "2026-10-26",
     "checked_by": "Claude (source check; not owner-approved)",
-    "notes": "Revised 2026-10-26: the draft said \"equal and opposite angles\" cancel the fluctuation and did not mention yoke phasing. The source requires equal angles and the inboard yokes in line.",
+    "notes": null,
     "revised": [
      "definition"
     ]
    },
    "sources": [
     {
-     "title": "Universal Joints (product catalogue, technical section)",
-     "publisher": "Huco",
-     "url": "https://theengineer.markallengroup.com/production/content/uploads/2012/05/universal_joints.pdf",
-     "supports": "A single joint at an angle makes the output gain and lag twice per revolution; with two joints the effect cancels when the angles at both ends are equal and the inboard yokes are in line."
+     "title": "Universal Joints catalogue P-8189-HD",
+     "publisher": "Huco LLC",
+     "date": "2021",
+     "url": "https://www.drivelinegroup.com/image/huco/p-8189-hd.pdf",
+     "tier": "Manufacturer",
+     "warning": "Distributor-hosted (drivelinegroup.com).",
+     "supports": "The output \"gaining, then lagging … twice in each revolution\", and cancellation with equal angles and aligned inboard lugs: the kinematic principle."
+    },
+    {
+     "title": "Driveshaft Tech",
+     "publisher": "Mark Williams Enterprises",
+     "url": "https://www.markwilliams.com/driveshafttech.html",
+     "tier": "Manufacturer",
+     "warning": "Undated.",
+     "supports": "The ½° and 2° figures, centerlines parallel within ½°, and vibration that is hard to tell from imbalance: application-specific recommendations."
     }
    ],
+   "confidence": {
+    "technical": "High",
+    "sources": "Strong"
+   },
+   "caveats": [],
+   "calculator_roles": {
+    "ujoint_angles": {
+     "role": "calculates",
+     "note": "Computes the angles."
+    },
+    "pinion_angle_change": {
+     "role": "uses",
+     "note": "Computes the pinion-angle change that alters the rear operating angle."
+    }
+   },
    "incomplete": []
   },
   {
@@ -34270,6 +34773,9 @@
      "supports": "Change of the load borne by the wheels under acceleration, braking or cornering, caused by the centre of mass being above the ground; the total load is redistributed, not changed."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {
@@ -34596,6 +35102,9 @@
      "supports": "Wheel rate = spring rate x motion ratio squared, with motion ratio as spring over wheel travel."
     }
    ],
+   "confidence": null,
+   "caveats": [],
+   "calculator_roles": null,
    "incomplete": []
   },
   {

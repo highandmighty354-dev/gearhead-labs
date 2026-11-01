@@ -67,7 +67,11 @@ function validator() {
     ['a source that does not say what it supports', d => { delete find(d, 'term.camber').sources[0].supports; }],
     ['a source with a non-https link', d => { find(d, 'term.camber').sources[0].url = 'javascript:alert(1)'; }],
     ['a draft-unreviewed concept carrying sources', d => { const e = find(d, 'term.camber'); e.review.status = 'draft-unreviewed'; }],
-    ['a source check with no date', d => { find(d, 'term.camber').review.checked = null; }],
+    ['a source check with no date', d => { find(d, 'term.caster').review.checked = null; }],   // Caster is still citation-verified; Camber became owner-reviewed in Wave 1
+    ['an owner-reviewed concept without confidence ratings', d => { find(d, 'term.camber').confidence = null; }],
+    ['an owner-reviewed concept with a source that has no tier', d => { delete find(d, 'term.camber').sources[0].tier; }],
+    ['an owner-reviewed concept with a calculator whose role is not stated', d => { delete find(d, 'term.camber').calculator_roles.rc_camber_gain; }],
+    ['a calculator role that is not in the declared set', d => { find(d, 'term.torque-converter-stall').calculator_roles.torque_converter.role = 'predicts'; }],
     ['two relations to the same concept', d => { const e = find(d, 'term.wheel-rate'); e.related.push({ to: e.related[0].to, type: 'related', note: null, declared: true }); }]
   ];
   for (const [name, mut] of MUT) {
@@ -77,6 +81,12 @@ function validator() {
   }
   const g = spawnSync(process.execPath, [path.join(REPO, 'catalog/build-encyclopedia.js'), '--check'], { encoding: 'utf8' });
   check('V the committed JSON is exactly what the generator produces from its sources (--check)', g.status === 0, g.stdout + g.stderr);
+  /* Wave 1 (owner decision 2026-10-31): exactly these 17 concepts are owner-reviewed, with the approved calculator links; every other concept stays unapproved */
+  const WAVE1 = {"term.engine-displacement": ["engine_displacement", "reverse_displacement"], "term.static-compression-ratio": ["static_compression", "boost_cr", "head_gasket_vol"], "term.intake-valve-closing": ["camshaft_ivc", "cam_card", "dynamic_compression"], "term.bore-stroke-ratio": ["bore_stroke_ratio"], "term.rod-stroke-ratio": ["rod_stroke_ratio", "connecting_rod_angularity"], "term.mean-piston-speed": ["mean_piston_speed"], "term.piston-ring-gap": ["ring_gap", "ring_gap_bore"], "term.valve-spring-rate": ["valve_spring_rate", "spring_rate", "spring_force_at_lift"], "term.driveshaft-critical-speed": ["driveshaft_critical"], "term.final-drive-ratio": ["final_drive_ratio", "ring_pinion", "final_drive_selector", "effective_gear_ratio", "gear_ratio_speed", "engine_rpm_speed", "speedo_driven_gear"], "term.ring-and-pinion": ["ring_pinion"], "term.torque-converter-stall": ["torque_converter"], "term.torque-bias-ratio": ["lsd_bias_lock_effect"], "term.ujoint-operating-angle": ["ujoint_angles", "pinion_angle_change"], "term.motion-ratio": ["motion_ratio", "rc_motion_ratio_rc", "wheel_motion"], "term.suspension-spring-rate": ["coil_spring", "dual_spring_rate"], "term.camber": ["rc_camber_gain", "caster_trail_effect", "caster_from_camber"]};
+  const reviewed = DATA.entries.filter(e => e.review.status === 'reviewed').map(e => e.id).sort();
+  check('V exactly the 17 Wave 1 concepts are owner-reviewed', JSON.stringify(reviewed) === JSON.stringify(Object.keys(WAVE1).sort()), reviewed.join(', '));
+  const wbad = Object.entries(WAVE1).filter(([id, calcs]) => { const e = DATA.entries.find(x => x.id === id); return !e || e.review.reviewer !== 'Trent Steeves (owner)' || e.review.verified !== '2026-10-31' || JSON.stringify(e.calculators) !== JSON.stringify(calcs); }).map(([id]) => id);
+  check('V each Wave 1 concept names reviewer Trent Steeves (owner), date 2026-10-31, and exactly its approved calculators', wbad.length === 0, wbad.join(', '));
 }
 
 /* ================= S, O, F, U. search, order, filters and sort modes on the real data ================= */
@@ -89,7 +99,7 @@ function logic() {
     ['preferred term "Wheel Rate"', 'Wheel Rate', ['calc.wheel_rate', 'term.wheel-rate'], 2],
     ['alias "posi"', 'posi', ['term.limited-slip-differential'], 1],
     ['alias "rear end ratio"', 'rear end ratio', ['term.final-drive-ratio'], 1],
-    ['shop language "gears"', 'gears', ['term.final-drive-ratio'], 3],
+    ['alias "diff ratio"', 'diff ratio', ['term.final-drive-ratio'], 3],   // was shop word "gears", dropped by the owner-approved Wave 1 aliases (Revision 4)
     ['abbreviation "DCR"', 'DCR', ['abbr.dcr', 'term.dynamic-compression-ratio'], 2],
     ['abbreviation "LSD"', 'lsd', ['abbr.lsd', 'term.limited-slip-differential'], 2],
     ['abbreviation "BMEP"', 'BMEP', ['abbr.bmep', 'term.bmep'], 2],
@@ -220,6 +230,10 @@ async function pages(browser, port) {
     await ready('encyclopedia.html?entry=term.imep');
     const im = await page.evaluate(() => ({ h: [...document.querySelectorAll('#entry h3')].map(x => x.textContent), src: document.querySelectorAll('#entry ul.srcs li').length, rev: (document.querySelector('#entry .rev') || {}).textContent || '' }));
     check(tag('a source-checked entry lists its sources and says it is not owner-approved'), im.h.includes('Sources') && im.src >= 1 && /Partly checked against the sources below/.test(im.rev) && /not yet approved by a reviewer/.test(im.rev) && /Open question:/.test(im.rev), JSON.stringify(im));
+    await ready('encyclopedia.html?entry=term.torque-converter-stall');
+    const tc = await page.evaluate(() => ({ h: [...document.querySelectorAll('#entry h3')].map(x => x.textContent), calcs: (document.querySelector('#entry ul.calcs') || {}).textContent || '', rev: (document.querySelector('#entry .rev') || {}).textContent || '' }));
+    check(tag('an owner-reviewed entry names the reviewer, the date and both confidence ratings'), /Reviewed by Trent Steeves \(owner\) on 2026-10-31\./.test(tc.rev) && /Technical confidence: High · Source confidence: Strong\./.test(tc.rev), tc.rev);
+    check(tag('Torque Converter Stall / Launch is shown as taking stall as an input, never as calculating it'), !tc.h.includes('Calculate it') && /Takes it as an input\./.test(tc.calcs) && /It does not predict or calculate stall speed\./.test(tc.calcs), JSON.stringify(tc));
     await ready('encyclopedia.html?entry=term.crankcase-compression-ratio');
     const cc = await page.evaluate(() => ({ src: document.querySelectorAll('#entry ul.srcs li').length, rev: (document.querySelector('#entry .rev') || {}).textContent || '' }));
     check(tag('an unsourced entry still says it is an unreviewed draft with no source'), cc.src === 0 && /Draft definition, not yet reviewed\. No source cited yet\./.test(cc.rev), JSON.stringify(cc));
