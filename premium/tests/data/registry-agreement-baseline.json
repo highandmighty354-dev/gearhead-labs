@@ -1,0 +1,1901 @@
+{
+ "_about": "Reviewed baseline for premium/tests/registry-agreement.test.js (M1). Every registry calculator whose page defaults do not AGREE with the registry, with its class and the reason after review. Engine at branch feat/m1-engine-chain-single-path (from d44ae32), Imperial, clean storage. A change of class fails the test until the entry is reviewed again.",
+ "reviewed_on": "2026-10-21",
+ "calculators": {
+  "ackermann_angle": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: l, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "advanced_et": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: da",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "aero_balance": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "aero_hp": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, v",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "afr_from_lambda": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: l, s",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "air_density": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: tempF, presInHg, rh",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "air_fuel_mass": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, a",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "air_standard_otto": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "alternator_capacity": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: v, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "anti_dive": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: bias, icH, cgH",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "anti_squat": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: ic",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "approach_departure_angle": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: fh, fo, rh, ro",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "articulation_index": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: h, wb",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "bar_to_psi": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "battery_ah": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: i, t",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "beam_deflection": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: p, l, e, i",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "bend_allowance": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: a, r, t, k",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "bending_stress": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: m, s",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "bmep": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: torq2",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "bmep_from_torque": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: T, V",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "bolt_stretch": {
+   "class": "INCOMPLETE",
+   "detail": "registry INCOMPLETE for the page defaults",
+   "reviewed": "Reviewed 2026-10-21: not a formula disagreement. The page leaves shank diameter and thread length blank by default and derives them; the registry requires them explicitly, so the page defaults are INCOMPLETE for the registry."
+  },
+  "bore_stroke_ratio": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: stroke_bs",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "brake_bias_hydraulic": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "brake_clamp_force": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: p, a",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "brake_energy": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: w, v",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "brake_fade_energy": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: e, n",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "brake_hydraulic_ratio": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: master, cal",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "brake_pedal_effort": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: clamp, pedal, hyd",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "brake_rotor_temp": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: ke",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "brake_torque": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, u, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "breakover_angle": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: wb, ground",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "btu_hr_to_kw": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "btu_to_joules": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "cam_duration_rpm": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: d, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "can_bitrate": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: b, f",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "carb_sizing": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: v, rpm, ve",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "cc_to_cubic_inches": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "celsius_to_fahrenheit": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "celsius_to_kelvin": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "cg_3d": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: wb, track, x, y, z",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "cg_lateral": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: left, right, track",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "cg_longitudinal": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: front, rear, wb",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "chip_load": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, r, z",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "christmas_tree": {
+   "class": "NON_COMPARABLE",
+   "detail": "the page shows no result row (registry VALID: total_tree_time_to_green_pro_tree 0.3)",
+   "reviewed": "Reviewed 2026-10-21: CONFIRMED DISAGREEMENT, outside M1, not corrected. The registry entry gives the Pro-tree \"total tree time to green\" as 0.1 x 3 = 0.3 s; the page (which shows no result row, only text) states green comes 0.400 s after the ambers, which is the standard Pro tree. The registry entry is the one in error. Recorded for owner review; correcting it is a versioned formula change."
+  },
+  "clamp_load": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: t, k, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "climb_rate": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: eff",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "clutch_fork_ratio": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: pivot, push",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "clutch_hydraulic_ratio": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: master, slave",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "clutch_pedal_effort": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: release, pedal, hyd",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "clutch_pedal_ratio": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: input, output",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "clutch_release_force": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: spring, lever",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "clutch_torque_capacity": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: clamp, mu, mean, surfaces",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "cm_to_inches": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "cog_height": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: rf_t",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "coil_spring": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: d, n, D",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "compressor_efficiency": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: i, a",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "compressor_outlet_temp": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: t, pr, e",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "compressor_pr": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: o, i",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "control_error": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: s, m",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "coolant_flow": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: q, c, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "corner_weight_analysis": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: lf, rf, lr, rr",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "cornering_stiffness": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, a",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "cranking_compression": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: rod, stroke, ivc, atm, gamma",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "crawl_ratio_tire": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: raw_cr, stock_d, new_d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ct_weight_dist": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: lf2, rf2, lr2, rr2",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "cubic_feet_to_liters": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "cubic_inches_to_cc": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "cubic_inches_to_liters": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "damping_ratio": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: c, cc",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "decibel_ratio": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "decimal_inch_to_mm": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "decimal_to_fraction": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "decimal_to_mixed_number": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "decimal_to_nearest_fraction": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "deck_height": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: b, r, s, p",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "depreciation_schedule": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: n",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_afr_lambda": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: l, s",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_afrlambda": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: afr",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_bmep": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: hp, rpm, disp",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_boost_pr": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: boost, amb",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_bsfc": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: hp, fuel",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_compressor_outlet": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: t, pr, e",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_cost_per_hour": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: gph, price, labor, maint",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_cost_per_mile": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: mpg, price, miles",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_def_cost": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: def, price, miles",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_def_range": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: tank, rate, diesel",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_def_rate": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_dpf_soot": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: g, r, t",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_egb": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: e, i",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_egr_flow": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, e",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_exhaust_flow": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: a, f",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_fuel_flow": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: hp, bsfc, density",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_fuel_per_acre": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: gph, hours, acres, price",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_fuel_per_cycle": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: gph, cph, price",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_fuel_per_ton": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: gal, tons, price",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_fuel_savings": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: old, newer, miles, price",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_idle_cost": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: gph, hrs, price",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_injection_duration": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: q, f",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_injection_quantity": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, c",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_injection_timing": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: s, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_injector_flow": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: dif_qty",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_intercooler": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: inT, outT, amb",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_load_factor": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: rated, actual",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_mpg": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: miles, gallons, diesel",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_power_economy": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: baseHp, modHp, baseGph, modGph",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_power_from_fuel": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: fuel, bsfc",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_power_to_weight": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: hp, wt",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_rail_power": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, p",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_regen_cost": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: freq, hours, fuel, price",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_regen_interval": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: c, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_scr_efficiency": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: i, o",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_smoke_limit": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: a, l",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_turbine_pr": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: i, o",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_turbo_efficiency": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: i, a",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "diesel_turbo_pr": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: boost, amb, inlet, charge",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "downforce": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: cl, a, v",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "drag_force": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: cd, a, v",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "driveshaft_order": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: r, o",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "drivetrain_loss": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: loss_pct",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "dual_spring_rate": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: s1, s2",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "dynamic_compression": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: bore, stroke3, rod",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "dynamic_pressure": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: rho, v",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "e85_fuel_multiplier": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: g, eg, ee",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "electrical_power": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: v, i",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "engine_air_density": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: P, T",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "engine_airflow": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: V, rpm",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "engine_order": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: r, o",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "et_mph_prediction": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: hp, wt",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_acceleration": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: wt, hp, traction",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_battery_current": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: kw, volts, eff",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_battery_degradation": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: original, current",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_battery_energy": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: volts, ah",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_battery_heat": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: i, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_c_rate": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: i, a",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_charge_added": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: p, t, e",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_charge_cost": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: kwh, rate",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_charge_loss": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: g, b",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_charge_time": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: batt, charger, eff",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_coolant_flow": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: q, cp, dt",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_cost_per_mile": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: rate, eff",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_efficiency": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: kwh, miles",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_hvac_energy": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: p, t",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_internal_resistance": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: v, i",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_inverter_loss": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: i, o",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_motor_efficiency": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: o, i",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_motor_power": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: tq, rpm",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_motor_torque": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: kw, rpm",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_pack_ah": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: a, p",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_pack_configuration": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: s, p, v, a",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_peak_power": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: v, i",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_power_conversion": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: p, e",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_quarter_mile": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: wt, hp, util",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_range": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: batt, eff, usable",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_reduction_ratio": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: m, w",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_regen_power": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: wt, g, mph, eff",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_soc_energy": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: e, s",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_temp_penalty": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: r, p",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_tire_wear": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: w, t, rw, rt, style",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_top_speed": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: hp, cd, area, rho",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_towing_penalty": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: r, p",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_usable_energy": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: e, s",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_voltage_sag": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: v, i, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ev_wheel_torque": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: t, r, e",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "factor_of_safety": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: s, a",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fahrenheit_to_celsius": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fahrenheit_to_kelvin": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "feed_rate": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: r, z, f",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "feet_to_inches": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "feet_to_meters": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "feet_to_mm": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "flow_coefficient": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: cfm, dp, A",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fluid_oz_to_ml": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fmep_from_imep_bmep": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: I, B",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "following_distance": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: v, t",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fraction_add": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: an, ad, bn, bd",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fraction_divide": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: an, ad, bn, bd",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fraction_multiply": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: an, ad, bn, bd",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fraction_simplify": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: n, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fraction_subtract": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: an, ad, bn, bd",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fraction_to_decimal_mm": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fraction_to_percent": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: n, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "friction_circle": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x, y",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ft_per_sec_to_mph": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ftlb_to_joules": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fuel_cell_efficiency": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: o, i",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fuel_cell_power": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: m, e, f",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fuel_economy": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: fuel",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fuel_flow_from_hp": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: hp, bsfc",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fuel_pressure_flow": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, p, np",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fuel_pump_capacity": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: hp, bsfc, sf",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fuel_system_hp": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, b",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "fuse_size": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: i, s",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "g_per_cc_to_lb_per_ft3": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "gallons_to_liters": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "grams_to_oz": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "harmonic_frequency": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, n",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "heat_exchanger_effectiveness": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: a, m",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "heat_input_per_cycle": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: m, LHV",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "heat_transfer": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: h, a, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "hp_aero_drag": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: spd",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "hp_from_boost": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: atm",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "hp_from_torque": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: rpm",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "hp_quarter_mile": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: et",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "hp_to_kw": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "hp_to_ps": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "hp_trap_speed": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: wt, trap",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "hvac_cooling_load": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: v, ach, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "hybrid_power_split": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: p, f",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "hybrid_regen_energy": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: p, e, t",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "hydraulic_pump_flow": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: hp_disp, hp_rpm, hp_eff",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "hydraulic_reservoir_sizing": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: bore_rs, stroke_rs, n_rs, lineLen_rs, lineId_rs, margin_rs",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "imep_from_power": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: HP, V, rpm",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "inch_fraction_to_mm": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "inch_to_feet": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "inches_to_cm": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "incremental_et": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: t330, t660, t1000, t1320",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "inhg_to_psi": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "injector_duty_cycle": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: req, rate",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "injector_size": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: hp, bsfc, n, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "insurance_estimator": {
+   "class": "INCOMPLETE",
+   "detail": "registry INCOMPLETE for the page defaults",
+   "reviewed": "Reviewed 2026-10-21: not a formula disagreement. The page asks \"clean record\" as a yes/no list; the registry declares that input as a number, so the page default (\"yes\") is not a numeric registry input. Input-mapping gap, outside M1."
+  },
+  "intercooler_pressure_drop": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: i, o",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "intercooler_temp_drop": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: i, o",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "joules_to_btu": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "joules_to_ftlb": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "kelvin_to_celsius": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "kelvin_to_fahrenheit": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "kg_per_sec_to_lb_per_min": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "kg_to_lb": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "kgf_to_newton": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "km_to_miles": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "kmh_to_mph": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "kpa_to_psi": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "kw_to_btu_hr": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "kw_to_hp": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "lambda_from_afr": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: a, s",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "lateral_accel": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: force_la",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "lateral_acceleration": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: v, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "lb_per_ft3_to_g_per_cc": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "lb_per_min_to_kg_per_sec": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "lb_to_kg": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "lbforce_to_newton": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "lbft_to_lbin": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "lbft_to_nm": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "lbin_to_lbft": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "lbin_to_nm": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "lift_force": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: cl, a, v",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "liters_to_cubic_feet": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "liters_to_cubic_inches": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "liters_to_gallons": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "liters_to_quarts": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "load_transfer_lateral": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: w, h, t, a",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "load_transfer_longitudinal": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: w, h, l, a",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "machining_rpm": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: v, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "maf_airflow": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: m, s",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "map_pressure_ratio": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: m, a",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "material_removal": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: w, d, f",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "mean_piston_speed": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: stroke4",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "meters_to_feet": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "metric_to_nearest_sae": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "miles_to_km": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "mixed_number_to_decimal": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: w, n, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ml_to_fluid_oz": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "mm_to_decimal_inch": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "mm_to_feet": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "mm_to_inch_fraction": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "motion_ratio": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: w, s",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "mpa_to_psi": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "mph_to_ft_per_sec": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "mph_to_kmh": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "natural_frequency": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: k, m",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "newton_to_kgf": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "newton_to_lbforce": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "nm_to_lbft": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "nmm_to_lbft": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ohms_law": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: v, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "optimal_shift": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: ph, current, next",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "otto_efficiency": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "overlap_calc": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: io, ec",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "oz_to_grams": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "pedal_force": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "percent_to_fraction": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: p",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "pid_proportional": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: e, k",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "piston_position": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: stroke6, angle",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "piston_to_valve_clearance": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: c, s",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ps_to_hp": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "psi_to_bar": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "psi_to_inhg": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "psi_to_kpa": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "psi_to_mpa": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "pumping_mep": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: i, e",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "pwm_duty": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: o, p",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "quarts_to_liters": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "quench_clearance": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: d, g",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "radiator_heat_capacity": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, c, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "radsec_to_rpm": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "rc_aero_balance": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: front, rear, mech",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "rc_downforce": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: cl, area, speed, cd",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "rc_lap_delta": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: sensitivity",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "reaction_time": {
+   "class": "DISCREPANT",
+   "detail": "difference_from_perfect_light_pro_tree: registry 0.112 not shown (page shows 0.512)",
+   "reviewed": "Reviewed 2026-10-21: not a formula error in what the page shows. The registry output is the difference from a perfect Pro-tree light (0.512 - 0.400 = 0.112 s); the page shows the reaction time itself (0.512) with a written analysis and supports both Pro and Sportsman trees, so the registry value is not displayed. Outside M1."
+  },
+  "recovery_point_rating": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: w, mult, pts",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ride_frequency": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: k, m",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "ring_gap_bore": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: b, f",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "rocker_valve_lift": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: l, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "rod_stroke_ratio": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: stroke5",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "roll_stiffness": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: l, r, t",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "rotating_weight": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: I, rpm1, rpm2, dt",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "rotor_heat": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: e, m, c",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "rpm_frequency": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "rpm_to_radsec": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "section_modulus": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: i, c",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "sensor_fov": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: w, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "sensor_scaling": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: r, s, o",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "shear_stress": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, a",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "sheet_weight": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: l, w, t, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "slip_angle": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: v, u",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "spring_force_at_lift": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: F, k, x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "spring_rate": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: F, x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "square_feet_to_square_meters": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "square_inches_to_square_mm": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "square_meters_to_square_feet": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "square_mm_to_square_inches": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "squish_velocity": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: stroke_sq",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "starter_current": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: p, v, e",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "static_compression": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: stroke2, chamber, gasket, piston",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "steering_ratio": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: s, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "stoich_afr_blend": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: fa, aa, fb, ab",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "strain": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: d, l",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "stress": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, a",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "supercharger_parasitic": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: p, f",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "surface_speed": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: r, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tap_drill": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: d, p",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "temperature_rise": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: q, m, c",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "thermal_efficiency": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: P, Q",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "thermal_expansion": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: l, a, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "thread_engagement": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: l, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "thread_pitch_convert": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: pitch_in",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "thread_pitch_to_tpi": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "time_speed_dist": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: dist3",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tire_frequency": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: v, c",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "toe_angle": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: totalToe",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "torque_converter": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: stall, fg, ar, tire, tq, mult",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "torsional_stress": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: t, j",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_actual_combined": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: v, t",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_aero_drag": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: cd, a, v",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_axle_load": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: w, t",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_brake_energy": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: w, v",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_ev_cost": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: e, p",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_gcwr_margin": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: g, w",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_grade_power": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: w, g, s",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_grade_speed": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: hp, w, g",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_gvwr_margin": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: g, w",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_hitch_margin": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: h, t",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_mpg_penalty": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: m, p",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_payload_remaining": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: p, c, t",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_range": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, m",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_rolling_resistance": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: w, c",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_stopping_distance": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: v, a",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_tongue_percent": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: t, w",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_trailer_capacity": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: g, e",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_trip_fuel_cost": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: m, g, p",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tow_wheel_torque": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: t, g, e",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "tpi_to_thread_pitch": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: x",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "trade_in_payoff": {
+   "class": "DISCREPANT",
+   "detail": "equity_positive_amount_owed_negative: registry -3000 not shown (page shows 3000)",
+   "reviewed": "Reviewed 2026-10-21: same quantity, different sign convention. The registry returns equity (-3000 = 3,000 owed); the page shows 3,000 under the label \"Negative Equity (Owed)\". Presentation only, outside M1."
+  },
+  "tube_weight": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: o, i, l, d",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "turbo_airflow": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: a, m",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "turbo_power_requirement": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: m, w",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "valve_lift_rocker": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: l, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "valve_spring_rate": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: d, n, D, seat, lift",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "voltage_drop": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: i, r",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "volumetric_eff": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: actual_cfm, theoretical",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "wastegate_flow": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: e, f",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "weight_transfer_accel": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: w, h, l, g",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "weight_transfer_braking": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: w, h, l, g",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "wheel_rate": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: k, m",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "winch_line_pull": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: gvwr, mult, rated, blocks",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "wing_force": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: c, a, v",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "wire_current_capacity": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: p, v",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "wmi_flow": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: hp, ratio, dens",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  },
+  "yaw_moment": {
+   "class": "NON_COMPARABLE",
+   "detail": "registry inputs without a page box: f, l",
+   "reviewed": "Reviewed 2026-10-21: the registry names its inputs differently from the page boxes and there is no GH_PAGE_INPUT_MAP mapping, so no automatic comparison is made. Not a finding about either formula; mapping these is outside M1."
+  }
+ }
+}

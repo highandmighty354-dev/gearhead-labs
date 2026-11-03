@@ -22,6 +22,7 @@ body.ghp-mode-premium #app{visibility:hidden}
 .ghp-nav-items{display:flex;gap:2px;flex:1;min-width:0;justify-content:center}
 .ghp-nav-item{position:relative;display:flex;align-items:center;gap:7px;min-height:40px;padding:0 12px;border:0;border-radius:9px;background:none;color:#aeb6c1;font:700 12px/1 var(--ghp-font);letter-spacing:.04em;cursor:pointer;white-space:nowrap}
 .ghp-nav-item:hover{color:var(--ghp-gold-hi);background:rgba(215,161,31,.07)}
+a.ghp-nav-item{text-decoration:none}   /* the Encyclopedia item is a link (Issue #23): same look as the buttons */
 .ghp-nav-item.active{color:var(--ghp-gold-hi);background:rgba(215,161,31,.12)}
 .ghp-nav-short{display:none}
 .ghp-nav-lock{width:12px;height:12px;opacity:.7}
@@ -158,3 +159,16 @@ body.ghp-mode-premium #app{visibility:hidden}
 /* ---------- Premium price line (Gearhead Labs Premium: $5.99/month or $59.99/year) ---------- */
 .ghp-price{margin-top:14px;padding:10px 12px;border:1px solid var(--ghp-gold);border-radius:8px;color:var(--ghp-text)}
 .ghp-price b{color:var(--ghp-gold)}
+
+/* ---------- Premium offer on Profile (prices, checkout status, what Premium adds) ---------- */
+#ghp-view .ghp-offer h2{margin:6px 0 0}
+#ghp-view .ghp-offer h3{margin:20px 0 8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ghp-muted)}
+.ghp-offer-prices{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:baseline}
+.ghp-offer-price{display:flex;align-items:baseline;gap:6px}
+.ghp-offer-price b{font-size:24px;line-height:1.1;color:var(--ghp-gold-hi)}
+.ghp-offer-price span{color:var(--ghp-muted);font-size:13px}
+.ghp-offer-status{margin:12px 0 0!important;padding:10px 12px;border:1px solid rgba(245,165,36,.45);border-radius:8px;background:rgba(245,165,36,.08);font-size:13.5px}
+.ghp-offer-status b{color:var(--ghp-amber)}
+.ghp-offer-list{margin:0;padding-left:18px}
+.ghp-offer-list li{margin:0 0 6px;font-size:14px;line-height:1.5}
+.ghp-offer-list b{color:var(--ghp-text)}

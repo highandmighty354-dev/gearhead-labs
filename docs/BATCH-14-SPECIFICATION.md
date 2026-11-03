@@ -1,0 +1,752 @@
+# Batch 14 — EV / Hybrid: Model Specification Review
+
+**Revision 1.2, 2026-10-14 (final-pair review).** This revision revises §2.4 DC Fast-Charge Time and §2.5 Hybrid Power-Split, on the owner's direction after the final-pair decision review (`claude/batch-14-final-pair-decisions.md`).
+- **§2.4:** the approved model (c) with the start-in-CV case (DC-1), the stated conservative rule for a power-limited charger (DC-2), the capacity-window convention (DC-3) and three recalculated, model-derived examples.
+- **§2.5:**
+  - an independent derivation (planet contact velocities and a free body);
+  - a sign convention for powers;
+  - the electrical path corrected for power recirculation (PS-2: rev 1.1's single formula created energy);
+  - the stationary-ring case resolved (PS-3: no charge-sustaining solution exists);
+  - four worked examples.
+- Nothing in §2.1–§2.3 or §2.6 changed.
+
+**Revision 1.1, 2026-10-14 (documentation correction after Stage 1).** Revision 1.0 was the specification delivered to the owner on 2026-10-14. This revision corrects the Battery Pack Heat Balance transient (§2.1) and records how Stage 1 was implemented. Nothing else in the models changed.
+
+**Erratum, §2.1 Battery Pack Heat Balance transient.** Revision 1.0 used τ = C ÷ UA = 900 s and gave a time to 35 °C of 1,018.26 s. **That result is superseded.**
+- **Why it was wrong:** the model held the mean coolant temperature at its *steady* value from t = 0. At t = 0 that has 25 °C coolant heating a 25 °C pack at UA × (25 − 29.76) = −2,381 W, which violates the coolant's own energy balance.
+- **The correction:** heat to the coolant is q = (T − T_in) ÷ R_sum, with R_sum = 1/UA + 1/(2 ṁ c_p). That gives τ = C × R_sum = 1,328.57 s, and the worked example reaches 35 °C in **1,503.15 s (25.05 min)**.
+- **Independent checks:** Euler integration of the pack with the coolant balance gives 1,503.15 s. A two-node model with a small coolant mass gives 1,505.6 s at 2 kg and 1,503.4 s at 0.2 kg.
+- **Unchanged:** the steady pack temperature (39.7619 °C) and the continuous capacity (3,387.10 W, 205.764 A). Both already used R_sum.
+- The implemented calculator (`battery_pack_heat_balance`, commit `45a2177`) uses the corrected model.
+
+**Stage 1 implementation notes.** These are differences from revision 1.0, all recorded in `docs/PREMIUM-CATALOG.md` ("Batch 14, stage 1").
+- **Zero values accepted:** zero speed change (regen) and zero current (battery) give physically meaningful zeros, so they are accepted rather than rejected.
+- **Entropic term:** evaluated at the pack temperature, which keeps the steady state and transient exact and linear.
+- **Energy display:** regen energies have a page selector for kWh, Wh or kJ. The owner's Stage 1 authorization settled D-14-7 this way.
+- **Unit conventions:** the owner's Stage 1 authorization set heat rows to W (`RETAIN-ACCESSORY`) and EV power to native kW.
+- **No separate thermal helper:** a shared first-order helper was not introduced. The battery model is self-contained, and the regen model has no thermal part.
+
+Specification only: no code, tests or repository documents were changed. Prepared 2026-10-14. Nothing in Batch 14 is authorized for implementation.
+
+**Repository state at revision 1.0 (verified before and after that review).**
+
+| Item | State |
+|---|---|
+| Branch | `premium/full-calculator-expansion` |
+| HEAD | `87eb6c9` |
+| Remote branch | in sync with HEAD |
+| Working tree | clean |
+| `main` | `a4203cd` |
+| Engine | `F1_12_4_…batch9_1.html` (737 calculator-kind tools, 152 Premium calculators) |
+| Open defects | GH-DEF-034 and GH-DEF-035 are OPEN and untouched |
+
+**Evidence tags used below.**
+- **[P]** published fact, with a source.
+- **[E]** engineering recommendation made here.
+- **[V]** verified here by an independent numerical method: a forward-Euler ODE integration, a brute-force time integration, or an energy balance. This is different from the closed form the calculator would use.
+
+All worked values were produced by a standalone script, not by the engine.
+
+---
+
+## 1. Existing system: reuse and overlap
+
+| Batch 14 item | Existing calculators (read in the engine) | What exists | What the new calculator adds | Overlap verdict |
+|---|---|---|---|---|
+| Battery Pack Heat Balance | `ev_battery_heat`, `ev_coolant_flow` | `ev_battery_heat`: Q = I²R (W). `ev_coolant_flow`: ṁ = Q ÷ (c_p ΔT) (kg/s) | Combines generation, coolant temperature rise and pack-to-coolant conductance. Adds a steady pack temperature, the continuous heat and current capacity to a limit, and a transient time-to-limit | Distinct (reconciliation #124, "combines generation + cooling capacity"). Reuse the formula of each, not the renderers; cross-link both |
+| Motor Thermal Limit | `ev_motor_efficiency`, `ev_motor_power`, `ev_motor_torque` | Efficiency and power↔torque only; nothing thermal | Loss from the operating point, a thermal network, continuous versus time-limited operation | No overlap. Reuse the power-from-torque relation P = T ω |
+| Inverter Thermal Load | `ev_inverter_loss`, `ev_power_conversion` | Loss = P_in − P_out (kW); AC = DC × η | Thermal consequences (coolant rise, heatsink and junction temperature) and an optional data-sheet device-loss model | Partial: a loss-only mode would duplicate `ev_inverter_loss`. **Mode A must add the thermal outputs** to be distinct [E] |
+| DC Fast-Charge Time with CC-CV Taper | `ev_charge_time` (Free, `vd()` style), `ev_charge_added`, `ev_c_rate` | Time = energy ÷ (power × η): linear, no taper | CC phase to a voltage limit, then CV taper; current at target; I²R energy | Distinct (reconciliation #137). Show the linear estimate as a comparison row |
+| Hybrid Power-Split Device Kinematics | `hybrid_power_split`, `planetary_gearset_ratio` (Batch 7) | `hybrid_power_split`: engine power = system × fraction. `planetary_gearset_ratio`: static ratio with one member fixed (ring-fixed 1 + R/S; sun-fixed 1 + S/R) | Two-degree-of-freedom Willis kinematics (all three members turning), the torque split, MG1/MG2 power flow | Distinct (exceptions-resolved B.1). Consistency check: with the ring held, the Willis equation gives 1 + R/S, the same as `planetary_gearset_ratio` [V] |
+| Regenerative Braking Energy Recovery | `hybrid_regen_energy`, `ev_regen_power` (Free) | `hybrid_regen_energy`: E = P × η × t with braking power given. `ev_regen_power`: instantaneous P = W·a·v·η at one speed | Event energy from ½mv², capped by motor and battery power limits, a low-speed cutout and the regen-axle share; the friction share; a loss chain without double counting | Distinct (exceptions-resolved #9). Cross-link both; state that `ev_regen_power` is one instant and this is the whole stop |
+
+**Engine conventions to follow.** These are the same as Batches 11 and 13:
+- `RENDERS.id` built from `certValue`, `field`, `nativeField`, `selectField`, `multiResult` and `certError`;
+- warnings in `help-note`;
+- a registry entry, a `models.js` promo, engine self-tests (`T(...)`), a `structural-14` test file and `unit-system` cases.
+
+**Categories** (all existing, so no navigation change):
+
+| Category | Calculators |
+|---|---|
+| `EV / THERMAL` | Battery Pack Heat Balance, Motor Thermal Limit, Inverter Thermal Load |
+| `EV / CHARGING & RANGE` | DC Fast-Charge Time |
+| `EV / HYBRID & ALTERNATIVE ENERGY` | Hybrid Power-Split Device Kinematics, Regenerative Braking Energy Recovery |
+
+**Unit infrastructure (read from `UNIT_DEFS`).**
+- **Converted by system:** `°F ↔ °C`, `Δ°F ↔ Δ°C`, `lbs ↔ kg`, `lbs/min ↔ kg/min`, `mph ↔ km/h`, `in ↔ mm`. Power (`HP` ↔ kW) and torque (`lb-ft` ↔ N·m) are converted only through the GH-IMP-019 performance tokens (`PERF_ROWS`).
+- **Unregistered and neutral** (same number and text in both systems): kW (native boxes), kWh, W, A, V, Ah, Ω, K/W, W/K, J/K, J/kg·K, s, min, hr, RPM, %.
+- **Precedents to follow:**
+  - battery heat is `W`, `RETAIN-ACCESSORY` (`ev_battery_heat`);
+  - inverter loss is `kW`, `EV_POWER` (`ev_inverter_loss`);
+  - deceleration is `g`, which needs `raw:true`.
+
+---
+
+## 2. Calculator specifications
+
+### 2.1 Battery Pack Heat Balance — `battery_pack_heat_balance` (EV / THERMAL)
+
+**Purpose.** Answers one question: for a stated current and stated cooling, where does the **average** pack temperature settle, how long until it reaches a limit, and what current can be held continuously?
+
+**Boundaries.**
+- It does not predict cell temperatures, gradients, hot spots, ageing or thermal runaway.
+- It does not derive resistance or entropic data from chemistry; both are user inputs.
+
+**Thermal boundary** [E]. The control volume is the cells, modules and cooling plates. One lumped temperature is assumed, and heat leaves only to the coolant through a conductance UA. Heat exchange with ambient is neglected; this is stated on the page and is conservative for a hot pack.
+
+**Candidate models.**
+
+| Candidate | Status | Basis | Reason |
+|---|---|---|---|
+| Joule only, I²R | Kept | — | The main term at high current, and what `ev_battery_heat` does |
+| Bernardi general energy balance: q = I(U_oc − V) − I T (dU_oc/dT), sign + for discharge | Optional term | [P] Bernardi, Pawlikowski & Newman, J. Electrochem. Soc. 132(1), 5–12 (1985); refined by Rao & Newman, 144(8), 2697 (1997) | With a constant pack resistance, I(U_oc − V) = I²R. The entropic term needs dU/dT, which depends on chemistry and state of charge. **Optional input, default 0, labelled "omitted unless entered"** [E] |
+| Steady state | Kept | — | — |
+| Transient lumped capacitance | Kept | [P] Incropera & DeWitt, *Fundamentals of Heat and Mass Transfer*, lumped-capacitance method | Valid only as a mean temperature (the pack Biot number is not small for cell interiors); stated |
+| 1-D or 3-D cell models | Rejected | — | Data the user will not have |
+
+**Selected: two outputs from one model** [E]. The steady state and the transient come from the same equations, so there are no separate modes.
+
+1. **Current.** I comes from the current, or from the battery power as I = P ÷ V_pack (an input selector).
+2. **Heat generated.** Q_gen = I²R_pack + Q_rev, with Q_rev = −I·T_K·(dU/dT)_pack.
+   - I > 0 is discharge and I < 0 is charge, so Q_rev changes sign with direction [P Bernardi].
+   - (dU/dT)_pack = (dU/dT)_cell × cells in series. The user enters the pack value; the help text explains the scaling.
+3. **Coolant temperature rise.** ΔT_c = Q_gen ÷ (ṁ c_p); outlet T_c,out = T_in + ΔT_c; mean T_c,m = T_in + ΔT_c ÷ 2.
+4. **Steady pack temperature.** T_ss = T_c,m + Q_gen ÷ UA.
+5. **Continuous capacity to the limit.** Q_max = (T_lim − T_in) ÷ (1/UA + 1/(2ṁc_p)), giving the continuous current I_max = √(Q_max ÷ R) when Q_rev = 0.
+6. **Transient (corrected in revision 1.1).** The heat reaching the coolant during warm-up is q = UA (T − T_c,m), where T_c,m = T_in + q ÷ (2ṁc_p). So q = (T − T_in) ÷ R_sum, with R_sum = 1/UA + 1/(2ṁc_p).
+   - With C = m_pack c_pack: C dT/dt = Q_gen(T) − (T − T_in) ÷ R_sum.
+   - The time constant is τ = C ÷ (I dU/dT + 1/R_sum). This is C × R_sum when dU/dT = 0.
+   - Then T(t) = T_ss − (T_ss − T₀)e^(−t/τ), and the time to the limit is t_lim = τ ln((T_ss − T₀) ÷ (T_ss − T_lim)).
+   - If I dU/dT + 1/R_sum ≤ 0 there is no steady state; that input is rejected with the reason.
+   - *Revision 1.0 used τ = C ÷ UA, holding the coolant mean at its steady value from t = 0. That is superseded; see the erratum.*
+   - If T_ss ≤ T_lim, the result reads "does not reach the limit".
+   - If T₀ ≥ T_lim, the result reads "already at or above the limit".
+
+**Inputs.**
+
+| Input | Units | Example default | Validation |
+|---|---|---|---|
+| Pack current | A | 250 | Non-zero, ≤ 3,000 |
+| Pack DC resistance | Ω | 0.08 | > 0, ≤ 5 |
+| Pack dU/dT | V/K | 0 | \|·\| ≤ 1 |
+| Coolant inlet temperature | °F ↔ °C | 25 °C (77 °F) | — |
+| Coolant mass flow | lbs/min ↔ kg/min [E: registered pair; `ev_coolant_flow` used native kg/s] | 0.15 kg/s | > 0 |
+| Coolant c_p | J/kg·K | 3,500 (50/50 glycol) | > 0 |
+| Pack-to-coolant UA | W/K | 500 | > 0 |
+| Pack mass | lbs ↔ kg | 450 kg | > 0 |
+| Pack specific heat | J/kg·K | 1,000 | 300–3,000 |
+| Initial pack temperature | °F ↔ °C | 25 °C | — |
+| Pack temperature limit | °F ↔ °C | 35 °C | Above the coolant inlet temperature |
+
+The 35 °C limit is an example, labelled per the example-default policy; a battery maker's limit governs.
+
+**Outputs.**
+- Heat generated (W).
+- Coolant temperature rise (Δ°F ↔ Δ°C) and outlet temperature.
+- Steady pack temperature.
+- Continuous heat capacity (W) and continuous current (A).
+- Thermal time constant (min).
+- Time to the limit (min).
+
+The heat rows are `RETAIN-ACCESSORY`, following `ev_battery_heat`.
+
+**Worked example (Metric)** [V by Euler integration of the pack and coolant energy balance: 1,503.15 s; a two-node model with a small coolant mass converges to the same figure].
+
+| Input | Value | Result | Value |
+|---|---|---|---|
+| Current | 250 A | Heat generated | 5,000 W |
+| Resistance | 0.08 Ω | Coolant rise | 9.5238 K |
+| Coolant flow | 0.15 kg/s | Outlet / mean coolant | 34.5238 / 29.7619 °C |
+| Coolant c_p | 3,500 J/kg·K | Steady pack temperature | 39.7619 °C |
+| UA | 500 W/K | τ | 1,328.57 s (22.14 min) |
+| Pack | 450 kg × 1,000 J/kg·K | Time from 25 °C to 35 °C | **1,503.15 s (25.05 min)** — revision 1.0's 1,018.26 s is superseded (erratum) |
+| Coolant inlet / start / limit | 25 / 25 / 35 °C | Continuous capacity to 35 °C | 3,387.097 W, i.e. 205.764 A |
+
+- **Imperial equivalents:** 77 °F, 992.08 lbs, 19.8416 lbs/min, limit 95 °F. The same physical answers are expected in °F and Δ°F.
+- **Entropic illustration:** dU/dT = −0.0384 V/K for the pack (96 s × −0.4 mV/K) at T = 302.91 K on discharge adds +2,907.95 W. This shows why the term is not shown when it is unknown [V by direct evaluation].
+
+**Not valid for.**
+- Air-cooled packs with significant convection to ambient.
+- Phase-change materials.
+- Current that varies over the period (the inputs are a single constant).
+- Very low coolant flow, where the outlet temperature exceeds the pack temperature (flagged).
+- Resistance strongly dependent on temperature or state of charge (stated).
+
+---
+
+### 2.2 Motor Thermal Limit — `motor_thermal_limit` (EV / THERMAL)
+
+**Purpose.** At one operating point (power, or torque and speed, with the efficiency at that point), find:
+- the steady winding temperature;
+- whether that point can be held continuously;
+- if not, how long from a starting temperature before the winding limit is reached;
+- the loss the cooling can reject continuously.
+
+**Boundary.** It does not replace a motor's published continuous and peak curves, and does not model magnets, bearings or rotor temperature.
+
+**Candidate models.**
+
+| Candidate | Status | Reason |
+|---|---|---|
+| (a) Steady thermal resistance only | Kept as one output | Cannot represent a short peak |
+| (b) Single-node first-order RC: C dT/dt = P_loss − (T − T_c) ÷ R_th | **Selected** [E] | Smallest model that separates continuous from time-limited operation, with two thermal parameters a user can obtain or fit from a published peak duration |
+| (c) Two-node, winding + stator | Rejected for now | More faithful hot-spot behaviour, but needs four parameters that are rarely published |
+| (d) Lumped-parameter thermal network | Rejected | Research tool |
+
+**Equations.**
+- Loss: P_loss = P_out(1/η − 1). P_out = T·ω when torque mode is chosen [P: P = Tω].
+- Steady temperature: T_ss = T_c + P_loss R_th.
+- Time constant: τ = R_th C.
+- Time to limit from T₀: t_lim = τ ln((T_ss − T₀) ÷ (T_ss − T_lim)), valid when T₀ < T_lim < T_ss. If T_ss ≤ T_lim the result reads "continuous at this point". If T₀ ≥ T_lim it reads "already at the limit".
+- Continuous loss capacity: P_loss,cont = (T_lim − T_c) ÷ R_th.
+- "Continuous output if efficiency stayed η": P_loss,cont η ÷ (1 − η). This is labelled as an extrapolation: efficiency changes with load.
+
+**Continuous versus peak** [E]. A point whose steady temperature exceeds the limit is reported as **"time-limited: X s from T₀"**, never as a continuous rating. The page states that a manufacturer's peak rating (typically 10–60 s) is a time-limited figure.
+
+**Temperature limit.** The winding temperature limit is an input [E]. The thermal classes are published facts [P: IEC 60085 / IEC 60034-1]:
+- 130 (B), 155 (F) and 180 (H) °C are insulation thermal-class temperatures, not permissible operating hot-spot temperatures;
+- IEC 60034-1 permits lower temperature rises over a 40 °C reference.
+
+Example default 150 °C, labelled as an example.
+
+**Copper-loss temperature dependence.** Copper resistance rises about 0.39 %/K. It is neglected; stated as making the time to limit optimistic [E].
+
+**Inputs.**
+
+| Input | Units | Example default | Validation |
+|---|---|---|---|
+| Mode | — | Power or Torque + speed | — |
+| Shaft output power | kW (native, `EV_POWER`) | 150 | > 0 |
+| Torque | lb-ft ↔ N·m (`EV_TORQUE`, see decision D-14-2) | — | > 0 |
+| Speed | RPM | — | > 0 |
+| Efficiency at the point | % | 94 | 50–99.9 |
+| Winding-to-coolant R_th | K/W | 0.012 | > 0 |
+| Thermal capacitance C | J/K | 15,000 | > 0; alternatively τ in s (owner choice D-14-3) |
+| Coolant temperature | °F ↔ °C | 65 °C | — |
+| Initial winding temperature | °F ↔ °C | 90 °C | — |
+| Winding limit | °F ↔ °C | 150 °C | > coolant temperature |
+
+**Outputs.**
+- Loss (W, `RETAIN-ACCESSORY`).
+- Steady winding temperature.
+- τ (s).
+- Status: continuous, or time-limited with the time to limit (s).
+- Continuous loss capacity (W).
+- Continuous output at η, as an extrapolation (kW, `EV_POWER`).
+
+**Worked example** [V by Euler integration: 198.177 s].
+
+| Input | Value | Result | Value |
+|---|---|---|---|
+| Output | 150 kW | Loss | 9,574.468 W |
+| Efficiency | 94 % | Steady winding temperature | 179.894 °C (exceeds the limit) |
+| R_th | 0.012 K/W | τ | 180 s |
+| C | 15,000 J/K | Time-limited, from 90 °C | 198.177 s to 150 °C |
+| Coolant | 65 °C | Continuous loss | 7,083.333 W |
+| Start / limit | 90 / 150 °C | Continuous output if η stayed 94 % | 110.972 kW |
+
+Torque-mode cross-check: 300 N·m at 4,775 RPM gives 150.011 kW.
+
+**Not valid for.**
+- Duty cycles: one constant load step only.
+- Temperatures where the efficiency entered is not the efficiency at that temperature.
+- Field weakening at a different point.
+- Oil-spray-cooled hot spots that a single node cannot see.
+
+---
+
+### 2.3 Inverter Thermal Load — `inverter_thermal_load` (EV / THERMAL)
+
+**Purpose.** Answers "how much heat does the inverter put into the coolant, and how hot do its semiconductors run", in two modes that state which losses are estimated and which come from data.
+
+**Mode A: efficiency estimate** [E]. Estimated losses, needing only system data.
+- Loss: P_loss = P_out(1/η − 1), where P_out is the AC output.
+- Coolant rise: ΔT_c = P_loss ÷ (ṁ c_p).
+- Temperatures through a lumped R_th:
+  - heatsink (baseplate) T_hs = T_c,m + P_loss R_th,hs-c;
+  - optional device junction T_j = T_hs + (P_loss ÷ n_dev) R_th,j-hs, assuming the loss is shared equally among n_dev devices (stated as an assumption).
+- This mode adds the thermal outputs that keep it distinct from `ev_inverter_loss`.
+
+**Mode B: data-sheet device losses (IGBT + anti-parallel diode, three-phase sine-PWM)**. Uses data-sheet parameters entered by the user.
+- **Source** [P]: D. Graovac & M. Pürschel, *IGBT Power Losses Calculation Using the Data-Sheet Parameters*, Infineon application note v1.1, Jan 2009, §3.4.
+- **Conduction losses, per device**, with peak phase current Î, modulation index m and displacement factor cos φ:
+  - IGBT: P_cT = V_CE0 Î (1/2π + m cosφ/8) + r_CE Î² (1/8 + m cosφ/3π)
+  - Diode: P_cD = V_F0 Î (1/2π − m cosφ/8) + r_F Î² (1/8 − m cosφ/3π)
+- **Switching** [E, the common linear scaling]:
+  - IGBT: P_swT = (1/π) f_sw (E_on + E_off)(Î/I_ref)(V_dc/V_ref)
+  - Diode: P_rrD = (1/π) f_sw E_rec (Î/I_ref)(V_dc/V_ref)
+  - The 1/π factor is the half-period average of \|sin\|.
+- **Junction temperatures:** T_jT = T_c + P_T R_th,jT-c and T_jD = T_c + P_D R_th,jD-c.
+- **Total:** 6 × (P_T + P_D).
+
+**What has and has not been verified.**
+- **Conduction formulas:** the application-note text available to this review was garbled, so the formulas were reconstructed. They were then verified independently by integrating V_0·i + r·i² weighted by the PWM duty d = (1 + m sin(θ + φ))/2 over a period, with 200,000 steps. Results: IGBT 107.5352 W and diode 25.0427 W, identical to the closed forms [V].
+- **Switching-loss scaling:** linear in current and voltage. It is an assumption, not verified. Some makers publish a voltage exponent K_v ≈ 1.2–1.4 and current-dependent E(I) curves.
+- **Primary-source check:** the formulas must be checked against the original PDF before implementation.
+
+**Not in scope** [E].
+- SiC MOSFETs with synchronous rectification, where conduction in the "diode" interval goes through the channel.
+- Three-level topologies.
+- Discontinuous PWM.
+- Overmodulation (m > 1).
+
+These need their own formulas (decision D-14-4).
+
+**Inputs.**
+- **Mode A:** AC output kW (`EV_POWER`, native); efficiency %; coolant flow, c_p and inlet temperature; R_th,hs-c (K/W); optional n_dev and R_th,j-hs.
+- **Mode B:**
+
+| Input | Units | Example |
+|---|---|---|
+| V_CE0 / r_CE | V / Ω | 0.8 V / 2.5 mΩ |
+| V_F0 / r_F | V / Ω | 0.9 V / 2.0 mΩ |
+| E_on + E_off / E_rec | J | 12 + 10 mJ / 6 mJ |
+| I_ref / V_ref | A / V | 400 A / 400 V |
+| f_sw | Hz | 10 kHz |
+| m | — | 0.9 (0 < m ≤ 1) |
+| cos φ | — | 0.85 (0–1) |
+| Î | A | 300 |
+| V_dc | V | 350 |
+| R_th IGBT / diode, junction-to-coolant | K/W | 0.12 / 0.18 |
+| Coolant | °F ↔ °C | 65 °C |
+
+The parameter examples are labelled "example data-sheet values".
+
+**Worked examples** [V].
+
+| Mode | Item | Value |
+|---|---|---|
+| A | 100 kW out at 97 % | Input 103.093 kW; loss 3,092.78 W |
+| B | IGBT conduction / switching | 107.535 W / 45.956 W (153.491 W total) |
+| B | Diode conduction / recovery | 25.043 W / 12.534 W (37.576 W total) |
+| B | Six-switch inverter | 1,146.40 W |
+| B | Junction temperature, IGBT / diode | 83.42 °C / 71.76 °C |
+
+**Validation.**
+- Mode B rejects m > 1, a cos φ outside 0–1, and Î above 3 × I_ref.
+- A negative diode-conduction bracket (possible when m cos φ is large and the term goes negative) is flagged as outside the model, not clamped.
+
+---
+
+### 2.4 DC Fast-Charge Time with CC-CV Taper — `dc_fast_charge_time` (EV / CHARGING & RANGE)
+
+*Revised in 1.2: model (c) approved, the start-in-CV case added, the power-limited current rule and the capacity convention stated, and the examples recalculated.*
+
+**Purpose.** Estimate the time from one state of charge to another on a DC charger, including the slowdown once the pack reaches its voltage limit. The page says: **an engineering estimate from a simplified battery model, not a prediction for a particular vehicle.**
+
+**Candidate models compared.**
+
+| # | Model | Inputs | Verdict |
+|---|---|---|---|
+| a | Linear: ΔE ÷ P (existing `ev_charge_time`) | Energy, power | Rejected as the main answer: no taper. Kept as a comparison row |
+| b | CC to a user-chosen SOC breakpoint, then exponential taper with a user time constant | Breakpoint SOC, τ | Rejected: both parameters are curve fits the user rarely has, and the breakpoint really depends on C-rate and temperature [P: Shi et al. 2020] |
+| c | **Equivalent circuit (OCV + R) with linear OCV(SOC); CC until the terminal voltage reaches V_max, then CV** | Q (Ah), OCV at 0 % and 100 %, pack R, V_max, current limit, charger power limit | **Selected; owner-approved for the specification (rev 1.2).** The taper follows from the circuit (Abdollahi et al., ACC 2015 use the same OCV-R model). Every parameter is a pack datum or a measurement. Closed form and verifiable |
+| d | Manufacturer charging-curve table (kW versus SOC), interpolated | A published curve | Not in v1. It needs data that is often absent, and a table editor. Possible later mode |
+
+**Conventions (DC-2, DC-3).**
+- **Capacity window (DC-3).** Q is the charge in Ah between the 0 % and 100 % ends of the SOC scale the user enters: the usable, displayed window, not gross cell capacity. OCV₀ and OCV₁₀₀ are the open-circuit pack voltages at those two ends.
+- **Power-limited charger (DC-2).** The constant current is I_cc = min(I_lim, P_chg ÷ V_max), with I_lim the lower of the battery and charger current limits.
+  - Dividing by V_max (the highest terminal voltage in the CC phase) gives a current the charger can always supply, so a power-limited time is an **upper bound**.
+  - True constant power (I = P ÷ terminal voltage, higher at low SOC) is not modelled.
+
+**Equations.** SOC s is a fraction; Q is in Ah; R in Ω; time in hours unless stated.
+1. OCV(s) = V₀ + k s, where k = V₁₀₀ − V₀.
+2. Terminal voltage during charge: V_t = OCV(s) + I R.
+3. CC → CV switch, where V_t reaches V_max at I = I_cc: s_b = (V_max − I_cc R − V₀) ÷ k.
+4. CV equilibrium, where the current falls to zero: s_∞ = (V_max − V₀) ÷ k.
+5. CV starts at s_cv = max(s_b, s₀).
+   - If s₀ ≥ s_b, the charge starts already in CV (DC-1): t_cc = 0.
+6. CC time:
+   - if s_b ≥ s₁, the whole charge is CC: t_cc = (s₁ − s₀) Q ÷ I_cc;
+   - otherwise t_cc = max(0, s_b − s₀) Q ÷ I_cc.
+7. CV phase.
+   - The current is I = (V_max − OCV(s)) ÷ R, and dS/dt = I ÷ Q. So dS/dt = (s_∞ − s) ÷ τ with τ = R Q ÷ k (hours).
+   - Hence s(t) = s_∞ − (s_∞ − s_cv) e^(−t/τ), and t_cv = τ ln((s_∞ − s_cv) ÷ (s_∞ − s₁)).
+8. Current at the target: I₁ = k (s_∞ − s₁) ÷ R in CV; I₁ = I_cc if the target is reached in CC.
+9. Energy.
+   - Stored (OCV basis): E_st = Q ∫ OCV ds = Q [V₀(s₁ − s₀) + k(s₁² − s₀²)/2].
+   - Pack I²R loss: I_cc² R t_cc + I_b² R (τ/2)(1 − e^(−2 t_cv/τ)), with I_b = k(s_∞ − s_cv) ÷ R.
+   - Terminal energy = E_st + loss. Grid energy = terminal ÷ charger efficiency.
+10. Comparison row: "time if the CC current held to the target" = (s₁ − s₀) Q ÷ I_cc. This is the constant-current (linear) estimate.
+
+**Inputs.**
+
+| Input | Units | Example | Validation |
+|---|---|---|---|
+| Usable capacity Q (DC-3) | Ah | 200 | > 0 |
+| OCV at 0 % / at 100 % of that window | V | 330 / 410 | 0 < V₀ < V₁₀₀ |
+| Pack DC resistance (at the charging temperature) | Ω | 0.10 | > 0 |
+| Maximum charge voltage V_max | V | 410 | > OCV(s₀). Otherwise no charge current flows |
+| Current limit (lower of battery and charger) | A | 400 | > 0 |
+| Charger power limit | kW (native, `EV_POWER`) | 350 | > 0 |
+| Start / target SOC | % | 10 / 80 | 0 ≤ s₀ < s₁ ≤ 100, and s₁ < s_∞ (otherwise V_max cannot reach the target) |
+| Charger efficiency | % | 95 | 50–100 |
+
+All inputs and outputs are electrical or time units that are the same in Metric and Imperial. The only exception is the charger power box (`EV_POWER`, native kW, which follows the Power preference).
+
+**Outputs** (labels as they will appear).
+- CC Current (A).
+- Constant-Current Phase Time (min); Constant-Voltage Phase Time (min); Total Charge Time (min).
+- SOC at the Switch to Constant Voltage (%). If the charge starts in CV, the page says so.
+- Current at the Target SOC (A).
+- Energy Stored (kWh); Pack Resistive Loss (kWh); Energy at the Pack Terminals (kWh); Energy from the Grid (kWh).
+- Time if the CC Current Held to the Target (min), the linear comparison.
+
+**Worked examples.** These are **model-derived**. Each closed form was checked by forward integration of dS/dt = min(I_cc, (V_max − OCV)/R) ÷ Q with a 10⁻⁶ h step, which accumulates time, OCV·I and I²R independently. **None is a measured-vehicle validation**; see the limits below.
+
+Common inputs: Q 200 Ah, 330 / 410 V, R 0.1 Ω, V_max 410 V, current limit 400 A, efficiency 95 %. So k = 80 V, s_∞ = 1.00 and τ = 0.25 h (15 min).
+
+| Quantity | Ex 1: 350 kW charger, 10 → 80 % | Ex 2: 120 kW charger, 10 → 80 % | Ex 3: 350 kW, 60 → 80 % (starts in CV) |
+|---|---|---|---|
+| I_cc | 400 A (current-limited) | 292.683 A (power-limited, 120 kW ÷ 410 V) | 400 A |
+| SOC at the CV switch | 50.0 % | 63.415 % | 50.0 % (below start, so CV from 60 %) |
+| CC time | 12.0000 min | 21.9000 min | 0 |
+| CV time | 13.7444 min | 9.0587 min | 10.3972 min |
+| **Total** | **25.7444 min** | **30.9587 min** | **10.3972 min** |
+| Current at target | 160 A | 160 A | 160 A |
+| Energy stored | 51.240 kWh | 51.240 kWh | 15.440 kWh |
+| Resistive loss (CC + CV) | 3.200 + 1.680 = 4.880 kWh | 3.1267 + 0.7508 = 3.8775 kWh | 0 + 0.960 = 0.960 kWh |
+| Terminal energy | 56.120 kWh | 55.1175 kWh | 16.400 kWh |
+| Grid energy at 95 % | 59.0737 kWh | 58.0184 kWh | 17.2632 kWh |
+| Linear comparison | 21.00 min | 28.70 min | 6.00 min |
+| Numerical check (total; terminal energy) | 25.7444 min; 56.120 kWh | 30.9587 min; 55.1175 kWh | 10.3972 min; 16.400 kWh |
+
+**Validation status and stated limits.**
+- **Not validated against measured vehicle data.** The examples check the arithmetic of the model, not its realism.
+- The page names the simplifications:
+  - linear OCV (real Li-ion OCV is flat through the middle);
+  - one fixed resistance;
+  - no temperature model (a cold pack charges more slowly);
+  - no multi-step BMS current schedule [P: Shi et al.] or preconditioning;
+  - the conservative power-limited current (DC-2);
+  - no auxiliary loads (DC-4).
+- The page directs users to a manufacturer charging curve when they need a vehicle-specific time.
+
+---
+
+### 2.5 Hybrid Power-Split Device Kinematics — `power_split_device_kinematics` (EV / HYBRID & ALTERNATIVE ENERGY)
+
+*Revised in 1.2: equations re-derived independently. The electrical path is now correct when MG1 motors (power recirculation), and the stationary-ring case is resolved.*
+
+**Purpose.** For a single planetary power-split device in the Toyota THS input-split layout (PS-1; see §3): from the engine and ring speeds and the engine torque, find the MG1 speed, the steady torque split and the mechanical and electrical power paths. The battery is assumed to neither charge nor discharge.
+
+**Published facts.**
+- Prius PSD: sun 30, ring 78 (planets 23).
+- Members: sun = MG1, carrier = engine, ring = MG2 and output.
+- MG1 = 3.6 × ICE − 2.6 × MG2 [P: Graham Davies, "Understanding the Power Split Device"]. Note 3.6 = 108/30 and 2.6 = 78/30.
+
+**Conventions** [E].
+- Tooth counts: Z_s (sun) and Z_r (ring, internal teeth), whole numbers, 0 < Z_s < Z_r.
+- Speeds: positive in the engine's direction of rotation. The engine speed and ring speed inputs are ≥ 0 (PS-4: no reverse in v1). The MG1 speed is computed and may be negative.
+- Torques: the engine torque input is ≥ 0 (no engine braking in v1).
+- Powers: **positive = mechanical power delivered by the member into the gearset or the driveline.** P_MG1 > 0 means MG1 *absorbs* shaft power and generates electricity; P_MG1 < 0 means MG1 *motors*. P_MG2 > 0 means MG2 motors and drives the ring; P_MG2 < 0 means MG2 generates.
+- Steady state, lossless gearing, rigid members, no battery net power (PS-5).
+
+**Independent derivation** (rev 1.2; geometry and free body, not taken from the Willis formula).
+- **Geometry.** Pitch radii r_s = m Z_s/2, r_r = m Z_r/2, planet r_p = (r_r − r_s)/2, carrier radius r_c = r_s + r_p = (r_s + r_r)/2.
+- **Speed.**
+  - The planet point meshing the ring moves at ω_c r_c + (ω_p − ω_c) r_p = ω_r r_r.
+  - The point meshing the sun moves at ω_c r_c − (ω_p − ω_c) r_p = ω_s r_s.
+  - Adding the two: ω_s r_s + ω_r r_r = 2 ω_c r_c = ω_c (r_s + r_r). Hence **Z_s ω_s + Z_r ω_r = (Z_s + Z_r) ω_c** (the Willis equation).
+  - So ω_s = ((Z_s + Z_r) ω_c − Z_r ω_r) ÷ Z_s.
+- **Torque.**
+  - A planet carries equal tangential forces F at the sun and ring meshes, which its torque balance requires, and the carrier pushes it with 2F at radius r_c.
+  - So T_engine = 2F r_c = F(r_s + r_r), T_sun = F r_s and T_ring = F r_r. Hence **T_sun = T_e Z_s/(Z_s + Z_r)** (MG1 reaction torque) and **T_ring,e = T_e Z_r/(Z_s + Z_r)** (engine torque reaching the ring).
+- **Power.**
+  - P_e = T_e ω_c;
+  - P_ring,mech = T_ring,e ω_r;
+  - P_MG1 = T_sun ω_s.
+  - Substituting the Willis equation gives **P_e = P_ring,mech + P_MG1** identically, for any speeds.
+
+**Electrical path (PS-2 corrected).** η_e is the end-to-end efficiency from one machine's shaft to the other's (generator, both inverters, motor). With no battery net power, the electrical loss depends on which machine generates:
+- **MG1 generating (P_MG1 ≥ 0):** P_MG2 = η_e × P_MG1 (MG2 motors); loss = P_MG1 − P_MG2.
+- **MG1 motoring, power recirculation (P_MG1 < 0):** MG2 must generate the power MG1 consumes plus the loss: P_MG2 = P_MG1 ÷ η_e (negative); loss = |P_MG2| − |P_MG1|.
+- In both cases: **T_MG2 = P_MG2 ÷ ω_r; output torque = T_ring,e + T_MG2; output power = P_ring,mech + P_MG2 = P_e − loss.**
+- *Revision 1.1 used P_MG2 = η_e P_MG1 in both directions. In recirculation that creates energy. Example: 1,000 RPM engine, 3,000 RPM ring, 100 N·m gave 12.30 kW out from 10.47 kW in. Superseded.*
+- If the output power is ≤ 0, the electrical losses consume all the engine power. The page then flags the point as not a usable driving point.
+
+**Stationary ring (PS-3, resolved against the no-battery-power assumption).**
+- With ω_r = 0, P_ring,mech = 0, so **all engine power passes through MG1: P_MG1 = P_e.**
+- MG2 cannot take power at zero speed (P = T ω = 0). The MG1 power therefore has nowhere to go except the battery, which this model excludes.
+- So with T_e > 0 and ω_r = 0 **there is no steady charge-sustaining solution.** The page:
+  - still shows the kinematics (MG1 speed), the torque split (the ring reaction T_ring,e is held by MG2, the brakes or the wheels) and P_MG1 = P_e;
+  - shows MG2 power, MG2 torque, output torque and output power as "—";
+  - states that this point requires charging the battery.
+- With T_e = 0 everything is zero and consistent.
+- **Engine stopped** (ω_c = 0, T_e = 0): kinematics only (MG1 = −(Z_r/Z_s) ω_r). Driving on MG2 alone needs battery power, which is outside this model.
+
+**Ring-speed input (PS-6).** Either ring RPM directly, or vehicle speed: n_ring = v ÷ (2π r_tire) × 60 × G, with G the ring-to-wheel reduction. **The G = 3.267 used below is an illustrative value, not a cited Prius figure.**
+
+**Inputs.**
+
+| Input | Units | Example | Validation |
+|---|---|---|---|
+| Z_s / Z_r | teeth | 30 / 78 (published Prius) | Integers, 0 < Z_s < Z_r |
+| Engine speed (carrier) | RPM | 2,000 | ≥ 0 |
+| Ring speed (direct) | RPM | 1,500 | ≥ 0 |
+| *or* vehicle speed + tire radius + G | mph ↔ km/h; in ↔ mm; — | — | ≥ 0; > 0; > 0 |
+| Engine torque | `ENGINE_TORQUE` (lb-ft ↔ N·m by preference) | 100 N·m (73.76 lb-ft) | ≥ 0 |
+| Electrical path efficiency η_e | % | 85 (illustrative) | 50–100 |
+| MG1 speed limit | RPM | none (no cited default) | Optional; flags an overspeed |
+
+**Outputs.**
+- MG1 Speed (RPM, signed), with a note "generating" or "motoring (power recirculation)".
+- Engine Torque to the Ring and MG1 Reaction Torque (torque rows; D-14-2).
+- Engine Power, Ring Mechanical Power, MG1 Power (signed), MG2 Power (signed) and Output Power (power rows; D-14-6 recommended option iii adds a one-line balance in a single unit).
+- MG2 Torque (signed) and Output Torque.
+- Electrical Path Loss.
+- Share of Engine Power through the Mechanical Path (P_ring,mech ÷ P_e, %).
+
+**Worked examples** (Z_s 30, Z_r 78, T_e 100 N·m, η_e 85 %). Model-derived. The MG1 speed was checked three independent ways (planet contact velocities, Willis, the published 3.6/2.6 relation), and every power balance was checked to ≤ 2 × 10⁻¹² W. **No measured vehicle data.**
+
+| Quantity | A: 2,000 / 1,500 RPM (MG1 generating) | B: 1,000 / 3,000 RPM (recirculation) | C: 2,000 / 0 RPM (ring stationary) | D: 0 / 1,500 RPM, T_e 0 (engine stopped) |
+|---|---|---|---|---|
+| MG1 speed | +3,300 RPM | −4,200 RPM | +7,200 RPM | −3,900 RPM |
+| MG1 reaction / engine torque to ring | 27.7778 / 72.2222 N·m | 27.7778 / 72.2222 N·m | 27.7778 / 72.2222 N·m | 0 / 0 |
+| Engine power | 20,943.95 W | 10,471.98 W | 20,943.95 W | 0 |
+| Ring mechanical power | 11,344.64 W | 22,689.28 W | 0 | 0 |
+| MG1 power | +9,599.31 W (generating) | −12,217.30 W (motoring) | +20,943.95 W (= engine) | 0 |
+| MG2 power | +8,159.41 W (η_e × P_MG1) | −14,373.30 W (P_MG1 ÷ η_e) | — (needs battery) | 0 |
+| MG2 torque | +51.9444 N·m | −45.7516 N·m | — | 0 |
+| Output torque | 124.1667 N·m | 26.4706 N·m | — | 0 |
+| Output power | 19,504.05 W (93.125 %) | 8,315.98 W (79.412 %) | — | 0 |
+| Electrical path loss | 1,439.90 W | 2,156.00 W | — | 0 |
+| Balance: engine − output − loss | 0 | 0 | not applicable (no charge-sustaining solution) | 0 |
+
+- **Ring held is the same configuration as `planetary_gearset_ratio` ring-fixed:** ω_s/ω_c = 108/30 = 3.6 = 1 + 78/30. Case C reproduces it (7,200 ÷ 2,000).
+- **Vehicle-speed mode:** 100 km/h, r = 0.3 m, G = 3.267 (illustrative) gives a ring speed of 2,888.662 RPM.
+
+**Not valid for.**
+- Compound or multi-mode devices (GM two-mode, Gen-4 Prius, Ford variants with an extra reduction).
+- Gear and bearing losses; transients (member inertias).
+- Battery charge or assist (PS-5).
+- Reverse driving or engine braking (PS-4).
+
+The page states each.
+
+---
+
+### 2.6 Regenerative Braking Energy Recovery — `regen_braking_energy` (EV / HYBRID & ALTERNATIVE ENERGY)
+
+**Purpose.** For one stop or slowdown at constant deceleration, find:
+- how much braking energy exists;
+- how much the regenerative system can return to the battery terminals;
+- how much the friction brakes must absorb.
+
+**Boundary.** It is not a drive-cycle simulation and does not model the state of charge.
+
+**Energy balance** [E, from the Phase 1 definition: ΔKE capped by power].
+- Braking energy available: E_brake = ½ m (v₁² − v₂²), with an optional rotating-mass factor (default 1.00).
+- Road loads (aero, rolling) during the stop are neglected, so E_brake is an **upper bound** on braking energy (stated). Including them needs C_dA and C_rr inputs and is a possible later option.
+- Duration: t = (v₁ − v₂) ÷ a.
+
+**Limits, each applied where it physically acts** [E; P for the structure: Bayar, Biasini, Onori & Rizzoni, IJVD 58 (2012) model motor torque limits, a low-speed regen cutout and SOC limits, with friction supplying the remainder].
+1. **Regen-axle share** f (0–100 %). The share of braking demand the control strategy allows on the regen axle(s); stability and brake balance set it. Regen demand = f · m a v.
+2. **Motor/generator power limit** P_mg (at the shaft), referred to the wheels: P_mg ÷ η_dt.
+3. **Battery charge-acceptance limit** P_batt (at the DC terminals), referred to the wheels: P_batt ÷ (η_dt η_mi).
+4. Wheel-referred cap: P_w = min(2, 3).
+5. **Low-speed cutout** v_min: no regen below it.
+
+**Regen power at the wheels** for v ≥ v_min: P(v) = min(f m a v, P_w). It is power-limited above v* = P_w ÷ (f m a).
+
+**Closed form.**
+- E_regen,wheel = P_w (v₁ − max(v*, v_lo)) ÷ a [for v₁ > v*] + f ½ m (min(v₁, v*)² − v_lo²), with v_lo = max(v₂, v_min).
+- Friction energy = E_brake − E_regen,wheel.
+- Energy at the battery terminals = E_regen,wheel η_dt η_mi.
+- Optional "stored" = × η_batt,charge, shown separately.
+
+**No double counting** [E].
+- Each efficiency acts once on its own segment: wheel→shaft η_dt, shaft→DC η_mi, DC→chemical η_batt.
+- The power caps are referred through the same efficiencies.
+- The page says not to enter a round-trip efficiency here. Discharge losses belong to a later drive and are not part of recovery.
+
+**Inputs.**
+
+| Input | Units | Example | Validation |
+|---|---|---|---|
+| Vehicle mass | lbs ↔ kg | 2,000 kg (4,409.25 lbs) | > 0 |
+| Start speed | mph ↔ km/h | 100 km/h (62.137 mph) | > end speed |
+| End speed | mph ↔ km/h | 0 | ≥ 0 |
+| Deceleration | g, raw | 0.20394 g (2 m/s²) | 0 < a ≤ 1.5 g |
+| Regen-axle share | % | 100 | 0–100 |
+| MG power limit | kW (native, `EV_POWER`) | 100 | > 0 |
+| Battery charge limit | kW (native, `EV_POWER`) | 80 | > 0 |
+| η_dt | % | 97 | 50–100 |
+| η_mi | % | 92 | 50–100 |
+| Low-speed cutout | mph ↔ km/h | 7.2 km/h | ≥ 0 |
+| Rotating-mass factor | — | 1.00 | 1.00–1.30 |
+| η_batt | % | — | Optional |
+
+**Outputs.**
+- Kinetic energy released (kWh; Wh optional, decision D-14-7).
+- Regen energy at the wheels; energy to the battery terminals; friction-brake energy (kWh).
+- Recovered fraction (%).
+- Peak regen power at the wheels (kW).
+- Speed below which regen is no longer power-limited (mph ↔ km/h).
+- Stop duration (s).
+
+**Worked example** [V by time-stepping the stop, dt = 10 µs: E_wheel 738,808 J against 738,807.7 J closed form].
+
+| Result | Value |
+|---|---|
+| ΔKE | 771,604.94 J (0.214335 kWh) |
+| P_w | min(103.093, 89.6459) = 89.6459 kW, battery-limited |
+| v* | 22.4115 m/s (80.68 km/h) |
+| Regen at the wheels | 738,807.73 J |
+| Friction | 32,797.21 J |
+| To the battery terminals | 659,312.02 J (0.183142 kWh), 85.447 % of ΔKE |
+| Duration | 13.889 s |
+
+**Not valid for.**
+- Variable deceleration.
+- Downhill braking: add m g h to the available energy; possible later option.
+- ABS events.
+- Speed-dependent motor torque limits beyond the power cap: a constant-torque region at low speed is approximated by the power cap only.
+- A battery at a high state of charge: the user must enter the reduced acceptance; the page says so.
+
+---
+
+## 3. Performance-unit (GH-IMP-019 / GH-IMP-020) questions that affect Batch 14
+
+**Status of GH-IMP-020.** Read from the register: DEFERRED, with no decision taken.
+
+| Item | Effect on Batch 14 |
+|---|---|
+| U1 (BSFC), U2 (power-to-weight), U7 (HP-equiv) | Not affected |
+| U8 | Closed via GH-DEF-031 |
+| U5 (browser-local preference) and U9 (spec-sheet text follows the row) | Apply automatically |
+| U6 (narrative text) | Help text must not hard-code "hp" or "kW" where the row follows the preference |
+| **U3: EV motor torque, lb-ft by the current product decision** | Affects the torque input of Motor Thermal Limit and any MG1/MG2 torque rows of the Power-Split calculator |
+| **U4: component and accessory power retained** | Affects the heat and loss rows (W) of the three thermal calculators |
+
+**Decisions needing owner approval.** None is chosen here; existing behaviour is not changed.
+
+**D-14-1. Heat and loss rows.** The precedents are inconsistent:
+- `ev_battery_heat` "Battery Heat" (W) is `RETAIN-ACCESSORY`;
+- `ev_inverter_loss` "Inverter Loss" (kW) is `EV_POWER`.
+
+Proposal [E]: every **heat or loss** row in Batch 14 (battery heat, motor loss, inverter loss, continuous heat capacities) is `RETAIN-ACCESSORY` in W, following `ev_battery_heat` and U4. Every **shaft or electrical output power** row (motor output, AC output, charger limit, MG and battery regen limits) is `EV_POWER`, native kW. The owner may prefer the loss rows to follow `EV_POWER`, for consistency with `ev_inverter_loss`.
+
+**D-14-2. EV and MG torque.**
+- Under U3 (lb-ft by default), the Motor Thermal torque input and the MG2 torque are `EV_TORQUE`.
+- MG1 reaction torque: `EV_TORQUE` or `DRIVELINE_TORQUE`?
+- Ring/output torque: `DRIVELINE_TORQUE` (recommended) or `WHEEL_TORQUE`?
+- *Rev 1.2:* the MG torque rows follow the confirmed `EV_TORQUE` convention (S2-2), and the engine torque is `ENGINE_TORQUE`. The ring/output torque category still awaits the owner's decision.
+
+**D-14-3.** Motor thermal capacitance input: C (J/K) or a time constant τ (s), or both through a selector.
+
+**D-14-4.** Inverter Mode B scope:
+- approve IGBT + diode only, with SiC MOSFETs out of scope;
+- confirm the linear switching-energy scaling (or add a voltage exponent K_v input);
+- the conduction formulas must be checked against the original application note before coding.
+
+**D-14-5.** DC fast charge:
+- approve model (c);
+- decide whether a manufacturer-curve table mode (d) is wanted later.
+- *Rev 1.2:* model (c) approved for the specification by the owner's direction, with DC-1 (start in CV), DC-2 (conservative power-limited current) and DC-3 (capacity window); see §2.4. Mode (d) is not in v1. DC-4 (no auxiliary loads) and DC-5 (one combined current limit) are recommendations awaiting confirmation.
+
+**D-14-6. Power-split power rows.** Under P1/P2, engine power shows hp and MG power kW under Auto. The calculator's defining check, P_engine = P_ring + P_MG1, would then read in two units on one page, as `hybrid_power_split` already does. Options:
+- (i) per-row categories (engine `ENGINE_POWER` hp; MG1, MG2 and ring `EV_POWER` kW);
+- (ii) all split powers `HYBRID_SYSTEM_POWER` (kW, one unit) — clearer arithmetic, but it departs from P1 for the engine row;
+- (iii) as (i), plus a one-line "balance" note in a single unit.
+
+Recommended: (iii) [E]. *Rev 1.2:* still awaiting the owner's decision.
+- Under (i)/(iii), the ring mechanical power, MG1 power, MG2 power and output power are `EV_POWER` (native kW). The engine power is `ENGINE_POWER` (hp under Auto).
+- The electrical path loss is a loss row, W `RETAIN-ACCESSORY` (the confirmed S2-1 rule).
+- §2.5's worked examples are given in W and N·m; on the page each row shows its category's unit.
+
+**D-14-7.** Energy units: kWh only (neutral), or also Wh / J for single-stop regen energies, which are small, e.g. 0.183 kWh.
+
+**D-14-8. Example defaults** under the example-default policy:
+- 35 °C pack limit;
+- 150 °C winding limit;
+- data-sheet example values for Mode B;
+- pack OCV and resistance examples.
+
+All are labelled as examples.
+
+**Census implications.** Every new power or torque row needs a `PERF_ROWS` entry and a `performance-census` / `power-torque-rows.json` row; the census fails on an unclassified row. Mass rows (`lbs`: pack mass, vehicle mass) go into `force-unit-rows.json` as mass. The `g` deceleration row needs `raw:true`. Temperature inputs use the registered °F ↔ °C, and temperature differences Δ°F ↔ Δ°C. Neutral electrical units need no factor entries.
+
+---
+
+## 4. Test matrix (for the implementation, when authorized)
+
+| Calculator | Closed-form cases, Imperial and Metric | Independent check | Invalid and boundary cases | Unit-system kinds (new kinds marked *) | Self-test assertions (proposed) |
+|---|---|---|---|---|---|
+| Battery heat balance | Example above; Q_rev sign flip charge/discharge; T_ss ≤ limit gives "does not reach"; T₀ ≥ limit | Euler ODE | Empty/text/negative per box; R = 0; ṁ = 0; UA = 0; limit ≤ inlet; outlet > pack flag | current/resistance neutral; tempabs; tempdiff; mass; massflow-min*; neutral J/kg·K, W/K | t_lim = 1,503.15 s (tol 0.1; revision 1.0's 1,018.26 s is superseded); I_max = 205.764 A |
+| Motor thermal limit | Example; continuous case (P small); torque mode equals power mode; already-at-limit case | Euler ODE | η ≤ 50 or ≥ 100; R_th ≤ 0; C ≤ 0; limit ≤ coolant; speed 0 in torque mode | tempabs; EV_POWER native; EV_TORQUE perf token | t_lim = 198.177 s; P_cont = 110.972 kW |
+| Inverter thermal load | Mode A example; Mode B example; m = 0 gives symmetric conduction | Numeric PWM integral (conduction); half-period average (switching) | m > 1; cos φ > 1; Î ≤ 0; f_sw ≤ 0; negative diode bracket flag | tempabs; massflow-min*; neutral V, Ω, J, Hz, K/W | Mode B IGBT 153.491 W; inverter 1,146.40 W |
+| DC fast charge | Ex 1 (350 kW, current-limited); Ex 2 (120 kW, power-limited); Ex 3 (starts in CV); target reached in CC; s₀ = s_b | Forward integration of dS/dt with I = min(I_cc, (V_max − OCV)/R) | s₁ ≥ s_∞; V₀ ≥ V₁₀₀; s₀ ≥ s₁; V_max ≤ OCV(s₀); Q, R, I_lim, P ≤ 0 | all neutral plus EV_POWER native | totals 25.7444 / 30.9587 / 10.3972 min; I₁ = 160 A |
+| Power-split | A (MG1 generating), B (recirculation), C (ring stationary: MG2 and output "—"), D (engine stopped); ring held equals `planetary_gearset_ratio`; vehicle-speed mode | Planet contact-velocity geometry; Prius 3.6/2.6 relation; engine = output + loss | Z_s ≥ Z_r; fractional teeth; negative speeds or torque (PS-4); tire radius 0; η_e outside 50–100 | rpm; ENGINE_TORQUE and EV_TORQUE tokens; speed; length | n_s = 3,300 / −4,200 RPM; output power 19,504.05 / 8,315.98 W |
+| Regen energy | Example; no cap reached (small mass); all below the cutout gives 0; f = 0 gives all friction | Time-stepped integration | v₂ ≥ v₁; a ≤ 0; η > 100; share > 100 | mass; speed; g raw; EV_POWER native | E_batt = 0.183142 kWh; friction 32,797 J |
+
+**Common to all.**
+- Tests written first and run to fail before each sub-group.
+- Every case re-run typed in Metric.
+- Unit labels checked.
+- Re-entry and toggle cases in `unit-system`; integer fields such as tooth counts must not be the last field.
+- The full browser regression after the batch.
+
+---
+
+## 5. Implementation readiness and order
+
+| Calculator | Classification | What remains |
+|---|---|---|
+| Regenerative Braking Energy Recovery | **Ready to implement** | Model, limits and examples defined and verified. D-14-7 can follow the default (kWh, plus J in the help text) |
+| Battery Pack Heat Balance | **Ready to implement** | Follows the `ev_battery_heat` precedent for the heat rows. D-14-1 confirms the heat-row category, and the existing precedent applies if the owner is silent |
+| Motor Thermal Limit | **Ready after owner decision** | D-14-2 (torque category, only if torque mode is included), D-14-3, D-14-8 |
+| Hybrid Power-Split Device Kinematics | **Ready after owner decision** | Rev 1.2: derivation, signs, recirculation (PS-2) and the stationary ring (PS-3) settled in the specification. Still open: PS-1 (architecture), D-14-6 (power rows), D-14-2 (ring torque row) and implementation authorization |
+| DC Fast-Charge Time | **Ready after implementation authorization** | Rev 1.2: model (c) with DC-1 to DC-3 approved for the specification. DC-4 (no auxiliary loads) and DC-5 (one combined current limit) are recommendations awaiting confirmation |
+| Inverter Thermal Load | **Mode A ready after D-14-1. Mode B not ready** | The application-note equations must be checked against the original PDF, the switching-scaling assumption confirmed, and the device scope decided (D-14-4). Mode A can ship alone if the owner prefers |
+
+**Shared dependencies.**
+1. **One first-order thermal helper.** Steady temperature, τ, time-to-limit, and the "never reaches" and "already above" branches, used by Battery, Motor and Inverter. It should be written once and unit-tested once.
+2. **Performance-unit classification** of every power and torque row (D-14-1, D-14-2, D-14-6) before any power or torque row is coded.
+3. **New `unit-system` kinds:** lbs/min ↔ kg/min mass flow; neutral electrical kinds.
+4. **Cross-links** to `ev_battery_heat`, `ev_coolant_flow`, `ev_inverter_loss`, `ev_charge_time`, `hybrid_power_split`, `planetary_gearset_ratio`, `hybrid_regen_energy` and `ev_regen_power`.
+
+**Recommended order** [E].
+
+| Sub-group | Contents | Condition |
+|---|---|---|
+| **E1** | Regen Energy, Battery Pack Heat Balance (introduces the thermal helper) | Ready now |
+| **E2** | Motor Thermal Limit, Inverter Thermal Load Mode A | Reuses the helper, after D-14-1/2/3/8 |
+| **E3** | Power-Split Kinematics, DC Fast-Charge Time | After D-14-5/6 |
+| Later | Inverter Mode B | Only after its verification and D-14-4 |
+
+Each sub-group is committed separately, as in Batches 11 and 13.
+
+---
+
+## 6. Proposed documentation content (not applied)
+
+The following would be added only when the owner permits documentation changes.
+
+**Register, GH-FUT-003, History.**
+> 2026-10-14 — model-specification review (no implementation): models selected and independently verified for all six. Regen and Battery Heat Balance are ready. Motor Thermal, Power-Split and DC Fast-Charge are ready after owner decisions D-14-1 to D-14-8. Inverter Mode B is not ready until its application-note equations are checked against the primary source and its device scope is decided. Performance-unit questions recorded against GH-IMP-020 U3/U4. Report: `docs/BATCH-14-SPECIFICATION.md`.
+
+**PREMIUM-CATALOG, "Decisions and open items".**
+> Open: Batch 14 owner decisions D-14-1 … D-14-8 (see the Batch 14 specification). No Batch 14 code until authorized.
+
+---
+
+## 7. Sources
+
+**Primary and published.**
+- Bernardi D., Pawlikowski E., Newman J., "A General Energy Balance for Battery Systems," *J. Electrochem. Soc.* 132(1), 5–12, 1985. [doi 10.1149/1.2113792](https://iopscience.iop.org/article/10.1149/1.2113792)
+- Rao L., Newman J., "Heat-generation rate and general energy balance for insertion battery systems," *J. Electrochem. Soc.* 144(8), 2697–2704, 1997. [RTI listing](https://www.rti.org/publication/heat-generation-rate-general-energy-balance-insertion-battery-systems)
+- Graovac D., Pürschel M., *IGBT Power Losses Calculation Using the Data-Sheet Parameters*, Infineon AN v1.1, 2009. [PDF](https://www.infineon.com/assets/row/public/documents/faq/igbt-power-losses-calculation-using-the-data-sheet-parameters.pdf)
+- Liu H. et al., "An Analytical Model for the CC-CV Charge of Li-ion Batteries…," *J. Energy Storage* 29, 101342, 2020. [CALCE abstract](https://web.calce.umd.edu/articles/abstracts/2020/20_An_Analytical_Model.html)
+- Abdollahi A. et al., "Battery charging optimization for OCV-resistance equivalent circuit model," ACC 2015, 3467–3472. [UWindsor](https://scholar.uwindsor.ca/computersciencepub/145)
+- Shi J. et al., "Electric Vehicle Battery Remaining Charging Time Estimation Considering Charging Accuracy and Charging Profile Prediction." [arXiv 2012.05352](https://arxiv.org/pdf/2012.05352)
+- Bayar K., Biasini R., Onori S., Rizzoni G., "Modelling and control of a brake system for an extended range electric vehicle equipped with axle motors," *Int. J. Vehicle Design* 58(2/3/4), 399–426, 2012. [PDF](https://pangea.stanford.edu/ERE/pdf/OnoriPDF/Journals/5.pdf)
+- Davies G., "Understanding the Power Split Device" (Prius sun 30 / ring 78; MG1 = 3.6 ICE − 2.6 MG2). [Page](https://prius.ecrostech.com/original/Understanding/PowerSplitDevice.htm)
+
+**Print references** (no link).
+- Incropera & DeWitt, *Fundamentals of Heat and Mass Transfer* (lumped capacitance).
+- IEC 60085 and IEC 60034-1 (insulation thermal classes and temperature-rise limits).
+- Ehsani et al., *Modern Electric, Hybrid Electric, and Fuel Cell Vehicles* (braking energy and regenerative braking).
+
+**Verification script.** A standalone Python script in the session scratchpad computed every closed form and its independent check. It is not part of the repository.

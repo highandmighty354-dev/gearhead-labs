@@ -9,7 +9,8 @@ The Premium database layer: accounts' profiles, Free/Premium entitlements, Strip
 
 ## Final product model (owner decision, 2026-10-06; 0407)
 
-- **Free** = the public calculators (606), no account needed. No Garage, no vehicle profiles, no Test Setups, no saved work.
+- **Free** = the public calculators (606 at the time 0407 was applied; 585 since the same-day, frontend-only Free → Premium migration of 21 calculators below), no account needed. No Garage, no vehicle profiles, no Test Setups, no saved work.
+- **Free → Premium calculator migration (2026-10-06, frontend only, no schema change):** 21 of the public calculators moved to Premium, approved in the Premium Migration Audit. This did not touch `0401`–`0407` or `entitlement_grants` — a Premium account's existing `pf_has_feature`/`plans.features` grant is reused as-is to gate them client-side (`premium-calculator-gating.js`), the same mechanism already used for the Engineering Lab. See `docs/PREMIUM-CATALOG.md` for the 21 ids and their Free companions.
 - **Gearhead Labs Premium** = the **single** paid product, **$5.99/month or $59.99/year**: My Garage (vehicle profiles, details, components, Test Setups/Builds), saved calculations and the Engineering Lab (E01–E14).
 - The early $1.99 Garage / $3.99 additional-profile concept is retired; it never existed in this schema or the frontend.
 - Stripe is not implemented. The prices are recorded as approved offers (`plan_offers`); a future Stripe price can only be added for an approved plan / interval / currency / amount.

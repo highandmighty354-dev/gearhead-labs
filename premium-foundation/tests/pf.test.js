@@ -22,7 +22,7 @@ const EXPECTED_MIGRATIONS = ['0001_enums.sql', '0002_tables.sql', '0003_constrai
   '0101_test_setups.sql', '0102_test_setups_triggers.sql', '0103_test_setups_rls.sql', '0201_value_write_boundary.sql',
   '0301_value_foundation_v1_seed.sql', '0401_automotive_only.sql', '0402_premium_entitlements.sql', '0403_premium_profiles.sql',
   '0404_premium_garage.sql', '0405_premium_saved_calculations.sql', '0406_premium_engineering_analyses.sql',
-  '0407_premium_product_model.sql'];
+  '0407_premium_product_model.sql', '0408_formula_versions_corrected_formulas.sql'];
 const PUBLIC_TABLES = ['accounts', 'billing_customers', 'calculation_records', 'calculators', 'canonical_fields', 'component_connections',
   'components', 'engineering_analyses', 'engineering_analyzers', 'entitlement_grants', 'formula_versions', 'garages', 'machine_details',
   'machines', 'plan_offers', 'plan_prices', 'plans', 'profiles', 'saved_calculations', 'stripe_events', 'subscriptions', 'test_setups', 'value_records'];
@@ -153,7 +153,7 @@ const CHECKS = [];
 const check = (group, name, fn) => CHECKS.push({ group, name, fn });
 
 // ---- integrity
-check('integrity', 'migration directory is exactly the approved 17 files in version order', async () => {
+check('integrity', 'migration directory is exactly the approved 18 files in version order', async () => {
   eq(fs.readdirSync(MIG_DIR).filter(f => f.endsWith('.sql')).sort(), EXPECTED_MIGRATIONS, 'migrations');
 });
 check('integrity', 'frozen foundation files are byte-identical to tag VALUE-FOUNDATION-1.0.0 and the manifest', async () => {
@@ -167,13 +167,31 @@ check('integrity', 'frozen foundation files are byte-identical to tag VALUE-FOUN
     eq(crypto.createHash('sha256').update(localBytes).digest('hex'), sha, `${local} sha256`);
   }
 });
-check('integrity', 'reference data: 583 calculators, 577 formula versions, 252 engine-proven, 47 canonical fields, 2 plans, 2 offers, 14 analyzers', async (c) => {
+check('integrity', 'reference data: 583 calculators, 581 formula versions (577 seeded + 4 from 0408), 252 engine-proven, 47 canonical fields, 2 plans, 2 offers, 14 analyzers', async (c) => {
   const r = (await q(c, `SELECT (SELECT count(*) FROM calculators)::int a, (SELECT count(*) FROM formula_versions)::int b,
     (SELECT count(*) FROM calculators WHERE engine_proven)::int p, (SELECT count(*) FROM canonical_fields)::int cf,
     (SELECT count(*) FROM plans)::int pl, (SELECT count(*) FROM plan_offers)::int po, (SELECT count(*) FROM engineering_analyzers)::int an`))[0];
-  eq(r, { a: 583, b: 577, p: 252, cf: 47, pl: 2, po: 2, an: 14 }, 'counts');
+  eq(r, { a: 583, b: 581, p: 252, cf: 47, pl: 2, po: 2, an: 14 }, 'counts');
   eq(await one(c, `SELECT count(*)::int FROM calculators c WHERE NOT EXISTS (SELECT 1 FROM calculators k WHERE k.calculator_id = c.canonical_id)`), 0, 'dangling aliases');
   eq(await one(c, `SELECT count(*)::int FROM canonical_fields WHERE value_kind <> 'numeric' OR canonical_unit IS NULL`), 0, 'canonical field integrity');
+});
+check('integrity', '0408 (GH-ENG-014): exactly the four corrected formula versions, each with its own registry, and the four original rows unchanged', async (c) => {
+  const added = await q(c, `SELECT calculator_id, formula_version, engine_version, formula_registry, first_release FROM formula_versions
+    WHERE first_release = 'F1.12.4' ORDER BY calculator_id`);
+  eq(added, [
+    { calculator_id: 'bolt_stretch', formula_version: 'fv1-8e827c77', engine_version: '1.1.0', formula_registry: 'GH_E1_FORMULAS', first_release: 'F1.12.4' },
+    { calculator_id: 'bolt_torque_spec', formula_version: 'fv1-25b1f973', engine_version: '1.1.0', formula_registry: 'GH_LEGACY_FORMULAS', first_release: 'F1.12.4' },
+    { calculator_id: 'dew_point', formula_version: 'fv1-73ddeaf4', engine_version: '1.1.0', formula_registry: 'GH_LEGACY_FORMULAS', first_release: 'F1.12.4' },
+    { calculator_id: 'distance_converter', formula_version: 'fv1-4001b424', engine_version: '1.1.0', formula_registry: 'GH_LEGACY_FORMULAS', first_release: 'F1.12.4' }], '0408 rows');
+  const orig = await q(c, `SELECT calculator_id, formula_version, engine_version, formula_registry, first_release FROM formula_versions
+    WHERE (calculator_id, formula_version) IN (('bolt_stretch','fv1-d48e7340'),('bolt_torque_spec','fv1-f63ea4c8'),('dew_point','fv1-260e7f34'),('distance_converter','fv1-36d27af2'))
+    ORDER BY calculator_id`);
+  eq(orig, [
+    { calculator_id: 'bolt_stretch', formula_version: 'fv1-d48e7340', engine_version: '1.1.0', formula_registry: 'GH_E1_FORMULAS', first_release: 'F1.12.3' },
+    { calculator_id: 'bolt_torque_spec', formula_version: 'fv1-f63ea4c8', engine_version: '1.1.0', formula_registry: 'GH_LEGACY_FORMULAS', first_release: 'F1.12.3' },
+    { calculator_id: 'dew_point', formula_version: 'fv1-260e7f34', engine_version: '1.1.0', formula_registry: 'GH_LEGACY_FORMULAS', first_release: 'F1.12.3' },
+    { calculator_id: 'distance_converter', formula_version: 'fv1-36d27af2', engine_version: '1.1.0', formula_registry: 'GH_LEGACY_FORMULAS', first_release: 'F1.12.3' }], 'original rows');
+  eq(await one(c, `SELECT count(*)::int FROM formula_versions WHERE first_release <> 'F1.12.3'`), 4, 'only the four 0408 rows are not from the 0005 seed');
 });
 check('integrity', 'exactly the 22 expected public tables; RLS enabled AND forced on every one', async (c) => {
   const r = await q(c, `SELECT relname, relrowsecurity e, relforcerowsecurity f FROM pg_class WHERE relnamespace = 'public'::regnamespace AND relkind = 'r' ORDER BY relname`);
@@ -786,7 +804,9 @@ const MUTANTS = [
   const reprovisionOk = (await fingerprint(rb)) === fpOnce;
   // 0407 alone: rolling it back on a fully provisioned database must reproduce the exact 0406 catalog.
   const at0406 = await freshDb('at0406', { order: EXPECTED_MIGRATIONS.slice(0, 16) });
-  const rb0407 = await freshDb('rb0407');
+  // Built to stop at 0407: 0408 only adds formula_versions rows, which can never be removed (df_never_changed; no rollback file by
+  // design), so rolling 0407 back on a database that also has 0408 cannot reproduce 0406's row counts. (GH-ENG-014)
+  const rb0407 = await freshDb('rb0407', { order: EXPECTED_MIGRATIONS.slice(0, 17) });
   { const c = await connect(rb0407, 'postgres'); await c.query(fs.readFileSync(ROLLBACKS[0], 'utf8')); await c.end(); }
   const rb0407Ok = (await fingerprint(rb0407)) === (await fingerprint(at0406));
   out.rollback = { pass: missing.length === 0 && residueOk && reprovisionOk && rb0407Ok, missing: missing.length, extra: extra.map(l => l.slice(0, 60)),

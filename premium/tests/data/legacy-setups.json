@@ -1,0 +1,172 @@
+{
+ "note": "Saved-setup states captured with the pre-change engine d776d21 (sha256 9674a9939eca...) through ghmCaptureCalcState() after typing the listed values; fixtures for the load tests of GH-IMP-019 (T9).",
+ "setups": [
+  {
+   "name": "hp_from_torque saved in Imperial (490 lb-ft, 4000 rpm)",
+   "calc": "hp_from_torque",
+   "system": "imperial",
+   "fields": {
+    "torq": {
+     "kind": "value",
+     "value": "490",
+     "unit": "lb-ft",
+     "canonical": 490
+    },
+    "rpm_t": {
+     "kind": "value",
+     "value": "4000",
+     "unit": "RPM",
+     "canonical": 4000
+    }
+   },
+   "results_when_saved": [
+    "Horsepower 373.2HP"
+   ]
+  },
+  {
+   "name": "hp_from_torque saved in Metric (664.351 N·m, 4000 rpm)",
+   "calc": "hp_from_torque",
+   "system": "metric",
+   "fields": {
+    "torq": {
+     "kind": "value",
+     "value": "664.351",
+     "unit": "lb-ft",
+     "canonical": 490.0001515542704
+    },
+    "rpm_t": {
+     "kind": "value",
+     "value": "4000",
+     "unit": "RPM",
+     "canonical": 4000
+    }
+   },
+   "results_when_saved": [
+    "Horsepower 278.2952kW"
+   ]
+  },
+  {
+   "name": "torque_from_hp saved in Metric (316.922 kW = 425 hp, 4000 rpm)",
+   "calc": "torque_from_hp",
+   "system": "metric",
+   "fields": {
+    "hp2": {
+     "kind": "value",
+     "value": "316.922",
+     "unit": "HP",
+     "canonical": 424.9994024405573
+    },
+    "rpm2": {
+     "kind": "value",
+     "value": "4000",
+     "unit": "RPM",
+     "canonical": 4000
+    }
+   },
+   "results_when_saved": [
+    "Torque 756.5464N·m"
+   ]
+  },
+  {
+   "name": "ev_motor_torque saved in Metric (native kW box: 250 kW, 4000 rpm)",
+   "calc": "ev_motor_torque",
+   "system": "metric",
+   "fields": {
+    "ev_mkw": {
+     "kind": "value",
+     "value": "250",
+     "unit": "",
+     "canonical": null
+    },
+    "ev_mkrpm": {
+     "kind": "value",
+     "value": "4000",
+     "unit": "RPM",
+     "canonical": 4000
+    }
+   },
+   "results_when_saved": [
+    "Motor Torque 596.8311N·m"
+   ]
+  },
+  {
+   "name": "ev_acceleration saved in Metric (298.28 kW = 400 hp)",
+   "calc": "ev_acceleration",
+   "system": "metric",
+   "fields": {
+    "ev_awt": {
+     "kind": "value",
+     "value": "1905.09",
+     "unit": "kg",
+     "canonical": 4200.004510657884
+    },
+    "ev_ahp": {
+     "kind": "value",
+     "value": "298.28",
+     "unit": "HP",
+     "canonical": 400.0000686603309
+    },
+    "ev_trac": {
+     "kind": "value",
+     "value": "0.75",
+     "unit": "",
+     "canonical": null
+    }
+   },
+   "results_when_saved": [
+    "Estimated 0–60 Time ~5.36sec"
+   ]
+  },
+  {
+   "name": "ev_acceleration saved in Imperial (400 HP)",
+   "calc": "ev_acceleration",
+   "system": "imperial",
+   "fields": {
+    "ev_awt": {
+     "kind": "value",
+     "value": "4200",
+     "unit": "lbs",
+     "canonical": 4200
+    },
+    "ev_ahp": {
+     "kind": "value",
+     "value": "400",
+     "unit": "HP",
+     "canonical": 400
+    },
+    "ev_trac": {
+     "kind": "value",
+     "value": "0.75",
+     "unit": "",
+     "canonical": null
+    }
+   },
+   "results_when_saved": [
+    "Estimated 0–60 Time ~5.36sec"
+   ]
+  },
+  {
+   "name": "hybrid_power_split saved in Imperial (200 kW, fraction 0.5)",
+   "calc": "hybrid_power_split",
+   "system": "imperial",
+   "fields": {
+    "hps_p": {
+     "kind": "value",
+     "value": "200",
+     "unit": "",
+     "canonical": null
+    },
+    "hps_f": {
+     "kind": "value",
+     "value": "0.5",
+     "unit": "",
+     "canonical": null
+    }
+   },
+   "results_when_saved": [
+    "Engine Power100 kW",
+    "Electric Motor Power100 kW"
+   ]
+  }
+ ]
+}
