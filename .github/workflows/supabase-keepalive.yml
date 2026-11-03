@@ -1,0 +1,88 @@
+# Supabase keep-alive and health audit (read-only, no secrets, no AI usage).
+#
+# Two schedules, one workflow, one job:
+#   * Daily keep-alive  — '17 13 * * *'   (13:17 UTC, 9:17 a.m. Eastern daylight time)
+#       Two small read-only requests the database answers successfully
+#       (Storage bucket list; GraphQL endpoint). Nothing else runs.
+#   * Full health audit — '47 13 */4 * *' (13:47 UTC on days 1,5,9,13,17,21,25,29)
+#       The keep-alive requests plus the repository, project and GitHub checks.
+# The script picks the mode from which cron line fired, so daily runs never
+# run the full audit. Manual runs and pull-request runs do the full audit.
+#
+# Scheduling limits (GitHub, not this workflow):
+#   * GitHub cron cannot express "every 4 days" across month ends. '*/4' restarts
+#     each month, so audits are at most 4 days apart, and only 1–3 days apart
+#     across a month boundary.
+#   * Schedules run only from the default branch, use UTC, and can start late or
+#     be skipped when GitHub is busy.
+#   * In public repos GitHub turns schedules off after 60 days with no repository
+#     activity. The audit warns from day 45; re-enable from the Actions tab.
+#
+# Safety: only the PUBLIC publishable key already in supabase-config.js and the
+# run's read-only GITHUB_TOKEN. No repository secrets, no GitHub Environment,
+# no service-role key, no database password. Writes nothing anywhere.
+# A FAIL marks the run as failed, which triggers GitHub's standard failure email.
+
+name: Supabase keep-alive and health audit
+run-name: >-
+  ${{ (github.event_name == 'schedule' && github.event.schedule == '17 13 * * *') && 'Keep-alive (daily)'
+  || (github.event_name == 'workflow_dispatch' && inputs.mode == 'keepalive') && 'Keep-alive (manual)'
+  || format('Full audit ({0})', github.event_name) }}
+
+on:
+  schedule:
+    - cron: '17 13 * * *'     # daily keep-alive
+    - cron: '47 13 */4 * *'   # full audit, every 4th day of the month
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'What to run'
+        type: choice
+        options: [full, keepalive]
+        default: full
+  pull_request:
+    paths:
+      - '.github/workflows/supabase-keepalive.yml'
+      - '.github/scripts/supabase-health.mjs'
+      - '.github/scripts/supabase-health.test.mjs'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: supabase-keepalive-${{ github.event.schedule || github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      # Pull requests only: offline tests of routing, tamper detection and log hygiene.
+      - name: Script tests (pull requests only)
+        if: github.event_name == 'pull_request'
+        run: node --test .github/scripts/supabase-health.test.mjs
+
+      # Pull requests only: exercise the daily path exactly as the daily schedule would.
+      - name: Keep-alive as the daily schedule would run it (pull requests only)
+        if: github.event_name == 'pull_request'
+        env:
+          EXPECTED_PROJECT_REF: jmztpjudwzjvrcdtjynd
+          HEALTH_EVENT: schedule        # GITHUB_EVENT_NAME cannot be overridden in a step
+          EVENT_SCHEDULE: '17 13 * * *'
+        run: node .github/scripts/supabase-health.mjs
+
+      - name: Keep-alive / health audit
+        env:
+          EXPECTED_PROJECT_REF: jmztpjudwzjvrcdtjynd
+          HEALTH_EVENT: ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          HEALTH_MODE: ${{ inputs.mode }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/scripts/supabase-health.mjs
