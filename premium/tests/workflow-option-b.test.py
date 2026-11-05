@@ -807,9 +807,11 @@ try:
                   gi is not None and wi is not None and gi < first_cli and wi < first_cli and (first_cred is None or (gi < first_cred and wi < first_cred)),
                   f'guard={gi} ws={wi} cli={first_cli} cred={first_cred}')
     ap = step_by_id('apply', 'apply')['run'].splitlines()
-    k = next(i for i, l in enumerate(ap) if 'supabase db push --workdir "$GITHUB_WORKSPACE" --db-url "$url" --yes' in l)
+    # a missing or altered --yes command is a recorded failure here, never an exception that stops the remaining checks
+    k = next((i for i, l in enumerate(ap) if 'supabase db push --workdir "$GITHUB_WORKSPACE" --db-url "$url" --yes' in l), None)
     check('B6-29', 'V2 is still literally the last command before --yes (the guard is not inserted between them)',
-          ap[k - 1].strip().startswith('if env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" check "$GITHUB_WORKSPACE"'), ap[k - 1])
+          k is not None and k > 0 and ap[k - 1].strip().startswith('if env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" check "$GITHUB_WORKSPACE"'),
+          'the exact `supabase db push --workdir "$GITHUB_WORKSPACE" --db-url "$url" --yes` line was not found in the apply step' if k is None else ap[k - 1])
     # simulated runs: what every CLI invocation actually receives
     def iso_ok(r, ws):
         return r.calls and all(len(c) >= 8 and c[3] == '1' and c[4] == '1' and c[5] == os.path.join(r.dir, 'rt', 'supabase-home') and c[6] == '0' and c[7] == '0'
