@@ -37,7 +37,8 @@ Every step that writes to the project needs explicit owner approval first.
 | fresh dry run + exact pending gate (apply job) | the existing `pending_gate` and end-of-order check, against the manifest's list (never `ls`). The **last** command writes a gate-pass marker | in the step |
 | **V2** + apply | refuses without the marker; then V2 is **literally the last command before** `supabase db push --yes` | in the step; the integrity script runs with it removed (CB-2) |
 | evidence: **V3** and local evidence | always runs in apply mode. Records V1, V2 and V3 (each PASS, MISMATCH or NOT_COMPLETED) and the run's **integrity result**: MISMATCH if **any** of them verified a discrepancy, even if a later check passed; otherwise NOT_COMPLETED if any could not complete; otherwise PASS | none (CB-3) |
-| evidence: post-apply dry run | read-only. Runs only if the V3 step **succeeded**, V3 is PASS or NOT_COMPLETED, **and the run's integrity result is not MISMATCH** (no verified discrepancy at V1, V2 or V3), and not after cancellation (`!cancelled()`) | in the step |
+| evidence: exact-value gate (`evidence_gate`) | no credential. Runs the exact, case-sensitive checks for V3 and the aggregate integrity result. Writes `exact=yes` only for the exact allowed values; rejects missing, unexpected or differently-cased values | none |
+| evidence: post-apply dry run (`evidence_db`) | read-only. Runs only after `evidence_gate` succeeds with `exact=yes`, the V3 step succeeded, V3 is PASS or NOT_COMPLETED, **and the run's integrity result is not MISMATCH** (no verified discrepancy at V1, V2 or V3), and not after cancellation (`!cancelled()`). It repeats the exact-value check as defence in depth | in the step, only after the credential-free gate passes |
 | evidence: classification | APPLIED (the only success), INTEGRITY INCIDENT, EVIDENCE INCOMPLETE, APPLY FAILED, NOT ATTEMPTED. A verified MISMATCH at V1, V2 or V3 is always INTEGRITY INCIDENT, naming the stage(s). A check that could not complete is EVIDENCE INCOMPLETE, never INTEGRITY INCIDENT | none |
 
 **Other points:**
@@ -59,17 +60,19 @@ Every other risk below is **disclosed, with no separate acceptance recorded**:
 - **V3 checks the migration files at the time it runs.** It does not prove which bytes the CLI read, that the migration completed fully, or the database state. The post-apply dry run is separate evidence about migration history, and F1 checks the database contents.
 - **Cancellation** (accepted under Decision 5, with the recovery rule): after a whole-job cancellation, the evidence steps may not run or finish. A cancellation during `--yes` may leave a migration partially applied.
 - **CB-1, CB-2 and CB-3 only reduce accidental credential exposure.** The `env` launcher and the step shells still hold the credential. The CLI receives it as a command-line argument. The hosted runner (passwordless `sudo`, one user) gives no isolation between processes.
-- **AP-5b case-sensitivity workaround.** GitHub compares strings case-insensitively in `if:`. So a case variant such as `pass` would satisfy AP-5b's condition, and **the step would start**.
-  - AP-5b's first command rejects any value that is not byte-exact, **before the database URL is built or the CLI is run**.
-  - But the step has already started with the **database credential in its step environment**. This limits use of the credential; it does **not** eliminate exposure.
-  - It matters only if AP-5a has a defect, because AP-5a writes only the exact upper-case values.
-  - The workflow is not changed to address it.
+- **AP-5b case-sensitivity workaround (corrected in commit `8c02481`).** GitHub compares strings case-insensitively in `if:`, so a case variant such as `pass` could satisfy a workflow condition.
+  - The workflow now runs a separate `evidence_gate` step first. It has **no database credential** and checks the V3 and aggregate integrity values character for character.
+  - Only if that credential-free step succeeds and records `exact=yes` can the credential-bearing `evidence_db` post-apply dry-run step start. A differently-cased, missing or unexpected value is rejected before the database credential is made available to that step.
+  - `evidence_db` repeats the exact-value check as a second layer before building the database URL or running the CLI.
+  - This closes the previously identified case-variant path to starting the credential-bearing evidence step. It does **not** remove the separately disclosed credential-exposure limits of the runner, step shells, `env` launcher or CLI.
 - **Not yet proven at run time:** that the CLI accepts `--workdir` on `db push` (it is a global flag in the 2.119.0 source), and how GitHub really evaluates the AP-5b condition.
 
-**Tests** (local only):
-- `python3 premium/tests/workflow-option-b.test.py`: structural checks plus a local simulation of the jobs. It is **not** GitHub Actions.
-- `python3 premium/tests/workflow-pending-gate.test.py`.
+**Tests** (local only; latest reported run at commit `8c02481`):
+- `python3 premium/tests/workflow-option-b.test.py`: **195 checks, 0 failures**, including B6-28 (14 checks) for the credential-free exact-value gate. Structural checks plus a local simulation of the jobs; it is **not** GitHub Actions.
+- B6-28 was also run against the previous workflow at `49af33f` and failed as expected because the credential-free gate step was absent.
+- `python3 premium/tests/workflow-pending-gate.test.py`: **62 checks, 0 failures**.
 - Both are in `premium/tests/run-tests.sh`.
+- The 11 mutation controls were last run at `71769c9`; they were **not** rerun for `8c02481`.
 - **Not run (separate authorization needed):**
   - the throwaway-GitHub-repository tests (real `if:` and cancellation behaviour);
   - the disposable-database tests with the real CLI (P1 decoy, cancellation during `--yes`, R1);
