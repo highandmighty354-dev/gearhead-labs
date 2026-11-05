@@ -64,13 +64,34 @@ Every other risk below is **disclosed, with no separate acceptance recorded**:
   - **Cancellation can be slow.** In the same test the step took about 67 seconds to stop after the cancel request, not the roughly 10 seconds previously assumed. This is a single observed result, not a guaranteed duration in either direction.
   - **A cancelled run may have no final classification.** In test B6-25c GitHub forcibly terminated the evidence step about 5 minutes after the cancel request, and the classification step (`classify`) did not run. A cancelled run may therefore end with no INTEGRITY INCIDENT, EVIDENCE INCOMPLETE or other headline at all.
   - **After any cancellation, the database outcome is unknown until established independently.** Neither the job result, the evidence steps nor a missing classification shows whether the migration was applied, partly applied or not applied. The recovery rule above applies unchanged: stop, preserve the logs, notify Trent, establish the database state through read-only F1 checks, and wait for explicit owner authorization.
+  - **Observed in the disposable-database tests (B6-20, 2026-11-05).** Each case was a single run of the real Supabase CLI 2.119.0 in a clean, GitHub-like environment, against a fresh local PostgreSQL 16.15 database, with **test-only** migrations (not 0409). The CLI was interrupted during `--yes` with SIGINT. These are observations from that setup only, **not guarantees** for hosted Supabase or any other migration.
+    - **Transactional migration:** the CLI exited with code 130 about 0.1 s after SIGINT. The database server kept working: about 22 s later it finished the remaining statements, committed them and recorded the migration-history row. A later dry run reported the database up to date. Stopping the CLI did not stop or roll back that migration.
+    - **Migration with a statement that cannot run inside a transaction (`CREATE INDEX CONCURRENTLY`):** the CLI exited with code 130 about 0.1 s after SIGINT. The server completed the statement already in progress. The two statements before it stayed committed (a table and its 1,000 rows). The later statements (the index and a second table) never executed. **No migration-history row was recorded**, and a later dry run reported the migration as **pending**. A normal retry could fail, because the objects the earlier statements created already exist.
+    - **A migration reported as pending after an interruption does not show that the database is unchanged, or that a retry is safe.** Part of it may already be committed. The recovery rule above still applies: no retry until read-only F1 checks have established the actual database state and the owner has authorized the next step.
 - **CB-1, CB-2 and CB-3 only reduce accidental credential exposure.** The `env` launcher and the step shells still hold the credential. The CLI receives it as a command-line argument. The hosted runner (passwordless `sudo`, one user) gives no isolation between processes.
 - **AP-5b case-sensitivity workaround (corrected in commit `8c02481`).** GitHub compares strings case-insensitively in `if:`, so a case variant such as `pass` could satisfy a workflow condition.
   - The workflow now runs a separate `evidence_gate` step first. It has **no database credential** and checks the V3 and aggregate integrity values character for character.
   - Only if that credential-free step succeeds and records `exact=yes` can the credential-bearing `evidence_db` post-apply dry-run step start. A differently-cased, missing or unexpected value is rejected before the database credential is made available to that step.
   - `evidence_db` repeats the exact-value check as a second layer before building the database URL or running the CLI.
   - This closes the previously identified case-variant path to starting the credential-bearing evidence step. It does **not** remove the separately disclosed credential-exposure limits of the runner, step shells, `env` launcher or CLI.
-- **Not yet proven at run time:** that the CLI accepts `--workdir` on `db push` (it is a global flag in the 2.119.0 source), and how GitHub really evaluates the AP-5b condition.
+- **Supabase CLI side effects (observed in B6-21, 2026-11-05; disclosed, no workflow change made).** One run of the real CLI 2.119.0 in a clean, GitHub-like environment, with `strace` file, process and network tracing. The run applied the 19-file package to a disposable local PostgreSQL 16.15 database using the workflow's own commands. Nothing was written under `supabase/migrations/`.
+  - **Observed filesystem activity:**
+    - `~/.supabase/traces/<date>.ndjson`: a local trace log. It contained the **full text of the executed SQL**, plus the database server address and port. No password and no connection URL were found in it in this test.
+    - `~/.supabase/telemetry.json`, written on every run.
+    - Reads of `~/.docker/config.json` and `~/.supabase/profile`. Neither existed.
+    - A search of the workspace's parent folders for `supabase/config.toml`, `supabase/config.json` and `.supabase/project.json`, **even with `--workdir`**.
+    - `supabase/setup-cli@v1` wrote its download and unpacked CLI only under `RUNNER_TEMP`. Its `supabase --version` call (the upgrade check) created `supabase/.temp/cli-latest` in the **workspace**. That is outside `supabase/migrations/`, so the integrity checks are unaffected.
+  - **Observed network activity, but no confirmed transmission:**
+    - During the version check the CLI looked up `api.github.com` and started a connection to it. In this sandbox no response came back, and the cache file was left empty.
+    - During every `db push` the CLI made DNS lookups for `eu.i.posthog.com` (telemetry). No connection followed in this sandbox.
+  - **Not verified:** whether a GitHub runner, which has internet access, actually transmits telemetry, and what any payload would contain. Nothing here shows that data was sent.
+  - **Controls in the CLI 2.119.0 source (commit `3cb948c`), not applied by this workflow:**
+    - `SUPABASE_TELEMETRY_DISABLED=1` or `DO_NOT_TRACK=1` (exactly `1`) stops PostHog delivery **and** the trace log. `telemetry.json` is still written.
+    - `SUPABASE_HOME` moves `telemetry.json` and the trace log out of `~/.supabase`.
+    - `SUPABASE_NO_UPDATE_NOTIFIER` (`1` or `true`) turns off the upgrade check and its cache file.
+    - No flag or variable stops the start-up search of parent folders. `--workdir` keeps the migrations and command configuration in the workspace (B6-10), but a parent folder's `supabase/.env` could still supply CLI settings.
+    - Adopting any of these controls would be a separate, owner-approved workflow change.
+- **Not yet proven at run time:** how GitHub really evaluates the AP-5b condition, and how the CLI behaves on a GitHub runner against hosted Supabase. The CLI's acceptance of `--workdir` on `db push` has been exercised with the real CLI against disposable local databases (B6-10, B6-21), not on GitHub.
 
 **Tests** (local unless marked as real GitHub; latest reported local run at commit `8c02481`):
 - `python3 premium/tests/workflow-option-b.test.py`: **195 checks, 0 failures**, including B6-28 (14 checks) for the credential-free exact-value gate. Structural checks plus a local simulation of the jobs; it is **not** GitHub Actions.
@@ -79,9 +100,12 @@ Every other risk below is **disclosed, with no separate acceptance recorded**:
 - Both are in `premium/tests/run-tests.sh`.
 - The 11 mutation controls were last run at `71769c9`; they were **not** rerun for `8c02481`.
 - **Run on real GitHub (2026-11-05), in a separate private throwaway repository with test-only workflow copies and a fake `supabase` command:** B6-03, B6-11, B6-17, B6-19 and B6-25c all passed. The cancellation findings are recorded under Residual risks above.
-- **Not run (separate authorization needed):**
-  - the disposable-database tests with the real CLI (P1 decoy, cancellation during `--yes`, R1);
-  - the rehearsal run and the production run.
+- **Run with the real Supabase CLI 2.119.0 against disposable local PostgreSQL 16.15 databases (2026-11-05), in a clean, GitHub-like environment:**
+  - B6-10 (P1 decoy) passed. With `--workdir` the CLI listed exactly the 19 workspace migrations. Without it, it picked up a decoy migration from a parent folder.
+  - B6-20 (cancellation during `--yes`): both cases were run and their behaviour recorded.
+  - B6-21 (R1): completed.
+  - The findings are recorded under Residual risks above.
+- **Not run (separate authorization needed):** the rehearsal run and the production run.
 
 **Credentials:** the database password, service-role key, JWT secret and any Stripe secret are never pasted into chat, source files, GitHub or prompts. The owner types the database password into the Supabase CLI on their own machine, or uses the Supabase dashboard while signed in.
 
