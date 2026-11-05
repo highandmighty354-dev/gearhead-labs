@@ -7,6 +7,8 @@
 #   0d. workflow-option-b.test.py   the provisioning workflow's Option B integrity design (V1/V2/V3, P1, evidence steps; local simulation, fake supabase command)
 #   0e. cli-isolation.real-cli.sh   Supabase CLI isolation with the REAL CLI 2.119.0 (opt-in: runs only when SUPABASE_CLI_BIN is set;
 #                                   otherwise reported as NOT RUN, never as passed)
+#   0f. action-pins.network.sh       the workflow's action SHAs against the upstream repositories (opt-in, needs network:
+#                                   runs only when ACTION_PINS_NETWORK=1; otherwise reported as NOT RUN)
 #   1. frontend.test.js       fake Supabase client + static scans (no network, no database)
 #   2. schema-contract.test.js the adapter against the approved schema on a THROWAWAY local PostgreSQL cluster
 # Never connects to a real Supabase project. Needs PostgreSQL >= 14 server binaries (set PG_BIN if not found) and
@@ -20,6 +22,8 @@ python3 "$HERE/workflow-pending-gate.test.py"
 python3 "$HERE/workflow-option-b.test.py"
 if [ -n "${SUPABASE_CLI_BIN:-}" ]; then bash "$HERE/cli-isolation.real-cli.sh"
 else echo "cli-isolation (real CLI): NOT RUN (set SUPABASE_CLI_BIN to a directory with the real supabase 2.119.0 binary)"; fi
+if [ "${ACTION_PINS_NETWORK:-}" = 1 ]; then bash "$HERE/action-pins.network.sh"
+else echo "action pins (network): NOT RUN (set ACTION_PINS_NETWORK=1 to re-verify the action SHAs upstream)"; fi
 node "$HERE/frontend.test.js"
 PG_BIN="${PG_BIN:-$( (pg_config --bindir 2>/dev/null) || ls -d /usr/lib/postgresql/*/bin 2>/dev/null | sort -V | tail -1)}"
 [ -x "$PG_BIN/initdb" ] || { echo "PostgreSQL server binaries not found (set PG_BIN)"; exit 2; }

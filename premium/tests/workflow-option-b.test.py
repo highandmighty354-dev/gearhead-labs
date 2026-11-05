@@ -939,6 +939,22 @@ try:
     r = run_job('apply', outputs=HAPPY, step_patch={'evidence_db': lambda st: {**st, 'env': {k: v for k, v in st['env'].items() if k != 'SUPABASE_HOME'}}})
     check('B6-29', '[simulated] post-apply step without SUPABASE_HOME: no post-apply CLI call; EVIDENCE INCOMPLETE (never APPLIED)',
           len(r.calls) == 2 and r.yes == 1 and r.out('evidence_db', 'post') == 'NOT_COMPLETED' and headline(r) == 'EVIDENCE INCOMPLETE', detail(r))
+
+    # ================================================================ B6-32: third-party actions pinned to verified commits
+    # Verified 2026-11-05 against the upstream repositories (premium/tests/action-pins.network.sh re-checks it):
+    #   actions/checkout   11d5960a… = tag v4.4.0 = tag v4 (lightweight)      supabase/setup-cli 1dedf2c6… = tag v1.7.3 = branch v1
+    PINNED_ACTIONS = {'actions/checkout': ('11d5960a326750d5838078e36cf38b85af677262', 'v4.4.0'),
+                      'supabase/setup-cli': ('1dedf2c611547ede7232d26866dd3c56ab903bbb', 'v1.7.3')}
+    uses_lines = [l for l in WF_TEXT.splitlines() if re.match(r'^\s*(- )?uses:', l)]
+    uses_vals = [s.get('uses') for j in JOBS.values() for s in j['steps'] if 'uses' in s]
+    check('B6-32', 'five action references (3 checkout, 2 setup-cli), every one a full 40-hex commit SHA, none a tag or branch',
+          len(uses_vals) == 5 and all(re.fullmatch(r'[a-z0-9-]+/[a-z0-9-]+@[0-9a-f]{40}', u) for u in uses_vals), str(uses_vals))
+    check('B6-32', 'each reference is the verified commit for its action, with the release it corresponds to named in a comment',
+          all(u.split('@')[0] in PINNED_ACTIONS and u.split('@')[1] == PINNED_ACTIONS[u.split('@')[0]][0] for u in uses_vals)
+          and all(f"# {PINNED_ACTIONS[re.search(r'uses: ([^@]+)@', l).group(1)][1]} " in l for l in uses_lines), '\n'.join(uses_lines))
+    check('B6-32', 'the action inputs are unchanged: checkout keeps ref = PINNED_SHA and persist-credentials false; setup-cli keeps version = SUPABASE_CLI_VERSION',
+          all(s['with'] == {'ref': '${{ env.PINNED_SHA }}', 'persist-credentials': False} for j in JOBS.values() for s in j['steps'] if str(s.get('uses', '')).startswith('actions/checkout@'))
+          and all(s['with'] == {'version': '${{ env.SUPABASE_CLI_VERSION }}'} for j in JOBS.values() for s in j['steps'] if str(s.get('uses', '')).startswith('supabase/setup-cli@')))
 finally:
     shutil.rmtree(TMP, ignore_errors=True)
 

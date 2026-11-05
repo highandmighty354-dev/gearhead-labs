@@ -410,7 +410,7 @@ jobs:
           fi
 
       - name: Check out the pinned commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (what the v4 tag pointed to on 2026-11-05)
         with:
           ref: ${{ env.PINNED_SHA }}
           persist-credentials: false
@@ -440,11 +440,11 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.target }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (what the v4 tag pointed to on 2026-11-05)
         with:
           ref: ${{ env.PINNED_SHA }}
           persist-credentials: false
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1.7.3 (what the v1 branch pointed to on 2026-11-05)
         env:
           SUPABASE_HOME: ${{ runner.temp }}/supabase-home
           SUPABASE_DEBUG: "0"
@@ -546,11 +546,11 @@ jobs:
     environment: ${{ inputs.target }}
     steps:
       # AP-1, AP-2
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (what the v4 tag pointed to on 2026-11-05)
         with:
           ref: ${{ env.PINNED_SHA }}
           persist-credentials: false
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1.7.3 (what the v1 branch pointed to on 2026-11-05)
         env:
           SUPABASE_HOME: ${{ runner.temp }}/supabase-home
           SUPABASE_DEBUG: "0"
