@@ -74,7 +74,7 @@ Every other risk below is **disclosed, with no separate acceptance recorded**:
   - Only if that credential-free step succeeds and records `exact=yes` can the credential-bearing `evidence_db` post-apply dry-run step start. A differently-cased, missing or unexpected value is rejected before the database credential is made available to that step.
   - `evidence_db` repeats the exact-value check as a second layer before building the database URL or running the CLI.
   - This closes the previously identified case-variant path to starting the credential-bearing evidence step. It does **not** remove the separately disclosed credential-exposure limits of the runner, step shells, `env` launcher or CLI.
-- **Supabase CLI side effects (observed in B6-21, 2026-11-05; disclosed, no workflow change made).** One run of the real CLI 2.119.0 in a clean, GitHub-like environment, with `strace` file, process and network tracing. The run applied the 19-file package to a disposable local PostgreSQL 16.15 database using the workflow's own commands. Nothing was written under `supabase/migrations/`.
+- **Supabase CLI side effects (observed in B6-21, 2026-11-05, before the isolation controls below were added).** One run of the real CLI 2.119.0 in a clean, GitHub-like environment, with `strace` file, process and network tracing. The run applied the 19-file package to a disposable local PostgreSQL 16.15 database using the workflow's own commands. Nothing was written under `supabase/migrations/`.
   - **Observed filesystem activity:**
     - `~/.supabase/traces/<date>.ndjson`: a local trace log. It contained the **full text of the executed SQL**, plus the database server address and port. No password and no connection URL were found in it in this test.
     - `~/.supabase/telemetry.json`, written on every run.
@@ -85,26 +85,68 @@ Every other risk below is **disclosed, with no separate acceptance recorded**:
     - During the version check the CLI looked up `api.github.com` and started a connection to it. In this sandbox no response came back, and the cache file was left empty.
     - During every `db push` the CLI made DNS lookups for `eu.i.posthog.com` (telemetry). No connection followed in this sandbox.
   - **Not verified:** whether a GitHub runner, which has internet access, actually transmits telemetry, and what any payload would contain. Nothing here shows that data was sent.
-  - **Controls in the CLI 2.119.0 source (commit `3cb948c`), not applied by this workflow:**
-    - `SUPABASE_TELEMETRY_DISABLED=1` or `DO_NOT_TRACK=1` (exactly `1`) stops PostHog delivery **and** the trace log. `telemetry.json` is still written.
-    - `SUPABASE_HOME` moves `telemetry.json` and the trace log out of `~/.supabase`.
-    - `SUPABASE_NO_UPDATE_NOTIFIER` (`1` or `true`) turns off the upgrade check and its cache file.
-    - No flag or variable stops the start-up search of parent folders. `--workdir` keeps the migrations and command configuration in the workspace (B6-10), but a parent folder's `supabase/.env` could still supply CLI settings.
-    - Adopting any of these controls would be a separate, owner-approved workflow change.
-- **Not yet proven at run time:** how GitHub really evaluates the AP-5b condition, and how the CLI behaves on a GitHub runner against hosted Supabase. The CLI's acceptance of `--workdir` on `db push` has been exercised with the real CLI against disposable local databases (B6-10, B6-21), not on GitHub.
+  - These behaviours are now controlled by the workflow: see **CLI isolation** below.
+- **CLI isolation (added in commit `85a04fc`).** The workflow uses three controls found in the CLI 2.119.0 source (commit `3cb948c`):
+  - **What is set:**
+    - `SUPABASE_TELEMETRY_DISABLED: "1"` (workflow-level `env`). This stops PostHog telemetry and the local trace log, which holds executed SQL. The CLI honours only the exact value `1`.
+    - `SUPABASE_NO_UPDATE_NOTIFIER: "1"` (workflow-level `env`). This stops the upgrade check: no call to `api.github.com` and no `supabase/.temp/cli-latest` in the workspace.
+    - `SUPABASE_HOME: ${{ runner.temp }}/supabase-home` on **all six steps that run the CLI**: both `supabase/setup-cli@v1` steps (each runs `supabase --version`) and the four `db push` steps. The CLI's own files go to the runner's temporary folder, outside the workspace.
+  - **Fail-closed guard:** each `db push` step first checks that both flags are `1`, that `SUPABASE_HOME` is exactly `$RUNNER_TEMP/supabase-home`, and that `RUNNER_TEMP` is not inside the workspace.
+    - The check runs before the credential is used and before any CLI call. If it fails, the CLI is not run.
+    - In the apply job this means **NOT ATTEMPTED**. If the post-apply step also cannot run the CLI, the run is **EVIDENCE INCOMPLETE**. It is never reported as APPLIED.
+    - V2 remains the last command before `--yes`.
+    - No credential was added to any step. The `setup-cli` steps receive only `SUPABASE_HOME`.
+    - The migration package, manifest, pin and integrity checks are unchanged.
+  - **Verified behaviour.** Three kinds of evidence, kept separate:
+    - **Source** (commit `3cb948c`):
+      - Telemetry consent becomes `denied` when `SUPABASE_TELEMETRY_DISABLED` or `DO_NOT_TRACK` is exactly `1`. With consent denied, neither the PostHog client nor the trace-file exporter starts.
+      - `SUPABASE_HOME` replaces `~/.supabase`.
+      - `SUPABASE_NO_UPDATE_NOTIFIER` turns off the upgrade check.
+      - `telemetry.json` is still written on every run, now under `SUPABASE_HOME`.
+    - **Real CLI, local** (disposable PostgreSQL 16.15 databases with test-only TLS; `premium/tests/cli-isolation.real-cli.sh`):
+      - With the workflow's values: no trace file, no `cli-latest`, nothing in `~/.supabase`, `telemetry.json` only under `SUPABASE_HOME`. Under `strace`, there were no DNS queries and no connections except to the test database.
+      - In a control run without the variables, all four of those checks failed: a trace file, `cli-latest`, 7 DNS queries, a connection to GitHub on port 443, and PostHog lookups.
+    - **Real GitHub**, in the private throwaway repository: copies of this workflow with the **real** `setup-cli` and CLI 2.119.0, against a disposable PostgreSQL 16.15 on the runner. The only substitutions were the database and the test credentials.
+      - Dry run [42081857424](https://github.com/highandmighty354-dev/option-b-throwaway-test/actions/runs/42081857424) and apply [42081870008](https://github.com/highandmighty354-dev/option-b-throwaway-test/actions/runs/42081870008) (rehearsal target, all 19 files applied, classified **APPLIED**).
+      - Every CLI call received the three variables. There were no DNS queries and no connections except to the runner's database. No trace file, no `~/.supabase` and no `cli-latest` were created, including by `setup-cli`.
+      - A control run of the previous workflow (`e9e7b6a`, no isolation), [42081881896](https://github.com/highandmighty354-dev/option-b-throwaway-test/actions/runs/42081881896), did all of these things: `~/.supabase/traces/<date>.ndjson`, `cli-latest` in the workspace, a DNS query, and TLS connections on port 443 to outside addresses. What, if anything, those connections transmitted was **not** inspected.
+  - **Parent-folder configuration (B6-10 extension, real CLI, local).** The workspace was placed under a "poisoned" parent folder. The parent contained:
+    - `supabase/config.toml`, `supabase/.env` files and a root `.env`, setting `PG*` variables toward a decoy database, `PGSSLMODE=require`/`disable`, a `pg_service` entry and decoy `SUPABASE_HOME`, telemetry, notifier, `SUPABASE_DEBUG` and `SUPABASE_WORKDIR` values;
+    - `.supabase/project.json`, `supabase/.temp/pooler-url` and a decoy migration.
 
-**Tests** (local unless marked as real GitHub; latest reported local run at commit `8c02481`):
-- `python3 premium/tests/workflow-option-b.test.py`: **195 checks, 0 failures**, including B6-28 (14 checks) for the credential-free exact-value gate. Structural checks plus a local simulation of the jobs; it is **not** GitHub Actions.
+    Results:
+    - **The parent could not redirect the database.** Every CLI connection went to the intended database over TLS, and the decoy database was never contacted. The parent's `PG*` values, application name, service entry, pooler-url, linked project and migration were all ignored.
+    - The source explains why. `--db-url` values take precedence, and the `PG*` fallbacks are read only from the explicit `--workdir`'s own `.env` files plus the shell environment.
+    - **With the isolation variables set, the parent also could not change** the CLI home, telemetry or the upgrade check, because a value in the shell environment overrides a `.env` value.
+    - **Limitation (not fixed):** a parent `supabase/.env` that sets `SUPABASE_DEBUG=1` still turns on the CLI's debug output. That printed SQL text and the server address and port (no URL or password) into the job log. A parent folder is used at all only when a folder **above** the workspace contains `supabase/config.toml` or `supabase/config.json`. No CLI flag or variable switches that search off, and `--workdir` does not stop it.
+    - **Proposed mitigation (owner decision, not implemented):** add either of these, or both:
+      - `SUPABASE_DEBUG: "0"` in the workflow-level `env`. The shell value wins, and the CLI enables debug output only for `1`.
+      - A credential-free check before the CLI runs that fails the job if any folder above `$GITHUB_WORKSPACE` contains `supabase/config.toml` or `supabase/config.json`.
+
+      `premium/tests/cli-isolation.real-cli.sh` reports this limitation explicitly as `LIMITATION PRESENT`, and fails if the behaviour changes.
+  - **Residual risks:**
+    - The CLI still writes `telemetry.json`, now under `$RUNNER_TEMP`.
+    - It still reads `~/.docker/config.json`.
+    - Its runtime (Bun) still writes a file in `/tmp`.
+    - Per the source, `.env` files **inside the workspace** would feed the `PG*` fallbacks, for example `PGSSLMODE`. The pinned checkout has none, but the integrity checks cover only `supabase/migrations/` and the frozen sources.
+    - The guard checks the environment the workflow passes, not the CLI's internal behaviour. A different CLI version could change these controls. The version is pinned to 2.119.0, and the real-CLI test should be re-run before any version change.
+- **Not yet proven at run time:** how the CLI behaves on a GitHub runner against **hosted** Supabase (its Session pooler), and how GitHub evaluates the AP-5b condition with unusual values (simulated only, B6-28).
+  - In the throwaway apply run 42081870008, GitHub evaluated the AP-5b condition on the success path. The post-apply dry run ran and the run was classified APPLIED, using the real CLI with `--workdir` against a disposable database on the runner.
+
+**Tests** (local unless marked as real GitHub; latest reported local run at commit `85a04fc`):
+- `python3 premium/tests/workflow-option-b.test.py`: **219 checks, 0 failures**. These include B6-28 (14 checks) for the credential-free exact-value gate and B6-29 (24 checks) for CLI isolation: all six CLI steps, the guard's position, and simulated fail-closed cases. Structural checks plus a local simulation of the jobs; it is **not** GitHub Actions.
 - B6-28 was also run against the previous workflow at `49af33f` and failed as expected because the credential-free gate step was absent.
-- `python3 premium/tests/workflow-pending-gate.test.py`: **62 checks, 0 failures**.
-- Both are in `premium/tests/run-tests.sh`.
-- The 11 mutation controls were last run at `71769c9`; they were **not** rerun for `8c02481`.
+- `python3 premium/tests/workflow-pending-gate.test.py`: **62 checks, 0 failures**. The steps now run with the workflow's own isolation values.
+- `SUPABASE_CLI_BIN=<dir> bash premium/tests/cli-isolation.real-cli.sh`: **11 checks, 0 failures** with the real CLI 2.119.0, plus the reported `SUPABASE_DEBUG` limitation. This test is opt-in.
+- All three are in `premium/tests/run-tests.sh`. The real-CLI test runs only when `SUPABASE_CLI_BIN` is set; otherwise it prints NOT RUN.
+- The 11 mutation controls were last run at `71769c9`; they were **not** rerun for `8c02481` or `85a04fc`.
 - **Run on real GitHub (2026-11-05), in a separate private throwaway repository with test-only workflow copies and a fake `supabase` command:** B6-03, B6-11, B6-17, B6-19 and B6-25c all passed. The cancellation findings are recorded under Residual risks above.
 - **Run with the real Supabase CLI 2.119.0 against disposable local PostgreSQL 16.15 databases (2026-11-05), in a clean, GitHub-like environment:**
   - B6-10 (P1 decoy) passed. With `--workdir` the CLI listed exactly the 19 workspace migrations. Without it, it picked up a decoy migration from a parent folder.
   - B6-20 (cancellation during `--yes`): both cases were run and their behaviour recorded.
   - B6-21 (R1): completed.
   - The findings are recorded under Residual risks above.
+- **Run on real GitHub with the real CLI 2.119.0 (2026-11-05), throwaway repository, disposable database on the runner:** the CLI isolation runs listed under Residual risks (dry run, apply, and the control run of the previous workflow).
 - **Not run (separate authorization needed):** the rehearsal run and the production run.
 
 **Credentials:** the database password, service-role key, JWT secret and any Stripe secret are never pasted into chat, source files, GitHub or prompts. The owner types the database password into the Supabase CLI on their own machine, or uses the Supabase dashboard while signed in.
