@@ -138,11 +138,13 @@ cat "$f"; exit "$(cat "$FAKE_DIR/rc$n" 2>/dev/null || echo 0)"
     os.chmod(fake, os.stat(fake).st_mode | stat.S_IEXEC)
     PASSWORD = 'S3cret-PW!/not-real'
     def isolation_env(step_def, rt):
-        """The workflow's CLI-isolation variables for this step: the two workflow-level flags and the step's own
-        SUPABASE_HOME with ${{ runner.temp }} resolved to this run's RUNNER_TEMP (as GitHub resolves it)."""
+        """The workflow's CLI-isolation variables for this step: the two workflow-level flags, the step's own
+        SUPABASE_HOME with ${{ runner.temp }} resolved to this run's RUNNER_TEMP (as GitHub resolves it), and the
+        step's own SUPABASE_DEBUG / SUPABASE_TELEMETRY_DEBUG values."""
         home = str((step_def.get('env') or {}).get('SUPABASE_HOME', '')).replace('${{ runner.temp }}', rt)
         return {'SUPABASE_TELEMETRY_DISABLED': str(ENV.get('SUPABASE_TELEMETRY_DISABLED', '')),
-                'SUPABASE_NO_UPDATE_NOTIFIER': str(ENV.get('SUPABASE_NO_UPDATE_NOTIFIER', '')), 'SUPABASE_HOME': home}
+                'SUPABASE_NO_UPDATE_NOTIFIER': str(ENV.get('SUPABASE_NO_UPDATE_NOTIFIER', '')), 'SUPABASE_HOME': home,
+                **{k: str(v) for k, v in (step_def.get('env') or {}).items() if k in ('SUPABASE_DEBUG', 'SUPABASE_TELEMETRY_DEBUG')}}
 
     def run_job(step_def, outputs, target='production', rcs=None, apply=False):
         d = tempfile.mkdtemp(dir=tmp); log = os.path.join(d, 'calls.log'); open(log, 'w').close()

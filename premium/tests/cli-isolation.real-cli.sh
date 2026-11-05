@@ -13,10 +13,11 @@
 #       supabase/.temp/pooler-url, a pg_service file and a decoy migration, all pointing at decoy database B)
 #       does NOT redirect the database target: the migration lands in A only, B never sees a CLI connection,
 #       the decoy migration is not applied, and the CLI's sessions to A use TLS (no sslmode downgrade)
-#   L1  KNOWN LIMITATION, detected and reported: a parent supabase/.env with SUPABASE_DEBUG=1 still turns on the
-#       CLI's debug span output (SQL text, server address and port) because the shell does not set SUPABASE_DEBUG.
-#       Reported as "LIMITATION PRESENT"; it does not fail the test, and the test fails if the limitation's
-#       behaviour changes unnoticed (so the documentation is revisited).
+#   D1  debug output cannot be enabled from the parent folder: the parent sets SUPABASE_DEBUG=1 and
+#       SUPABASE_TELEMETRY_DEBUG=1 (each also tried alone); with the workflow's step values ("0" for both) no debug
+#       span, no SQL text (db.query.text) and no server address/port appear in any CLI output
+#   D2  positive control: the same poisoned parent WITHOUT the step values does print debug spans (proves D1 can
+#       detect debug output; reported as a check, not a failure of the workflow)
 #
 # Never connects to a real Supabase project: two throwaway local PostgreSQL clusters on 127.0.0.1 with random
 # test-only passwords and a self-signed test certificate, all deleted on exit.
@@ -36,15 +37,19 @@ ver="$(env -i PATH="$SUPABASE_CLI_BIN:/usr/bin:/bin" HOME=/nonexistent SUPABASE_
 PG_BIN="${PG_BIN:-$( (pg_config --bindir 2>/dev/null) || ls -d /usr/lib/postgresql/*/bin 2>/dev/null | sort -V | tail -1)}"
 [ -x "$PG_BIN/initdb" ] || die "PostgreSQL server binaries not found (set PG_BIN)"
 command -v openssl >/dev/null || die "openssl not found"
-read -r TEL NOTIF HOMEEXPR < <(python3 - "$WF" <<'EOF'
+read -r TEL NOTIF HOMEEXPR DBG TDBG < <(python3 - "$WF" <<'EOF'
 import sys, yaml
 wf = yaml.safe_load(open(sys.argv[1], encoding='utf-8'))
-homes = {s['env']['SUPABASE_HOME'] for j in wf['jobs'].values() for s in j['steps'] if 'SUPABASE_HOME' in (s.get('env') or {})}
-assert len(homes) == 1, homes
-print(wf['env'].get('SUPABASE_TELEMETRY_DISABLED', ''), wf['env'].get('SUPABASE_NO_UPDATE_NOTIFIER', ''), homes.pop().replace(' ', ''))
+steps = [s for j in wf['jobs'].values() for s in j['steps']
+         if str(s.get('uses', '')).startswith('supabase/setup-cli') or 'supabase db push' in (s.get('run') or '')]
+homes = {s['env']['SUPABASE_HOME'] for s in steps}
+dbg = {(str(s['env'].get('SUPABASE_DEBUG')), str(s['env'].get('SUPABASE_TELEMETRY_DEBUG'))) for s in steps}
+assert len(steps) == 6 and len(homes) == 1 and len(dbg) == 1, (len(steps), homes, dbg)
+d, td = dbg.pop()
+print(wf['env'].get('SUPABASE_TELEMETRY_DISABLED', ''), wf['env'].get('SUPABASE_NO_UPDATE_NOTIFIER', ''), homes.pop().replace(' ', ''), d, td)
 EOF
 ) || die "could not read the isolation values from the workflow"
-echo "workflow isolation values: SUPABASE_TELEMETRY_DISABLED=$TEL SUPABASE_NO_UPDATE_NOTIFIER=$NOTIF SUPABASE_HOME=$HOMEEXPR"
+echo "workflow isolation values (all 6 CLI steps): SUPABASE_TELEMETRY_DISABLED=$TEL SUPABASE_NO_UPDATE_NOTIFIER=$NOTIF SUPABASE_HOME=$HOMEEXPR SUPABASE_DEBUG=$DBG SUPABASE_TELEMETRY_DEBUG=$TDBG"
 [ "$HOMEEXPR" = '${{runner.temp}}/supabase-home' ] || die "unexpected SUPABASE_HOME expression in the workflow: $HOMEEXPR"
 
 ROOT="$(mktemp -d /tmp/cli-iso-XXXXXX)"; chmod 755 "$ROOT"
@@ -90,13 +95,14 @@ SUPABASE_TELEMETRY_DISABLED=0
 DO_NOT_TRACK=0
 SUPABASE_NO_UPDATE_NOTIFIER=0
 SUPABASE_DEBUG=1
+SUPABASE_TELEMETRY_DEBUG=1
 SUPABASE_WORKDIR=$P
 EOF
 done
 SH="$RT/supabase-home"     # the workflow's ${{ runner.temp }}/supabase-home
 URL="postgresql://postgres:$(cat "$ROOT/dbA/pw")@127.0.0.1:$PA/postgres"   # no sslmode, like the Session pooler URL
 ENVV=(PATH="$SUPABASE_CLI_BIN:/usr/bin:/bin" HOME="$H" CI=true GITHUB_ACTIONS=true RUNNER_TEMP="$RT" GITHUB_WORKSPACE="$WS"
-      SUPABASE_TELEMETRY_DISABLED="$TEL" SUPABASE_NO_UPDATE_NOTIFIER="$NOTIF" SUPABASE_HOME="$SH")
+      SUPABASE_TELEMETRY_DISABLED="$TEL" SUPABASE_NO_UPDATE_NOTIFIER="$NOTIF" SUPABASE_HOME="$SH" SUPABASE_DEBUG="$DBG" SUPABASE_TELEMETRY_DEBUG="$TDBG")
 STRACE=(); command -v strace >/dev/null && STRACE=(strace -f -qq -e trace=connect,sendto,sendmsg,sendmmsg -o)
 cli(){ local tag=$1; shift
   if [ ${#STRACE[@]} -gt 0 ]; then "${STRACE[@]}" "$ROOT/trace-$tag.txt" env -i "${ENVV[@]}" supabase "$@"
@@ -132,12 +138,23 @@ ok "$([ "$a_tab" = 1 ] && [ "$a_hist" = 0001 ] && echo 1)" "P1 the migration lan
 ok "$([ "$b_any" = 0 ] && [ "$b_hist" = f ] && [ "$b_cli" = 0 ] && echo 1)" "P1 the decoy database B was never touched by the CLI (no tables, no history, no CLI session)" "tables=$b_any history=$b_hist sessions=$b_cli"
 ok "$([ "$a_cli" -gt 0 ] && [ "$a_tls" = "$a_cli" ] && [ "$decoy_app" = 0 ] && echo 1)" "P1 every CLI session to A used TLS despite the parent's PGSSLMODE=disable, and the parent's PGAPPNAME was not used" "sessions=$a_cli tls=$a_tls decoy_app=$decoy_app"
 ok "$(! grep -q 9001_decoy "$ROOT"/out-*.txt && echo 1)" "P1 the parent's decoy migration was never listed or applied"
-ndebug="$(grep -c '^\[[0-9:.]*\] sql.execute' "$ROOT/out-dry.txt")"
-if [ "$ndebug" -gt 0 ]; then
-  echo "  LIMITATION PRESENT L1: the parent's SUPABASE_DEBUG=1 enabled $ndebug debug span line(s) in the dry-run output (SQL text, server address/port; no URL or password: $(grep -ciE 'postgresql://|password' "$ROOT/out-dry.txt") line(s) mention either)"
-  ok "$(! grep -qiE 'postgresql://|'"$(cat "$ROOT/dbA/pw")" "$ROOT"/out-*.txt && echo 1)" "L1 the debug output carries no connection URL or password"
-else
-  ok 0 "L1 expected the known SUPABASE_DEBUG limitation to be present; it was not. The CLI's behaviour changed: review PROVISIONING.md (CLI isolation)"
-fi
+dbgscan(){ grep -hcE '^\[[0-9:.]+\] [a-z._]+ \(|db\.query\.text|server\.address|server\.port' "$@" | awk '{s+=$1} END {print s+0}'; }
+ndbg="$(dbgscan "$ROOT"/out-*.txt)"
+ok "$([ "$DBG" = 0 ] && [ "$TDBG" = 0 ] && [ "$ndbg" = 0 ] && echo 1)" "D1 parent sets SUPABASE_DEBUG=1 and SUPABASE_TELEMETRY_DEBUG=1: no debug span, SQL text or server address/port in any of the 4 CLI outputs (found $ndbg)"
+# each route alone, and the positive control (same poison, step values removed), on a read-only dry run
+cd "$WS"
+for v in SUPABASE_DEBUG SUPABASE_TELEMETRY_DEBUG; do
+  for f in "$P/supabase/.env" "$P/supabase/.env.local" "$P/supabase/.env.development" "$P/.env"; do
+    grep -vE '^SUPABASE_(TELEMETRY_)?DEBUG=' "$f" > "$f.tmp"; printf '%s=1\n' "$v" >> "$f.tmp"; mv "$f.tmp" "$f"; done
+  env -i "${ENVV[@]}" supabase db push --dry-run --workdir "$WS" --db-url "$URL" > "$ROOT/route-$v.txt" 2>&1; rr=$?
+  n="$(dbgscan "$ROOT/route-$v.txt")"
+  ok "$([ $rr = 0 ] && [ "$n" = 0 ] && echo 1)" "D1 parent sets only $v=1: no debug output with the workflow's step values (found $n)"
+  CTRL=(); for kv in "${ENVV[@]}"; do case "$kv" in SUPABASE_DEBUG=*|SUPABASE_TELEMETRY_DEBUG=*) ;; *) CTRL+=("$kv") ;; esac; done
+  env -i "${CTRL[@]}" supabase db push --dry-run --workdir "$WS" --db-url "$URL" > "$ROOT/control-$v.txt" 2>&1
+  n="$(dbgscan "$ROOT/control-$v.txt")"
+  ok "$([ "$n" -gt 0 ] && echo 1)" "D2 positive control: the same parent $v=1 without the step values DOES print debug output ($n line(s)); the test can see it"
+done
+cd /
+ok "$(! grep -qiE 'postgresql://|'"$(cat "$ROOT/dbA/pw")" "$ROOT"/out-*.txt "$ROOT"/route-*.txt && echo 1)" "no connection URL or password in any isolated CLI output"
 echo "cli-isolation (real CLI $ver): $checks checks, $fail failure(s)"
 exit $([ $fail = 0 ] && echo 0 || echo 1)

@@ -178,7 +178,7 @@ def write_exec(path, text):
 
 write_exec(os.path.join(FAKEBIN, 'supabase'), r'''#!/usr/bin/env bash
 n=$(( $(wc -l < "$FAKE_LOG") + 1 ))
-printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$*" "${DB_PASSWORD:+credential}" "$PWD" "${SUPABASE_TELEMETRY_DISABLED-<unset>}" "${SUPABASE_NO_UPDATE_NOTIFIER-<unset>}" "${SUPABASE_HOME-<unset>}" >> "$FAKE_LOG"
+printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$*" "${DB_PASSWORD:+credential}" "$PWD" "${SUPABASE_TELEMETRY_DISABLED-<unset>}" "${SUPABASE_NO_UPDATE_NOTIFIER-<unset>}" "${SUPABASE_HOME-<unset>}" "${SUPABASE_DEBUG-<unset>}" "${SUPABASE_TELEMETRY_DEBUG-<unset>}" >> "$FAKE_LOG"
 if [ -f "$FAKE_DIR/hook$n.sh" ]; then bash "$FAKE_DIR/hook$n.sh"; fi
 f="$FAKE_DIR/out$n.txt"; [ -f "$f" ] || f="$FAKE_DIR/out.txt"
 [ -f "$f" ] && cat "$f"
@@ -776,19 +776,25 @@ try:
         for s in cs[j]:
             label = s.get('id') or s.get('uses') or s.get('name')
             check('B6-29', f'{j}/{label}: SUPABASE_HOME is {HOME_EXPR} (RUNNER_TEMP, outside the workspace)', (s.get('env') or {}).get('SUPABASE_HOME') == HOME_EXPR, str(s.get('env')))
+            check('B6-29', f'{j}/{label}: SUPABASE_DEBUG and SUPABASE_TELEMETRY_DEBUG are both exactly "0" (debug output off; the step value beats any .env)',
+                  (s.get('env') or {}).get('SUPABASE_DEBUG') == '0' and (s.get('env') or {}).get('SUPABASE_TELEMETRY_DEBUG') == '0', str(s.get('env')))
     for j in ('dry-run', 'apply'):
         for s in cs[j]:
             if str(s.get('uses', '')).startswith('supabase/setup-cli'):
-                check('B6-29', f'{j}/setup-cli: the version check step gets no credential, URL or secret (only SUPABASE_HOME)',
-                      set((s.get('env') or {})) == {'SUPABASE_HOME'} and 'secrets.' not in str(s), str(s.get('env')))
+                check('B6-29', f'{j}/setup-cli: the version check step gets no credential, URL or secret (only SUPABASE_HOME and the two debug switches)',
+                      set((s.get('env') or {})) == {'SUPABASE_HOME', 'SUPABASE_DEBUG', 'SUPABASE_TELEMETRY_DEBUG'} and 'secrets.' not in str(s), str(s.get('env')))
     overrides = [(j, s.get('id') or s.get('name')) for j, job in JOBS.items() for s in job['steps']
                  if any(k in (s.get('env') or {}) for k in ('SUPABASE_TELEMETRY_DISABLED', 'SUPABASE_NO_UPDATE_NOTIFIER', 'DO_NOT_TRACK'))]
     overrides += [(j, '(job env)') for j, job in JOBS.items() if any(k in (job.get('env') or {}) for k in ('SUPABASE_TELEMETRY_DISABLED', 'SUPABASE_NO_UPDATE_NOTIFIER', 'SUPABASE_HOME'))]
     check('B6-29', 'no job or step overrides the isolation flags, and SUPABASE_HOME is set nowhere else', not overrides
           and WF_TEXT.count('SUPABASE_HOME: ') == 6, str(overrides))
+    dbg_elsewhere = [k for k in ('SUPABASE_DEBUG', 'SUPABASE_TELEMETRY_DEBUG') if k in ENV or any(k in (j.get('env') or {}) for j in JOBS.values())]
+    check('B6-29', 'the debug switches are set only on the six CLI steps (each exactly once), never at workflow or job level',
+          not dbg_elsewhere and WF_TEXT.count('SUPABASE_DEBUG: "0"') == 6 and WF_TEXT.count('SUPABASE_TELEMETRY_DEBUG: "0"') == 6
+          and len(re.findall(r'SUPABASE_(TELEMETRY_)?DEBUG: ', WF_TEXT)) == 12, str(dbg_elsewhere))
     check('B6-29', 'SUPABASE_HOME never points into the workspace (no github.workspace / GITHUB_WORKSPACE in its value)',
           all('workspace' not in str((s.get('env') or {}).get('SUPABASE_HOME', '')).lower() for j in cs for s in cs[j]))
-    GUARD = '[ "${SUPABASE_TELEMETRY_DISABLED:-}" != 1 ] || [ "${SUPABASE_NO_UPDATE_NOTIFIER:-}" != 1 ] || [ "${SUPABASE_HOME:-}" != "$RUNNER_TEMP/supabase-home" ]'
+    GUARD = '[ "${SUPABASE_TELEMETRY_DISABLED:-}" != 1 ] || [ "${SUPABASE_NO_UPDATE_NOTIFIER:-}" != 1 ] || [ "${SUPABASE_HOME:-}" != "$RUNNER_TEMP/supabase-home" ] || [ "${SUPABASE_DEBUG:-}" != 0 ] || [ "${SUPABASE_TELEMETRY_DEBUG:-}" != 0 ]'
     for j in ('dry-run', 'apply'):
         for s in cs[j]:
             if 'run' not in s: continue
@@ -797,7 +803,7 @@ try:
             wi = next((k for k, l in enumerate(lines) if 'case "$RUNNER_TEMP/" in "$GITHUB_WORKSPACE"/*)' in l), None)
             first_cli = next((k for k, l in enumerate(lines) if re.search(r'\bsupabase db push\b', l)), None)
             first_cred = next((k for k, l in enumerate(lines) if 'DB_PASSWORD' in l and 'env -u DB_PASSWORD' not in l), None)
-            check('B6-29', f'{j}/{s.get("id") or s.get("name")}: the isolation guard (flags + exact SUPABASE_HOME, RUNNER_TEMP not inside the workspace) comes before the credential is used and before any CLI call',
+            check('B6-29', f'{j}/{s.get("id") or s.get("name")}: the isolation guard (flags, exact SUPABASE_HOME, both debug switches "0", RUNNER_TEMP not inside the workspace) comes before the credential is used and before any CLI call',
                   gi is not None and wi is not None and gi < first_cli and wi < first_cli and (first_cred is None or (gi < first_cred and wi < first_cred)),
                   f'guard={gi} ws={wi} cli={first_cli} cred={first_cred}')
     ap = step_by_id('apply', 'apply')['run'].splitlines()
@@ -806,10 +812,10 @@ try:
           ap[k - 1].strip().startswith('if env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" check "$GITHUB_WORKSPACE"'), ap[k - 1])
     # simulated runs: what every CLI invocation actually receives
     def iso_ok(r, ws):
-        return r.calls and all(len(c) >= 6 and c[3] == '1' and c[4] == '1' and c[5] == os.path.join(r.dir, 'rt', 'supabase-home')
+        return r.calls and all(len(c) >= 8 and c[3] == '1' and c[4] == '1' and c[5] == os.path.join(r.dir, 'rt', 'supabase-home') and c[6] == '0' and c[7] == '0'
                                and not c[5].startswith(ws) for c in r.calls)
     r = run_job('apply', outputs=HAPPY)
-    check('B6-29', '[simulated] apply job happy path: all 3 CLI calls get telemetry off, notifier off and SUPABASE_HOME=$RUNNER_TEMP/supabase-home (outside the workspace); APPLIED',
+    check('B6-29', '[simulated] apply job happy path: all 3 CLI calls get telemetry off, notifier off, SUPABASE_HOME=$RUNNER_TEMP/supabase-home (outside the workspace) and both debug switches "0"; APPLIED',
           iso_ok(r, r.ws) and len(r.calls) == 3 and headline(r) == 'APPLIED', str(r.calls))
     r = run_job('dry-run', outputs=[cli([MNEW])])
     check('B6-29', '[simulated] dry-run job: the CLI call gets the same isolation', iso_ok(r, r.ws) and len(r.calls) == 1 and r.result == 'success', str(r.calls))
@@ -826,6 +832,24 @@ try:
     check('B6-29', '[simulated] apply step with a different SUPABASE_HOME: the apply step stops before V2 and --yes; only the two read-only dry runs ran; NOT ATTEMPTED',
           r.yes == 0 and len(r.calls) == 2 and all('--dry-run' in c[0] for c in r.calls) and r.outcome('apply') == 'failure'
           and 'Supabase CLI isolation is not in effect' in r.logs.get('apply', '') and headline(r) == 'NOT ATTEMPTED', detail(r))
+    for var, bad in (('SUPABASE_DEBUG', '1'), ('SUPABASE_TELEMETRY_DEBUG', '1'), ('SUPABASE_DEBUG', None), ('SUPABASE_TELEMETRY_DEBUG', None), ('SUPABASE_DEBUG', 'false')):
+        patch = (lambda v, b: (lambda st: {**st, 'env': ({k: x for k, x in st['env'].items() if k != v} if b is None else {**st['env'], v: b})}))(var, bad)
+        what = 'missing' if bad is None else f'{bad!r}'
+        r = run_job('apply', outputs=[cli([MNEW]), cli([MNEW])], step_patch={'preflight': patch})
+        check('B6-29', f'[simulated] preflight with {var} {what}: the preflight never calls the CLI; nothing applied; NOT ATTEMPTED',
+              r.yes == 0 and r.outcome('preflight') == 'failure' and r.outcome('apply') == 'skipped' and len(r.calls) == 1 and '--dry-run' in r.calls[0][0]
+              and 'Supabase CLI isolation is not in effect' in r.logs.get('preflight', '') and headline(r) == 'NOT ATTEMPTED', detail(r))
+        r = run_job('apply', outputs=[cli([MNEW]), cli([MNEW])], step_patch={'apply': patch})
+        check('B6-29', f'[simulated] apply step with {var} {what}: stops before V2 and --yes; NOT ATTEMPTED',
+              r.yes == 0 and r.outcome('apply') == 'failure' and 'Supabase CLI isolation is not in effect' in r.logs.get('apply', '') and headline(r) == 'NOT ATTEMPTED', detail(r))
+    for var in ('SUPABASE_DEBUG', 'SUPABASE_TELEMETRY_DEBUG'):
+        dstep = next(s for s in JOBS['dry-run']['steps'] if 'supabase db push' in (s.get('run') or ''))
+        sid = dstep.get('id') or f"#{JOBS['dry-run']['steps'].index(dstep)}"
+        r = run_job('dry-run', outputs=[cli([MNEW])], step_patch={sid: (lambda v: lambda st: {**st, 'env': {**st['env'], v: '1'}})(var)})
+        check('B6-29', f'[simulated] dry-run job with {var}=1 on its CLI step: no CLI call; the job fails', len(r.calls) == 0 and r.result == 'failure', detail(r))
+    r = run_job('apply', outputs=HAPPY, step_patch={'evidence_db': lambda st: {**st, 'env': {**st['env'], 'SUPABASE_TELEMETRY_DEBUG': '1'}}})
+    check('B6-29', '[simulated] post-apply step with SUPABASE_TELEMETRY_DEBUG=1: no post-apply CLI call; EVIDENCE INCOMPLETE (never APPLIED)',
+          len(r.calls) == 2 and r.yes == 1 and r.out('evidence_db', 'post') == 'NOT_COMPLETED' and headline(r) == 'EVIDENCE INCOMPLETE', detail(r))
     r = run_job('apply', outputs=HAPPY, step_patch={'evidence_db': lambda st: {**st, 'env': {k: v for k, v in st['env'].items() if k != 'SUPABASE_HOME'}}})
     check('B6-29', '[simulated] post-apply step without SUPABASE_HOME: no post-apply CLI call; EVIDENCE INCOMPLETE (never APPLIED)',
           len(r.calls) == 2 and r.yes == 1 and r.out('evidence_db', 'post') == 'NOT_COMPLETED' and headline(r) == 'EVIDENCE INCOMPLETE', detail(r))
