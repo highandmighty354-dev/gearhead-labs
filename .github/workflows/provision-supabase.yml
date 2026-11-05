@@ -1,8 +1,23 @@
 # Gearhead Labs — Supabase provisioning (MANUAL ONLY, APPROVAL-GATED)
 #
 # Applies the approved 19-file migration package (0001-0409), read directly from the repository at the
-# pinned commit below (c69ec51, the commit that adds 0409, M1 decision D1; prepared for owner review, not applied).
+# pinned commit below (c69ec51, the commit that adds 0409, M1 decision D1).
 # No SQL is retyped or transcribed anywhere.
+#
+# Option B (migration-integrity design, B6 FINAL PROPOSED v5; technical approval and limited implementation
+# authorization recorded 2026-11-04). The job that applies migrations verifies the files it applies itself:
+#   * verify-package check (credential-free job): commit, manifest format, exact file set, file types and modes,
+#     SHA-256 of every file (sha256sum --strict), frozen sources.
+#   * V1  (its own credential-free step in each database job, before the job's first CLI call).
+#   * V2  (apply job: literally the last command before `supabase db push --yes`).
+#   * V3  (evidence step after the apply; detects persistent changes only).
+#   All four use ONE integrity script (INTEGRITY_SH) and ONE manifest (MIGRATION_MANIFEST), defined once below.
+#   The integrity script runs as a separate process with DB_PASSWORD removed from its environment
+#   (`env -u DB_PASSWORD bash …`, CB-2). The `env` launcher itself still inherits it; the steps' own shells hold it.
+#   P1: every `supabase db push` passes `--workdir "$GITHUB_WORKSPACE"`, the directory the checks verify.
+# Limits (disclosed, accepted by the owner): Option B is NOT atomic and NOT race-free. A change after V2 and
+# before the CLI reads a file would be applied; V3 sees it only if it persists. Whole-job cancellation may stop the
+# evidence steps; a cancellation during `--yes` may leave a migration partially applied. No intentional cancels.
 #
 # Safety design
 #   * Runs only when a person clicks "Run workflow" (workflow_dispatch). No push / PR triggers.
@@ -12,17 +27,19 @@
 #   * You must also type the target project ref; the run stops if it does not match the Environment.
 #   * Every job that can reach a database uses the Environment, so it waits for a required
 #     reviewer's approval before any credential is released.
-#   * The package is verified before any credential is touched: exact commit, exact 19 file names,
-#     exact order, exact SHA-256 of every file, and the frozen-source hashes.
+#   * The package is verified before any credential is touched (verify-package job): exact commit, exact 19 file
+#     names, exact order, exact SHA-256 of every file, and the frozen-source hashes.
 #   * The dry run FAILS (red) unless the pending list is positively verified (pending_gate below):
 #     production must show exactly PRODUCTION_EXPECTED_PENDING (this release: only 0409); a rehearsal
 #     project must show a non-empty exact end of the approved order (fresh project: all 19) or an
 #     explicit "up to date". Unparseable, empty, duplicated, reordered or skipped lists fail.
-#   * Apply refuses to run unless the target's pending list is exactly the END of the approved order:
-#     all 19 files for a fresh, empty project, or only the files after the last one already applied
-#     (production at 0408 -> only 0409). It never applies a reordered set or skips a file. The CLI also
-#     refuses if the target's recorded history contains a version that is not in this package.
-#   * Credentials: one Environment secret (database password). It is masked in logs and never printed.
+#   * Apply refuses to run unless the target's pending list is exactly the END of the approved order and passes
+#     the same gate; then only a gate-pass marker, a workspace check and V2 stand between the gate and `--yes`.
+#   * After apply, the evidence steps classify the run: APPLIED is the only success. INTEGRITY INCIDENT and
+#     EVIDENCE INCOMPLETE stop all further production activity until the owner has reviewed the run; every retry of
+#     a failed apply is a new, separately approved apply.
+#   * Credentials: one Environment secret (database password), mapped only onto the steps that build the database
+#     URL. It is masked in logs and never printed.
 
 name: Provision Supabase (manual, gated)
 
@@ -62,6 +79,28 @@ env:
   # What production must show pending for THIS release (newline-separated, in order). Production is at 0408.
   # Change it only together with a new pinned package.
   PRODUCTION_EXPECTED_PENDING: "0409_formula_versions_fuel_pump_validity.sql"
+  # The approved package manifest: the ONLY source of approved names, order and checksums for every job.
+  # Format: <sha256><two spaces><path>, one line per file, in apply order. Defined once; never derived from `ls`.
+  MIGRATION_MANIFEST: |
+    e6ff6301b302bd794ee6bdb1ddc65cc2ebd9de9c8e27c141ae5403b2092432e6  supabase/migrations/0001_enums.sql
+    5332f1396283b1d106cfe9c719cedae24069bef317e738b760a76c2131b3c947  supabase/migrations/0002_tables.sql
+    e1e241f7422c9040b2b8bd6ddaecafb2b55bc4b3a4a4d375546b7ef7f3c59e3a  supabase/migrations/0003_constraints_triggers.sql
+    8663ab2b5e6e4a5f16d6d781d1e26c915197541a7ce8e083d8a27eb07c27fcdb  supabase/migrations/0004_rls.sql
+    7bebd26f100c9f8010539a9052988d28b289349d89ed3abd4ff4431dabfdd14f  supabase/migrations/0005_reference_seed.sql
+    a3256a08de2f25e7c52f0f26cb6be32f1b16b999b29e6b3c0abf65e7d773b5b4  supabase/migrations/0101_test_setups.sql
+    7ba5b02fd016c45b45043e3358dd4683076216eae028a3f3ca597e886759dea4  supabase/migrations/0102_test_setups_triggers.sql
+    b1f778b9d13117a270f8240702bb2678543552a54f6f91f55acef478104bfae8  supabase/migrations/0103_test_setups_rls.sql
+    ccc6bb56f070f67b972026972a3ec1c963c180c045996ff1551ffa6be485ae09  supabase/migrations/0201_value_write_boundary.sql
+    b5f7fbe495403d5367fb5dde2850bcbf20d46295997e928dc25bae1987c1bea1  supabase/migrations/0301_value_foundation_v1_seed.sql
+    6174b0f7b2b43022fbda2248f2e824c082062d50fcdf54e5a0c69893ea10fc62  supabase/migrations/0401_automotive_only.sql
+    f962e8f00b2830957b90bf40406eaf1b91469dacde9292028d8d21085c3312c7  supabase/migrations/0402_premium_entitlements.sql
+    3309328906074246bb3c13dacb2818107d3a926260352b72581a9180f5c5c35f  supabase/migrations/0403_premium_profiles.sql
+    0c89dd3a1b3949b998cedb0fe075db78668878ff2216a32d00eddbd07c0bcc6e  supabase/migrations/0404_premium_garage.sql
+    c63a2d1803b0a90e685e64688943602064a111db862244e41d50f89badde49b0  supabase/migrations/0405_premium_saved_calculations.sql
+    75eccb9260a0265be95bbe5f5d34981ba482ad08bc4ff5ee14225839e1e43f43  supabase/migrations/0406_premium_engineering_analyses.sql
+    e5e0cb582c9ed19c17134bace602f539697ae3f10af813f08486de6a5181de70  supabase/migrations/0407_premium_product_model.sql
+    df92a3e050bc7cbc46d5e1c1d6fe3822a7a82db58a2ebc5fe3965138380c4c49  supabase/migrations/0408_formula_versions_corrected_formulas.sql
+    29cbdcd08bda08630126e65f89a99f1226766d8568c58330486f3262d61f5534  supabase/migrations/0409_formula_versions_fuel_pump_validity.sql
   # The pending-migration gate, defined once and loaded by the dry-run and apply jobs (they check out the
   # pinned commit, which has no helper scripts). Tested by premium/tests/workflow-pending-gate.test.py.
   PENDING_GATE_SH: |
@@ -162,6 +201,178 @@ env:
         echo "verdict: PASS the CLI reported the database up to date"; return 0; fi
       echo "verdict: FAIL the database is not positively reported up to date"; return 1
     }
+  # The migration-integrity script, defined once and run as a separate process by every job (Option B).
+  # Tested by premium/tests/workflow-option-b.test.py.
+  INTEGRITY_SH: |
+    # Migration-integrity script (Option B). Defined once, here; used by the verify-package check, V1, V2 and V3.
+    # Each step writes it to $RUNNER_TEMP/integrity.sh and runs it as a SEPARATE process with the credential removed:
+    #   env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" <command> ...
+    # (CB-2: the script and its children run without DB_PASSWORD in their environment; the short-lived `env`
+    #  launcher and the calling step's shell still hold it. This reduces accidental exposure only.)
+    # Commands:
+    #   names     MANIFEST          validate the manifest, then print the approved file names in apply order
+    #   workspace ROOT PINNED       P1: ROOT is $GITHUB_WORKSPACE, the current directory and the Git top level, at PINNED
+    #   check     ROOT MANIFEST     verify ROOT/supabase/migrations and the frozen sources against MANIFEST
+    # `check` prints its findings, then a last line "result: PASS|MISMATCH|NOT_COMPLETED", and exits
+    #   0 PASS          every check ran to completion and found no discrepancy
+    #   1 MISMATCH      a check ran to completion and VERIFIED a discrepancy (wins over NOT_COMPLETED)
+    #   2 NOT_COMPLETED a check could not finish (missing tool, unreadable file, command error); no definite result
+    # Callers treat any other exit status, or a last line that disagrees with the status, as NOT_COMPLETED.
+    # Every check uses explicit return codes; nothing relies on errexit (which is suppressed inside conditionals).
+    set -u
+    export LC_ALL=C
+    MANIFEST_LINE_RE='^[0-9a-f]{64}  supabase/migrations/[0-9]{4}_[a-z0-9_]+\.sql$'
+    FROZEN_LINE_RE='^[0-9a-f]{64}  supabase/[A-Za-z0-9_./-]+$'
+    MISMATCH=0
+    INCOMPLETE=0
+    mismatch() { MISMATCH=1; echo "MISMATCH: $*"; }
+    incomplete() { INCOMPLETE=1; echo "NOT COMPLETED: $*"; }
+
+    need_tools() {
+      local t
+      for t in find sha256sum git awk stat mktemp; do
+        if ! command -v "$t" >/dev/null 2>&1; then incomplete "required tool '$t' is not available"; return 1; fi
+      done
+      return 0
+    }
+
+    # validate_manifest FILE: 0 valid; 1 malformed (mismatch); 2 unreadable (not completed). Messages on stdout.
+    validate_manifest() {
+      local m="$1" n=0 line prev="" name
+      if [ ! -f "$m" ] || [ ! -r "$m" ]; then echo "the manifest cannot be read: $m"; return 2; fi
+      if [ ! -s "$m" ]; then echo "the manifest is empty"; return 1; fi
+      while IFS= read -r line || [ -n "$line" ]; do
+        n=$((n + 1))
+        if ! [[ $line =~ $MANIFEST_LINE_RE ]]; then echo "manifest line $n is malformed or names an unexpected path"; return 1; fi
+        name="${line##*/}"
+        if [ -n "$prev" ] && ! [[ "$prev" < "$name" ]]; then
+          echo "manifest line $n is a duplicate or out of the approved order: $name"; return 1
+        fi
+        prev="$name"
+      done < "$m"
+      return 0
+    }
+
+    cmd_names() {
+      local m="${1:-}" msg rc=0
+      if [ -z "$m" ]; then echo "names: usage: names MANIFEST" >&2; return 2; fi
+      msg="$(validate_manifest "$m")" || rc=$?
+      if [ "$rc" -ne 0 ]; then echo "names: $msg" >&2; return "$rc"; fi
+      awk '{ n = $2; sub(/.*\//, "", n); print n }' "$m" || return 2
+      return 0
+    }
+
+    cmd_workspace() {
+      local root="${1:-}" pinned="${2:-}" ws="${GITHUB_WORKSPACE:-}" want here top head
+      if [ -z "$ws" ]; then echo "workspace: FAIL GITHUB_WORKSPACE is not set"; return 1; fi
+      case "$ws" in /*) ;; *) echo "workspace: FAIL GITHUB_WORKSPACE is not an absolute path"; return 1 ;; esac
+      if [ "$root" != "$ws" ]; then echo "workspace: FAIL the checked root ($root) is not GITHUB_WORKSPACE ($ws)"; return 1; fi
+      if ! want="$(cd "$ws" 2>/dev/null && pwd -P)"; then echo "workspace: FAIL GITHUB_WORKSPACE cannot be entered"; return 1; fi
+      if ! here="$(pwd -P)"; then echo "workspace: FAIL the current directory cannot be resolved"; return 1; fi
+      if [ "$here" != "$want" ]; then echo "workspace: FAIL the current directory ($here) is not GITHUB_WORKSPACE ($want)"; return 1; fi
+      if ! top="$(git -C "$ws" rev-parse --show-toplevel 2>/dev/null)" || ! top="$(cd "$top" 2>/dev/null && pwd -P)"; then
+        echo "workspace: FAIL the Git top level cannot be resolved"; return 1; fi
+      if [ "$top" != "$want" ]; then echo "workspace: FAIL the Git top level ($top) is not GITHUB_WORKSPACE ($want)"; return 1; fi
+      if ! head="$(git -C "$ws" rev-parse HEAD 2>/dev/null)"; then echo "workspace: FAIL HEAD cannot be read"; return 1; fi
+      if [ -z "$pinned" ] || [ "$head" != "$pinned" ]; then echo "workspace: FAIL HEAD ($head) is not the pinned commit ($pinned)"; return 1; fi
+      echo "workspace: PASS $want at $head"
+      return 0
+    }
+
+    # check_sums ROOT LISTFILE LABEL: sha256sum --strict -c, then a per-file diagnosis if it did not pass.
+    check_sums() {
+      local root="$1" list="$2" label="$3" out rc=0 line want path got found=0
+      out="$(cd "$root" && sha256sum --strict -c "$list" 2>&1)" || rc=$?
+      if [ "$rc" -eq 0 ]; then echo "$label: all checksums match"; return 0; fi
+      while IFS= read -r line || [ -n "$line" ]; do
+        want="${line%%  *}"; path="${line#*  }"
+        if [ -L "$root/$path" ] || [ ! -e "$root/$path" ]; then mismatch "$label: $path is missing or is a symbolic link"; found=1; continue; fi
+        if [ ! -f "$root/$path" ]; then mismatch "$label: $path is not a regular file"; found=1; continue; fi
+        if ! got="$(sha256sum -- "$root/$path" 2>/dev/null)"; then incomplete "$label: $path could not be read"; found=1; continue; fi
+        got="${got%% *}"
+        if [ "$got" != "$want" ]; then mismatch "$label: $path has SHA-256 $got, expected $want"; found=1; fi
+      done < "$list"
+      if [ "$found" -eq 0 ]; then incomplete "$label: sha256sum --strict -c failed (status $rc) for an unexplained reason: $(printf '%s' "$out" | tail -n 3 | tr '\n' ' ')"; fi
+      return 0
+    }
+
+    cmd_check() {
+      local root="${1:-}" m="${2:-}" dir names entries others tree tmp msg rc t p name frozen
+      if [ -z "$root" ] || [ -z "$m" ]; then incomplete "usage: check ROOT MANIFEST"; finish; fi
+      need_tools || finish
+      rc=0; msg="$(validate_manifest "$m")" || rc=$?
+      case "$rc" in 0) ;; 1) mismatch "$msg"; finish ;; *) incomplete "$msg"; finish ;; esac
+      names="$(awk '{ n = $2; sub(/.*\//, "", n); print n }' "$m")" || { incomplete "the manifest names cannot be read"; finish; }
+
+      dir="$root/supabase/migrations"
+      if [ -L "$dir" ]; then mismatch "supabase/migrations is a symbolic link"; finish; fi
+      if [ ! -e "$dir" ]; then mismatch "supabase/migrations does not exist"; finish; fi
+      if [ ! -d "$dir" ]; then mismatch "supabase/migrations is not a directory"; finish; fi
+      if [ ! -r "$dir" ] || [ ! -x "$dir" ]; then incomplete "supabase/migrations cannot be read"; finish; fi
+
+      # 1) the exact file set: every entry, hidden, nested, ignored or untracked included (find does not follow links)
+      rc=0; entries="$(cd "$dir" && find . -mindepth 1 -printf '%y\t%P\n' 2>&1)" || rc=$?
+      if [ "$rc" -ne 0 ]; then incomplete "the migration directory could not be listed completely: $(printf '%s' "$entries" | tail -n 1)"
+      else
+        while IFS=$'\t' read -r t p; do
+          [ -n "$t$p" ] || continue
+          if [ "$t" != f ]; then mismatch "supabase/migrations/$p is not a regular file (type $t)"; continue; fi
+          case "$p" in */*) mismatch "supabase/migrations/$p is nested"; continue ;; esac
+          if ! printf '%s\n' "$names" | grep -qxF -- "$p"; then mismatch "supabase/migrations/$p is not in the manifest"; fi
+        done <<< "$entries"
+        while IFS= read -r name; do
+          if [ -L "$dir/$name" ] || [ ! -f "$dir/$name" ]; then mismatch "supabase/migrations/$name is missing or not a regular file"; fi
+        done <<< "$names"
+        rc=0; others="$(cd "$dir" && find . -mindepth 1 -maxdepth 1 -type f -perm /111 -printf '%P\n' 2>&1)" || rc=$?
+        if [ "$rc" -ne 0 ]; then incomplete "file modes could not be read"
+        elif [ -n "$others" ]; then mismatch "executable migration file(s): $(printf '%s' "$others" | tr '\n' ' ')"; fi
+      fi
+
+      # 2) Git: the pinned commit holds exactly the manifest's files as mode 100644 blobs; nothing untracked or ignored
+      rc=0; tree="$(git -C "$root" ls-tree -r HEAD -- supabase/migrations 2>&1)" || rc=$?
+      if [ "$rc" -ne 0 ]; then incomplete "git ls-tree failed: $(printf '%s' "$tree" | tail -n 1)"
+      else
+        if [ "$(printf '%s\n' "$tree" | awk -F'\t' 'NF { split($1, a, " "); print a[1] " " a[2] " " $2 }')" != "$(printf '%s\n' "$names" | sed 's#^#100644 blob supabase/migrations/#')" ]; then
+          mismatch "the pinned commit's supabase/migrations is not exactly the manifest's files as mode 100644 blobs"
+        fi
+      fi
+      rc=0; others="$(git -C "$root" ls-files --others -- supabase/migrations 2>&1)" || rc=$?
+      if [ "$rc" -ne 0 ]; then incomplete "git ls-files --others failed: $(printf '%s' "$others" | tail -n 1)"
+      elif [ -n "$others" ]; then mismatch "untracked or ignored file(s) in supabase/migrations: $(printf '%s' "$others" | tr '\n' ' ')"; fi
+
+      # 3) checksums of every manifest file
+      check_sums "$root" "$m" "manifest"
+
+      # 4) frozen sources
+      frozen="$root/supabase/FROZEN-SOURCES.sha256"
+      if [ -L "$frozen" ] || [ ! -e "$frozen" ]; then mismatch "supabase/FROZEN-SOURCES.sha256 is missing or a symbolic link"
+      elif [ ! -f "$frozen" ]; then mismatch "supabase/FROZEN-SOURCES.sha256 is not a regular file"
+      elif [ ! -r "$frozen" ]; then incomplete "supabase/FROZEN-SOURCES.sha256 cannot be read"
+      elif ! tmp="$(mktemp 2>/dev/null)"; then incomplete "a temporary file could not be created"
+      else
+        rc=0; awk '!/^#/ && NF { print $1 "  " $2 }' "$frozen" > "$tmp" || rc=$?
+        if [ "$rc" -ne 0 ]; then incomplete "supabase/FROZEN-SOURCES.sha256 could not be parsed"
+        elif [ ! -s "$tmp" ]; then mismatch "supabase/FROZEN-SOURCES.sha256 lists no files"
+        elif grep -qvE -- "$FROZEN_LINE_RE" "$tmp"; then mismatch "supabase/FROZEN-SOURCES.sha256 has a malformed line"
+        else check_sums "$root" "$tmp" "frozen sources"; fi
+        rm -f "$tmp"
+      fi
+      finish
+    }
+
+    finish() {
+      if [ "$MISMATCH" -eq 1 ]; then echo "result: MISMATCH"; exit 1; fi
+      if [ "$INCOMPLETE" -eq 1 ]; then echo "result: NOT_COMPLETED"; exit 2; fi
+      echo "result: PASS"; exit 0
+    }
+
+    case "${1:-}" in
+      names) shift; cmd_names "$@"; exit $? ;;
+      workspace) shift; cmd_workspace "$@"; exit $? ;;
+      check) shift; cmd_check "$@" ;;
+      *) echo "usage: integrity.sh names MANIFEST | workspace ROOT PINNED | check ROOT MANIFEST" >&2; exit 2 ;;
+    esac
+    exit 2
 
 jobs:
   verify-package:
@@ -187,38 +398,20 @@ jobs:
       - name: Verify commit, file list, order and checksums
         run: |
           set -euo pipefail
+          printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh"
+          printf '%s' "$MIGRATION_MANIFEST" > "$RUNNER_TEMP/manifest.sha256"
+          echo "Manifest SHA-256: $(sha256sum < "$RUNNER_TEMP/manifest.sha256" | cut -d' ' -f1)"
           test "$(git rev-parse HEAD)" = "$PINNED_SHA"
-          cat > "$RUNNER_TEMP/manifest.sha256" <<'EOF'
-          e6ff6301b302bd794ee6bdb1ddc65cc2ebd9de9c8e27c141ae5403b2092432e6  supabase/migrations/0001_enums.sql
-          5332f1396283b1d106cfe9c719cedae24069bef317e738b760a76c2131b3c947  supabase/migrations/0002_tables.sql
-          e1e241f7422c9040b2b8bd6ddaecafb2b55bc4b3a4a4d375546b7ef7f3c59e3a  supabase/migrations/0003_constraints_triggers.sql
-          8663ab2b5e6e4a5f16d6d781d1e26c915197541a7ce8e083d8a27eb07c27fcdb  supabase/migrations/0004_rls.sql
-          7bebd26f100c9f8010539a9052988d28b289349d89ed3abd4ff4431dabfdd14f  supabase/migrations/0005_reference_seed.sql
-          a3256a08de2f25e7c52f0f26cb6be32f1b16b999b29e6b3c0abf65e7d773b5b4  supabase/migrations/0101_test_setups.sql
-          7ba5b02fd016c45b45043e3358dd4683076216eae028a3f3ca597e886759dea4  supabase/migrations/0102_test_setups_triggers.sql
-          b1f778b9d13117a270f8240702bb2678543552a54f6f91f55acef478104bfae8  supabase/migrations/0103_test_setups_rls.sql
-          ccc6bb56f070f67b972026972a3ec1c963c180c045996ff1551ffa6be485ae09  supabase/migrations/0201_value_write_boundary.sql
-          b5f7fbe495403d5367fb5dde2850bcbf20d46295997e928dc25bae1987c1bea1  supabase/migrations/0301_value_foundation_v1_seed.sql
-          6174b0f7b2b43022fbda2248f2e824c082062d50fcdf54e5a0c69893ea10fc62  supabase/migrations/0401_automotive_only.sql
-          f962e8f00b2830957b90bf40406eaf1b91469dacde9292028d8d21085c3312c7  supabase/migrations/0402_premium_entitlements.sql
-          3309328906074246bb3c13dacb2818107d3a926260352b72581a9180f5c5c35f  supabase/migrations/0403_premium_profiles.sql
-          0c89dd3a1b3949b998cedb0fe075db78668878ff2216a32d00eddbd07c0bcc6e  supabase/migrations/0404_premium_garage.sql
-          c63a2d1803b0a90e685e64688943602064a111db862244e41d50f89badde49b0  supabase/migrations/0405_premium_saved_calculations.sql
-          75eccb9260a0265be95bbe5f5d34981ba482ad08bc4ff5ee14225839e1e43f43  supabase/migrations/0406_premium_engineering_analyses.sql
-          e5e0cb582c9ed19c17134bace602f539697ae3f10af813f08486de6a5181de70  supabase/migrations/0407_premium_product_model.sql
-          df92a3e050bc7cbc46d5e1c1d6fe3822a7a82db58a2ebc5fe3965138380c4c49  supabase/migrations/0408_formula_versions_corrected_formulas.sql
-          29cbdcd08bda08630126e65f89a99f1226766d8568c58330486f3262d61f5534  supabase/migrations/0409_formula_versions_fuel_pump_validity.sql
-          EOF
-          expected="$(awk '{print $2}' "$RUNNER_TEMP/manifest.sha256" | xargs -n1 basename)"
-          actual="$(ls -1 supabase/migrations/*.sql | xargs -n1 basename | LC_ALL=C sort)"
-          if [ "$expected" != "$actual" ]; then
-            echo "::error::Migration directory does not contain exactly the approved 19 files in the approved order."
-            diff <(echo "$expected") <(echo "$actual") || true
+          env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" workspace "$GITHUB_WORKSPACE" "$PINNED_SHA"
+          n="$(env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" names "$RUNNER_TEMP/manifest.sha256" | wc -l)"
+          rc=0
+          env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" check "$GITHUB_WORKSPACE" "$RUNNER_TEMP/manifest.sha256" > "$RUNNER_TEMP/verify.txt" 2>&1 || rc=$?
+          cat "$RUNNER_TEMP/verify.txt"
+          if [ "$rc" -ne 0 ] || [ "$(tail -n 1 "$RUNNER_TEMP/verify.txt")" != "result: PASS" ]; then
+            echo "::error::Package verification did not pass ($(tail -n 1 "$RUNNER_TEMP/verify.txt")). Nothing was done."
             exit 1
           fi
-          sha256sum -c "$RUNNER_TEMP/manifest.sha256"
-          awk '!/^#/ && NF{print $1"  "$2}' supabase/FROZEN-SOURCES.sha256 | sha256sum -c -
-          echo "Package verified: commit $PINNED_SHA, 19 files, approved order, all checksums match."
+          echo "Package verified: commit $PINNED_SHA, $n files, approved order, all checksums match."
 
   dry-run:
     name: Dry run (no database changes)
@@ -234,6 +427,21 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
+      - name: V1 integrity check (no credentials)
+        id: v1
+        run: |
+          set -euo pipefail
+          printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh"
+          printf '%s' "$MIGRATION_MANIFEST" > "$RUNNER_TEMP/manifest.sha256"
+          echo "Manifest SHA-256: $(sha256sum < "$RUNNER_TEMP/manifest.sha256" | cut -d' ' -f1)"
+          env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" workspace "$GITHUB_WORKSPACE" "$PINNED_SHA"
+          rc=0
+          env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" check "$GITHUB_WORKSPACE" "$RUNNER_TEMP/manifest.sha256" > "$RUNNER_TEMP/v1.txt" 2>&1 || rc=$?
+          cat "$RUNNER_TEMP/v1.txt"
+          if [ "$rc" -ne 0 ] || [ "$(tail -n 1 "$RUNNER_TEMP/v1.txt")" != "result: PASS" ]; then
+            echo "::error::V1 integrity check did not pass ($(tail -n 1 "$RUNNER_TEMP/v1.txt")). The CLI was not run."
+            exit 1
+          fi
       - name: Dry run against the selected target
         env:
           POOLER_URL: ${{ vars.SUPABASE_POOLER_URL }}
@@ -244,7 +452,10 @@ jobs:
         run: |
           set -euo pipefail
           printf '%s\n' "$PENDING_GATE_SH" > "$RUNNER_TEMP/gate.sh"; . "$RUNNER_TEMP/gate.sh"
+          printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh"
+          printf '%s' "$MIGRATION_MANIFEST" > "$RUNNER_TEMP/manifest.sha256"
           test "$(git rev-parse HEAD)" = "$PINNED_SHA"
+          env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" workspace "$GITHUB_WORKSPACE" "$PINNED_SHA"
           # --- resolve and check target
           ref="$(printf '%s' "$POOLER_URL" | sed -nE 's#^postgres(ql)?://postgres\.([a-z0-9]+):\[YOUR-PASSWORD\]@.*#\2#p')"
           if [ -z "$ref" ]; then
@@ -262,9 +473,10 @@ jobs:
           echo "::add-mask::$url"
           echo "Target project ref: $ref (environment: $TARGET)"
           # --- dry run (read-only: --dry-run only lists the applied versions; this job never calls apply)
-          for f in supabase/migrations/*.sql; do basename "$f"; done | LC_ALL=C sort > "$RUNNER_TEMP/approved.txt"
+          # The approved list comes from the manifest, never from the directory (Option B).
+          env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" names "$RUNNER_TEMP/manifest.sha256" > "$RUNNER_TEMP/approved.txt"
           rc=0
-          supabase db push --dry-run --db-url "$url" > "$RUNNER_TEMP/dry.txt" 2>&1 || rc=$?
+          supabase db push --dry-run --workdir "$GITHUB_WORKSPACE" --db-url "$url" > "$RUNNER_TEMP/dry.txt" 2>&1 || rc=$?
           cat "$RUNNER_TEMP/dry.txt"
           if [ "$rc" -ne 0 ]; then
             echo "verdict: FAIL the Supabase CLI exited with status $rc" > "$RUNNER_TEMP/gate.txt"
@@ -278,6 +490,7 @@ jobs:
             echo
             echo "- Pinned package: \`$PINNED_SHA\` ($(wc -l < "$RUNNER_TEMP/approved.txt") approved files)"
             echo "- Supabase CLI: $SUPABASE_CLI_VERSION"
+            echo "- V1 integrity check: passed (separate credential-free step)"
             echo "- Pending migrations verified from the CLI's own list ($(grep -c '^pending: ' "$RUNNER_TEMP/gate.txt" || true)):"
             grep '^pending: ' "$RUNNER_TEMP/gate.txt" | sed 's/^pending: /  - /' || echo "  - (none verified)"
             echo
@@ -301,6 +514,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.target }}
     steps:
+      # AP-1, AP-2
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.PINNED_SHA }}
@@ -308,7 +522,27 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
-      - name: Re-check target, dry run, then apply
+
+      # AP-3a  V1, in its own step with no credential mapped (CB-1).
+      - name: V1 integrity check (no credentials)
+        id: v1
+        run: |
+          set -euo pipefail
+          printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh"
+          printf '%s' "$MIGRATION_MANIFEST" > "$RUNNER_TEMP/manifest.sha256"
+          echo "Manifest SHA-256: $(sha256sum < "$RUNNER_TEMP/manifest.sha256" | cut -d' ' -f1)"
+          env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" workspace "$GITHUB_WORKSPACE" "$PINNED_SHA"
+          rc=0
+          env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" check "$GITHUB_WORKSPACE" "$RUNNER_TEMP/manifest.sha256" > "$RUNNER_TEMP/v1.txt" 2>&1 || rc=$?
+          cat "$RUNNER_TEMP/v1.txt"
+          if [ "$rc" -ne 0 ] || [ "$(tail -n 1 "$RUNNER_TEMP/v1.txt")" != "result: PASS" ]; then
+            echo "::error::V1 integrity check did not pass ($(tail -n 1 "$RUNNER_TEMP/v1.txt")). The CLI was not run."
+            exit 1
+          fi
+
+      # AP-3b  Fresh production dry run and the exact pending gate. Its LAST command writes the gate-pass marker.
+      - name: Re-check target, fresh dry run and pending gate
+        id: preflight
         env:
           POOLER_URL: ${{ vars.SUPABASE_POOLER_URL }}
           DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
@@ -317,8 +551,12 @@ jobs:
           NO_COLOR: "1"
         run: |
           set -euo pipefail
+          rm -f "$RUNNER_TEMP/gate-pass.txt"
           printf '%s\n' "$PENDING_GATE_SH" > "$RUNNER_TEMP/gate.sh"; . "$RUNNER_TEMP/gate.sh"
+          printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh"
+          printf '%s' "$MIGRATION_MANIFEST" > "$RUNNER_TEMP/manifest.sha256"
           test "$(git rev-parse HEAD)" = "$PINNED_SHA"
+          env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" workspace "$GITHUB_WORKSPACE" "$PINNED_SHA"
           ref="$(printf '%s' "$POOLER_URL" | sed -nE 's#^postgres(ql)?://postgres\.([a-z0-9]+):\[YOUR-PASSWORD\]@.*#\2#p')"
           if [ -z "$ref" ]; then
             echo "::error::Environment variable SUPABASE_POOLER_URL is missing or not in the expected Session pooler form (it must still contain [YOUR-PASSWORD])."
@@ -335,42 +573,240 @@ jobs:
           echo "::add-mask::$url"
           echo "Target project ref: $ref (environment: $TARGET)"
 
-          # 1) Fresh dry run immediately before applying.
-          supabase db push --dry-run --db-url "$url" 2>&1 | tee "$RUNNER_TEMP/dry.txt"
-          pending="$(grep -oE '[0-9]{4}_[a-z0-9_]+\.sql' "$RUNNER_TEMP/dry.txt" || true)"
-          expected="$(ls -1 supabase/migrations/*.sql | xargs -n1 basename | LC_ALL=C sort)"
-          # Eligible = the pending list is a non-empty END of the approved order (fresh project: all files).
-          is_suffix() { [ -n "$1" ] && [ "$(printf '%s\n' "$2" | tail -n "$(printf '%s\n' "$1" | wc -l)")" = "$1" ]; }
-          if ! is_suffix "$pending" "$expected"; then
-            echo "::error::The pending list is empty or is not exactly the end of the approved order. Nothing was applied."
+          # 1) Fresh dry run immediately before applying (a separate dry-run run is never a substitute).
+          env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" names "$RUNNER_TEMP/manifest.sha256" > "$RUNNER_TEMP/approved.txt"
+          rc=0
+          supabase db push --dry-run --workdir "$GITHUB_WORKSPACE" --db-url "$url" > "$RUNNER_TEMP/dry.txt" 2>&1 || rc=$?
+          cat "$RUNNER_TEMP/dry.txt"
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::The fresh dry run failed (the Supabase CLI exited with status $rc). Nothing was applied."
             exit 1
           fi
-          # Independent second check: the same fail-closed gate as the dry-run job (production: exactly PRODUCTION_EXPECTED_PENDING).
-          for f in supabase/migrations/*.sql; do basename "$f"; done | LC_ALL=C sort > "$RUNNER_TEMP/approved.txt"
-          if ! pending_gate "$TARGET" "$RUNNER_TEMP/dry.txt" "$RUNNER_TEMP/approved.txt" "$PRODUCTION_EXPECTED_PENDING"; then
+          # 2) The exact pending gate (production: exactly PRODUCTION_EXPECTED_PENDING), against the manifest's list.
+          if ! pending_gate "$TARGET" "$RUNNER_TEMP/dry.txt" "$RUNNER_TEMP/approved.txt" "$PRODUCTION_EXPECTED_PENDING" > "$RUNNER_TEMP/gate.txt"; then
+            cat "$RUNNER_TEMP/gate.txt"
             echo "::error::The pending-migration gate failed. Nothing was applied."
             exit 1
           fi
+          cat "$RUNNER_TEMP/gate.txt"
+          pending="$(sed -n 's/^pending: //p' "$RUNNER_TEMP/gate.txt")"
+          # Independent second check: the verified pending list is a non-empty END of the manifest's order.
+          is_suffix() { [ -n "$1" ] && [ "$(printf '%s\n' "$2" | tail -n "$(printf '%s\n' "$1" | wc -l)")" = "$1" ]; }
+          if ! is_suffix "$pending" "$(cat "$RUNNER_TEMP/approved.txt")"; then
+            echo "::error::The pending list is empty or is not exactly the end of the approved order. Nothing was applied."
+            exit 1
+          fi
           echo "Pending (will be applied, in order):"; printf '%s\n' "$pending" | sed 's/^/  /'
+          # LAST command: the gate-pass marker. AP-4 refuses to proceed without it.
+          printf '%s\n' "$pending" > "$RUNNER_TEMP/gate-pass.txt"
 
-          # 2) Apply. Each file runs atomically; the CLI stops at the first error.
-          supabase db push --db-url "$url" --yes 2>&1 | tee "$RUNNER_TEMP/apply.txt"
-
-          # 3) Confirm nothing is left pending.
-          supabase db push --dry-run --db-url "$url" 2>&1 | tee "$RUNNER_TEMP/after.txt"
-          left="$(grep -oE '[0-9]{4}_[a-z0-9_]+\.sql' "$RUNNER_TEMP/after.txt" || true)"
-          if [ -n "$left" ]; then
-            echo "::error::Some migrations are still pending after apply."
+      # AP-4  V2, then the apply. No `if:` (implicit success()): it runs only if every earlier step succeeded.
+      - name: V2 integrity check, then apply (changes the database)
+        id: apply
+        env:
+          POOLER_URL: ${{ vars.SUPABASE_POOLER_URL }}
+          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          CONFIRM_REF: ${{ inputs.confirm_project_ref }}
+          TARGET: ${{ inputs.target }}
+          NO_COLOR: "1"
+        run: |
+          set -euo pipefail
+          printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh"
+          printf '%s' "$MIGRATION_MANIFEST" > "$RUNNER_TEMP/manifest.sha256"
+          # The gate-pass marker must exist and name exactly the verified pending set.
+          marker="$RUNNER_TEMP/gate-pass.txt"
+          if [ ! -s "$marker" ]; then echo "::error::No gate-pass marker: the pending gate did not pass in this job. Nothing was applied."; exit 1; fi
+          approved="$(env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" names "$RUNNER_TEMP/manifest.sha256")"
+          marked="$(cat "$marker")"
+          case "$TARGET" in
+            production) want="$(printf '%s\n' "$PRODUCTION_EXPECTED_PENDING" | grep -v '^$')"
+                        if [ "$marked" != "$want" ]; then echo "::error::The gate-pass marker does not match the expected production pending list. Nothing was applied."; exit 1; fi ;;
+            rehearsal)  if [ "$(printf '%s\n' "$approved" | tail -n "$(printf '%s\n' "$marked" | wc -l)")" != "$marked" ]; then
+                          echo "::error::The gate-pass marker is not an exact end of the approved order. Nothing was applied."; exit 1; fi ;;
+            *) echo "::error::Unknown target '$TARGET'. Nothing was applied."; exit 1 ;;
+          esac
+          test "$(git rev-parse HEAD)" = "$PINNED_SHA"
+          env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" workspace "$GITHUB_WORKSPACE" "$PINNED_SHA"
+          ref="$(printf '%s' "$POOLER_URL" | sed -nE 's#^postgres(ql)?://postgres\.([a-z0-9]+):\[YOUR-PASSWORD\]@.*#\2#p')"
+          if [ -z "$ref" ] || [ "$ref" != "$CONFIRM_REF" ]; then echo "::error::The target project ref check failed. Nothing was applied."; exit 1; fi
+          if [ -z "${DB_PASSWORD:-}" ]; then echo "::error::Environment secret SUPABASE_DB_PASSWORD is not set."; exit 1; fi
+          enc="$(python3 -c 'import os,urllib.parse;print(urllib.parse.quote(os.environ["DB_PASSWORD"],safe=""))')"
+          echo "::add-mask::$enc"
+          url="${POOLER_URL/\[YOUR-PASSWORD\]/$enc}"
+          echo "::add-mask::$url"
+          # V2 is LITERALLY the last command before `--yes`: nothing runs between them.
+          # The CLI applies each pending file in turn and stops at the first error. It is NOT guaranteed atomic:
+          # some statement types (e.g. CREATE INDEX CONCURRENTLY) can leave a migration partially applied.
+          if env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" check "$GITHUB_WORKSPACE" "$RUNNER_TEMP/manifest.sha256" > "$RUNNER_TEMP/v2.txt" 2>&1; then
+            supabase db push --workdir "$GITHUB_WORKSPACE" --db-url "$url" --yes 2>&1 | tee "$RUNNER_TEMP/apply.txt"
+          else
+            cat "$RUNNER_TEMP/v2.txt"
+            echo "::error::V2 integrity check did not pass ($(tail -n 1 "$RUNNER_TEMP/v2.txt")). Nothing was applied."
             exit 1
           fi
-          if ! uptodate_gate "$RUNNER_TEMP/after.txt"; then
-            echo "::error::The verification dry run does not positively report the database up to date."
-            exit 1
+
+      # AP-5a  Local evidence and V3. No credential mapped (CB-3). Ends with success once its own handling is done,
+      # whatever V3 found; writes output v3 (exactly PASS, MISMATCH or NOT_COMPLETED) as its last action.
+      - name: Evidence — V3 integrity check and local evidence (no credentials)
+        id: evidence_local
+        if: always() && inputs.mode == 'apply'
+        env:
+          V1_OUTCOME: ${{ steps.v1.outcome }}
+          PREFLIGHT_OUTCOME: ${{ steps.preflight.outcome }}
+          APPLY_OUTCOME: ${{ steps.apply.outcome }}
+        run: |
+          set +e; set -uo pipefail   # the default shell starts with -e; evidence collection must continue after a failure
+          own_ok=1
+          fail_own() { echo "::error::Evidence step: $*"; own_ok=0; }
+          printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh" || fail_own "could not write the integrity script"
+          printf '%s' "$MIGRATION_MANIFEST" > "$RUNNER_TEMP/manifest.sha256" || fail_own "could not write the manifest"
+          echo "Step outcomes: V1=$V1_OUTCOME preflight=$PREFLIGHT_OUTCOME apply=$APPLY_OUTCOME"
+          v2=ABSENT
+          if [ -f "$RUNNER_TEMP/v2.txt" ]; then
+            case "$(tail -n 1 "$RUNNER_TEMP/v2.txt")" in
+              "result: PASS") v2=PASS ;; "result: MISMATCH") v2=MISMATCH ;; *) v2=NOT_COMPLETED ;;
+            esac
           fi
+          ws_ok=1
+          env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" workspace "$GITHUB_WORKSPACE" "$PINNED_SHA" || ws_ok=0
+          rc=0
+          env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" check "$GITHUB_WORKSPACE" "$RUNNER_TEMP/manifest.sha256" > "$RUNNER_TEMP/v3.txt" 2>&1 || rc=$?
+          last="$(tail -n 1 "$RUNNER_TEMP/v3.txt" 2>/dev/null || true)"
+          case "$rc:$last" in
+            "0:result: PASS") v3=PASS ;;
+            "1:result: MISMATCH") v3=MISMATCH ;;
+            *) v3=NOT_COMPLETED ;;
+          esac
+          if [ "$ws_ok" -eq 0 ] && [ "$v3" = PASS ]; then v3=NOT_COMPLETED; echo "V3: the workspace could not be confirmed, so a PASS is not trusted."; fi
+          # Preserve the evidence already on the runner (all runner-local and read-only; no CLI, no database).
+          for f in v1.txt dry.txt gate.txt gate-pass.txt v2.txt apply.txt v3.txt; do
+            echo "----- $f"
+            if [ -f "$RUNNER_TEMP/$f" ]; then cat "$RUNNER_TEMP/$f"; else echo "(absent)"; fi
+          done
           {
-            echo "### APPLY complete — $TARGET ($ref)"
+            echo "### Evidence — local (no credentials)"
             echo
-            grep -E '^Applying migration' "$RUNNER_TEMP/apply.txt" | sed 's/^/- /'
+            echo "- Step outcomes: V1 \`$V1_OUTCOME\`, preflight \`$PREFLIGHT_OUTCOME\`, apply \`$APPLY_OUTCOME\`"
+            echo "- V2: \`$v2\`"
+            echo "- V3: \`$v3\`"
             echo
-            echo "Applied $(printf '%s\n' "$pending" | wc -l) approved migration(s) from commit \`$PINNED_SHA\`; nothing remains pending."
-          } >> "$GITHUB_STEP_SUMMARY"
+            echo '```'
+            if [ -f "$RUNNER_TEMP/v3.txt" ]; then cat "$RUNNER_TEMP/v3.txt"; fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY" || fail_own "could not write the step summary"
+          echo "v2=$v2" >> "$GITHUB_OUTPUT" || fail_own "could not record the V2 result"
+          echo "V3 result: $v3"
+          # LAST action: record V3. If this step's own handling failed, it is recorded and the step fails.
+          if [ "$own_ok" -eq 1 ]; then
+            echo "v3=$v3" >> "$GITHUB_OUTPUT"
+          else
+            echo "v3=$v3" >> "$GITHUB_OUTPUT"; exit 1
+          fi
+
+      # AP-5b  Post-apply dry run (read-only). Credential mapped. Starts only if AP-5a SUCCEEDED and V3 is PASS or
+      # NOT_COMPLETED (TA-16 default). `!cancelled()` (H3): it does not start once the run is cancelled.
+      # GitHub compares strings case-insensitively, so the first command re-checks the value byte-exactly.
+      - name: Evidence — post-apply dry run (read-only)
+        id: evidence_db
+        if: ${{ !cancelled() && inputs.mode == 'apply' && steps.evidence_local.outcome == 'success' && (steps.evidence_local.outputs.v3 == 'PASS' || steps.evidence_local.outputs.v3 == 'NOT_COMPLETED') }}
+        env:
+          V3_RESULT: ${{ steps.evidence_local.outputs.v3 }}
+          POOLER_URL: ${{ vars.SUPABASE_POOLER_URL }}
+          DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          CONFIRM_REF: ${{ inputs.confirm_project_ref }}
+          TARGET: ${{ inputs.target }}
+          NO_COLOR: "1"
+        run: |
+          set +e; set -uo pipefail   # the default shell starts with -e; evidence collection must continue after a failure
+          case "$V3_RESULT" in
+            PASS|NOT_COMPLETED) ;;
+            *) echo "::error::Unexpected V3 value '$V3_RESULT'; the post-apply dry run is not run."; echo "post=NOT_RUN" >> "$GITHUB_OUTPUT"; exit 1 ;;
+          esac
+          post=NOT_COMPLETED
+          finish() { echo "post=$post" >> "$GITHUB_OUTPUT"; echo "Post-apply result: $post"; exit "$1"; }
+          printf '%s\n' "$PENDING_GATE_SH" > "$RUNNER_TEMP/gate.sh" && . "$RUNNER_TEMP/gate.sh" || finish 1
+          printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh" || finish 1
+          env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" workspace "$GITHUB_WORKSPACE" "$PINNED_SHA" || finish 0
+          ref="$(printf '%s' "$POOLER_URL" | sed -nE 's#^postgres(ql)?://postgres\.([a-z0-9]+):\[YOUR-PASSWORD\]@.*#\2#p')"
+          if [ -z "$ref" ] || [ "$ref" != "$CONFIRM_REF" ] || [ -z "${DB_PASSWORD:-}" ]; then echo "::error::The target check failed."; finish 0; fi
+          enc="$(python3 -c 'import os,urllib.parse;print(urllib.parse.quote(os.environ["DB_PASSWORD"],safe=""))')" || finish 0
+          echo "::add-mask::$enc"
+          url="${POOLER_URL/\[YOUR-PASSWORD\]/$enc}"
+          echo "::add-mask::$url"
+          rc=0
+          supabase db push --dry-run --workdir "$GITHUB_WORKSPACE" --db-url "$url" > "$RUNNER_TEMP/after.txt" 2>&1 || rc=$?
+          cat "$RUNNER_TEMP/after.txt"
+          if [ "$rc" -ne 0 ]; then echo "The post-apply dry run failed (status $rc)."; finish 0; fi
+          if uptodate_gate "$RUNNER_TEMP/after.txt"; then post=UP_TO_DATE; finish 0; fi
+          clean="$(sed -e $'s/\x1b\\[[0-9;]*[A-Za-z]//g' -e $'s/\r$//' "$RUNNER_TEMP/after.txt")"
+          if [ "$(printf '%s\n' "$clean" | grep -cxF -- 'DRY RUN: migrations will *not* be pushed to the database.')" = 1 ] \
+             && [ "$(printf '%s\n' "$clean" | grep -cxF -- 'Would push these migrations:')" = 1 ] \
+             && printf '%s\n' "$clean" | grep -qE '^ • [0-9]{4}_[a-z0-9_]+\.sql$'; then
+            post=PENDING
+          fi
+          finish 0
+
+      # AP-5c  Classification. No credential mapped. APPLIED is the only success.
+      - name: Evidence — classification
+        id: classify
+        if: always() && inputs.mode == 'apply'
+        env:
+          V1_OUTCOME: ${{ steps.v1.outcome }}
+          PREFLIGHT_OUTCOME: ${{ steps.preflight.outcome }}
+          APPLY_OUTCOME: ${{ steps.apply.outcome }}
+          LOCAL_OUTCOME: ${{ steps.evidence_local.outcome }}
+          DB_OUTCOME: ${{ steps.evidence_db.outcome }}
+          V2_RESULT: ${{ steps.evidence_local.outputs.v2 }}
+          V3_RESULT: ${{ steps.evidence_local.outputs.v3 }}
+          POST_RESULT: ${{ steps.evidence_db.outputs.post }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          set +e; set -uo pipefail   # the default shell starts with -e; evidence collection must continue after a failure
+          headline="EVIDENCE INCOMPLETE"; why="the classification did not complete"
+          post_note="$POST_RESULT"
+          finish() {
+            {
+              echo "### Result — $headline ($TARGET)"
+              echo
+              echo "- Apply step: \`$APPLY_OUTCOME\` (V2: \`${V2_RESULT:-absent}\`)"
+              echo "- V3 (migration tree at check time): \`${V3_RESULT:-absent}\` (evidence step outcome \`$LOCAL_OUTCOME\`)"
+              echo "- Post-apply dry run: \`${post_note:-absent}\` (step outcome \`$DB_OUTCOME\`)"
+              echo "- Why: $why"
+              echo
+              case "$headline" in
+                APPLIED)
+                  grep -E '^Applying migration' "$RUNNER_TEMP/apply.txt" 2>/dev/null | sed 's/^/- /'
+                  echo
+                  echo "APPLY complete — $TARGET. Applied the approved pending migration(s) from commit \`$PINNED_SHA\`; nothing remains pending. Run the F1 read-only checks next." ;;
+                "INTEGRITY INCIDENT"|"EVIDENCE INCOMPLETE")
+                  echo "⛔ STOP. No new dispatch, re-run, apply retry, migration change, repair, SQL or rollback until the owner has reviewed this run. Establish the database state with read-only F1 checks." ;;
+                *)
+                  echo "❌ Not applied successfully. Any retry is a new, separately approved [G5-APPLY] event. Run read-only F1 checks before anything else." ;;
+              esac
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "Classification: $headline — $why"
+            if [ "$headline" = APPLIED ]; then exit 0; fi
+            echo "::error::$headline: $why"; exit 1
+          }
+          trap finish EXIT
+          if [ "$DB_OUTCOME" = skipped ]; then
+            case "$V3_RESULT" in MISMATCH) post_note="NOT RUN — STOP RULE" ;; *) post_note="NOT RUN — GATE" ;; esac
+          fi
+          attempted=no; [ "$V2_RESULT" = PASS ] && attempted=yes
+          if [ "$V3_RESULT" = MISMATCH ]; then
+            headline="INTEGRITY INCIDENT"; why="V3 verified a migration-tree discrepancy (this does not prove whether the migration was applied)"
+          elif [ "$LOCAL_OUTCOME" != success ]; then
+            why="the local evidence step did not succeed ($LOCAL_OUTCOME), so its V3 value is not trusted"
+          elif [ "$V3_RESULT" != PASS ]; then
+            why="V3 could not complete its verification (${V3_RESULT:-no value})"
+          elif [ "$DB_OUTCOME" != success ] || { [ "$POST_RESULT" != UP_TO_DATE ] && [ "$POST_RESULT" != PENDING ]; }; then
+            why="the post-apply dry run did not produce a definite result (step $DB_OUTCOME, result ${POST_RESULT:-none})"
+          elif [ "$attempted" = yes ] && [ "$APPLY_OUTCOME" != success ]; then
+            headline="APPLY FAILED"; why="the apply was attempted and did not succeed ($APPLY_OUTCOME); the migration may be not applied or partially applied"
+          elif [ "$attempted" = yes ] && [ "$POST_RESULT" = PENDING ]; then
+            headline="APPLY FAILED"; why="the post-apply dry run still shows pending migrations"
+          elif [ "$attempted" = no ]; then
+            headline="NOT ATTEMPTED"; why="the apply was not attempted (apply step $APPLY_OUTCOME, V2 ${V2_RESULT:-absent}); nothing was applied by this run"
+          elif [ "$APPLY_OUTCOME" = success ] && [ "$POST_RESULT" = UP_TO_DATE ]; then
+            headline="APPLIED"; why="apply succeeded, V3 passed and the database is positively reported up to date"
+          fi

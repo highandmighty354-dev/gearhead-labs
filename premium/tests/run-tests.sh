@@ -4,6 +4,7 @@
 #   0a. catalog/check-encyclopedia.js the Engineering Encyclopedia data against the catalogue and its own rules (Issue #23)
 #   0b. register-check.js    structure of docs/DEFERRED-WORK-REGISTER.md and its link to the sweep ledger
 #   0c. workflow-pending-gate.test.py the provisioning workflow's fail-closed dry-run gate (fake supabase command; needs python3 + PyYAML)
+#   0d. workflow-option-b.test.py   the provisioning workflow's Option B integrity design (V1/V2/V3, P1, evidence steps; local simulation, fake supabase command)
 #   1. frontend.test.js       fake Supabase client + static scans (no network, no database)
 #   2. schema-contract.test.js the adapter against the approved schema on a THROWAWAY local PostgreSQL cluster
 # Never connects to a real Supabase project. Needs PostgreSQL >= 14 server binaries (set PG_BIN if not found) and
@@ -14,6 +15,7 @@ node "$HERE/../../catalog/check-catalog.js"
 node "$HERE/../../catalog/check-encyclopedia.js"
 node "$HERE/register-check.js"
 python3 "$HERE/workflow-pending-gate.test.py"
+python3 "$HERE/workflow-option-b.test.py"
 node "$HERE/frontend.test.js"
 PG_BIN="${PG_BIN:-$( (pg_config --bindir 2>/dev/null) || ls -d /usr/lib/postgresql/*/bin 2>/dev/null | sort -V | tail -1)}"
 [ -x "$PG_BIN/initdb" ] || { echo "PostgreSQL server binaries not found (set PG_BIN)"; exit 2; }

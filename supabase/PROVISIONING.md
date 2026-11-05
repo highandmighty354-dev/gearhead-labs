@@ -11,6 +11,50 @@
 
 Every step that writes to the project needs explicit owner approval first.
 
+## Provisioning workflow: Option B migration integrity (draft PR; not merged, never run)
+
+**Status (2026-11-04):**
+- Implemented on branch `ops/option-b-migration-integrity` under the owner's limited implementation authorization. The basis is the B6 design FINAL PROPOSED v5 and the consolidated decision record (technical approval granted; owner risk decisions recorded).
+- **Not merged. Never dispatched.** It has been tested only locally, with a fake `supabase` command. No migration was created or changed. The package is still the 19-file `c69ec51` package.
+- Production is up to date, so this copy reports nothing pending, as the current copy does.
+
+**What changes.** The job that applies migrations now verifies, itself, the files it is about to apply. Before, it relied on the earlier `verify-package` job, which runs on a different runner.
+
+| Step | What it does | Credential |
+| --- | --- | --- |
+| `verify-package` check | commit; manifest format; the exact file set, including hidden, nested, ignored and untracked files, symlinks and special files; regular files with mode `100644`; `sha256sum --strict` of every file; frozen sources | none (job has no Environment) |
+| **V1** (own step, in both database jobs) | the same check on this job's own checkout, before its first CLI call | none in the step (CB-1) |
+| fresh dry run + exact pending gate (apply job) | the existing `pending_gate` and end-of-order check, against the manifest's list (never `ls`). The **last** command writes a gate-pass marker | in the step |
+| **V2** + apply | refuses without the marker; then V2 is **literally the last command before** `supabase db push --yes` | in the step; the integrity script runs with it removed (CB-2) |
+| evidence: **V3** and local evidence | always runs in apply mode; V3 = PASS, MISMATCH or NOT_COMPLETED | none (CB-3) |
+| evidence: post-apply dry run | read-only. Runs only if the V3 step **succeeded** and V3 is PASS or NOT_COMPLETED, and not after cancellation (`!cancelled()`) | in the step |
+| evidence: classification | APPLIED (the only success), INTEGRITY INCIDENT, EVIDENCE INCOMPLETE, APPLY FAILED, NOT ATTEMPTED | none |
+
+**Other points:**
+- **One manifest and one integrity script**, each defined once in the workflow's `env:` (`MIGRATION_MANIFEST`, `INTEGRITY_SH`). The keep-alive audit still reads the same 19 manifest lines.
+- **P1:** all four `supabase db push` calls pass `--workdir "$GITHUB_WORKSPACE"`. Every database step first asserts that `$GITHUB_WORKSPACE` is the current directory, the Git top level and at the pinned commit. So the CLI reads exactly the folder the checks verify.
+
+**Owner rules:**
+- **No one intentionally cancels a running apply.**
+- **INTEGRITY INCIDENT or EVIDENCE INCOMPLETE** (and any unexpected cancellation of an apply): stop all production activity. No re-run, retry, new dispatch, migration change, repair, manual SQL or rollback. Preserve the logs, notify Trent, and establish the database state through read-only F1 checks. Then wait for explicit owner authorization.
+- **Every retry of a failed apply** is a new [G5-APPLY] event with its own approval.
+
+**Limits (disclosed; accepted by the owner):**
+- Option B is **not atomic and not race-free.** A change after V2 and before the CLI reads a file would be applied. V3 sees it only if it persists. A change made and restored escapes every check.
+- **V3 checks the migration files at the time it runs.** It does not prove which bytes the CLI read, that the migration completed fully, or the database state. The post-apply dry run is separate evidence about migration history, and F1 checks the database contents.
+- **Cancellation:** after a whole-job cancellation, the evidence steps may not run or finish. A cancellation during `--yes` may leave a migration partially applied.
+- **CB-1, CB-2 and CB-3 only reduce accidental credential exposure.** The `env` launcher and the step shells still hold the credential, and the hosted runner (passwordless `sudo`, one user) gives no isolation between processes.
+- **GitHub compares strings case-insensitively in `if:`.** So the post-apply step re-checks the V3 value byte-for-byte as its first action, before using the credential.
+
+**Tests** (local only):
+- `python3 premium/tests/workflow-option-b.test.py`: structural checks plus a local simulation of the jobs. It is **not** GitHub Actions.
+- `python3 premium/tests/workflow-pending-gate.test.py`.
+- Both are in `premium/tests/run-tests.sh`.
+- **Not run (separate authorization needed):**
+  - the throwaway-GitHub-repository tests (real `if:` and cancellation behaviour);
+  - the disposable-database tests with the real CLI (P1 decoy, cancellation during `--yes`, R1);
+  - the rehearsal run and the production run.
+
 **Credentials:** the database password, service-role key, JWT secret and any Stripe secret are never pasted into chat, source files, GitHub or prompts. The owner types the database password into the Supabase CLI on their own machine, or uses the Supabase dashboard while signed in.
 
 ## What gets applied (in this exact order)
@@ -287,7 +331,7 @@ Everything below uses the GitHub and Supabase web pages; nothing needs a termina
        - any pending list other than `PRODUCTION_EXPECTED_PENDING` (this release: 0408 only);
        - a CLI error.
      - Policy for the unused `rehearsal` target: any exact end of the approved order passes (a fresh, empty project shows all 18 files), as does an explicit "up to date". Production keeps the 0408-only rule.
-     - Tested by `python3 premium/tests/workflow-pending-gate.test.py`, which runs the workflow's own scripts with a fake `supabase` command.
+     - Tested by `python3 premium/tests/workflow-pending-gate.test.py`, which runs the workflow's own scripts with a fake `supabase` command. (Since Option B, see the section near the top: the apply job's structure has changed, and `workflow-option-b.test.py` covers it.)
 
    **Open precondition:** whether the `production` environment allows runs from this branch is still unverified (re-checked 2026-10-16).
    - The environments API is blocked from Claude's sessions.
