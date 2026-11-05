@@ -646,7 +646,10 @@ jobs:
           fi
 
       # AP-5a  Local evidence and V3. No credential mapped (CB-3). Ends with success once its own handling is done,
-      # whatever V3 found; writes output v3 (exactly PASS, MISMATCH or NOT_COMPLETED) as its last action.
+      # whatever the checks found. Records V1, V2 and V3 (each exactly PASS, MISMATCH or NOT_COMPLETED; V2 may be
+      # ABSENT when the apply step never reached it) and `integrity`, the run's integrity result: MISMATCH if ANY
+      # check verified a discrepancy (a later PASS never erases it), else NOT_COMPLETED if any check could not
+      # complete, else PASS. Writes output v3 as its last action.
       - name: Evidence — V3 integrity check and local evidence (no credentials)
         id: evidence_local
         if: always() && inputs.mode == 'apply'
@@ -661,6 +664,13 @@ jobs:
           printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh" || fail_own "could not write the integrity script"
           printf '%s' "$MIGRATION_MANIFEST" > "$RUNNER_TEMP/manifest.sha256" || fail_own "could not write the manifest"
           echo "Step outcomes: V1=$V1_OUTCOME preflight=$PREFLIGHT_OUTCOME apply=$APPLY_OUTCOME"
+          # V1 (this runner, before the first CLI call). No result file means V1 never produced a result.
+          v1=NOT_COMPLETED
+          if [ -f "$RUNNER_TEMP/v1.txt" ]; then
+            case "$(tail -n 1 "$RUNNER_TEMP/v1.txt")" in
+              "result: PASS") v1=PASS ;; "result: MISMATCH") v1=MISMATCH ;; *) v1=NOT_COMPLETED ;;
+            esac
+          fi
           v2=ABSENT
           if [ -f "$RUNNER_TEMP/v2.txt" ]; then
             case "$(tail -n 1 "$RUNNER_TEMP/v2.txt")" in
@@ -678,6 +688,10 @@ jobs:
             *) v3=NOT_COMPLETED ;;
           esac
           if [ "$ws_ok" -eq 0 ] && [ "$v3" = PASS ]; then v3=NOT_COMPLETED; echo "V3: the workspace could not be confirmed, so a PASS is not trusted."; fi
+          # The run's integrity result. A verified MISMATCH at any stage stands for the whole run.
+          if [ "$v1" = MISMATCH ] || [ "$v2" = MISMATCH ] || [ "$v3" = MISMATCH ]; then integrity=MISMATCH
+          elif [ "$v1" = NOT_COMPLETED ] || [ "$v2" = NOT_COMPLETED ] || [ "$v3" = NOT_COMPLETED ]; then integrity=NOT_COMPLETED
+          else integrity=PASS; fi
           # Preserve the evidence already on the runner (all runner-local and read-only; no CLI, no database).
           for f in v1.txt dry.txt gate.txt gate-pass.txt v2.txt apply.txt v3.txt; do
             echo "----- $f"
@@ -687,15 +701,24 @@ jobs:
             echo "### Evidence — local (no credentials)"
             echo
             echo "- Step outcomes: V1 \`$V1_OUTCOME\`, preflight \`$PREFLIGHT_OUTCOME\`, apply \`$APPLY_OUTCOME\`"
+            echo "- V1: \`$v1\`"
             echo "- V2: \`$v2\`"
             echo "- V3: \`$v3\`"
+            echo "- Integrity result for this run: \`$integrity\`"
             echo
+            for f in v1.txt v2.txt v3.txt; do
+              if [ -f "$RUNNER_TEMP/$f" ] && grep -qE '^(MISMATCH|NOT COMPLETED):' "$RUNNER_TEMP/$f"; then
+                echo "${f%.txt} findings:"; echo '```'; grep -E '^(MISMATCH|NOT COMPLETED):' "$RUNNER_TEMP/$f"; echo '```'
+              fi
+            done
             echo '```'
             if [ -f "$RUNNER_TEMP/v3.txt" ]; then cat "$RUNNER_TEMP/v3.txt"; fi
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY" || fail_own "could not write the step summary"
+          echo "v1=$v1" >> "$GITHUB_OUTPUT" || fail_own "could not record the V1 result"
           echo "v2=$v2" >> "$GITHUB_OUTPUT" || fail_own "could not record the V2 result"
-          echo "V3 result: $v3"
+          echo "integrity=$integrity" >> "$GITHUB_OUTPUT" || fail_own "could not record the integrity result"
+          echo "V1 $v1, V2 $v2, V3 $v3; integrity result: $integrity"
           # LAST action: record V3. If this step's own handling failed, it is recorded and the step fails.
           if [ "$own_ok" -eq 1 ]; then
             echo "v3=$v3" >> "$GITHUB_OUTPUT"
@@ -703,14 +726,16 @@ jobs:
             echo "v3=$v3" >> "$GITHUB_OUTPUT"; exit 1
           fi
 
-      # AP-5b  Post-apply dry run (read-only). Credential mapped. Starts only if AP-5a SUCCEEDED and V3 is PASS or
-      # NOT_COMPLETED (TA-16 default). `!cancelled()` (H3): it does not start once the run is cancelled.
-      # GitHub compares strings case-insensitively, so the first command re-checks the value byte-exactly.
+      # AP-5b  Post-apply dry run (read-only). Credential mapped. Starts only if AP-5a SUCCEEDED, V3 is PASS or
+      # NOT_COMPLETED (TA-16 default) AND the run's integrity result is PASS or NOT_COMPLETED, i.e. no verified
+      # mismatch at V1, V2 or V3. `!cancelled()` (H3): it does not start once the run is cancelled.
+      # GitHub compares strings case-insensitively, so the first command re-checks both values byte-exactly.
       - name: Evidence — post-apply dry run (read-only)
         id: evidence_db
-        if: ${{ !cancelled() && inputs.mode == 'apply' && steps.evidence_local.outcome == 'success' && (steps.evidence_local.outputs.v3 == 'PASS' || steps.evidence_local.outputs.v3 == 'NOT_COMPLETED') }}
+        if: ${{ !cancelled() && inputs.mode == 'apply' && steps.evidence_local.outcome == 'success' && (steps.evidence_local.outputs.v3 == 'PASS' || steps.evidence_local.outputs.v3 == 'NOT_COMPLETED') && (steps.evidence_local.outputs.integrity == 'PASS' || steps.evidence_local.outputs.integrity == 'NOT_COMPLETED') }}
         env:
           V3_RESULT: ${{ steps.evidence_local.outputs.v3 }}
+          INTEGRITY_RESULT: ${{ steps.evidence_local.outputs.integrity }}
           POOLER_URL: ${{ vars.SUPABASE_POOLER_URL }}
           DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           CONFIRM_REF: ${{ inputs.confirm_project_ref }}
@@ -718,9 +743,9 @@ jobs:
           NO_COLOR: "1"
         run: |
           set +e; set -uo pipefail   # the default shell starts with -e; evidence collection must continue after a failure
-          case "$V3_RESULT" in
-            PASS|NOT_COMPLETED) ;;
-            *) echo "::error::Unexpected V3 value '$V3_RESULT'; the post-apply dry run is not run."; echo "post=NOT_RUN" >> "$GITHUB_OUTPUT"; exit 1 ;;
+          case "$V3_RESULT:$INTEGRITY_RESULT" in
+            PASS:PASS|PASS:NOT_COMPLETED|NOT_COMPLETED:NOT_COMPLETED) ;;
+            *) echo "::error::Unexpected V3 value '$V3_RESULT' or integrity result '$INTEGRITY_RESULT'; the post-apply dry run is not run."; echo "post=NOT_RUN" >> "$GITHUB_OUTPUT"; exit 1 ;;
           esac
           post=NOT_COMPLETED
           finish() { echo "post=$post" >> "$GITHUB_OUTPUT"; echo "Post-apply result: $post"; exit "$1"; }
@@ -756,8 +781,10 @@ jobs:
           APPLY_OUTCOME: ${{ steps.apply.outcome }}
           LOCAL_OUTCOME: ${{ steps.evidence_local.outcome }}
           DB_OUTCOME: ${{ steps.evidence_db.outcome }}
+          V1_RESULT: ${{ steps.evidence_local.outputs.v1 }}
           V2_RESULT: ${{ steps.evidence_local.outputs.v2 }}
           V3_RESULT: ${{ steps.evidence_local.outputs.v3 }}
+          INTEGRITY_RESULT: ${{ steps.evidence_local.outputs.integrity }}
           POST_RESULT: ${{ steps.evidence_db.outputs.post }}
           TARGET: ${{ inputs.target }}
         run: |
@@ -768,8 +795,9 @@ jobs:
             {
               echo "### Result — $headline ($TARGET)"
               echo
-              echo "- Apply step: \`$APPLY_OUTCOME\` (V2: \`${V2_RESULT:-absent}\`)"
-              echo "- V3 (migration tree at check time): \`${V3_RESULT:-absent}\` (evidence step outcome \`$LOCAL_OUTCOME\`)"
+              echo "- Integrity checks: V1 \`${V1_RESULT:-absent}\`, V2 \`${V2_RESULT:-absent}\`, V3 \`${V3_RESULT:-absent}\`; run result \`${INTEGRITY_RESULT:-absent}\` (evidence step outcome \`$LOCAL_OUTCOME\`)"
+              echo "- Apply step: \`$APPLY_OUTCOME\`"
+              echo "- V3 checks the migration tree at check time only."
               echo "- Post-apply dry run: \`${post_note:-absent}\` (step outcome \`$DB_OUTCOME\`)"
               echo "- Why: $why"
               echo
@@ -789,16 +817,22 @@ jobs:
             echo "::error::$headline: $why"; exit 1
           }
           trap finish EXIT
+          # Verified mismatches at any stage (V1, V2, V3) are kept for the whole run; a later PASS never erases one.
+          mismatch_at=""; incomplete_at=""
+          for c in "V1:$V1_RESULT" "V2:$V2_RESULT" "V3:$V3_RESULT"; do
+            case "${c#*:}" in MISMATCH) mismatch_at="$mismatch_at ${c%%:*}" ;; NOT_COMPLETED) incomplete_at="$incomplete_at ${c%%:*}" ;; esac
+          done
+          [ "$INTEGRITY_RESULT" = MISMATCH ] && [ -z "$mismatch_at" ] && mismatch_at=" (recorded integrity result)"
           if [ "$DB_OUTCOME" = skipped ]; then
-            case "$V3_RESULT" in MISMATCH) post_note="NOT RUN — STOP RULE" ;; *) post_note="NOT RUN — GATE" ;; esac
+            if [ -n "$mismatch_at" ]; then post_note="NOT RUN — STOP RULE"; else post_note="NOT RUN — GATE"; fi
           fi
           attempted=no; [ "$V2_RESULT" = PASS ] && attempted=yes
-          if [ "$V3_RESULT" = MISMATCH ]; then
-            headline="INTEGRITY INCIDENT"; why="V3 verified a migration-tree discrepancy (this does not prove whether the migration was applied)"
+          if [ -n "$mismatch_at" ]; then
+            headline="INTEGRITY INCIDENT"; why="a verified migration-tree discrepancy at:$mismatch_at (it stands even if a later check passed; this does not prove whether the migration was applied)"
           elif [ "$LOCAL_OUTCOME" != success ]; then
-            why="the local evidence step did not succeed ($LOCAL_OUTCOME), so its V3 value is not trusted"
-          elif [ "$V3_RESULT" != PASS ]; then
-            why="V3 could not complete its verification (${V3_RESULT:-no value})"
+            why="the local evidence step did not succeed ($LOCAL_OUTCOME), so its recorded results are not trusted"
+          elif [ -n "$incomplete_at" ] || [ "$INTEGRITY_RESULT" != PASS ] || [ "$V3_RESULT" != PASS ]; then
+            why="an integrity check could not complete:${incomplete_at:- (integrity result ${INTEGRITY_RESULT:-none}, V3 ${V3_RESULT:-none})}; no verified discrepancy, but no definite result"
           elif [ "$DB_OUTCOME" != success ] || { [ "$POST_RESULT" != UP_TO_DATE ] && [ "$POST_RESULT" != PENDING ]; }; then
             why="the post-apply dry run did not produce a definite result (step $DB_OUTCOME, result ${POST_RESULT:-none})"
           elif [ "$attempted" = yes ] && [ "$APPLY_OUTCOME" != success ]; then

@@ -227,7 +227,7 @@ class Run:
 
 def run_job(job, outputs=(), rcs=None, hooks=None, target='production', mode=None, pre=None, flags=(),
             force=None, drop_output=None, cancel_after=None, unwritable_summary=(), env_override=None,
-            step_patch=None, only_step=None, cwd_override=None):
+            step_patch=None, only_step=None, cwd_override=None, after_step=None):
     """Run a job's steps in order (L+ simulation). Returns a Run with per-step results, CLI calls and summaries."""
     mode = mode or ('apply' if job == 'apply' else 'dry-run')
     d, ws = new_workspace()
@@ -251,7 +251,10 @@ def run_job(job, outputs=(), rcs=None, hooks=None, target='production', mode=Non
         if only_step and sid != only_step and 'run' in st: continue
         ctx = Ctx(inputs, steps, status)
         if not eval_if(st.get('if'), ctx):
-            steps[sid] = {'outcome': 'skipped', 'conclusion': 'skipped', 'outputs': {}}; r.order.append((sid, 'skipped')); continue
+            steps[sid] = {'outcome': 'skipped', 'conclusion': 'skipped', 'outputs': {}}; r.order.append((sid, 'skipped'))
+            if after_step and sid in after_step:
+                subprocess.run([BASH, '-c', after_step[sid]], cwd=ws, env={'PATH': os.environ['PATH'], 'GITHUB_WORKSPACE': ws, 'FAKE_DIR': d})
+            continue
         outputs_map, outcome = {}, 'success'
         if 'run' in st:
             out_file = os.path.join(d, f'output-{idx}.txt'); open(out_file, 'w').close()
@@ -277,6 +280,8 @@ def run_job(job, outputs=(), rcs=None, hooks=None, target='production', mode=Non
         steps[sid] = {'outcome': outcome, 'conclusion': outcome, 'outputs': outputs_map}
         r.order.append((sid, outcome))
         if outcome == 'failure': state['failed'] = True
+        if after_step and sid in after_step:      # something on the runner changes the tree between steps
+            subprocess.run([BASH, '-c', after_step[sid]], cwd=ws, env={'PATH': os.environ['PATH'], 'GITHUB_WORKSPACE': ws, 'FAKE_DIR': d})
     r.calls = [l.split('\t') for l in open(log).read().splitlines() if l]
     r.probe = [l.split('\t') for l in open(os.path.join(d, 'probe.log')).read().splitlines() if l]
     r.yes = sum('--yes' in c[0] for c in r.calls)
@@ -357,6 +362,9 @@ try:
     check('B6-25', 'AP-5b condition requires evidence_local outcome == success AND v3 PASS or NOT_COMPLETED, with !cancelled() (H3)',
           "steps.evidence_local.outcome == 'success'" in cond and "steps.evidence_local.outputs.v3 == 'PASS'" in cond
           and "steps.evidence_local.outputs.v3 == 'NOT_COMPLETED'" in cond and cond.startswith('!cancelled()') and 'always()' not in cond, cond)
+    check('B6-27', 'AP-5b condition also requires the run integrity result PASS or NOT_COMPLETED (no verified mismatch at V1, V2 or V3)',
+          "steps.evidence_local.outputs.integrity == 'PASS'" in cond and "steps.evidence_local.outputs.integrity == 'NOT_COMPLETED'" in cond
+          and "'MISMATCH'" not in cond, cond)
     check('B6-25', 'AP-5a and AP-5c run with always() (H3 applies to AP-5b only)', step_by_id('apply', 'evidence_local')['if'].startswith('always()')
           and step_by_id('apply', 'classify')['if'].startswith('always()'))
     check('B6-25', 'AP-5b re-checks the V3 value byte-exactly before using the credential (GitHub compares strings case-insensitively)',
@@ -643,6 +651,71 @@ try:
           strip_wrapper(step_by_id('apply', 'evidence_db')['if']), Ctx({'mode': 'apply'}, {'evidence_local': {'outcome': 'success', 'outputs': {'v3': 'PASS'}}},
           {'success': lambda: False, 'failure': lambda: False, 'always': lambda: True, 'cancelled': lambda: True})) is False)
 
+
+    # ================================================================ B6-27: a verified mismatch stands for the whole run
+    # (regression tests for the review of PR #27: V1 and V2 mismatches were not carried into the classification)
+    RESTORE = f'git checkout -q -- "supabase/migrations/{MNEW}"\n'
+    # R1  V1 mismatch, then the tree is restored, then V3 passes
+    r = run_job('apply', outputs=[cli([MNEW])], pre=modify, after_step={'v1': RESTORE})
+    check('B6-27', 'R1 V1 MISMATCH, tree restored, V3 PASS: V1 recorded MISMATCH and V3 PASS',
+          r.out('evidence_local', 'v1') == 'MISMATCH' and r.out('evidence_local', 'v3') == 'PASS', detail(r))
+    check('B6-27', 'R1 … run integrity result stays MISMATCH; INTEGRITY INCIDENT naming V1; AP-5b skipped; no CLI call at all',
+          r.out('evidence_local', 'integrity') == 'MISMATCH' and headline(r) == 'INTEGRITY INCIDENT' and 'at: V1' in r.summary
+          and r.outcome('evidence_db') == 'skipped' and not r.calls and 'NOT RUN — STOP RULE' in r.summary and r.result == 'failure', detail(r))
+    check('B6-27', 'R1 … the V1 findings are preserved in the summary', 'v1 findings:' in r.summary and 'MISMATCH: manifest: supabase/migrations/' + MNEW in r.summary, detail(r))
+    # R2  V2 mismatch (file changed during the fresh dry run), then restored before V3, which passes
+    r = run_job('apply', outputs=[cli([MNEW]), cli([MNEW])], hooks={1: SH_MODIFY}, after_step={'apply': RESTORE})
+    check('B6-27', 'R2 V2 MISMATCH, tree restored, V3 PASS: V2 recorded MISMATCH, V3 PASS, no --yes',
+          r.out('evidence_local', 'v2') == 'MISMATCH' and r.out('evidence_local', 'v3') == 'PASS' and r.yes == 0, detail(r))
+    check('B6-27', 'R2 … integrity result MISMATCH; INTEGRITY INCIDENT naming V2; AP-5b skipped; only the fresh dry run called',
+          r.out('evidence_local', 'integrity') == 'MISMATCH' and headline(r) == 'INTEGRITY INCIDENT' and 'at: V2' in r.summary
+          and r.outcome('evidence_db') == 'skipped' and len(r.calls) == 1 and r.result == 'failure', detail(r))
+    # R3  V3 mismatch
+    r = run_job('apply', outputs=HAPPY, hooks={2: SH_MODIFY})
+    check('B6-27', 'R3 V3 MISMATCH: integrity MISMATCH; INTEGRITY INCIDENT naming V3; AP-5b skipped',
+          r.out('evidence_local', 'integrity') == 'MISMATCH' and headline(r) == 'INTEGRITY INCIDENT' and 'at: V3' in r.summary
+          and r.outcome('evidence_db') == 'skipped' and len(r.calls) == 2, detail(r))
+    # R4  V1 unable to complete (a tool fails inside the integrity script), the tool recovers, V3 passes
+    r = run_job('apply', outputs=[cli([MNEW])], flags=('fail_sha256sum',), after_step={'v1': 'rm -f "$FAKE_DIR/fail_sha256sum"'})
+    check('B6-27', 'R4 V1 NOT_COMPLETED: recorded NOT_COMPLETED (not MISMATCH); integrity NOT_COMPLETED; no CLI call before the evidence step',
+          r.out('evidence_local', 'v1') == 'NOT_COMPLETED' and r.out('evidence_local', 'v3') == 'PASS'
+          and r.out('evidence_local', 'integrity') == 'NOT_COMPLETED' and r.outcome('preflight') == 'skipped' and r.yes == 0, detail(r))
+    check('B6-27', 'R4 … EVIDENCE INCOMPLETE (not INTEGRITY INCIDENT); the read-only post-apply dry run still runs (TA-16 default); job fails',
+          headline(r) == 'EVIDENCE INCOMPLETE' and 'could not complete: V1' in r.summary and r.outcome('evidence_db') == 'success'
+          and len(r.calls) == 1 and '--dry-run' in r.calls[0][0] and r.result == 'failure', detail(r))
+    # R5  V2 unable to complete
+    r = run_job('apply', outputs=[cli([MNEW]), cli([MNEW])], hooks={1: 'touch "$FAKE_DIR/fail_sha256sum"\n'},
+                after_step={'apply': 'rm -f "$FAKE_DIR/fail_sha256sum"'})
+    check('B6-27', 'R5 V2 NOT_COMPLETED: no --yes; recorded NOT_COMPLETED; integrity NOT_COMPLETED; V3 PASS',
+          r.yes == 0 and r.out('evidence_local', 'v2') == 'NOT_COMPLETED' and r.out('evidence_local', 'integrity') == 'NOT_COMPLETED'
+          and r.out('evidence_local', 'v3') == 'PASS', detail(r))
+    check('B6-27', 'R5 … EVIDENCE INCOMPLETE (not INTEGRITY INCIDENT, not NOT ATTEMPTED); post-apply dry run runs; job fails',
+          headline(r) == 'EVIDENCE INCOMPLETE' and 'could not complete: V2' in r.summary and r.outcome('evidence_db') == 'success' and r.result == 'failure', detail(r))
+    # R6  V3 unable to complete
+    r = run_job('apply', outputs=HAPPY, hooks={2: 'touch "$FAKE_DIR/fail_sha256sum"\n'})
+    check('B6-27', 'R6 V3 NOT_COMPLETED: integrity NOT_COMPLETED; EVIDENCE INCOMPLETE naming V3; post-apply dry run runs',
+          r.out('evidence_local', 'integrity') == 'NOT_COMPLETED' and headline(r) == 'EVIDENCE INCOMPLETE' and 'could not complete: V3' in r.summary
+          and r.outcome('evidence_db') == 'success' and len(r.calls) == 3, detail(r))
+    # R7  AP-5b is skipped after every verified mismatch, including when only the run's integrity result records it
+    def add_outputs(lines):
+        return lambda st: {**st, 'run': st['run'].rstrip() + '\n' + ''.join(f'echo "{l}" >> "$GITHUB_OUTPUT"\n' for l in lines)}
+    for label, lines in [('integrity=MISMATCH with v3=PASS', ['integrity=MISMATCH', 'v3=PASS']),
+                         ('integrity=MISMATCH with v3=NOT_COMPLETED', ['integrity=MISMATCH', 'v3=NOT_COMPLETED']),
+                         ('integrity output missing', ['integrity=']),
+                         ('integrity=OK (unexpected value)', ['integrity=OK'])]:
+        r = run_job('apply', outputs=HAPPY, step_patch={'evidence_local': add_outputs(lines)})
+        check('B6-27', f'R7 [simulated] {label}: AP-5b skipped, no CLI call after the apply', r.outcome('evidence_db') == 'skipped' and len(r.calls) == 2, detail(r))
+    r = run_job('apply', outputs=HAPPY, step_patch={'evidence_local': add_outputs(['integrity=mismatch'])})
+    check('B6-27', "R7 [simulated] case variant integrity=mismatch: GitHub's case-insensitive == does not admit it (MISMATCH is not an allowed value); AP-5b skipped",
+          r.outcome('evidence_db') == 'skipped' and len(r.calls) == 2, detail(r))
+    r = run_job('apply', outputs=HAPPY, step_patch={'evidence_local': add_outputs(['integrity=pass'])})
+    check('B6-27', "R7 [simulated] case variant integrity=pass: AP-5b starts, its byte-exact check stops it before any CLI call",
+          r.outcome('evidence_db') == 'failure' and len(r.calls) == 2 and r.out('evidence_db', 'post') == 'NOT_RUN', detail(r))
+    # R8  a later PASS cannot erase an earlier MISMATCH — even after a successful apply with nothing pending
+    for stage in ('v1', 'v2'):
+        r = run_job('apply', outputs=HAPPY, step_patch={'evidence_local': add_outputs([f'{stage}=MISMATCH'])})
+        check('B6-27', f'R8 [simulated] {stage.upper()}=MISMATCH recorded, apply succeeded, V3 PASS, post-apply up to date: INTEGRITY INCIDENT, never APPLIED',
+              headline(r) == 'INTEGRITY INCIDENT' and f'at: {stage.upper()}' in r.summary and r.result == 'failure', detail(r))
 finally:
     shutil.rmtree(TMP, ignore_errors=True)
 

@@ -26,9 +26,9 @@ Every step that writes to the project needs explicit owner approval first.
 | **V1** (own step, in both database jobs) | the same check on this job's own checkout, before its first CLI call | none in the step (CB-1) |
 | fresh dry run + exact pending gate (apply job) | the existing `pending_gate` and end-of-order check, against the manifest's list (never `ls`). The **last** command writes a gate-pass marker | in the step |
 | **V2** + apply | refuses without the marker; then V2 is **literally the last command before** `supabase db push --yes` | in the step; the integrity script runs with it removed (CB-2) |
-| evidence: **V3** and local evidence | always runs in apply mode; V3 = PASS, MISMATCH or NOT_COMPLETED | none (CB-3) |
-| evidence: post-apply dry run | read-only. Runs only if the V3 step **succeeded** and V3 is PASS or NOT_COMPLETED, and not after cancellation (`!cancelled()`) | in the step |
-| evidence: classification | APPLIED (the only success), INTEGRITY INCIDENT, EVIDENCE INCOMPLETE, APPLY FAILED, NOT ATTEMPTED | none |
+| evidence: **V3** and local evidence | always runs in apply mode. Records V1, V2 and V3 (each PASS, MISMATCH or NOT_COMPLETED) and the run's **integrity result**: MISMATCH if **any** of them verified a discrepancy, even if a later check passed; otherwise NOT_COMPLETED if any could not complete; otherwise PASS | none (CB-3) |
+| evidence: post-apply dry run | read-only. Runs only if the V3 step **succeeded**, V3 is PASS or NOT_COMPLETED, **and the run's integrity result is not MISMATCH** (no verified discrepancy at V1, V2 or V3), and not after cancellation (`!cancelled()`) | in the step |
+| evidence: classification | APPLIED (the only success), INTEGRITY INCIDENT, EVIDENCE INCOMPLETE, APPLY FAILED, NOT ATTEMPTED. A verified MISMATCH at V1, V2 or V3 is always INTEGRITY INCIDENT, naming the stage(s). A check that could not complete is EVIDENCE INCOMPLETE, never INTEGRITY INCIDENT | none |
 
 **Other points:**
 - **One manifest and one integrity script**, each defined once in the workflow's `env:` (`MIGRATION_MANIFEST`, `INTEGRITY_SH`). The keep-alive audit still reads the same 19 manifest lines.
