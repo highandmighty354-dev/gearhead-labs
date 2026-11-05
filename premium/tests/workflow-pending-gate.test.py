@@ -137,6 +137,13 @@ cat "$f"; exit "$(cat "$FAKE_DIR/rc$n" 2>/dev/null || echo 0)"
 ''')
     os.chmod(fake, os.stat(fake).st_mode | stat.S_IEXEC)
     PASSWORD = 'S3cret-PW!/not-real'
+    def isolation_env(step_def, rt):
+        """The workflow's CLI-isolation variables for this step: the two workflow-level flags and the step's own
+        SUPABASE_HOME with ${{ runner.temp }} resolved to this run's RUNNER_TEMP (as GitHub resolves it)."""
+        home = str((step_def.get('env') or {}).get('SUPABASE_HOME', '')).replace('${{ runner.temp }}', rt)
+        return {'SUPABASE_TELEMETRY_DISABLED': str(ENV.get('SUPABASE_TELEMETRY_DISABLED', '')),
+                'SUPABASE_NO_UPDATE_NOTIFIER': str(ENV.get('SUPABASE_NO_UPDATE_NOTIFIER', '')), 'SUPABASE_HOME': home}
+
     def run_job(step_def, outputs, target='production', rcs=None, apply=False):
         d = tempfile.mkdtemp(dir=tmp); log = os.path.join(d, 'calls.log'); open(log, 'w').close()
         for i, o in enumerate(outputs, 1): open(os.path.join(d, f'out{i}.txt'), 'w', encoding='utf-8').write(o)
@@ -146,7 +153,7 @@ cat "$f"; exit "$(cat "$FAKE_DIR/rc$n" 2>/dev/null || echo 0)"
         script = step_def['run']
         assert '${{' not in script, 'the run script still contains a ${{ }} expression'
         env = {'PATH': fakebin + os.pathsep + os.environ['PATH'], 'HOME': d, 'FAKE_LOG': log, 'FAKE_DIR': d,
-               'RUNNER_TEMP': rt, 'GITHUB_STEP_SUMMARY': summary, 'PINNED_SHA': PINNED,
+               'RUNNER_TEMP': rt, 'GITHUB_STEP_SUMMARY': summary, 'PINNED_SHA': PINNED, **isolation_env(step_def, rt),
                'SUPABASE_CLI_VERSION': ENV['SUPABASE_CLI_VERSION'], 'PENDING_GATE_SH': GATE,
                'PRODUCTION_EXPECTED_PENDING': EXPECTED, 'TARGET': target, 'NO_COLOR': '1',
                'POOLER_URL': 'postgresql://postgres.jmztpjudwzjvrcdtjynd:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:5432/postgres',
@@ -182,7 +189,7 @@ cat "$f"; exit "$(cat "$FAKE_DIR/rc$n" 2>/dev/null || echo 0)"
         open(os.path.join(d, 'out.txt'), 'w').write(cli([MNEW]))
         summary = os.path.join(d, 'summary.md'); open(summary, 'w').close(); rt = os.path.join(d, 'rt'); os.makedirs(rt)
         env = {'PATH': fakebin + os.pathsep + os.environ['PATH'], 'HOME': d, 'FAKE_LOG': log, 'FAKE_DIR': d, 'RUNNER_TEMP': rt,
-               'GITHUB_STEP_SUMMARY': summary, 'PINNED_SHA': PINNED, 'SUPABASE_CLI_VERSION': '2.119.0', 'PENDING_GATE_SH': GATE,
+               **isolation_env(DRY_STEP, rt), 'GITHUB_STEP_SUMMARY': summary, 'PINNED_SHA': PINNED, 'SUPABASE_CLI_VERSION': '2.119.0', 'PENDING_GATE_SH': GATE,
                'PRODUCTION_EXPECTED_PENDING': EXPECTED, 'TARGET': 'production',
                'POOLER_URL': 'postgresql://postgres.jmztpjudwzjvrcdtjynd:[YOUR-PASSWORD]@h:5432/postgres', 'DB_PASSWORD': PASSWORD,
                'CONFIRM_REF': 'abcdefghijklmnopqrst', 'GITHUB_WORKSPACE': wt,

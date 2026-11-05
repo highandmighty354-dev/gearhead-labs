@@ -81,6 +81,12 @@ concurrency:
 env:
   PINNED_SHA: c69ec51e47af7d2120ad82a4f8aa6a0e7522de67
   SUPABASE_CLI_VERSION: 2.119.0
+  # CLI isolation (Supabase CLI 2.119.0 controls, read from its source and tested with the real CLI; see PROVISIONING.md):
+  #   SUPABASE_TELEMETRY_DISABLED=1  no PostHog telemetry and no local trace log (~/.supabase/traces holds executed SQL)
+  #   SUPABASE_NO_UPDATE_NOTIFIER=1  no upgrade check (no api.github.com call, no supabase/.temp/cli-latest in the workspace)
+  # SUPABASE_HOME (the CLI's own state folder) is set to ${{ runner.temp }}/supabase-home on every step that runs the CLI.
+  SUPABASE_TELEMETRY_DISABLED: "1"
+  SUPABASE_NO_UPDATE_NOTIFIER: "1"
   # What production must show pending for THIS release (newline-separated, in order). Production is at 0408.
   # Change it only together with a new pinned package.
   PRODUCTION_EXPECTED_PENDING: "0409_formula_versions_fuel_pump_validity.sql"
@@ -430,6 +436,8 @@ jobs:
           ref: ${{ env.PINNED_SHA }}
           persist-credentials: false
       - uses: supabase/setup-cli@v1
+        env:
+          SUPABASE_HOME: ${{ runner.temp }}/supabase-home
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
       - name: V1 integrity check (no credentials)
@@ -454,8 +462,13 @@ jobs:
           CONFIRM_REF: ${{ inputs.confirm_project_ref }}
           TARGET: ${{ inputs.target }}
           NO_COLOR: "1"
+          SUPABASE_HOME: ${{ runner.temp }}/supabase-home
         run: |
           set -euo pipefail
+          # CLI isolation: telemetry and the upgrade check off, CLI home outside the workspace (checked before any CLI call).
+          if [ "${SUPABASE_TELEMETRY_DISABLED:-}" != 1 ] || [ "${SUPABASE_NO_UPDATE_NOTIFIER:-}" != 1 ] || [ "${SUPABASE_HOME:-}" != "$RUNNER_TEMP/supabase-home" ]; then
+            echo "::error::Supabase CLI isolation is not in effect (SUPABASE_TELEMETRY_DISABLED, SUPABASE_NO_UPDATE_NOTIFIER, SUPABASE_HOME). The CLI was not run."; exit 1; fi
+          case "$RUNNER_TEMP/" in "$GITHUB_WORKSPACE"/*) echo "::error::RUNNER_TEMP is inside the workspace; the CLI home would not be isolated. The CLI was not run."; exit 1;; esac
           printf '%s\n' "$PENDING_GATE_SH" > "$RUNNER_TEMP/gate.sh"; . "$RUNNER_TEMP/gate.sh"
           printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh"
           printf '%s' "$MIGRATION_MANIFEST" > "$RUNNER_TEMP/manifest.sha256"
@@ -525,6 +538,8 @@ jobs:
           ref: ${{ env.PINNED_SHA }}
           persist-credentials: false
       - uses: supabase/setup-cli@v1
+        env:
+          SUPABASE_HOME: ${{ runner.temp }}/supabase-home
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
 
@@ -554,9 +569,14 @@ jobs:
           CONFIRM_REF: ${{ inputs.confirm_project_ref }}
           TARGET: ${{ inputs.target }}
           NO_COLOR: "1"
+          SUPABASE_HOME: ${{ runner.temp }}/supabase-home
         run: |
           set -euo pipefail
           rm -f "$RUNNER_TEMP/gate-pass.txt"
+          # CLI isolation: telemetry and the upgrade check off, CLI home outside the workspace (checked before any CLI call).
+          if [ "${SUPABASE_TELEMETRY_DISABLED:-}" != 1 ] || [ "${SUPABASE_NO_UPDATE_NOTIFIER:-}" != 1 ] || [ "${SUPABASE_HOME:-}" != "$RUNNER_TEMP/supabase-home" ]; then
+            echo "::error::Supabase CLI isolation is not in effect (SUPABASE_TELEMETRY_DISABLED, SUPABASE_NO_UPDATE_NOTIFIER, SUPABASE_HOME). The CLI was not run."; exit 1; fi
+          case "$RUNNER_TEMP/" in "$GITHUB_WORKSPACE"/*) echo "::error::RUNNER_TEMP is inside the workspace; the CLI home would not be isolated. The CLI was not run."; exit 1;; esac
           printf '%s\n' "$PENDING_GATE_SH" > "$RUNNER_TEMP/gate.sh"; . "$RUNNER_TEMP/gate.sh"
           printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh"
           printf '%s' "$MIGRATION_MANIFEST" > "$RUNNER_TEMP/manifest.sha256"
@@ -614,8 +634,13 @@ jobs:
           CONFIRM_REF: ${{ inputs.confirm_project_ref }}
           TARGET: ${{ inputs.target }}
           NO_COLOR: "1"
+          SUPABASE_HOME: ${{ runner.temp }}/supabase-home
         run: |
           set -euo pipefail
+          # CLI isolation: telemetry and the upgrade check off, CLI home outside the workspace (checked before any CLI call).
+          if [ "${SUPABASE_TELEMETRY_DISABLED:-}" != 1 ] || [ "${SUPABASE_NO_UPDATE_NOTIFIER:-}" != 1 ] || [ "${SUPABASE_HOME:-}" != "$RUNNER_TEMP/supabase-home" ]; then
+            echo "::error::Supabase CLI isolation is not in effect (SUPABASE_TELEMETRY_DISABLED, SUPABASE_NO_UPDATE_NOTIFIER, SUPABASE_HOME). The CLI was not run."; exit 1; fi
+          case "$RUNNER_TEMP/" in "$GITHUB_WORKSPACE"/*) echo "::error::RUNNER_TEMP is inside the workspace; the CLI home would not be isolated. The CLI was not run."; exit 1;; esac
           printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh"
           printf '%s' "$MIGRATION_MANIFEST" > "$RUNNER_TEMP/manifest.sha256"
           # The gate-pass marker must exist and name exactly the verified pending set.
@@ -768,6 +793,7 @@ jobs:
           CONFIRM_REF: ${{ inputs.confirm_project_ref }}
           TARGET: ${{ inputs.target }}
           NO_COLOR: "1"
+          SUPABASE_HOME: ${{ runner.temp }}/supabase-home
         run: |
           set +e; set -uo pipefail   # the default shell starts with -e; evidence collection must continue after a failure
           case "$V3_RESULT:$INTEGRITY_RESULT" in
@@ -776,6 +802,10 @@ jobs:
           esac
           post=NOT_COMPLETED
           finish() { echo "post=$post" >> "$GITHUB_OUTPUT"; echo "Post-apply result: $post"; exit "$1"; }
+          # CLI isolation: telemetry and the upgrade check off, CLI home outside the workspace (checked before any CLI call).
+          if [ "${SUPABASE_TELEMETRY_DISABLED:-}" != 1 ] || [ "${SUPABASE_NO_UPDATE_NOTIFIER:-}" != 1 ] || [ "${SUPABASE_HOME:-}" != "$RUNNER_TEMP/supabase-home" ]; then
+            echo "::error::Supabase CLI isolation is not in effect (SUPABASE_TELEMETRY_DISABLED, SUPABASE_NO_UPDATE_NOTIFIER, SUPABASE_HOME). The CLI was not run."; finish 0; fi
+          case "$RUNNER_TEMP/" in "$GITHUB_WORKSPACE"/*) echo "::error::RUNNER_TEMP is inside the workspace; the CLI home would not be isolated. The CLI was not run."; finish 0;; esac
           printf '%s\n' "$PENDING_GATE_SH" > "$RUNNER_TEMP/gate.sh" && . "$RUNNER_TEMP/gate.sh" || finish 1
           printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh" || finish 1
           env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" workspace "$GITHUB_WORKSPACE" "$PINNED_SHA" || finish 0
