@@ -13,8 +13,18 @@ Every step that writes to the project needs explicit owner approval first.
 
 ## Provisioning workflow: Option B migration integrity (draft PR; not merged, never run)
 
-**Status (2026-11-04):**
-- Implemented on branch `ops/option-b-migration-integrity` under the owner's limited implementation authorization. The basis is the B6 design FINAL PROPOSED v5 and the consolidated decision record (technical approval granted; owner risk decisions recorded).
+**Status (2026-11-05):**
+
+| Item | Status | Where recorded |
+| --- | --- | --- |
+| Option B | **Selected in principle** | owner direction, 2026-11-04 (consolidated decision record) |
+| P1, explicit `--workdir` | **Required** condition of proceeding | same |
+| Technical approval of the B6 v5 **design** (TA-1 to TA-16) | Granted, with an AI-assisted technical reviewer (not independent human certification) | decision record, §2 |
+| Technical approval of **this implementation** | **Not yet granted** | — |
+| Implementation authorization | **Limited to the work in this PR:** the ops branch, the workflow, harness and test changes, this documentation, local tests, and a draft PR | decision record, §5 |
+| Merge / release authorization | **Not granted** | — |
+
+- Implemented on branch `ops/option-b-migration-integrity` (draft PR #27). The basis is the B6 design FINAL PROPOSED v5 and the consolidated decision record.
 - **Not merged. Never dispatched.** It has been tested only locally, with a fake `supabase` command. No migration was created or changed. The package is still the 19-file `c69ec51` package.
 - Production is up to date, so this copy reports nothing pending, as the current copy does.
 
@@ -39,12 +49,22 @@ Every step that writes to the project needs explicit owner approval first.
 - **INTEGRITY INCIDENT or EVIDENCE INCOMPLETE** (and any unexpected cancellation of an apply): stop all production activity. No re-run, retry, new dispatch, migration change, repair, manual SQL or rollback. Preserve the logs, notify Trent, and establish the database state through read-only F1 checks. Then wait for explicit owner authorization.
 - **Every retry of a failed apply** is a new [G5-APPLY] event with its own approval.
 
-**Limits (disclosed; accepted by the owner):**
-- Option B is **not atomic and not race-free.** A change after V2 and before the CLI reads a file would be applied. V3 sees it only if it persists. A change made and restored escapes every check.
+**Residual risks.** Owner acceptance is recorded **only** for:
+- **Decision 4:** the race between V2 and the CLI reading the files (decision record, §3);
+- **Decision 5:** the cancellation uncertainty, subject to the cancellation and recovery rule (decision record, §3 and §6).
+
+Every other risk below is **disclosed, with no separate acceptance recorded**:
+- Option B is **not atomic and not race-free.** A change after V2 and before the CLI reads a file would be applied; that race is accepted under Decision 4. V3 sees such a change only if it persists. A change made and restored escapes every check.
+- **The production-state race** between the fresh dry run and `--yes` remains.
 - **V3 checks the migration files at the time it runs.** It does not prove which bytes the CLI read, that the migration completed fully, or the database state. The post-apply dry run is separate evidence about migration history, and F1 checks the database contents.
-- **Cancellation:** after a whole-job cancellation, the evidence steps may not run or finish. A cancellation during `--yes` may leave a migration partially applied.
-- **CB-1, CB-2 and CB-3 only reduce accidental credential exposure.** The `env` launcher and the step shells still hold the credential, and the hosted runner (passwordless `sudo`, one user) gives no isolation between processes.
-- **GitHub compares strings case-insensitively in `if:`.** So the post-apply step re-checks the V3 value byte-for-byte as its first action, before using the credential.
+- **Cancellation** (accepted under Decision 5, with the recovery rule): after a whole-job cancellation, the evidence steps may not run or finish. A cancellation during `--yes` may leave a migration partially applied.
+- **CB-1, CB-2 and CB-3 only reduce accidental credential exposure.** The `env` launcher and the step shells still hold the credential. The CLI receives it as a command-line argument. The hosted runner (passwordless `sudo`, one user) gives no isolation between processes.
+- **AP-5b case-sensitivity workaround.** GitHub compares strings case-insensitively in `if:`. So a case variant such as `pass` would satisfy AP-5b's condition, and **the step would start**.
+  - AP-5b's first command rejects any value that is not byte-exact, **before the database URL is built or the CLI is run**.
+  - But the step has already started with the **database credential in its step environment**. This limits use of the credential; it does **not** eliminate exposure.
+  - It matters only if AP-5a has a defect, because AP-5a writes only the exact upper-case values.
+  - The workflow is not changed to address it.
+- **Not yet proven at run time:** that the CLI accepts `--workdir` on `db push` (it is a global flag in the 2.119.0 source), and how GitHub really evaluates the AP-5b condition.
 
 **Tests** (local only):
 - `python3 premium/tests/workflow-option-b.test.py`: structural checks plus a local simulation of the jobs. It is **not** GitHub Actions.
