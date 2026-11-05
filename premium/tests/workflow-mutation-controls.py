@@ -13,6 +13,9 @@ M2c, M4c and M8c are combined controls: the M2, M4 and M8 condition faults appli
 Every edit is anchored: its text must occur exactly once in the named step (or env block), or in that step's `if:`
 line. If the workflow changed so that an edit no longer applies exactly, the control is reported STALE and the
 script fails; it never silently skips a control. The unmodified workflow is run first and must be clean.
+Some controls also name a behavioural check that must be among the failures (REQUIRED_BEHAVIOURAL): M4c must be
+caught by the simulated cancellation test B6-25g, not only by a check of the condition text; otherwise it is reported
+NOT CAUGHT BEHAVIOURALLY and the script fails.
 Takes several minutes (each control runs both suites). Not part of run-tests.sh.
 Exit 0 = baseline clean and every control caught; 1 = otherwise; 2 = could not run."""
 import os, re, subprocess, sys, tempfile, shutil
@@ -60,6 +63,9 @@ CONTROLS = {
     'M8c': ('M8 in BOTH evidence_gate and the post-apply dry run',
             [(GATE_STEP, 'if', ' && ' + INTEG, ''), (POST_STEP, 'if', ' && ' + INTEG, '')]),
 }
+
+# control -> check group that must be among its failures (a behavioural, simulated-run check)
+REQUIRED_BEHAVIOURAL = {'M4c': 'B6-25g'}
 
 def block_range(lines, block):
     """Line range [start, end) of the step named `block`, or of the top-level env block `block: |`."""
@@ -126,14 +132,15 @@ def main():
             r = results[cid]
             crashed = [k for k, v in r.items() if v['failures'] is None]
             caught = sum(v['failures'] or 0 for v in r.values())
-            if crashed: verdict = 'ERROR'
-            elif caught > 0: verdict = 'CAUGHT'
-            else: verdict = 'SURVIVED'
-            bad += verdict != 'CAUGHT'
             groups = sorted({f.split()[0] for v in r.values() for f in v['failed']}, key=lambda g: (int(re.sub(r'\D', '', g) or 0), g))
+            if crashed: verdict = 'ERROR'
+            elif caught == 0: verdict = 'SURVIVED'
+            elif cid in REQUIRED_BEHAVIOURAL and REQUIRED_BEHAVIOURAL[cid] not in groups: verdict = 'NOT CAUGHT BEHAVIOURALLY'
+            else: verdict = 'CAUGHT'
+            bad += verdict != 'CAUGHT'
             simulated = sum(1 for v in r.values() for f in v['failed'] if '[simulated]' in f or ' happy path' in f or re.search(r'\b(R\d|E\d)\b', f))
-            print(f'  {cid:4} {verdict:8} {desc} | ' + '; '.join(f"{k}: {v['failures']} failure(s)" if v['failures'] is not None else f"{k}: CRASH ({v['crash']})" for k, v in r.items())
-                  + f" | groups: {' '.join(groups) or '-'} | behavioural (simulated-run) failures: {simulated}")
+            print(f'  {cid:4} {verdict:8} {desc}' + (f' [must include {REQUIRED_BEHAVIOURAL[cid]}]' if cid in REQUIRED_BEHAVIOURAL else '') + ' | ' + '; '.join(f"{k}: {v['failures']} failure(s)" if v['failures'] is not None else f"{k}: CRASH ({v['crash']})" for k, v in r.items())
+                  + f" | groups: {' '.join(groups) or '-'} | failures in checks labelled [simulated]/happy path/R#/E# (a lower bound; unlabelled simulated runs such as B6-25a/b are not counted): {simulated}")
         print(f'mutation controls: {len(CONTROLS)} controls, {len(CONTROLS) - bad + (not clean)} caught, {bad - (not clean)} not caught or stale; baseline {"clean" if clean else "NOT CLEAN"}')
         return 1 if bad else 0
     finally:

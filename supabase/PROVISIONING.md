@@ -139,14 +139,56 @@ Every other risk below is **disclosed, with no separate acceptance recorded**:
 - **Not yet proven at run time:** how the CLI behaves on a GitHub runner against **hosted** Supabase (its Session pooler), and how GitHub evaluates the AP-5b condition with unusual values (simulated only, B6-28).
   - In the throwaway apply run 42081870008, GitHub evaluated the AP-5b condition on the success path. The post-apply dry run ran and the run was classified APPLIED, using the real CLI with `--workdir` against a disposable database on the runner.
 
-**Tests** (local unless marked as real GitHub; latest reported local run at commit `c20c232`):
-- `python3 premium/tests/workflow-option-b.test.py`: **239 checks, 0 failures**. These include B6-28 (14 checks) for the credential-free exact-value gate and B6-29 (44 checks) for CLI isolation: all six CLI steps including both debug switches, the guard's position, and simulated fail-closed cases for each switch missing or wrong.
+**Tests** (local unless marked as real GitHub). The latest local run used the test code in the commit that adds this paragraph. The workflow, migrations and manifest it tested are unchanged since `c20c232`:
+- `python3 premium/tests/workflow-option-b.test.py`: **241 checks, 0 failures**. These include:
+  - B6-28 (14 checks) for the credential-free exact-value gate;
+  - B6-29 (44 checks) for CLI isolation: all six CLI steps including both debug switches, the guard's position, and simulated fail-closed cases for each switch missing or wrong;
+  - B6-25g (2 checks, added with this paragraph), described below.
   - Against the previous workflow (`e88c76a`), B6-29 fails 28 checks, as expected. Structural checks plus a local simulation of the jobs; it is **not** GitHub Actions.
 - B6-28 was also run against the previous workflow at `49af33f` and failed as expected because the credential-free gate step was absent.
 - `python3 premium/tests/workflow-pending-gate.test.py`: **62 checks, 0 failures**. The steps now run with the workflow's own isolation values.
 - `SUPABASE_CLI_BIN=<dir> bash premium/tests/cli-isolation.real-cli.sh`: **16 checks, 0 failures** with the real CLI 2.119.0, including both debug routes and their positive controls. This test is opt-in.
 - All three are in `premium/tests/run-tests.sh`. The real-CLI test runs only when `SUPABASE_CLI_BIN` is set; otherwise it prints NOT RUN.
-- The 11 mutation controls were last run at `71769c9`; they were **not** rerun for `8c02481`, `85a04fc` or `c20c232`.
+- **B6-25g (simulated whole-run cancellation during the apply step).**
+  - The test forces this state: the apply step is recorded as cancelled, then the V3 evidence step (`always()`) still succeeds with allowed values, once with V3 PASS and once with V3 NOT_COMPLETED.
+  - It requires that the credential-free exact-value check (`evidence_gate`) and the credential-bearing post-apply dry run are **both skipped**, and that no CLI call follows the apply.
+  - In this state `!cancelled()` is the only condition stopping those two steps. B6-25g is therefore the behavioural test for that condition in both steps.
+  - Result: it passes on the current workflow. With `!cancelled()` changed to `always()` in both steps (control M4c below), both checks fail and the post-apply dry run runs after the cancellation.
+  - **Limitation:** this is a local simulation, not GitHub Actions.
+    - The harness lets the apply step's script finish and then marks it cancelled. It does not interrupt a command part-way, reproduce GitHub's cancellation timing or forced termination, or show what outputs a really interrupted step leaves behind.
+    - It does not prove every GitHub cancellation scenario.
+    - It does not change the Supabase interruption risks recorded under Residual risks (B6-20, B6-25c), which still stand.
+    - It has not been run on real GitHub.
+- **Mutation controls:** `python3 premium/tests/workflow-mutation-controls.py`. Not part of `run-tests.sh`; it takes several minutes.
+  - **How it works:**
+    - Each control injects one deliberate fault into a copy of the workflow and runs both suites against it.
+    - A control counts as caught only when a suite finishes and reports at least one failure.
+    - A suite crash counts as ERROR, and an edit that no longer applies exactly once counts as STALE; both fail the script.
+    - The unmodified workflow is run first and must be clean.
+  - **Run against the current workflow** (unchanged since `c20c232`; the previous run was at `71769c9`):
+    - baseline clean (241/0 and 62/0);
+    - 14 of 14 controls caught; none stale, errored or survived.
+  - **M3 harness correction.** At `b80f326`, M3 (`--workdir` removed from the `--yes` call) crashed the Option B suite instead of failing it. The B6-29 check could not find the `--yes` line.
+    - Corrected in `c1c4cb0`: a missing or altered `--yes` line is now a recorded failure.
+    - M3 is now caught with 4 recorded failures (B6-09, B6-18, B6-29).
+  - **Original controls M1–M11, failures by control:**
+    - M1: 18 (V2 replaced by `true`)
+    - M2: 2
+    - M3: 4
+    - M4: 2
+    - M5: 9
+    - M6: 18
+    - M7: 1
+    - M8: 2
+    - M9: 6
+    - M10: 1
+    - M11: 10
+    - M2, M4 and M8 alone are caught only by checks of the condition text (B6-25, B6-27, B6-28). Behaviourally, the unchanged `evidence_gate` step still blocks the post-apply dry run.
+  - **Combined controls.** These apply the M2, M4 and M8 condition faults to both `evidence_gate` and the post-apply dry run:
+    - **M2c** (no `evidence_local` success requirement): caught by 3 failures. One checks the condition text (B6-25); two are simulated runs (B6-25a, B6-25b).
+    - **M4c** (`always()` instead of `!cancelled()`): caught by 3 failures. One checks the condition text (B6-25); two are the simulated cancellation runs (B6-25g). The script requires B6-25g among M4c's failures and fails if it is missing.
+    - **M8c** (no integrity-result requirement): caught by 1 failure, a check of the condition text only (B6-27). No simulated run catches it, because the exact-value scripts in both steps still reject an integrity MISMATCH. That third layer masks the fault in behaviour. This remains a documented gap in behavioural coverage, not a defect.
+  - The pending-gate suite catches none of the 14. It does not run the steps these faults touch.
 - **Run on real GitHub (2026-11-05), in a separate private throwaway repository with test-only workflow copies and a fake `supabase` command:** B6-03, B6-11, B6-17, B6-19 and B6-25c all passed. The cancellation findings are recorded under Residual risks above.
 - **Run with the real Supabase CLI 2.119.0 against disposable local PostgreSQL 16.15 databases (2026-11-05), in a clean, GitHub-like environment:**
   - B6-10 (P1 decoy) passed. With `--workdir` the CLI listed exactly the 19 workspace migrations. Without it, it picked up a decoy migration from a parent folder.

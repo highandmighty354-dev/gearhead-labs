@@ -652,6 +652,18 @@ try:
     check('B6-25', 'H3 [simulated]: the AP-5b condition contains !cancelled(), so a cancelled run never starts it', evaluate(
           strip_wrapper(step_by_id('apply', 'evidence_db')['if']), Ctx({'mode': 'apply'}, {'evidence_local': {'outcome': 'success', 'outputs': {'v3': 'PASS'}}},
           {'success': lambda: False, 'failure': lambda: False, 'always': lambda: True, 'cancelled': lambda: True})) is False)
+    # B6-25g: whole-run cancellation during the apply step while AP-5a (always()) still SUCCEEDS with allowed values [simulated].
+    # Here !cancelled() is the only condition that keeps the credential-free exact-value check and the credential-bearing
+    # AP-5b from starting, so this is the behavioural test for M4c (always() in both). The harness completes the apply
+    # step's script and then records the step as cancelled; it does not interrupt a command part-way (see B6-20, B6-25c).
+    for value in ('PASS', 'NOT_COMPLETED'):
+        r = run_job('apply', outputs=HAPPY, cancel_after='apply', hooks={2: 'touch "$FAKE_DIR/fail_sha256sum"\n'} if value == 'NOT_COMPLETED' else None)
+        check('B6-25g', f'[simulated] run cancelled during the apply step; AP-5a still succeeds with v3={value}: '
+              'the exact-value check and AP-5b are both skipped; no CLI call after the apply; the run is cancelled',
+              r.outcome('apply') == 'cancelled' and r.outcome('evidence_local') == 'success' and r.out('evidence_local', 'v3') == value
+              and r.out('evidence_local', 'integrity') in ('PASS', 'NOT_COMPLETED')
+              and r.outcome('evidence_gate') == 'skipped' and r.outcome('evidence_db') == 'skipped'
+              and len(r.calls) == 2 and r.result == 'cancelled', detail(r))
 
 
     # ================================================================ B6-27: a verified mismatch stands for the whole run
@@ -868,6 +880,7 @@ NOT_RUN = {
     'B6-21': 'D: R1 runtime CLI filesystem investigation',
     'B6-22': 'X: real approval flow, rehearsal run, production apply with F1',
     'B6-25c': 'G: real cancellation of AP-5a (the L+ case above forces the state)',
+    'B6-25g': 'G: real whole-run cancellation during the apply step (the L+ case above forces the state)',
     'B6-26': 'not applicable: CB-3 was adopted (TA-14), so the fail-closed fallback is not implemented',
 }
 print('\nB6 test results (L / L+ only):')
