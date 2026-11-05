@@ -236,6 +236,9 @@ env:
     set -u
     export LC_ALL=C
     MANIFEST_LINE_RE='^[0-9a-f]{64}  supabase/migrations/[0-9]{4}_[a-z0-9_]+\.sql$'
+    # Trust anchor for the frozen-source list: the SHA-256 of supabase/FROZEN-SOURCES.sha256 at the pinned commit.
+    # Defined here, in the reviewed workflow, NOT derived from the list it protects. Change it only with a new pinned package.
+    FROZEN_LIST_SHA256='7a9d856fcaa127f79f4e5b24e413453a59e802c47e51753ec075fca71481c03b'
     FROZEN_LINE_RE='^[0-9a-f]{64}  supabase/[A-Za-z0-9_./-]+$'
     MISMATCH=0
     INCOMPLETE=0
@@ -311,7 +314,7 @@ env:
     }
 
     cmd_check() {
-      local root="${1:-}" m="${2:-}" dir names entries others tree tmp msg rc t p name frozen
+      local root="${1:-}" m="${2:-}" dir names entries others tree tmp msg rc t p name frozen got
       if [ -z "$root" ] || [ -z "$m" ]; then incomplete "usage: check ROOT MANIFEST"; finish; fi
       need_tools || finish
       rc=0; msg="$(validate_manifest "$m")" || rc=$?
@@ -337,9 +340,10 @@ env:
         while IFS= read -r name; do
           if [ -L "$dir/$name" ] || [ ! -f "$dir/$name" ]; then mismatch "supabase/migrations/$name is missing or not a regular file"; fi
         done <<< "$names"
-        rc=0; others="$(cd "$dir" && find . -mindepth 1 -maxdepth 1 -type f -perm /111 -printf '%P\n' 2>&1)" || rc=$?
+        # every migration file's permissions must be exactly 0644 (rw-r--r--, no setuid/setgid/sticky), as in the Git tree
+        rc=0; others="$(cd "$dir" && find . -mindepth 1 -maxdepth 1 -type f ! -perm 0644 -printf '%P (%m)\n' 2>&1)" || rc=$?
         if [ "$rc" -ne 0 ]; then incomplete "file modes could not be read"
-        elif [ -n "$others" ]; then mismatch "executable migration file(s): $(printf '%s' "$others" | tr '\n' ' ')"; fi
+        elif [ -n "$others" ]; then mismatch "migration file(s) whose permissions are not exactly 0644: $(printf '%s' "$others" | tr '\n' ' ')"; fi
       fi
 
       # 2) Git: the pinned commit holds exactly the manifest's files as mode 100644 blobs; nothing untracked or ignored
@@ -357,11 +361,13 @@ env:
       # 3) checksums of every manifest file
       check_sums "$root" "$m" "manifest"
 
-      # 4) frozen sources
+      # 4) frozen sources. The list itself must match the anchor above before any of its lines is trusted.
       frozen="$root/supabase/FROZEN-SOURCES.sha256"
       if [ -L "$frozen" ] || [ ! -e "$frozen" ]; then mismatch "supabase/FROZEN-SOURCES.sha256 is missing or a symbolic link"
       elif [ ! -f "$frozen" ]; then mismatch "supabase/FROZEN-SOURCES.sha256 is not a regular file"
       elif [ ! -r "$frozen" ]; then incomplete "supabase/FROZEN-SOURCES.sha256 cannot be read"
+      elif ! got="$(sha256sum -- "$frozen" 2>/dev/null)"; then incomplete "supabase/FROZEN-SOURCES.sha256 could not be hashed"
+      elif [ "${got%% *}" != "$FROZEN_LIST_SHA256" ]; then mismatch "supabase/FROZEN-SOURCES.sha256 has SHA-256 ${got%% *}, expected $FROZEN_LIST_SHA256 (the frozen-source list itself was changed; its entries are not used)"
       elif ! tmp="$(mktemp 2>/dev/null)"; then incomplete "a temporary file could not be created"
       else
         rc=0; awk '!/^#/ && NF { print $1 "  " $2 }' "$frozen" > "$tmp" || rc=$?

@@ -21,7 +21,7 @@ of processes started by the integrity script, and can be told to fail.
 Needs: python3 with PyYAML, bash, git, coreutils. Run from a DISPOSABLE clone (it creates temporary clones):
   python3 premium/tests/workflow-option-b.test.py        (VERBOSE=1 lists every check)
 Exit 0 = every check passed; 1 = a failure; 2 = could not run."""
-import os, re, shutil, stat, subprocess, sys, tempfile
+import glob, hashlib, os, re, shutil, stat, subprocess, sys, tempfile
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 WF_PATH = os.environ.get('GH_WORKFLOW') or os.path.join(REPO, '.github', 'workflows', 'provision-supabase.yml')
@@ -450,6 +450,78 @@ try:
         d1, ws1 = new_workspace(); fn(ws1)
         rc, out = ig_run('check', ws1, mf, ws=ws1)
         check('B6-01', f'integrity check, {label}: MISMATCH (exit 1)', rc == 1 and out.rstrip().endswith('result: MISMATCH'), out[-800:])
+
+    # ================================================================ B6-30: the frozen-source list is anchored independently
+    # The list supabase/FROZEN-SOURCES.sha256 is checked against FROZEN_LIST_SHA256, a constant in the integrity script
+    # (the reviewed workflow), before any of its entries is used. Before this, a frozen file changed TOGETHER WITH its
+    # line in the list passed.
+    FROZEN = lambda ws: os.path.join(ws, 'supabase', 'FROZEN-SOURCES.sha256')
+    ROLLBACK_0201 = 'supabase/rollback/0201_value_write_boundary.rollback.sql'
+    anchor = re.search(r"^FROZEN_LIST_SHA256='([0-9a-f]{64})'$", ENV['INTEGRITY_SH'], re.M)
+    check('B6-30', 'the integrity script defines one literal FROZEN_LIST_SHA256 anchor (64 lower-case hex), not read from any file or variable',
+          anchor is not None and len(re.findall(r'FROZEN_LIST_SHA256=', ENV['INTEGRITY_SH'])) == 1)
+    pinned_list = subprocess.run(['git', '-C', REPO, 'show', f'{PINNED}:supabase/FROZEN-SOURCES.sha256'], capture_output=True).stdout
+    check('B6-30', 'the anchor equals the SHA-256 of supabase/FROZEN-SOURCES.sha256 at the pinned commit',
+          anchor is not None and pinned_list and hashlib.sha256(pinned_list).hexdigest() == anchor.group(1))
+    check('B6-30', 'the anchor is compared before the list is parsed (no circular trust: the list never vouches for itself)',
+          ENV['INTEGRITY_SH'].find('!= "$FROZEN_LIST_SHA256"') != -1
+          and ENV['INTEGRITY_SH'].find('!= "$FROZEN_LIST_SHA256"') < ENV['INTEGRITY_SH'].find("awk '!/^#/ && NF { print $1 \"  \" $2 }'"))
+    def tamper_frozen_consistently(ws):
+        # change a frozen file AND rewrite its list entry to the new hash: the list is internally consistent
+        f = os.path.join(ws, ROLLBACK_0201); open(f, 'a').write('-- tampered\n')
+        new = hashlib.sha256(open(f, 'rb').read()).hexdigest()
+        text = open(FROZEN(ws)).read().splitlines(True)
+        text = [(new + l[64:]) if f'  {ROLLBACK_0201}  ' in l else l for l in text]
+        open(FROZEN(ws), 'w').write(''.join(text))
+    frozen_cases = [
+        ('a frozen file and its list entry changed together (internally consistent list)', tamper_frozen_consistently, 'the frozen-source list itself was changed'),
+        ('the frozen-source list: one entry\'s hash changed', lambda ws: open(FROZEN(ws), 'w').write(open(FROZEN(ws)).read().replace('e6ff6301', 'f6ff6301', 1)), 'the frozen-source list itself was changed'),
+        ('the frozen-source list: a comment line changed', lambda ws: open(FROZEN(ws), 'w').write(open(FROZEN(ws)).read().replace('Never edit', 'Never  edit', 1)), 'the frozen-source list itself was changed'),
+        ('the frozen-source list: an entry removed', lambda ws: open(FROZEN(ws), 'w').write(''.join(l for l in open(FROZEN(ws)).readlines() if ROLLBACK_0201 not in l)), 'the frozen-source list itself was changed'),
+        ('the frozen-source list: an extra line appended', lambda ws: open(FROZEN(ws), 'a').write('0' * 64 + '  supabase/PROVISIONING.md  x\n'), 'the frozen-source list itself was changed'),
+        ('the frozen-source list emptied', lambda ws: open(FROZEN(ws), 'w').close(), 'the frozen-source list itself was changed'),
+        ('a frozen file changed, list untouched', lambda ws: open(os.path.join(ws, ROLLBACK_0201), 'a').write('-- tampered\n'), 'frozen sources: ' + ROLLBACK_0201 + ' has SHA-256'),
+        ('a frozen migration file changed, list untouched', lambda ws: open(os.path.join(ws, 'supabase', 'migrations', '0001_enums.sql'), 'a').write('-- x\n'), 'frozen sources: supabase/migrations/0001_enums.sql has SHA-256'),
+        ('the frozen-source list replaced by a symlink to an identical copy', lambda ws: (shutil.copy(FROZEN(ws), os.path.join(ws, 'list.copy')), os.remove(FROZEN(ws)), os.symlink(os.path.join(ws, 'list.copy'), FROZEN(ws))), 'missing or a symbolic link'),
+    ]
+    for label, fn, why in frozen_cases:
+        d1, ws1 = new_workspace(); fn(ws1)
+        rc, out = ig_run('check', ws1, mf, ws=ws1)
+        check('B6-30', f'{label}: MISMATCH (exit 1), for the right reason', rc == 1 and out.rstrip().endswith('result: MISMATCH') and why in out, out[-900:])
+    # the consistent-tampering case is the gap that was closed: without the anchor it passed
+    d1, ws1 = new_workspace(); tamper_frozen_consistently(ws1)
+    no_anchor = os.path.join(d1, 'integrity-no-anchor.sh')
+    open(no_anchor, 'w').write(ENV['INTEGRITY_SH'].replace('elif [ "${got%% *}" != "$FROZEN_LIST_SHA256" ]; then', 'elif false; then'))
+    p = subprocess.run([BASH, no_anchor, 'check', ws1, mf], cwd=ws1, env={'PATH': FAKEBIN + os.pathsep + os.environ['PATH'], 'GITHUB_WORKSPACE': ws1, 'FAKE_DIR': d1}, capture_output=True, text=True)
+    check('B6-30', 'control: with the anchor comparison removed, the internally consistent tampering is NOT detected (the gap this closes)',
+          p.returncode == 0 and p.stdout.rstrip().endswith('result: PASS'), p.stdout[-600:])
+    d1, ws1 = new_workspace()
+    anchored_wrong = os.path.join(d1, 'integrity-wrong-anchor.sh')
+    open(anchored_wrong, 'w').write(ENV['INTEGRITY_SH'].replace(anchor.group(1), '0' * 64) if anchor else '')
+    p = subprocess.run([BASH, anchored_wrong, 'check', ws1, mf], cwd=ws1, env={'PATH': FAKEBIN + os.pathsep + os.environ['PATH'], 'GITHUB_WORKSPACE': ws1, 'FAKE_DIR': d1}, capture_output=True, text=True)
+    check('B6-30', 'an untouched checkout checked against a different anchor: MISMATCH (the anchor, not the list, decides)',
+          p.returncode == 1 and 'the frozen-source list itself was changed' in p.stdout, p.stdout[-600:])
+    d1, ws1 = new_workspace(); open(os.path.join(d1, 'fail_sha256sum'), 'w').close()
+    p = subprocess.run([BASH, ig, 'check', ws1, mf], cwd=ws1, env={'PATH': FAKEBIN + os.pathsep + os.environ['PATH'], 'GITHUB_WORKSPACE': ws1, 'FAKE_DIR': d1}, capture_output=True, text=True)
+    check('B6-30', 'the list cannot be hashed (sha256sum fails): NOT_COMPLETED, never PASS', p.returncode == 2 and p.stdout.rstrip().endswith('result: NOT_COMPLETED'), p.stdout[-600:])
+
+    # ================================================================ B6-31: working-tree permissions exactly 0644
+    d1, ws1 = new_workspace()
+    modes = {os.path.basename(f): stat.S_IMODE(os.stat(f).st_mode) for f in glob.glob(os.path.join(ws1, 'supabase', 'migrations', '*'))}
+    check('B6-31', 'precondition: a fresh checkout has all 19 migration files at exactly 0644, and the check passes',
+          len(modes) == 19 and set(modes.values()) == {0o644} and ig_run('check', ws1, mf, ws=ws1)[0] == 0, str(modes))
+    for mode in (0o755, 0o744, 0o654, 0o600, 0o640, 0o664, 0o666, 0o646, 0o444, 0o4644, 0o2644, 0o1644):
+        d1, ws1 = new_workspace(); os.chmod(MIG(ws1), mode)
+        rc, out = ig_run('check', ws1, mf, ws=ws1)
+        check('B6-31', f'one migration file at mode {mode:04o}: MISMATCH (exit 1) naming the file and its mode',
+              rc == 1 and out.rstrip().endswith('result: MISMATCH') and f'{MNEW} ({mode:o})' in out, out[-600:])
+    d1, ws1 = new_workspace(); os.chmod(MIG(ws1), 0o600); os.chmod(MIG(ws1), 0o644)
+    check('B6-31', 'a mode changed and restored to 0644 before the check: PASS (the check is of the state at check time)', ig_run('check', ws1, mf, ws=ws1)[0] == 0)
+    d1, ws1 = new_workspace()
+    tree = subprocess.run(['git', '-C', ws1, 'ls-tree', '-r', 'HEAD', '--', 'supabase/migrations'], capture_output=True, text=True).stdout
+    check('B6-31', 'the Git-tree check is unchanged: the pinned commit holds exactly 19 mode 100644 blobs, and the script still requires that',
+          len(tree.splitlines()) == 19 and all(l.startswith('100644 blob ') for l in tree.splitlines())
+          and "sed 's#^#100644 blob supabase/migrations/#'" in ENV['INTEGRITY_SH'])
 
     # ================================================================ L+: verify-package and dry-run jobs
     r = run_job('verify-package', mode='apply')
