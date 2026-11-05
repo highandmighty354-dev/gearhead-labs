@@ -19,10 +19,10 @@ Every step that writes to the project needs explicit owner approval first.
 | --- | --- | --- |
 | Option B | **Selected in principle** | owner direction, 2026-11-04 (consolidated decision record) |
 | P1, explicit `--workdir` | **Required** condition of proceeding | same |
-| B6 v5 design | **Reviewed, with recommendations provided** (AI-assisted technical review, not independent human certification) | review history |
-| Formal technical approval | **Pending** (design and implementation) | — |
-| Implementation authorization | **Limited to the already-authorized work on PR #27:** the ops branch, the workflow, harness and test changes, this documentation, local tests, and a draft PR | consolidated decision record, §5 |
-| Merge and production release | **Not authorized** | — |
+| Technical approval of the B6 v5 design (TA-1 to TA-16) | **GRANTED** (AI-assisted technical reviewer, not independent human certification) | decision record 2026-11-04, §2 and §8 |
+| Limited implementation authorization for the existing PR #27 work | **GRANTED**: the ops branch, the workflow, harness and test changes, this documentation, local tests, and a draft PR | decision record, §5 and §8 |
+| Authorization for additional changes | **NOT GRANTED** | decision record, §5 |
+| Merge and production release | **NOT AUTHORIZED** | decision record, §5 and §8 |
 
 - Implemented on branch `ops/option-b-migration-integrity` (draft PR #27). The basis is the B6 design FINAL PROPOSED v5 and the consolidated decision record.
 - **Not merged. Never dispatched.** It has been tested only locally, with a fake `supabase` command. No migration was created or changed. The package is still the 19-file `c69ec51` package.
