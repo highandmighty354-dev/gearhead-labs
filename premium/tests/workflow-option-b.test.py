@@ -308,8 +308,8 @@ try:
     # ================================================================ L: structure
     apply_steps = JOBS['apply']['steps']
     ids = [s.get('id') for s in apply_steps]
-    check('B6-11', 'apply job step order: checkout, setup-cli, v1, preflight, apply, evidence_local, evidence_db, classify',
-          ids == [None, None, 'v1', 'preflight', 'apply', 'evidence_local', 'evidence_db', 'classify'], str(ids))
+    check('B6-11', 'apply job step order: checkout, setup-cli, v1, preflight, apply, evidence_local, evidence_gate, evidence_db, classify',
+          ids == [None, None, 'v1', 'preflight', 'apply', 'evidence_local', 'evidence_gate', 'evidence_db', 'classify'], str(ids))
     yes_lines = [l for l in WF_TEXT.splitlines() if re.search(r'^\s*supabase db push\b.*--yes', l)]
     check('B6-11', 'exactly one `supabase db push … --yes` in the whole workflow', len(yes_lines) == 1, str(yes_lines))
     ap4 = step_by_id('apply', 'apply')['run']
@@ -356,7 +356,7 @@ try:
           not re.search(r'export\s+(url|enc|DB_PASSWORD)', WF_TEXT) and 'GITHUB_ENV' not in WF_TEXT
           and not re.search(r'(echo|printf)[^\n]*\$\{?(url|enc)\b[^\n]*>', WF_TEXT)
           and not re.search(r'echo "(url|enc)=', WF_TEXT))
-    for sid in ('v1', 'evidence_local', 'classify'):
+    for sid in ('v1', 'evidence_local', 'evidence_gate', 'classify'):
         check('B6-25', f'{sid} has no credential mapped (CB-1 / CB-3)', 'secrets.' not in str(step_by_id('apply', sid).get('env', '')) and 'POOLER_URL' not in str(step_by_id('apply', sid).get('env', '')))
     cond = strip_wrapper(step_by_id('apply', 'evidence_db')['if'])
     check('B6-25', 'AP-5b condition requires evidence_local outcome == success AND v3 PASS or NOT_COMPLETED, with !cancelled() (H3)',
@@ -370,7 +370,7 @@ try:
     check('B6-25', 'AP-5b re-checks the V3 value byte-exactly before using the credential (GitHub compares strings case-insensitively)',
           step_by_id('apply', 'evidence_db')['run'].find('PASS|NOT_COMPLETED) ;;') < step_by_id('apply', 'evidence_db')['run'].find('DB_PASSWORD'))
     # evidence steps never mutate (B6-16)
-    for sid in ('evidence_local', 'evidence_db', 'classify'):
+    for sid in ('evidence_local', 'evidence_gate', 'evidence_db', 'classify'):
         body = step_by_id('apply', sid)['run']
         calls = [l for l in body.splitlines() if re.search(r'\bsupabase\b(?!/)', l) and not l.strip().startswith('#') and 'SUPABASE' not in l.split('supabase')[0][-1:]]
         cli_calls = [l for l in body.splitlines() if re.search(r'^\s*(rc=0;\s*)?supabase db push', l)]
@@ -634,9 +634,10 @@ try:
         def patch(st, value=value):
             return {**st, 'run': st['run'].rstrip() + f'\necho "v3={value}" >> "$GITHUB_OUTPUT"\n'}
         r = run_job('apply', outputs=HAPPY, step_patch={'evidence_local': patch})
-        check('B6-25e', f'[simulated] case-variant value {value!r}: GitHub\'s case-insensitive == lets AP-5b START, and its byte-exact '
-              'first check stops it before the credential is used: no CLI call, EVIDENCE INCOMPLETE',
-              r.outcome('evidence_db') == 'failure' and len(r.calls) == 2 and r.out('evidence_db', 'post') == 'NOT_RUN' and headline(r) == 'EVIDENCE INCOMPLETE', detail(r))
+        check('B6-25e', f'[simulated] case-variant value {value!r}: GitHub\'s case-insensitive == starts the credential-free exact-value '
+              'check, which rejects it; the credential-bearing AP-5b never starts; no CLI call; EVIDENCE INCOMPLETE',
+              r.outcome('evidence_gate') == 'failure' and r.outcome('evidence_db') == 'skipped' and len(r.calls) == 2
+              and headline(r) == 'EVIDENCE INCOMPLETE', detail(r))
     r = run_job('apply', outputs=HAPPY, hooks={2: 'touch "$FAKE_DIR/fail_sha256sum"\n'})
     check('B6-25f', 'TA-16 default (approved): AP-5a succeeds with NOT_COMPLETED → AP-5b runs; EVIDENCE INCOMPLETE; job fails',
           r.outcome('evidence_db') == 'success' and headline(r) == 'EVIDENCE INCOMPLETE' and r.result == 'failure', detail(r))
@@ -709,13 +710,55 @@ try:
     check('B6-27', "R7 [simulated] case variant integrity=mismatch: GitHub's case-insensitive == does not admit it (MISMATCH is not an allowed value); AP-5b skipped",
           r.outcome('evidence_db') == 'skipped' and len(r.calls) == 2, detail(r))
     r = run_job('apply', outputs=HAPPY, step_patch={'evidence_local': add_outputs(['integrity=pass'])})
-    check('B6-27', "R7 [simulated] case variant integrity=pass: AP-5b starts, its byte-exact check stops it before any CLI call",
-          r.outcome('evidence_db') == 'failure' and len(r.calls) == 2 and r.out('evidence_db', 'post') == 'NOT_RUN', detail(r))
+    check('B6-27', "R7 [simulated] case variant integrity=pass: the credential-free exact-value check rejects it; AP-5b never starts",
+          r.outcome('evidence_gate') == 'failure' and r.outcome('evidence_db') == 'skipped' and len(r.calls) == 2, detail(r))
     # R8  a later PASS cannot erase an earlier MISMATCH — even after a successful apply with nothing pending
     for stage in ('v1', 'v2'):
         r = run_job('apply', outputs=HAPPY, step_patch={'evidence_local': add_outputs([f'{stage}=MISMATCH'])})
         check('B6-27', f'R8 [simulated] {stage.upper()}=MISMATCH recorded, apply succeeded, V3 PASS, post-apply up to date: INTEGRITY INCIDENT, never APPLIED',
               headline(r) == 'INTEGRITY INCIDENT' and f'at: {stage.upper()}' in r.summary and r.result == 'failure', detail(r))
+
+    # ================================================================ B6-28: the credential is not mapped before the exact-value check
+    gate = step_by_id('apply', 'evidence_gate'); db = step_by_id('apply', 'evidence_db')
+    check('B6-28', 'the exact-value check (evidence_gate) has no credential, no URL template, no secrets in its env',
+          not re.search(r'secrets\.|DB_PASSWORD|POOLER_URL|SUPABASE_POOLER', str(gate.get('env', '')) + gate['run']), str(gate.get('env')))
+    check('B6-28', 'evidence_gate runs on the same condition AP-5b used, and AP-5b additionally requires evidence_gate success AND exact == yes',
+          strip_wrapper(db['if']).startswith(strip_wrapper(gate['if'])) and
+          strip_wrapper(db['if']).endswith("&& steps.evidence_gate.outcome == 'success' && steps.evidence_gate.outputs.exact == 'yes'"), db['if'])
+    check('B6-28', 'evidence_gate writes exact=yes only on the exactly allowed combinations, and fails otherwise',
+          'PASS:PASS|PASS:NOT_COMPLETED|NOT_COMPLETED:NOT_COMPLETED)' in gate['run'] and gate['run'].count('exact=yes') == 1 and 'exit 1' in gate['run'])
+    # 1) case variants rejected by the credential-free check; 3) the credential-bearing step cannot run
+    for label, lines in [('v3=pass', ['v3=pass']), ('v3=Not_Completed', ['v3=Not_Completed']),
+                         ('integrity=pass', ['integrity=pass']), ('integrity=Not_Completed', ['integrity=Not_Completed'])]:
+        r = run_job('apply', outputs=HAPPY, step_patch={'evidence_local': add_outputs(lines)})
+        check('B6-28', f'[simulated] {label}: exact-value check starts (case-insensitive if:) and fails; AP-5b skipped; no CLI call after the apply; EVIDENCE INCOMPLETE',
+              r.outcome('evidence_gate') == 'failure' and r.outcome('evidence_db') == 'skipped' and len(r.calls) == 2
+              and headline(r) == 'EVIDENCE INCOMPLETE' and r.result == 'failure', detail(r))
+    # 2) the credential is not in the validation step's environment (process environment dumped by the step itself)
+    dump = lambda st: {**st, 'run': 'env > "$FAKE_DIR/gate-env.txt"\n' + st['run']}
+    r = run_job('apply', outputs=HAPPY, step_patch={'evidence_gate': dump})
+    genv = open(os.path.join(r.dir, 'gate-env.txt')).read() if os.path.exists(os.path.join(r.dir, 'gate-env.txt')) else None
+    names = {l.split('=', 1)[0] for l in (genv or '').splitlines() if re.match(r'^[A-Za-z_][A-Za-z0-9_]*=', l)}
+    check('B6-28', 'the exact-value check process environment has no DB_PASSWORD or POOLER_URL variable and never contains the password value',
+          genv is not None and 'DB_PASSWORD' not in names and 'POOLER_URL' not in names and PASSWORD not in genv, str(sorted(names))[:400])
+    # 3) the credential-bearing step cannot run when the validation step fails or gives no exact=yes
+    r = run_job('apply', outputs=HAPPY, force={'evidence_gate': 'failure'})
+    check('B6-28', '[simulated] exact-value check fails with valid values: AP-5b skipped, no CLI call after the apply', r.outcome('evidence_db') == 'skipped' and len(r.calls) == 2, detail(r))
+    r = run_job('apply', outputs=HAPPY, drop_output={'evidence_gate': ['exact']})
+    check('B6-28', '[simulated] exact-value check succeeds but exact output missing: AP-5b skipped', r.outcome('evidence_db') == 'skipped' and len(r.calls) == 2, detail(r))
+    r = run_job('apply', outputs=HAPPY, cancel_after='evidence_gate')
+    check('B6-28', '[simulated] run cancelled after the exact-value check: AP-5b skipped (!cancelled())', r.outcome('evidence_db') == 'skipped' and len(r.calls) == 2, detail(r))
+    # 4) the normal successful path still works
+    r = run_job('apply', outputs=HAPPY)
+    check('B6-28', 'happy path: exact-value check succeeds (exact=yes), AP-5b runs, APPLIED, job succeeds',
+          r.outcome('evidence_gate') == 'success' and r.out('evidence_gate', 'exact') == 'yes' and r.outcome('evidence_db') == 'success'
+          and headline(r) == 'APPLIED' and r.result == 'success' and len(r.calls) == 3, detail(r))
+    r = run_job('apply', outputs=HAPPY, hooks={2: 'touch "$FAKE_DIR/fail_sha256sum"\n'})
+    check('B6-28', 'V3 NOT_COMPLETED (TA-16 default): exact-value check succeeds, AP-5b runs, EVIDENCE INCOMPLETE',
+          r.outcome('evidence_gate') == 'success' and r.outcome('evidence_db') == 'success' and headline(r) == 'EVIDENCE INCOMPLETE', detail(r))
+    r = run_job('apply', outputs=HAPPY, hooks={2: SH_MODIFY})
+    check('B6-28', 'V3 MISMATCH: the exact-value check does not even start (stop rule), AP-5b skipped, INTEGRITY INCIDENT',
+          r.outcome('evidence_gate') == 'skipped' and r.outcome('evidence_db') == 'skipped' and headline(r) == 'INTEGRITY INCIDENT', detail(r))
 finally:
     shutil.rmtree(TMP, ignore_errors=True)
 

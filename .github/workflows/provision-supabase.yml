@@ -15,9 +15,14 @@
 #   The integrity script runs as a separate process with DB_PASSWORD removed from its environment
 #   (`env -u DB_PASSWORD bash …`, CB-2). The `env` launcher itself still inherits it; the steps' own shells hold it.
 #   P1: every `supabase db push` passes `--workdir "$GITHUB_WORKSPACE"`, the directory the checks verify.
-# Limits (disclosed, accepted by the owner): Option B is NOT atomic and NOT race-free. A change after V2 and
-# before the CLI reads a file would be applied; V3 sees it only if it persists. Whole-job cancellation may stop the
-# evidence steps; a cancellation during `--yes` may leave a migration partially applied. No intentional cancels.
+# Limits. Option B is NOT atomic and NOT race-free.
+#   Accepted by the owner (decision record 2026-11-04, Decisions 4 and 5; see supabase/PROVISIONING.md):
+#     - the V2-to-CLI-read race: a change after V2 and before the CLI reads a file would be applied;
+#     - the cancellation uncertainty: a whole-job cancellation may stop the evidence steps, and a cancellation during
+#       `--yes` may leave a migration partially applied. The recovery rule applies; no one cancels a running apply.
+#   Disclosed, NOT separately accepted:
+#     - a change made and then restored before V3 escapes V3 (V3 sees only changes that persist);
+#     - the production-state race between the fresh dry run and `--yes`.
 #
 # Safety design
 #   * Runs only when a person clicks "Run workflow" (workflow_dispatch). No push / PR triggers.
@@ -726,13 +731,35 @@ jobs:
             echo "v3=$v3" >> "$GITHUB_OUTPUT"; exit 1
           fi
 
+      # AP-5b-gate  Exact-value check. NO credential mapped. GitHub compares strings case-insensitively in `if:`, so the
+      # condition below also admits case variants (e.g. `pass`). This step re-checks both values byte-for-byte and
+      # records `exact=yes` only if they are exactly allowed; otherwise it fails. The credential-bearing step below
+      # starts only after this step succeeded with `exact=yes`, so the credential is never mapped before the exact
+      # check has passed.
+      - name: Evidence — exact-value check before the post-apply dry run (no credentials)
+        id: evidence_gate
+        if: ${{ !cancelled() && inputs.mode == 'apply' && steps.evidence_local.outcome == 'success' && (steps.evidence_local.outputs.v3 == 'PASS' || steps.evidence_local.outputs.v3 == 'NOT_COMPLETED') && (steps.evidence_local.outputs.integrity == 'PASS' || steps.evidence_local.outputs.integrity == 'NOT_COMPLETED') }}
+        env:
+          V3_RESULT: ${{ steps.evidence_local.outputs.v3 }}
+          INTEGRITY_RESULT: ${{ steps.evidence_local.outputs.integrity }}
+        run: |
+          set -euo pipefail
+          case "$V3_RESULT:$INTEGRITY_RESULT" in
+            PASS:PASS|PASS:NOT_COMPLETED|NOT_COMPLETED:NOT_COMPLETED)
+              echo "Exact-value check passed: V3 $V3_RESULT, integrity result $INTEGRITY_RESULT."
+              echo "exact=yes" >> "$GITHUB_OUTPUT" ;;
+            *)
+              echo "::error::Unexpected V3 value '$V3_RESULT' or integrity result '$INTEGRITY_RESULT' (values must match exactly). The post-apply dry run will not run."
+              exit 1 ;;
+          esac
+
       # AP-5b  Post-apply dry run (read-only). Credential mapped. Starts only if AP-5a SUCCEEDED, V3 is PASS or
-      # NOT_COMPLETED (TA-16 default) AND the run's integrity result is PASS or NOT_COMPLETED, i.e. no verified
-      # mismatch at V1, V2 or V3. `!cancelled()` (H3): it does not start once the run is cancelled.
-      # GitHub compares strings case-insensitively, so the first command re-checks both values byte-exactly.
+      # NOT_COMPLETED (TA-16 default), the run's integrity result is PASS or NOT_COMPLETED (no verified mismatch at
+      # V1, V2 or V3), AND the credential-free exact-value check above succeeded. `!cancelled()` (H3): it does not
+      # start once the run is cancelled. Its first command repeats the byte-exact check (defence in depth).
       - name: Evidence — post-apply dry run (read-only)
         id: evidence_db
-        if: ${{ !cancelled() && inputs.mode == 'apply' && steps.evidence_local.outcome == 'success' && (steps.evidence_local.outputs.v3 == 'PASS' || steps.evidence_local.outputs.v3 == 'NOT_COMPLETED') && (steps.evidence_local.outputs.integrity == 'PASS' || steps.evidence_local.outputs.integrity == 'NOT_COMPLETED') }}
+        if: ${{ !cancelled() && inputs.mode == 'apply' && steps.evidence_local.outcome == 'success' && (steps.evidence_local.outputs.v3 == 'PASS' || steps.evidence_local.outputs.v3 == 'NOT_COMPLETED') && (steps.evidence_local.outputs.integrity == 'PASS' || steps.evidence_local.outputs.integrity == 'NOT_COMPLETED') && steps.evidence_gate.outcome == 'success' && steps.evidence_gate.outputs.exact == 'yes' }}
         env:
           V3_RESULT: ${{ steps.evidence_local.outputs.v3 }}
           INTEGRITY_RESULT: ${{ steps.evidence_local.outputs.integrity }}
@@ -780,6 +807,7 @@ jobs:
           PREFLIGHT_OUTCOME: ${{ steps.preflight.outcome }}
           APPLY_OUTCOME: ${{ steps.apply.outcome }}
           LOCAL_OUTCOME: ${{ steps.evidence_local.outcome }}
+          GATE_OUTCOME: ${{ steps.evidence_gate.outcome }}
           DB_OUTCOME: ${{ steps.evidence_db.outcome }}
           V1_RESULT: ${{ steps.evidence_local.outputs.v1 }}
           V2_RESULT: ${{ steps.evidence_local.outputs.v2 }}
@@ -798,7 +826,7 @@ jobs:
               echo "- Integrity checks: V1 \`${V1_RESULT:-absent}\`, V2 \`${V2_RESULT:-absent}\`, V3 \`${V3_RESULT:-absent}\`; run result \`${INTEGRITY_RESULT:-absent}\` (evidence step outcome \`$LOCAL_OUTCOME\`)"
               echo "- Apply step: \`$APPLY_OUTCOME\`"
               echo "- V3 checks the migration tree at check time only."
-              echo "- Post-apply dry run: \`${post_note:-absent}\` (step outcome \`$DB_OUTCOME\`)"
+              echo "- Post-apply dry run: \`${post_note:-absent}\` (exact-value check \`$GATE_OUTCOME\`, step outcome \`$DB_OUTCOME\`)"
               echo "- Why: $why"
               echo
               case "$headline" in
