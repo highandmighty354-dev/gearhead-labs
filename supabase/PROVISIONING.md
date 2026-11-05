@@ -59,6 +59,11 @@ Every other risk below is **disclosed, with no separate acceptance recorded**:
 - **The production-state race** between the fresh dry run and `--yes` remains.
 - **V3 checks the migration files at the time it runs.** It does not prove which bytes the CLI read, that the migration completed fully, or the database state. The post-apply dry run is separate evidence about migration history, and F1 checks the database contents.
 - **Cancellation** (accepted under Decision 5, with the recovery rule): after a whole-job cancellation, the evidence steps may not run or finish. A cancellation during `--yes` may leave a migration partially applied.
+  - **Observed in the throwaway-repository tests (2026-11-05).** These runs used a fake `supabase` command, not the real CLI and not a database. They show how GitHub handles cancellation. They do **not** show that any production migration was partially applied.
+  - **A cancelled apply step may not stop the CLI.** Cancelling the step does not guarantee that an in-progress `supabase db push` stops immediately. In test B6-19 the fake command kept running after its step was marked cancelled, including while the evidence steps ran, and was only ended at job cleanup.
+  - **Cancellation can be slow.** In the same test the step took about 67 seconds to stop after the cancel request, not the roughly 10 seconds previously assumed. This is a single observed result, not a guaranteed duration in either direction.
+  - **A cancelled run may have no final classification.** In test B6-25c GitHub forcibly terminated the evidence step about 5 minutes after the cancel request, and the classification step (`classify`) did not run. A cancelled run may therefore end with no INTEGRITY INCIDENT, EVIDENCE INCOMPLETE or other headline at all.
+  - **After any cancellation, the database outcome is unknown until established independently.** Neither the job result, the evidence steps nor a missing classification shows whether the migration was applied, partly applied or not applied. The recovery rule above applies unchanged: stop, preserve the logs, notify Trent, establish the database state through read-only F1 checks, and wait for explicit owner authorization.
 - **CB-1, CB-2 and CB-3 only reduce accidental credential exposure.** The `env` launcher and the step shells still hold the credential. The CLI receives it as a command-line argument. The hosted runner (passwordless `sudo`, one user) gives no isolation between processes.
 - **AP-5b case-sensitivity workaround (corrected in commit `8c02481`).** GitHub compares strings case-insensitively in `if:`, so a case variant such as `pass` could satisfy a workflow condition.
   - The workflow now runs a separate `evidence_gate` step first. It has **no database credential** and checks the V3 and aggregate integrity values character for character.
@@ -67,14 +72,14 @@ Every other risk below is **disclosed, with no separate acceptance recorded**:
   - This closes the previously identified case-variant path to starting the credential-bearing evidence step. It does **not** remove the separately disclosed credential-exposure limits of the runner, step shells, `env` launcher or CLI.
 - **Not yet proven at run time:** that the CLI accepts `--workdir` on `db push` (it is a global flag in the 2.119.0 source), and how GitHub really evaluates the AP-5b condition.
 
-**Tests** (local only; latest reported run at commit `8c02481`):
+**Tests** (local unless marked as real GitHub; latest reported local run at commit `8c02481`):
 - `python3 premium/tests/workflow-option-b.test.py`: **195 checks, 0 failures**, including B6-28 (14 checks) for the credential-free exact-value gate. Structural checks plus a local simulation of the jobs; it is **not** GitHub Actions.
 - B6-28 was also run against the previous workflow at `49af33f` and failed as expected because the credential-free gate step was absent.
 - `python3 premium/tests/workflow-pending-gate.test.py`: **62 checks, 0 failures**.
 - Both are in `premium/tests/run-tests.sh`.
 - The 11 mutation controls were last run at `71769c9`; they were **not** rerun for `8c02481`.
+- **Run on real GitHub (2026-11-05), in a separate private throwaway repository with test-only workflow copies and a fake `supabase` command:** B6-03, B6-11, B6-17, B6-19 and B6-25c all passed. The cancellation findings are recorded under Residual risks above.
 - **Not run (separate authorization needed):**
-  - the throwaway-GitHub-repository tests (real `if:` and cancellation behaviour);
   - the disposable-database tests with the real CLI (P1 decoy, cancellation during `--yes`, R1);
   - the rehearsal run and the production run.
 
