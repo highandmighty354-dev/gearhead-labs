@@ -184,6 +184,11 @@ f="$FAKE_DIR/out$n.txt"; [ -f "$f" ] || f="$FAKE_DIR/out.txt"
 [ -f "$f" ] && cat "$f"
 exit "$(cat "$FAKE_DIR/rc$n" 2>/dev/null || echo 0)"
 ''')
+write_exec(os.path.join(FAKEBIN, 'supabase-go'), '#!/usr/bin/env bash\necho "fake supabase-go: must never be called" >&2; exit 99\n')
+# The fake CLI is not the verified build, so the simulation feeds the CLI-binary guard the fake's own SHA-256 values
+# (B6-33 checks the real constants, and that the guard refuses any other binary).
+FAKE_CLI_HASHES = {k: hashlib.sha256(open(os.path.join(FAKEBIN, f), 'rb').read()).hexdigest()
+                   for k, f in (('SUPABASE_CLI_SHA256', 'supabase'), ('SUPABASE_GO_SHA256', 'supabase-go'))}
 for tool, real in REAL.items():
     write_exec(os.path.join(FAKEBIN, tool), f'''#!/usr/bin/env bash
 pc="$(tr '\\0' ' ' < /proc/$PPID/cmdline 2>/dev/null)"
@@ -244,7 +249,7 @@ def run_job(job, outputs=(), rcs=None, hooks=None, target='production', mode=Non
     steps, state = {}, {'failed': False, 'cancelled': False}
     status = {'success': lambda: not state['failed'] and not state['cancelled'], 'failure': lambda: state['failed'],
               'always': lambda: True, 'cancelled': lambda: state['cancelled']}
-    wenv = dict(ENV); wenv.update(env_override or {})
+    wenv = dict(ENV); wenv.update(FAKE_CLI_HASHES); wenv.update(env_override or {})
     r = Run(); r.ws, r.dir, r.steps, r.order, r.logs, r.summary = ws, d, steps, [], {}, ''
     for idx, st in enumerate(JOBS[job]['steps']):
         sid = st.get('id') or f'#{idx}'
@@ -939,6 +944,63 @@ try:
     r = run_job('apply', outputs=HAPPY, step_patch={'evidence_db': lambda st: {**st, 'env': {k: v for k, v in st['env'].items() if k != 'SUPABASE_HOME'}}})
     check('B6-29', '[simulated] post-apply step without SUPABASE_HOME: no post-apply CLI call; EVIDENCE INCOMPLETE (never APPLIED)',
           len(r.calls) == 2 and r.yes == 1 and r.out('evidence_db', 'post') == 'NOT_COMPLETED' and headline(r) == 'EVIDENCE INCOMPLETE', detail(r))
+
+    # ================================================================ B6-33: the CLI binary must be the verified build
+    REAL_CLI = {'SUPABASE_CLI_SHA256': '2d142ea645f9fe1436b3b728e5873056b5390eeb2fc838024ae3d2905f5afd94',
+                'SUPABASE_GO_SHA256': 'dc350a51d4377d32837e6d76163039c8611fa6552cab568eb42f6f11d5fe2a02'}
+    check('B6-33', 'workflow-level constants: SHA-256 of supabase and supabase-go from supabase_2.119.0_linux_amd64.tar.gz (CLI 2.119.0)',
+          all(str(ENV.get(k)) == v for k, v in REAL_CLI.items()) and ENV['SUPABASE_CLI_VERSION'] == '2.119.0', str({k: ENV.get(k) for k in REAL_CLI}))
+    cli_steps = [(j, s) for j in ('dry-run', 'apply') for s in JOBS[j]['steps'] if 'supabase db push' in (s.get('run') or '')]
+    def first(body, needle):
+        k = body.find(needle); return k if k != -1 else 10 ** 9
+    check('B6-33', 'all four db push steps check both binaries after the isolation guard and before the URL is built and before any CLI call',
+          len(cli_steps) == 4 and all(
+              first(s['run'], 'Supabase CLI isolation is not in effect') < first(s['run'], '!= "$SUPABASE_CLI_SHA256"')
+              < first(s['run'], 'url="${POOLER_URL') and first(s['run'], '!= "$SUPABASE_GO_SHA256"') < first(s['run'], 'supabase db push')
+              and first(s['run'], '!= "$SUPABASE_CLI_SHA256"') < first(s['run'], 'supabase db push') for _, s in cli_steps), str([s.get('id') or s.get('name') for _, s in cli_steps]))
+    WRONG = {'SUPABASE_CLI_SHA256': REAL_CLI['SUPABASE_CLI_SHA256']}        # the fake is not the real binary
+    r = run_job('apply', outputs=HAPPY, env_override=WRONG)
+    check('B6-33', '[simulated] a supabase binary that is not the verified build: preflight refuses before any CLI call; nothing applied; NOT ATTEMPTED',
+          not r.calls and r.outcome('preflight') == 'failure' and r.outcome('apply') == 'skipped' and 'not the verified Supabase CLI' in r.logs.get('preflight', '')
+          and r.out('evidence_db', 'post') == 'NOT_COMPLETED' and headline(r) == 'EVIDENCE INCOMPLETE' and r.result == 'failure', detail(r))
+    r = run_job('apply', outputs=HAPPY, env_override={'SUPABASE_GO_SHA256': '0' * 64})
+    check('B6-33', '[simulated] supabase-go is not the verified build: no CLI call at all', not r.calls and r.outcome('preflight') == 'failure' and headline(r) != 'APPLIED', detail(r))
+    r = run_job('apply', outputs=[cli([MNEW]), cli([MNEW])], step_patch={'apply': lambda st: {**st, 'env': {**st['env'], 'SUPABASE_CLI_SHA256': '0' * 64}}})
+    check('B6-33', '[simulated] the binary changes between the preflight and the apply step: the apply step stops before V2 and --yes; NOT ATTEMPTED',
+          r.yes == 0 and r.outcome('apply') == 'failure' and not os.path.exists(os.path.join(r.dir, 'rt', 'v2.txt'))
+          and 'not the verified Supabase CLI' in r.logs.get('apply', '') and headline(r) == 'NOT ATTEMPTED', detail(r))
+    r = run_job('apply', outputs=HAPPY, step_patch={'evidence_db': lambda st: {**st, 'env': {**st['env'], 'SUPABASE_CLI_SHA256': '0' * 64}}})
+    check('B6-33', '[simulated] the post-apply step finds an unverified binary: no post-apply CLI call; EVIDENCE INCOMPLETE (never APPLIED)',
+          len(r.calls) == 2 and r.yes == 1 and r.out('evidence_db', 'post') == 'NOT_COMPLETED' and headline(r) == 'EVIDENCE INCOMPLETE', detail(r))
+    r = run_job('dry-run', outputs=[cli([MNEW])], env_override=WRONG)
+    check('B6-33', '[simulated] dry-run job with an unverified binary: no CLI call; the job fails', not r.calls and r.result == 'failure', detail(r))
+    r = run_job('apply', outputs=HAPPY, step_patch={'preflight': lambda st: {**st, 'run': 'export PATH="$FAKE_DIR/nogo:$PATH"; mkdir -p "$FAKE_DIR/nogo"; cp "$(command -v supabase)" "$FAKE_DIR/nogo/supabase"\n' + st['run']}})
+    check('B6-33', '[simulated] a supabase with no supabase-go beside it (same supabase bytes): the preflight refuses before its CLI call; no --yes',
+          r.yes == 0 and r.outcome('preflight') == 'failure' and r.outcome('apply') == 'skipped' and 'not the verified Supabase CLI' in r.logs.get('preflight', '')
+          and len(r.calls) == 1 and headline(r) == 'NOT ATTEMPTED', detail(r))
+
+    # ================================================================ B6-34: APPLIED only for exactly the gate-verified set
+    # (production-state race between the fresh dry run and --yes: the CLI recomputes the pending set itself)
+    O408 = '0408_formula_versions_corrected_formulas.sql'
+    for label, apply_out in [('applied nothing (someone else applied 0409 in between)', 'Connecting to remote database...\nRemote database is up to date.\n'),
+                             ('applied 0408 and 0409 (the database lost 0408 in between)', f'Applying migration {O408}...\nApplying migration {MNEW}...\nFinished supabase db push.\n'),
+                             ('applied 0409 twice in the output', f'Applying migration {MNEW}...\nApplying migration {MNEW}...\nFinished supabase db push.\n'),
+                             ('applied a different file', 'Applying migration 0410_unreviewed.sql...\nFinished supabase db push.\n')]:
+        r = run_job('apply', outputs=[cli([MNEW]), apply_out, cli(uptodate=True)])
+        check('B6-34', f'[simulated] --yes succeeded and the post-apply dry run is up to date, but it {label}: EVIDENCE INCOMPLETE (stop), never APPLIED',
+              r.yes == 1 and r.outcome('apply') == 'success' and r.out('evidence_db', 'post') == 'UP_TO_DATE' and headline(r) == 'EVIDENCE INCOMPLETE'
+              and 'does not show exactly the gate-verified' in r.summary and r.result == 'failure', detail(r))
+    r = run_job('apply', outputs=[cli([MNEW]), f'Applying migration {MNEW}...\r\nFinished supabase db push.\r\n', cli(uptodate=True)])
+    check('B6-34', '[simulated] CRLF line ends in the apply output: still APPLIED (exactly 0409)', headline(r) == 'APPLIED' and r.result == 'success', detail(r))
+    r = run_job('apply', outputs=[cli([MNEW]), APPLY_OUT, cli(uptodate=True)], after_step={'apply': 'rm -f "$FAKE_DIR/rt/gate-pass.txt"'})
+    check('B6-34', '[simulated] gate-pass marker gone at classification time: not APPLIED', headline(r) == 'EVIDENCE INCOMPLETE' and r.result == 'failure', detail(r))
+    r = run_job('apply', outputs=HAPPY, target='rehearsal')
+    check('B6-34', 'happy path, rehearsal target with 0409 pending: APPLIED (applied list equals the marker)', headline(r) == 'APPLIED', detail(r))
+    allpend = [l.split('/')[-1] for l in ENV['MIGRATION_MANIFEST'].split()[1::2]]
+    r = run_job('apply', outputs=[cli(allpend), ''.join(f'Applying migration {m}...\n' for m in allpend) + 'Finished supabase db push.\n', cli(uptodate=True)], target='rehearsal')
+    check('B6-34', 'fresh rehearsal project, all 19 pending and applied in order: APPLIED', headline(r) == 'APPLIED' and r.result == 'success', detail(r))
+    r = run_job('apply', outputs=[cli(allpend), ''.join(f'Applying migration {m}...\n' for m in reversed(allpend)), cli(uptodate=True)], target='rehearsal')
+    check('B6-34', '[simulated] all 19 applied but reported in a different order: not APPLIED', headline(r) == 'EVIDENCE INCOMPLETE', detail(r))
 
     # ================================================================ B6-32: third-party actions pinned to verified commits
     # Verified 2026-11-05 against the upstream repositories (premium/tests/action-pins.network.sh re-checks it):

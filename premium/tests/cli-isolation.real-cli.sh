@@ -34,6 +34,11 @@ die(){ echo "cli-isolation (real CLI): could not run: $*"; exit 2; }
 [ -n "${SUPABASE_CLI_BIN:-}" ] && [ -x "$SUPABASE_CLI_BIN/supabase" ] || die "set SUPABASE_CLI_BIN to a directory containing the real supabase binary"
 ver="$(env -i PATH="$SUPABASE_CLI_BIN:/usr/bin:/bin" HOME=/nonexistent SUPABASE_NO_UPDATE_NOTIFIER=1 SUPABASE_TELEMETRY_DISABLED=1 SUPABASE_HOME=/nonexistent "$SUPABASE_CLI_BIN/supabase" --version 2>/dev/null | tail -n 1)"
 [ "$ver" = 2.119.0 ] || die "the CLI reports version '$ver', expected 2.119.0"
+# B: the workflow's CLI-binary guard constants must be the SHA-256 of THIS real 2.119.0 build (supabase and supabase-go)
+read -r WANT_CLI WANT_GO < <(python3 -c 'import sys,yaml; e=yaml.safe_load(open(sys.argv[1]))["env"]; print(e["SUPABASE_CLI_SHA256"], e["SUPABASE_GO_SHA256"])' "$WF")
+GOT_CLI="$(sha256sum < "$SUPABASE_CLI_BIN/supabase" | cut -d' ' -f1)"; GOT_GO="$(sha256sum < "$SUPABASE_CLI_BIN/supabase-go" 2>/dev/null | cut -d' ' -f1)"
+ok "$([ "$GOT_CLI" = "$WANT_CLI" ] && echo 1)" "B1 the real supabase binary has the workflow's SUPABASE_CLI_SHA256" "$GOT_CLI vs $WANT_CLI"
+ok "$([ -n "$GOT_GO" ] && [ "$GOT_GO" = "$WANT_GO" ] && echo 1)" "B2 the real supabase-go beside it has the workflow's SUPABASE_GO_SHA256" "${GOT_GO:-missing} vs $WANT_GO"
 PG_BIN="${PG_BIN:-$( (pg_config --bindir 2>/dev/null) || ls -d /usr/lib/postgresql/*/bin 2>/dev/null | sort -V | tail -1)}"
 [ -x "$PG_BIN/initdb" ] || die "PostgreSQL server binaries not found (set PG_BIN)"
 command -v openssl >/dev/null || die "openssl not found"

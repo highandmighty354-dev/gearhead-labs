@@ -136,6 +136,11 @@ f="$FAKE_DIR/out$n.txt"; [ -f "$f" ] || f="$FAKE_DIR/out.txt"
 cat "$f"; exit "$(cat "$FAKE_DIR/rc$n" 2>/dev/null || echo 0)"
 ''')
     os.chmod(fake, os.stat(fake).st_mode | stat.S_IEXEC)
+    open(os.path.join(fakebin, 'supabase-go'), 'w').write('#!/usr/bin/env bash\nexit 99\n')
+    # the fake CLI is not the verified build: feed the workflow's CLI-binary guard the fakes' own SHA-256 values
+    import hashlib
+    FAKE_CLI_HASHES = {k: hashlib.sha256(open(os.path.join(fakebin, f), 'rb').read()).hexdigest()
+                       for k, f in (('SUPABASE_CLI_SHA256', 'supabase'), ('SUPABASE_GO_SHA256', 'supabase-go'))}
     PASSWORD = 'S3cret-PW!/not-real'
     def isolation_env(step_def, rt):
         """The workflow's CLI-isolation variables for this step: the two workflow-level flags, the step's own
@@ -144,7 +149,8 @@ cat "$f"; exit "$(cat "$FAKE_DIR/rc$n" 2>/dev/null || echo 0)"
         home = str((step_def.get('env') or {}).get('SUPABASE_HOME', '')).replace('${{ runner.temp }}', rt)
         return {'SUPABASE_TELEMETRY_DISABLED': str(ENV.get('SUPABASE_TELEMETRY_DISABLED', '')),
                 'SUPABASE_NO_UPDATE_NOTIFIER': str(ENV.get('SUPABASE_NO_UPDATE_NOTIFIER', '')), 'SUPABASE_HOME': home,
-                **{k: str(v) for k, v in (step_def.get('env') or {}).items() if k in ('SUPABASE_DEBUG', 'SUPABASE_TELEMETRY_DEBUG')}}
+                **{k: str(v) for k, v in (step_def.get('env') or {}).items() if k in ('SUPABASE_DEBUG', 'SUPABASE_TELEMETRY_DEBUG')},
+                **FAKE_CLI_HASHES}
 
     def run_job(step_def, outputs, target='production', rcs=None, apply=False):
         d = tempfile.mkdtemp(dir=tmp); log = os.path.join(d, 'calls.log'); open(log, 'w').close()

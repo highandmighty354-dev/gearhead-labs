@@ -7,7 +7,8 @@
 # Option B (migration-integrity design, B6 FINAL PROPOSED v5; technical approval and limited implementation
 # authorization recorded 2026-11-04). The job that applies migrations verifies the files it applies itself:
 #   * verify-package check (credential-free job): commit, manifest format, exact file set, file types and modes,
-#     SHA-256 of every file (sha256sum --strict), frozen sources.
+#     SHA-256 of every file (sha256sum --strict), exact 0644 modes, frozen sources (the frozen-source list itself is
+#     anchored by FROZEN_LIST_SHA256 in the integrity script, never by the list).
 #   * V1  (its own credential-free step in each database job, before the job's first CLI call).
 #   * V2  (apply job: literally the last command before `supabase db push --yes`).
 #   * V3  (evidence step after the apply; detects persistent changes only).
@@ -35,16 +36,20 @@
 #   * The package is verified before any credential is touched (verify-package job): exact commit, exact 19 file
 #     names, exact order, exact SHA-256 of every file, and the frozen-source hashes.
 #   * The dry run FAILS (red) unless the pending list is positively verified (pending_gate below):
-#     production must show exactly PRODUCTION_EXPECTED_PENDING (this release: only 0409); a rehearsal
+#     production must show exactly PRODUCTION_EXPECTED_PENDING (this package: only 0409, which production already has
+#     since 2026-10-22, so a production dry run of this package fails its gate and an apply ends NOT ATTEMPTED); a rehearsal
 #     project must show a non-empty exact end of the approved order (fresh project: all 19) or an
 #     explicit "up to date". Unparseable, empty, duplicated, reordered or skipped lists fail.
 #   * Apply refuses to run unless the target's pending list is exactly the END of the approved order and passes
 #     the same gate; then only a gate-pass marker, a workspace check and V2 stand between the gate and `--yes`.
-#   * After apply, the evidence steps classify the run: APPLIED is the only success. INTEGRITY INCIDENT and
+#   * After apply, the evidence steps classify the run: APPLIED is the only success, and only when the CLI's own apply
+#     output names exactly the gate-verified migrations (else EVIDENCE INCOMPLETE). INTEGRITY INCIDENT and
 #     EVIDENCE INCOMPLETE stop all further production activity until the owner has reviewed the run; every retry of
 #     a failed apply is a new, separately approved apply.
 #   * Credentials: one Environment secret (database password), mapped only onto the steps that build the database
 #     URL. It is masked in logs and never printed.
+#   * Supply chain: every action is pinned to a verified commit SHA, and each `db push` step refuses to run unless the
+#     CLI binaries have the verified SHA-256 values (SUPABASE_CLI_SHA256, SUPABASE_GO_SHA256).
 
 name: Provision Supabase (manual, gated)
 
@@ -90,8 +95,16 @@ env:
   # in the step's own environment wins over any .env value (verified with the real CLI 2.119.0; see PROVISIONING.md).
   SUPABASE_TELEMETRY_DISABLED: "1"
   SUPABASE_NO_UPDATE_NOTIFIER: "1"
-  # What production must show pending for THIS release (newline-separated, in order). Production is at 0408.
-  # Change it only together with a new pinned package.
+  # The verified CLI binaries (Supabase CLI 2.119.0, linux amd64). supabase/setup-cli downloads the release archive and
+  # does NOT verify it. Each step that runs `supabase db push` refuses to run unless the `supabase` found on PATH and the
+  # `supabase-go` beside it have exactly these SHA-256 values (checked before the database URL is built). Derived from
+  # supabase_2.119.0_linux_amd64.tar.gz, whose SHA-256 bf1c3ae9…c1b4 matches the release's checksums.txt.
+  # Change them only together with SUPABASE_CLI_VERSION, after re-running premium/tests/cli-isolation.real-cli.sh.
+  SUPABASE_CLI_SHA256: 2d142ea645f9fe1436b3b728e5873056b5390eeb2fc838024ae3d2905f5afd94
+  SUPABASE_GO_SHA256: dc350a51d4377d32837e6d76163039c8611fa6552cab568eb42f6f11d5fe2a02
+  # What production must show pending for THIS package (newline-separated, in order). Production has been at 0409 since
+  # 2026-10-22 (run #12), so production now shows nothing pending and this value is deliberately unchanged: a production
+  # dry run of this package fails its gate. Change it only together with a new pinned package.
   PRODUCTION_EXPECTED_PENDING: "0409_formula_versions_fuel_pump_validity.sql"
   # The approved package manifest: the ONLY source of approved names, order and checksums for every job.
   # Format: <sha256><two spaces><path>, one line per file, in apply order. Defined once; never derived from `ls`.
@@ -482,6 +495,10 @@ jobs:
           if [ "${SUPABASE_TELEMETRY_DISABLED:-}" != 1 ] || [ "${SUPABASE_NO_UPDATE_NOTIFIER:-}" != 1 ] || [ "${SUPABASE_HOME:-}" != "$RUNNER_TEMP/supabase-home" ] || [ "${SUPABASE_DEBUG:-}" != 0 ] || [ "${SUPABASE_TELEMETRY_DEBUG:-}" != 0 ]; then
             echo "::error::Supabase CLI isolation is not in effect (SUPABASE_TELEMETRY_DISABLED, SUPABASE_NO_UPDATE_NOTIFIER, SUPABASE_HOME, SUPABASE_DEBUG, SUPABASE_TELEMETRY_DEBUG). The CLI was not run."; exit 1; fi
           case "$RUNNER_TEMP/" in "$GITHUB_WORKSPACE"/*) echo "::error::RUNNER_TEMP is inside the workspace; the CLI home would not be isolated. The CLI was not run."; exit 1;; esac
+          # CLI binary: `supabase` on PATH and the `supabase-go` beside it must be the verified build (checked before any CLI call).
+          cli="$(command -v supabase || true)"
+          if [ -z "$cli" ] || [ "$(sha256sum 2>/dev/null < "$cli" | cut -d' ' -f1)" != "$SUPABASE_CLI_SHA256" ] || [ "$(sha256sum 2>/dev/null < "${cli%/*}/supabase-go" | cut -d' ' -f1)" != "$SUPABASE_GO_SHA256" ]; then
+            echo "::error::The supabase command is not the verified Supabase CLI $SUPABASE_CLI_VERSION build (SHA-256 check of supabase and supabase-go). The CLI was not run."; exit 1; fi
           printf '%s\n' "$PENDING_GATE_SH" > "$RUNNER_TEMP/gate.sh"; . "$RUNNER_TEMP/gate.sh"
           printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh"
           printf '%s' "$MIGRATION_MANIFEST" > "$RUNNER_TEMP/manifest.sha256"
@@ -594,6 +611,10 @@ jobs:
           if [ "${SUPABASE_TELEMETRY_DISABLED:-}" != 1 ] || [ "${SUPABASE_NO_UPDATE_NOTIFIER:-}" != 1 ] || [ "${SUPABASE_HOME:-}" != "$RUNNER_TEMP/supabase-home" ] || [ "${SUPABASE_DEBUG:-}" != 0 ] || [ "${SUPABASE_TELEMETRY_DEBUG:-}" != 0 ]; then
             echo "::error::Supabase CLI isolation is not in effect (SUPABASE_TELEMETRY_DISABLED, SUPABASE_NO_UPDATE_NOTIFIER, SUPABASE_HOME, SUPABASE_DEBUG, SUPABASE_TELEMETRY_DEBUG). The CLI was not run."; exit 1; fi
           case "$RUNNER_TEMP/" in "$GITHUB_WORKSPACE"/*) echo "::error::RUNNER_TEMP is inside the workspace; the CLI home would not be isolated. The CLI was not run."; exit 1;; esac
+          # CLI binary: `supabase` on PATH and the `supabase-go` beside it must be the verified build (checked before any CLI call).
+          cli="$(command -v supabase || true)"
+          if [ -z "$cli" ] || [ "$(sha256sum 2>/dev/null < "$cli" | cut -d' ' -f1)" != "$SUPABASE_CLI_SHA256" ] || [ "$(sha256sum 2>/dev/null < "${cli%/*}/supabase-go" | cut -d' ' -f1)" != "$SUPABASE_GO_SHA256" ]; then
+            echo "::error::The supabase command is not the verified Supabase CLI $SUPABASE_CLI_VERSION build (SHA-256 check of supabase and supabase-go). The CLI was not run."; exit 1; fi
           printf '%s\n' "$PENDING_GATE_SH" > "$RUNNER_TEMP/gate.sh"; . "$RUNNER_TEMP/gate.sh"
           printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh"
           printf '%s' "$MIGRATION_MANIFEST" > "$RUNNER_TEMP/manifest.sha256"
@@ -660,6 +681,10 @@ jobs:
           if [ "${SUPABASE_TELEMETRY_DISABLED:-}" != 1 ] || [ "${SUPABASE_NO_UPDATE_NOTIFIER:-}" != 1 ] || [ "${SUPABASE_HOME:-}" != "$RUNNER_TEMP/supabase-home" ] || [ "${SUPABASE_DEBUG:-}" != 0 ] || [ "${SUPABASE_TELEMETRY_DEBUG:-}" != 0 ]; then
             echo "::error::Supabase CLI isolation is not in effect (SUPABASE_TELEMETRY_DISABLED, SUPABASE_NO_UPDATE_NOTIFIER, SUPABASE_HOME, SUPABASE_DEBUG, SUPABASE_TELEMETRY_DEBUG). The CLI was not run."; exit 1; fi
           case "$RUNNER_TEMP/" in "$GITHUB_WORKSPACE"/*) echo "::error::RUNNER_TEMP is inside the workspace; the CLI home would not be isolated. The CLI was not run."; exit 1;; esac
+          # CLI binary: `supabase` on PATH and the `supabase-go` beside it must be the verified build (checked before any CLI call).
+          cli="$(command -v supabase || true)"
+          if [ -z "$cli" ] || [ "$(sha256sum 2>/dev/null < "$cli" | cut -d' ' -f1)" != "$SUPABASE_CLI_SHA256" ] || [ "$(sha256sum 2>/dev/null < "${cli%/*}/supabase-go" | cut -d' ' -f1)" != "$SUPABASE_GO_SHA256" ]; then
+            echo "::error::The supabase command is not the verified Supabase CLI $SUPABASE_CLI_VERSION build (SHA-256 check of supabase and supabase-go). The CLI was not run."; exit 1; fi
           printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh"
           printf '%s' "$MIGRATION_MANIFEST" > "$RUNNER_TEMP/manifest.sha256"
           # The gate-pass marker must exist and name exactly the verified pending set.
@@ -827,6 +852,10 @@ jobs:
           if [ "${SUPABASE_TELEMETRY_DISABLED:-}" != 1 ] || [ "${SUPABASE_NO_UPDATE_NOTIFIER:-}" != 1 ] || [ "${SUPABASE_HOME:-}" != "$RUNNER_TEMP/supabase-home" ] || [ "${SUPABASE_DEBUG:-}" != 0 ] || [ "${SUPABASE_TELEMETRY_DEBUG:-}" != 0 ]; then
             echo "::error::Supabase CLI isolation is not in effect (SUPABASE_TELEMETRY_DISABLED, SUPABASE_NO_UPDATE_NOTIFIER, SUPABASE_HOME, SUPABASE_DEBUG, SUPABASE_TELEMETRY_DEBUG). The CLI was not run."; finish 0; fi
           case "$RUNNER_TEMP/" in "$GITHUB_WORKSPACE"/*) echo "::error::RUNNER_TEMP is inside the workspace; the CLI home would not be isolated. The CLI was not run."; finish 0;; esac
+          # CLI binary: `supabase` on PATH and the `supabase-go` beside it must be the verified build (checked before any CLI call).
+          cli="$(command -v supabase || true)"
+          if [ -z "$cli" ] || [ "$(sha256sum 2>/dev/null < "$cli" | cut -d' ' -f1)" != "$SUPABASE_CLI_SHA256" ] || [ "$(sha256sum 2>/dev/null < "${cli%/*}/supabase-go" | cut -d' ' -f1)" != "$SUPABASE_GO_SHA256" ]; then
+            echo "::error::The supabase command is not the verified Supabase CLI $SUPABASE_CLI_VERSION build (SHA-256 check of supabase and supabase-go). The CLI was not run."; finish 0; fi
           printf '%s\n' "$PENDING_GATE_SH" > "$RUNNER_TEMP/gate.sh" && . "$RUNNER_TEMP/gate.sh" || finish 1
           printf '%s' "$INTEGRITY_SH" > "$RUNNER_TEMP/integrity.sh" || finish 1
           env -u DB_PASSWORD bash "$RUNNER_TEMP/integrity.sh" workspace "$GITHUB_WORKSPACE" "$PINNED_SHA" || finish 0
@@ -906,6 +935,10 @@ jobs:
             if [ -n "$mismatch_at" ]; then post_note="NOT RUN — STOP RULE"; else post_note="NOT RUN — GATE"; fi
           fi
           attempted=no; [ "$V2_RESULT" = PASS ] && attempted=yes
+          # What this run's apply actually applied (the CLI prints "Applying migration <file>..." per file) versus the
+          # gate-verified pending set. A difference means the database changed between the fresh dry run and the apply.
+          marked="$(cat "$RUNNER_TEMP/gate-pass.txt" 2>/dev/null)"
+          applied="$(sed -e $'s/\x1b\\[[0-9;]*[A-Za-z]//g' -e $'s/\r$//' "$RUNNER_TEMP/apply.txt" 2>/dev/null | sed -n 's/^Applying migration \(.*\)\.\.\.$/\1/p')"
           if [ -n "$mismatch_at" ]; then
             headline="INTEGRITY INCIDENT"; why="a verified migration-tree discrepancy at:$mismatch_at (it stands even if a later check passed; this does not prove whether the migration was applied)"
           elif [ "$LOCAL_OUTCOME" != success ]; then
@@ -920,6 +953,8 @@ jobs:
             headline="APPLY FAILED"; why="the post-apply dry run still shows pending migrations"
           elif [ "$attempted" = no ]; then
             headline="NOT ATTEMPTED"; why="the apply was not attempted (apply step $APPLY_OUTCOME, V2 ${V2_RESULT:-absent}); nothing was applied by this run"
+          elif [ "$APPLY_OUTCOME" = success ] && [ "$POST_RESULT" = UP_TO_DATE ] && [ -n "$marked" ] && [ "$applied" = "$marked" ]; then
+            headline="APPLIED"; why="apply succeeded, it applied exactly the gate-verified migration(s), V3 passed and the database is positively reported up to date"
           elif [ "$APPLY_OUTCOME" = success ] && [ "$POST_RESULT" = UP_TO_DATE ]; then
-            headline="APPLIED"; why="apply succeeded, V3 passed and the database is positively reported up to date"
+            why="the apply output does not show exactly the gate-verified migration(s) (verified: $(printf '%s' "${marked:-none}" | tr '\n' ' '); applied by this run: $(printf '%s' "${applied:-none}" | tr '\n' ' ')); the database may have changed between the fresh dry run and the apply"
           fi
