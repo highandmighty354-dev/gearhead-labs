@@ -110,7 +110,7 @@
   const formErrors = () => '<div class="ghp-form-error" hidden></div>';
   function upgradeCTA() {
     const price = `<div class="ghp-price"><b>Gearhead Labs Premium</b> · ${esc(M.PREMIUM_PRICE_TEXT)}</div>
-      <p class="ghp-fine">Premium includes the ${M.PREMIUM_CALC_IDS.size} Premium calculators, the Engineering Lab, and My Garage with Test Setups. Online checkout is not open yet, so Premium can’t be purchased here today. Every free calculator stays free.</p>
+      <p class="ghp-fine">Premium includes the ${M.PREMIUM_CALC_IDS.size} Premium calculators, the Engineering Lab, and My Garage with Test Setups. ${R.billing.enabled() ? 'Start with a 14-day free trial on Profile. A payment card is required, and you won’t be charged until the trial ends.' : 'Online checkout is not open yet, so Premium can’t be purchased here today.'} Every free calculator stays free.</p>
       ${state.view === 'profile' ? '' : '<div class="ghp-cta-row"><button class="ghp-btn" data-go="profile">See what Premium includes</button></div>'}`;
     if (S.mode !== 'development') return price;
     return price + (S.auth.user
@@ -131,7 +131,12 @@
      M.ENGINEERING_CATEGORIES, and the free count from the engine's own catalogue (freeCount). It offers no purchase, trial or sign-up
      action: its buttons only open existing pages. Saving a calculation from a calculator is not available yet
      (R.savedCalculations.createUnavailableReason), so it is not listed as a Premium feature. */
-  function premiumOfferCard() {
+  /* With billing enabled (config.billing.enabled and an adapter that supports it) the card offers the 14-day trial instead of the
+     checkout-not-open status: a signed-in Free account gets one button per interval (the server picks the price and decides trial
+     eligibility; an account that already had a subscription is offered a plain subscription), a signed-out visitor is sent to the
+     sign-in form below. */
+  function premiumOfferCard({ signedIn = Boolean(S.auth.user), hadSubscription = false } = {}) {
+    const billingOn = R.billing.enabled();
     const prices = M.PREMIUM_OFFERS.map(o => {
       const [amount, per] = String(o.label).split('/');
       return `<div class="ghp-offer-price"><b>${esc(amount)}</b><span>${per ? 'per ' + esc(per) : ''}</span></div>`;
@@ -141,7 +146,14 @@
       <span class="ghp-badge gold">PREMIUM</span>
       <h2 id="ghp-offer-title">Gearhead Labs Premium</h2>
       <div class="ghp-price ghp-offer-prices" aria-label="Price: ${esc(M.PREMIUM_PRICE_TEXT)}">${prices}</div>
-      <p class="ghp-offer-status" data-checkout-status><b>Online checkout is not open yet.</b> Premium can’t be bought on this site today, and nothing on this page will charge you.</p>
+      ${billingOn
+        ? `<p class="ghp-offer-status" data-checkout-status data-billing="on">${hadSubscription
+            ? '<b>Subscribe to Premium.</b> Your account has already used its free trial, so billing starts today. Cancel any time in Manage billing.'
+            : '<b>Start with a 14-day free trial.</b> A payment card is required. You won’t be charged until the trial ends, and you can cancel any time before then in Manage billing.'}</p>
+           <div class="ghp-cta-row" data-billing-actions>${signedIn
+            ? M.PREMIUM_OFFERS.map(o => `<button class="ghp-btn gold" data-action="checkout" data-interval="${esc(o.interval)}">${hadSubscription ? 'Subscribe' : 'Start free trial'} · ${esc(o.label)}${hadSubscription ? '' : ' after'}</button>`).join('')
+            : '<button class="ghp-btn gold" data-action="signin-focus">Sign in to start your free trial</button>'}</div>`
+        : '<p class="ghp-offer-status" data-checkout-status><b>Online checkout is not open yet.</b> Premium can’t be bought on this site today, and nothing on this page will charge you.</p>'}
       <h3>What Premium adds</h3>
       <ul class="ghp-offer-list">
         <li><b>${M.PREMIUM_CALC_IDS.size} Premium calculators</b>: the more advanced engineering calculators, marked PREMIUM in the calculator list. Open any of them to see what it covers.</li>
@@ -152,6 +164,19 @@
       <p>All ${freeCount()} free calculators work without an account and stay free.</p>
       <div class="ghp-cta-row"><button class="ghp-btn" data-go="lab">Preview the Engineering Lab</button><button class="ghp-btn" data-go="calculators">Open the calculators</button></div>
     </section>`;
+  }
+  /* After Stripe Checkout returns (?checkout=success|cancelled). Access comes from the webhook a few seconds later, so the
+     entitlement is refreshed a few times; nothing here grants anything. */
+  let checkoutRefreshed = false;
+  function checkoutNotice() {
+    const c = new URLSearchParams(location.search).get('checkout');
+    if (c === 'success') {
+      if (!checkoutRefreshed) { checkoutRefreshed = true; [2000, 5000, 10000, 20000].forEach(ms => setTimeout(() => S.entitlements.refresh(), ms)); }
+      return S.entitlements.state.isPremium ? '<div class="ghp-card" data-checkout-notice="success"><h2>Welcome to Premium</h2><p>Your trial or subscription is active.</p></div>'
+        : '<div class="ghp-card" data-checkout-notice="pending"><h2>Thanks! Setting up Premium…</h2><p>Stripe confirmed your checkout. Premium usually appears here within a few seconds.</p></div>';
+    }
+    if (c === 'cancelled') return '<div class="ghp-card" data-checkout-notice="cancelled"><h2>Checkout cancelled</h2><p>Nothing was charged. You can start again any time.</p></div>';
+    return '';
   }
   function signInCard(note = '') {
     if (S.mode === 'no-backend') return `<div class="ghp-card"><h2>Accounts are unavailable right now</h2><p>Gearhead Labs accounts can’t be reached at the moment. Every calculator still works without an account.</p><button class="ghp-btn" data-go="calculators">Open the calculators</button></div>`;
@@ -265,7 +290,7 @@
           <div class="ghp-cta-row">${[['free', 'Free / lapsed'], ['trial', 'Trial'], ['premium', 'Premium']].map(([pl, lab]) => `<button class="ghp-btn" data-action="dev-plan" data-plan="${pl}">${lab}</button>`).join('')}</div>
           <div class="ghp-cta-row"><button class="ghp-btn" data-action="dev-saved">Simulate a server-filed saved calculation</button></div>
           <button class="ghp-btn danger" data-action="dev-reset">Reset development data</button></div>` : '';
-      return page('Profile', 'ACCOUNT', `<div class="ghp-card ghp-profile-head">${avatar}<div><h2>${esc(prof.display_name || u.email)}</h2><p class="ghp-muted">${esc(u.email)}${prof.created_at ? ' · Member since ' + date(prof.created_at) : ''}</p></div></div>
+      return page('Profile', 'ACCOUNT', `${checkoutNotice()}<div class="ghp-card ghp-profile-head">${avatar}<div><h2>${esc(prof.display_name || u.email)}</h2><p class="ghp-muted">${esc(u.email)}${prof.created_at ? ' · Member since ' + date(prof.created_at) : ''}</p></div></div>
         <form data-form="profile" class="ghp-card ghp-form" novalidate><h2>Your details</h2>${formErrors()}
           ${field('Display name', `<input name="display_name" maxlength="80" value="${esc(prof.display_name)}" autocomplete="nickname">`)}
           ${field('Email', `<input value="${esc(u.email)}" disabled>`, 'Managed by your sign-in.')}
@@ -274,8 +299,10 @@
           ${field('Experience level', `<select name="experience_level">${opt(enumOpts('experience_level'), prof.experience_level, 'Not set')}</select>`)}
           ${field('Preferred unit system', `<select name="preferred_unit_system">${opt(enumOpts('unit_system'), prof.preferred_unit_system || 'imperial')}</select>`, 'Saved to your profile. Calculators currently follow the calculator’s own unit setting.')}
           <button class="ghp-btn gold" type="submit">Save profile</button></form>
-        <div class="ghp-card"><h2>Plan</h2><dl class="ghp-dl">${planRows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl><p class="ghp-fine">Your plan comes from your Gearhead Labs account and can’t be changed here.</p></div>
-        ${ent.isPremium ? '' : premiumOfferCard()}${dev}<button class="ghp-btn wide" data-action="signout">Sign out</button>`);
+        <div class="ghp-card"><h2>Plan</h2><dl class="ghp-dl">${planRows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>${R.billing.enabled() && (subs.length || ent.source === 'stripe')
+          ? '<p class="ghp-fine">Change your plan, update your card or cancel in Manage billing (Stripe).</p><div class="ghp-cta-row"><button class="ghp-btn" data-action="portal">Manage billing</button></div>'
+          : '<p class="ghp-fine">Your plan comes from your Gearhead Labs account and can’t be changed here.</p>'}</div>
+        ${ent.isPremium ? '' : premiumOfferCard({ signedIn: true, hadSubscription: subs.length > 0 })}${dev}<button class="ghp-btn wide" data-action="signout">Sign out</button>`);
     }
   };
 
@@ -450,6 +477,13 @@
         case 'pin': await R.savedCalculations.pin(id, b.dataset.pinned === '1'); say(b.dataset.pinned === '1' ? 'Pinned.' : 'Unpinned.'); return route();
         case 'delete-saved': if (!armed(b)) return; await R.savedCalculations.remove(id); say('Saved calculation deleted.'); return route();
         case 'signout': await S.auth.signOut(); say('Signed out.'); return go('home', {}, true);
+        case 'checkout': {
+          b.disabled = true; const r = await R.billing.checkout(b.dataset.interval);
+          if (r && r.url) { location.assign(r.url); return; }
+          say('Development: 14-day trial started (simulated checkout, no payment).'); return route();
+        }
+        case 'portal': { b.disabled = true; const r = await R.billing.portal(); if (r && r.url) { location.assign(r.url); return; } b.disabled = false; return say('Development: the billing portal is simulated.'); }
+        case 'signin-focus': { const i = view.querySelector('[data-form="signin"] input[name="email"]'); if (i) { i.scrollIntoView({ block: 'center' }); i.focus(); } return; }
         case 'dev-plan': if (!S.dev) return; await S.dev.setPlan(b.dataset.plan); say('Development plan: ' + b.textContent.trim()); return route();
         case 'dev-saved': if (!S.dev) return; await S.dev.simulateSavedCalculation({}); say('Simulated a server-filed saved calculation.'); return route();
         case 'dev-reset': if (!S.dev || !armed(b)) return; await S.dev.reset(); say('Development data reset.'); return go('home', {}, true);

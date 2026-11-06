@@ -179,12 +179,30 @@
       return true;
     }
 
+    /* ---------------------------------------------------------------- billing (Stripe, through the Edge Functions)
+       The functions decide everything that matters (price, trial, redirect URLs, account); the browser only asks and is
+       redirected. No Stripe key or price id exists in the frontend. */
+    async function invokeBilling(name, body) {
+      const { data, error } = await client.functions.invoke(name, { body: body || {} });
+      if (error) {
+        let message = 'Billing is unavailable right now. Nothing was charged.';
+        try { const j = await error.context.json(); if (j && typeof j.message === 'string') message = j.message; } catch (e) { /* keep the generic message */ }
+        throw new M.GHPError('billing', message);
+      }
+      if (!data || typeof data.url !== 'string' || !/^https:\/\/(checkout|billing)\.stripe\.com\//.test(data.url)) throw new M.GHPError('billing', 'Billing returned an unexpected answer. Nothing was charged.');
+      return data;
+    }
+    const billing = Object.freeze({
+      checkout: (interval) => invokeBilling('billing-checkout', { interval }),
+      portal: () => invokeBilling('billing-portal', {})
+    });
+
     return Object.freeze({
       kind: 'foundation', isDevelopment: false,
       capabilities: Object.freeze({ magicLink: true, softDelete: true, savedCalculationCreate: false }),
       get status() { return status; },
       onUnavailable(cb) { unavailableListeners.add(cb); return () => unavailableListeners.delete(cb); },
-      probe, auth, entitlement, tables, garage, machines, testSetups, analyses
+      probe, auth, entitlement, tables, garage, machines, testSetups, analyses, billing
     });
   }
 

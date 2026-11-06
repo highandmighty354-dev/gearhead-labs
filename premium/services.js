@@ -280,7 +280,14 @@
   /* ---------------------------------------------------------------- billing / plan status (read-only) */
   const billing = {
     async subscriptions() { requireUser(); return call(() => adapter.entitlement.subscriptions()); },
-    async grants() { requireUser(); return call(() => T().entitlement_grants.list()); }
+    async grants() { requireUser(); return call(() => T().entitlement_grants.list()); },
+    /* Checkout / portal are offered only when config.billing.enabled is true AND the active adapter supports billing. */
+    enabled() { const c = window.GHP_CONFIG && window.GHP_CONFIG.billing; return Boolean(c && c.enabled === true && adapter && adapter.billing && mode !== 'no-backend'); },
+    async checkout(interval) {
+      requireUser(); if (!billing.enabled()) throw new M.GHPError('billing', 'Online checkout is not open yet.');
+      const r = await call(() => adapter.billing.checkout(interval)); if (r && r.simulated) await entitlements.refresh(); return r;
+    },
+    async portal() { requireUser(); if (!billing.enabled()) throw new M.GHPError('billing', 'Online checkout is not open yet.'); return call(() => adapter.billing.portal()); }
   };
 
   /* ---------------------------------------------------------------- analyzer catalog */
