@@ -120,7 +120,11 @@ Every other risk below is **disclosed, with no separate acceptance recorded** (e
     3. **R3, not accepted: unrestricted production deployment access.**
        - The `production` Environment must accept deployments only from `main`, with the required human approval kept and administrator bypass disabled.
        - The action pins, CLI binary hashes, debug suppression and credential controls are retained.
-       - **Status:** these Environment settings are **not yet in place**. Two attempts from Claude's session were declined by its permission system (see **GitHub configuration**), so they need Trent. Until then, production deployment access stays unrestricted apart from the required approval.
+       - **Status: in place.** Trent changed the settings on 2026-11-05. Read back the same evening:
+         - deployment branches: Selected → `main` only (1 branch, 0 tags);
+         - administrator bypass: off;
+         - required reviewer `highandmighty354-dev`: on;
+         - the secret and the variable are unchanged.
     4. **R4, adopted operating rule:** while a production apply is approved or running, no other workflow, person or automation may change production's migrations or schema. That includes the dashboard SQL editor, other CLI sessions, other workflows and other tools.
        - The workflow's `concurrency` group only queues runs of **this** workflow for the same target. It does not stop any other workflow, person or tool, and it is not a control for this rule.
        - The exact-applied-set check only detects a breach after the apply.
@@ -194,7 +198,12 @@ Every other risk below is **disclosed, with no separate acceptance recorded** (e
 - **Not yet proven at run time:** how the CLI behaves on a GitHub runner against **hosted** Supabase (its Session pooler), and how GitHub evaluates the AP-5b condition with unusual values (simulated only, B6-28).
   - In the throwaway apply run 42081870008, GitHub evaluated the AP-5b condition on the success path. The post-apply dry run ran and the run was classified APPLIED, using the real CLI with `--workdir` against a disposable database on the runner.
 
-**GitHub configuration (verified 2026-11-05; nothing was changed; re-checked after a second attempt the same evening).**
+**GitHub configuration (verified 2026-11-05; Claude changed nothing; Trent changed `production` that evening).**
+- **Update, 2026-11-05 evening:**
+  - `production` is now restricted to `main`, with administrator bypass off and the required reviewer kept (set by Trent, read back by Claude).
+  - The `main` ruleset (block force pushes and deletion; no pull request requirement; no approvals; no bypass list) was filled in by Claude in the signed-in browser. **GitHub then required sudo re-authentication** (GitHub Mobile or an emailed code), so it was **not saved**: the API still shows no rulesets.
+  - `rehearsal` is unchanged: no reviewer, no branch restriction, administrator bypass on, no secrets, no variables.
+  - The verified state below is from earlier that day.
 - **Verified:**
   - `main`: **no branch protection** (API: `protected: false`; protection endpoint "Branch not protected"); **no rulesets** (API: `[]`).
   - `production` Environment (Settings page, read in a signed-in browser):
