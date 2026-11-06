@@ -51,6 +51,10 @@
     for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
     return null;
   }
+  /* Trial wording only when the parent shell's billing is actually available (config + adapter); otherwise "See Premium". */
+  function billingOn() {
+    try { const G = window.parent.GHP; return Boolean(G && G.services && G.services.repos && G.services.repos.billing.enabled()); } catch (e) { return false; }
+  }
   function priceText() {
     var M = parentModels();
     return (M && M.PREMIUM_PRICE_TEXT) || '$5.99/month or $59.99/year';
@@ -102,9 +106,12 @@
       '<span class="gh-premium-badge">PREMIUM</span>' +
       '<p class="gh-premium-lede">' + esc(promo.promo || ('Gearhead Labs Premium unlocks ' + meta.name + '.')) + '</p>' +
       (promo.free_companion ? ('<p class="gh-premium-companion">' + companionLink(promo.free_companion) + '</p>') : '') +
-      '<p class="gh-premium-fine">Gearhead Labs Premium is ' + esc(priceText()) + '. Online checkout is not open yet. Every other calculator on this page stays free, no account needed.</p>' +
-      /* "See Premium", not "Upgrade": nothing can be bought yet (owner decision 2026-10-17); the link opens the Profile offer. */
-      '<a class="gh-premium-cta" href="' + esc(upgradeHref()) + '" target="_top">See Premium →</a>' +
+      (billingOn()
+        ? '<p class="gh-premium-fine">Gearhead Labs Premium is ' + esc(priceText()) + ', with a 14-day free trial (payment card required). Every other calculator on this page stays free, no account needed.</p>' +
+          '<a class="gh-premium-cta" href="' + esc(upgradeHref()) + '" target="_top">Start free trial →</a>'
+        : '<p class="gh-premium-fine">Gearhead Labs Premium is ' + esc(priceText()) + '. Online checkout is not open yet. Every other calculator on this page stays free, no account needed.</p>' +
+          /* "See Premium", not "Upgrade": nothing can be bought yet (owner decision 2026-10-17); the link opens the Profile offer. */
+          '<a class="gh-premium-cta" href="' + esc(upgradeHref()) + '" target="_top">See Premium →</a>') +
       '</div>';
   }
 

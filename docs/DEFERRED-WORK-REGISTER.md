@@ -110,7 +110,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-FUT-004](#gh-fut-004--batch-16-workbenches-6) | Batch 16: Workbenches (6) | APPROVED | n/a | P3 |
 | [GH-FUT-005](#gh-fut-005--batches-12-diesel-and-15-performance--simulation-have-no-approved-items) | Batches 12 (Diesel) and 15 (Performance / Simulation) have no approved items | DEFERRED | n/a | Deferred |
 | [GH-FUT-006](#gh-fut-006--make-some-of-the-29-render-only-calculators-saveable) | Make some of the 29 render-only calculators saveable | DEFERRED | n/a | Deferred |
-| [GH-FUT-007](#gh-fut-007--stripe-billing) | Stripe billing | DEFERRED | n/a | Deferred |
+| [GH-FUT-007](#gh-fut-007--stripe-billing) | Stripe billing | IN PROGRESS | n/a | Deferred |
 | [GH-FUT-008](#gh-fut-008--projects-decision-p-3) | Projects (decision P-3) | DEFERRED | n/a | Deferred |
 | [GH-FUT-009](#gh-fut-009--migrate-e01e14-into-ghengine) | Migrate E01–E14 into `GH_ENGINE` | DEFERRED | n/a | Deferred |
 | [GH-FUT-010](#gh-fut-010--task-4-certification-gates) | Task 4 certification gates | OPEN | n/a | P2 |
@@ -2625,10 +2625,10 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-10-12 — entered from the reconciliation document.
 
 ### GH-FUT-007 — Stripe billing
-- **Status:** DEFERRED
+- **Status:** IN PROGRESS
 - **Severity:** n/a
 - **Priority:** Deferred
-- **Description:** Checkout, customer portal and webhook functions are designed but not implemented; prices exist as approved offers only.
+- **Description:** Checkout, customer portal and webhook functions. Test-mode implementation in a draft PR (2026-11-05), not deployed; see `docs/BILLING-STRIPE.md`. Prices exist as approved offers only; no Stripe price ids yet.
 - **Evidence:** `docs/DESIGN-PREMIUM-FOUNDATION.md` §6.3; `premium-foundation/PREMIUM-FOUNDATION.md`.
 - **Affected:** Platform (not calculators).
 - **Impact:** No paid sign-up path yet.
@@ -2639,7 +2639,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Tests:** None.
 - **Docs:** Design and foundation documents above.
 - **Verification:** Defined in the design document.
-- **History:** 2026-10-12 — pointer entry.
+- **History:** 2026-10-12 — pointer entry. 2026-11-05 — Trent lifted the "Stripe later" development deferral; test-mode Checkout, 14-day trial, Customer Portal and webhook implemented and tested without a Stripe account (see `docs/BILLING-STRIPE.md`).
 
 ### GH-FUT-008 — Projects (decision P-3)
 - **Status:** DEFERRED

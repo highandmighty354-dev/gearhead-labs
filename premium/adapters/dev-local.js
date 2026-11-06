@@ -299,7 +299,12 @@
       get status() { return 'ready'; },
       onUnavailable() { return () => {}; },
       async probe() { return true; },
-      auth, entitlement, tables, garage, machines, testSetups, analyses, devTools
+      auth, entitlement, tables, garage, machines, testSetups, analyses, devTools,
+      /* Development stand-in for Stripe: no redirect, no payment. Checkout starts the local 14-day trial grant. */
+      billing: Object.freeze({
+        async checkout(interval) { if (interval !== 'month' && interval !== 'year') throw new M.GHPError('billing', 'Choose monthly or yearly billing.'); await devTools.setPlan('trial'); return { simulated: true, trial: true, trialDays: 14 }; },
+        async portal() { return { simulated: true }; }
+      })
     });
   }
 
