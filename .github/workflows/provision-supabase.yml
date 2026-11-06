@@ -79,6 +79,8 @@ on:
 permissions:
   contents: read
 
+# Queues runs of THIS workflow for the same target only. It does not stop any other workflow, person or tool from
+# changing the database; the operating rule in supabase/PROVISIONING.md (R4) covers that.
 concurrency:
   group: supabase-provision-${{ inputs.target }}
   cancel-in-progress: false

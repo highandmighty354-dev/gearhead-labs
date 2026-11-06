@@ -61,7 +61,7 @@ Every step that writes to the project needs explicit owner approval first.
 - **Decision 4:** the race between V2 and the CLI reading the files (decision record, §3);
 - **Decision 5:** the cancellation uncertainty, subject to the cancellation and recovery rule (decision record, §3 and §6).
 
-Every other risk below is **disclosed, with no separate acceptance recorded**:
+Every other risk below is **disclosed, with no separate acceptance recorded** (except where the working technical decisions of 2026-11-05, after R4, say otherwise):
 - Option B is **not atomic and not race-free.** A change after V2 and before the CLI reads a file would be applied; that race is accepted under Decision 4. V3 sees such a change only if it persists. A change made and restored escapes every check.
 - **The production-state race** between the fresh dry run and `--yes` remains; since 2026-11-05 it is detected, not prevented (R4 below).
 - **V3 checks the migration files at the time it runs.** It does not prove which bytes the CLI read, that the migration completed fully, or the database state. The post-apply dry run is separate evidence about migration history, and F1 checks the database contents.
@@ -109,11 +109,21 @@ Every other risk below is **disclosed, with no separate acceptance recorded**:
     - *New safeguard (detection, not prevention):* APPLIED requires the CLI's own `Applying migration <file>...` lines to equal the gate-pass marker exactly, in order. Otherwise the run is EVIDENCE INCOMPLETE and the stop rule applies (B6-34, verified on a real runner, run 42134141026).
     - *Residual risk:* the race cannot be prevented with CLI 2.119.0; it can only be detected after the apply.
     - *Recovery:* the recovery rule: stop, then F1 checks to establish what was applied.
-  - **Owner decisions these raise (none taken here):**
-    1. R1: whether to adopt a package-review rule that every new migration is one transaction, idempotent, without `CONCURRENTLY`, and with a post-condition (0408 and 0409 already are).
-    2. R2: whether to accept the transient-change escape as a residual risk. It is disclosed, not accepted.
-    3. R3: whether to accept the remaining runner and credential-exposure limits, and whether to make the `production` Environment changes listed under **GitHub configuration**.
-    4. R4: whether to adopt an operating rule that nothing else changes production's schema or migration history while an apply is approved or running, and whether to accept the residual race.
+  - **Working technical decisions (2026-11-05).** Trent delegated technical risk recommendations to his reviewer (ChatGPT), and its decisions were given as the working owner direction for this assignment. They are recorded here; the governance register and decision record are not modified, and Decisions 4 and 5 are unchanged. No residual risk is eliminated by these decisions.
+    1. **R1, adopted: migration authoring policy for every NEW migration** (from the next package on; the 19 files of `c69ec51` are not rewritten):
+       - use a transaction wherever PostgreSQL allows it (one `BEGIN` … `COMMIT` per file);
+       - make it safe to run again where practical (`IF NOT EXISTS`, `ON CONFLICT DO NOTHING`, guarded `DO` blocks), with a post-condition check, as 0408 and 0409 already do;
+       - no statement that cannot run in a transaction (such as `CREATE INDEX CONCURRENTLY`) unless it is specifically reviewed and approved for that package;
+       - each approved exception is documented in the package's own section of this file, with the statements involved, what a partial failure leaves behind, and how to recover (for example, drop an `INVALID` index and re-run).
+       The workflow does not enforce this policy. It is checked in the package review before a new pin.
+    2. **R2, accepted residual risk:** a change made and restored between integrity checks can escape V3. The limitation and the safeguards are as described in R2 above. No further work is planned with CLI 2.119.0.
+    3. **R3, not accepted: unrestricted production deployment access.**
+       - The `production` Environment must accept deployments only from `main`, with the required human approval kept and administrator bypass disabled.
+       - The action pins, CLI binary hashes, debug suppression and credential controls are retained.
+       - **Status:** these Environment settings are **not yet in place**. Two attempts from Claude's session were declined by its permission system (see **GitHub configuration**), so they need Trent. Until then, production deployment access stays unrestricted apart from the required approval.
+    4. **R4, adopted operating rule:** while a production apply is approved or running, no other workflow, person or automation may change production's migrations or schema. That includes the dashboard SQL editor, other CLI sessions, other workflows and other tools.
+       - The workflow's `concurrency` group only queues runs of **this** workflow for the same target. It does not stop any other workflow, person or tool, and it is not a control for this rule.
+       - The exact-applied-set check only detects a breach after the apply.
 - **AP-5b case-sensitivity workaround (corrected in commit `8c02481`).** GitHub compares strings case-insensitively in `if:`, so a case variant such as `pass` could satisfy a workflow condition.
   - The workflow now runs a separate `evidence_gate` step first. It has **no database credential** and checks the V3 and aggregate integrity values character for character.
   - Only if that credential-free step succeeds and records `exact=yes` can the credential-bearing `evidence_db` post-apply dry-run step start. A differently-cased, missing or unexpected value is rejected before the database credential is made available to that step.
@@ -184,7 +194,7 @@ Every other risk below is **disclosed, with no separate acceptance recorded**:
 - **Not yet proven at run time:** how the CLI behaves on a GitHub runner against **hosted** Supabase (its Session pooler), and how GitHub evaluates the AP-5b condition with unusual values (simulated only, B6-28).
   - In the throwaway apply run 42081870008, GitHub evaluated the AP-5b condition on the success path. The post-apply dry run ran and the run was classified APPLIED, using the real CLI with `--workdir` against a disposable database on the runner.
 
-**GitHub configuration (verified 2026-11-05; nothing was changed).**
+**GitHub configuration (verified 2026-11-05; nothing was changed; re-checked after a second attempt the same evening).**
 - **Verified:**
   - `main`: **no branch protection** (API: `protected: false`; protection endpoint "Branch not protected"); **no rulesets** (API: `[]`).
   - `production` Environment (Settings page, read in a signed-in browser):
@@ -202,14 +212,20 @@ Every other risk below is **disclosed, with no separate acceptance recorded**:
     - approval required for first-time contributors;
     - Actions cannot approve pull requests.
 - **Not verified:** the collaborator list. The API path is blocked for Claude's sessions, and the Access page asks for GitHub sudo re-authentication.
-- **Why nothing was changed:** the API write paths for branch protection and rulesets are blocked by the session's network proxy, and a change in the signed-in browser was declined by the session's permission system. These settings therefore need the owner.
+- **Why nothing was changed:** the API write paths for branch protection and rulesets are blocked by the session's network proxy. A change in the signed-in browser was declined by the session's permission system, twice: once on the first attempt, and again after the explicit instruction to restrict `production`. The Access page also requires GitHub sudo re-authentication. These settings therefore need the owner. Re-checked afterwards: `production` still has "No restriction", administrator bypass on, and the required reviewer on.
 - **Owner actions (in GitHub → Settings):**
   1. **Branches → Add branch ruleset (or classic rule) for `main`:**
      - require a pull request before merging;
      - include administrators;
      - block force pushes and deletion.
 
-     The required-approvals count is an owner decision. With one maintainer, GitHub does not let you approve your own pull request, so requiring 1 approval blocks every merge unless administrators may bypass, and a bypass also covers agent sessions that use your token. `prepare-supabase.yml` pushes `supabase-config.js` straight to `main` as `github-actions[bot]` when the public configuration changes. Under this rule that push fails until the bot is allowed to bypass or the change goes through a pull request.
+     Do not require approvals: with one maintainer, GitHub does not let you approve your own pull request, so that would block every merge.
+
+     **Unavoidable trade-off with `prepare-supabase.yml`.** On every push to `main` it regenerates `supabase-config.js` (public values only) and, if the file changed, pushes it straight to `main` as `github-actions[bot]` with `contents: write`. "Require a pull request" rejects that push. Choose one:
+     - **(a) Now, recommended:** a ruleset that only blocks force pushes and deletion of `main`. Nothing breaks. Direct pushes, including by agent sessions using your token, remain possible.
+     - **(b) Later:** also require a pull request, after `prepare-supabase.yml` is changed to stop pushing (commit the generated file through a pull request, or generate it at deploy time). That change is outside PR #27.
+
+     The file changes only when the Supabase URL or publishable key changes, so under (b) without the workflow change the failure would be rare, but it would be silent until noticed.
   2. **Environments → production:**
      - set "Deployment branches and tags" to **Selected branches and tags → `main`**, so that only workflow revisions that reached `main` can receive the production password;
      - untick **Allow administrators to bypass configured protection rules**.
@@ -219,7 +235,48 @@ Every other risk below is **disclosed, with no separate acceptance recorded**:
      - add a disposable, non-production project's Session pooler URL as variable `SUPABASE_POOLER_URL`, keeping `[YOUR-PASSWORD]`, and its password as secret `SUPABASE_DB_PASSWORD`;
      - add a required reviewer;
      - limit deployment branches to `main` and `ops/option-b-migration-integrity`.
-  4. Optional: **Actions → General → Require actions to be pinned to a full-length commit SHA.** First pin `actions/checkout@v4` in `prepare-supabase.yml` and `actions/checkout@v5` in `supabase-keepalive.yml`, which are outside PR #27; otherwise those workflows stop.
+  4. Optional: **Actions → General → Require actions to be pinned to a full-length commit SHA.** Mutable references remaining on `main`:
+     - `prepare-supabase.yml`: `actions/checkout@v4`;
+     - `supabase-keepalive.yml`: `actions/checkout@v5`;
+     - `provision-supabase.yml`: `actions/checkout@v4` ×3 and `supabase/setup-cli@v1` ×2, until PR #27 is merged (pinned on the PR branch).
+
+     Pin the first two in a separate pull request before turning the requirement on; otherwise those workflows stop. They are deliberately not changed in PR #27.
+
+**Hosted rehearsal plan (prepared 2026-11-05; not run, not authorized yet).** This is the next milestone. It is the only way to test hosted Supabase behaviour (the Session pooler, hosted roles, managed schemas), which no test so far has covered.
+- **Disposable project (Trent only).** In the Supabase dashboard, create a **new, empty project** in the Gearhead Labs organization.
+  - Name it, for example, `gearhead-rehearsal`; choose region `us-east-2` (the same as production) and a generated database password.
+  - Never use or copy the production project `jmztpjudwzjvrcdtjynd`.
+  - Before creating it, check the organization's plan page:
+    - on the Free plan, a second free project costs nothing if a free project slot is available (Supabase limits the number of active free projects);
+    - on a paid plan, a new project can add compute charges. That is an owner decision; nothing has been created and no charge has been incurred.
+- **GitHub, Settings → Environments → `rehearsal` (Trent only):**
+  - variable `SUPABASE_POOLER_URL`: the rehearsal project's **Session pooler** connection string (Connect → Session pooler), keeping the literal `[YOUR-PASSWORD]`, in the form `postgresql://postgres.<rehearsal-ref>:[YOUR-PASSWORD]@aws-0-us-east-2.pooler.supabase.com:5432/postgres`;
+  - secret `SUPABASE_DB_PASSWORD`: that project's database password, entered only in GitHub, never in chat;
+  - required reviewer `highandmighty354-dev`; administrator bypass off;
+  - deployment branches limited to `main` and `ops/option-b-migration-integrity`. The rehearsal must run the PR branch's workflow, through "Use workflow from".
+- **Project-ref confirmation:**
+  - the dispatch input `confirm_project_ref` must be the rehearsal project's ref, taken from its dashboard address (`/project/<ref>`);
+  - the workflow fails unless it equals the ref inside `SUPABASE_POOLER_URL`;
+  - before approving, Trent checks that the ref is **not** `jmztpjudwzjvrcdtjynd` and that the approval screen says `rehearsal`.
+- **Expected baseline:** a new project has no migration history, so all 19 files of `c69ec51` are pending, in order, `0001_enums.sql` … `0409_formula_versions_fuel_pump_validity.sql`. The rehearsal gate accepts exactly that (a non-empty exact end of the approved order).
+- **Run order:**
+  1. Actions → Provision Supabase → Use workflow from `ops/option-b-migration-integrity` → target `rehearsal`, mode `dry-run`, the ref. Expect a green run that lists the 19 pending files.
+  2. The same with mode `apply` and `APPLY`; approve the `rehearsal` deployment. Expect:
+     - classification **APPLIED**;
+     - V1, V2 and V3 PASS;
+     - 19 `Applying migration` lines equal to the gate-pass marker;
+     - post-apply dry run "up to date".
+  3. One more dry run. Expect "nothing pending: up to date".
+  4. In the dashboard: Database → Migrations shows 19 versions.
+- **Failure:** any other classification, a red run, or a gate failure means stop.
+  - Do not rerun. Keep the run logs, and report the run ID and classification.
+  - Because the project is disposable, recovery is to delete it, fix the cause through a reviewed change, and repeat with a new empty project.
+  - No repair commands are run, and production is not touched.
+- **Cleanup after the rehearsal (pass or fail):**
+  - keep the run logs and links as evidence;
+  - delete the rehearsal project (Project Settings → General → Delete project), or pause it if more rehearsals are planned;
+  - remove the `rehearsal` variable and secret in GitHub.
+- **What a pass shows, and what it doesn't:** a pass shows the pinned package and this workflow apply cleanly on hosted Supabase through the Session pooler. It does not authorize a production run. Production has nothing pending for this package, and the next production migration needs a new pinned package.
 
 **Tests** (local unless marked as real GitHub). The latest runs (2026-11-05) used the workflow and test code of commit `b688575` plus the test-only additions in the commit that adds this paragraph. The migrations, manifest and pin are unchanged since `c69ec51`:
 - `python3 premium/tests/workflow-option-b.test.py`: **291 checks, 0 failures**. These include:
