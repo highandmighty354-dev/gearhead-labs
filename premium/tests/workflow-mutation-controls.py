@@ -7,7 +7,8 @@ finishes normally and reports at least one failure. A suite that crashes instead
 was not reported as a recorded test failure), and a fault no suite reports is a SURVIVOR. Both fail this script.
 
 Controls M1-M11 are the original eleven, first run at 71769c9, re-anchored to the steps they targeted then.
-M2c, M4c and M8c are combined controls: the M2, M4 and M8 condition faults applied to BOTH the post-apply dry run
+M12-M16 cover the independent-review corrections (frozen-list anchor, exact modes, CLI binary hash, exact applied
+set, action pins). M2c, M4c and M8c are combined controls: the M2, M4 and M8 condition faults applied to BOTH the post-apply dry run
 (evidence_db) and the credential-free exact-value check (evidence_gate), which repeats the same conditions.
 
 Every edit is anchored: its text must occur exactly once in the named step (or env block), or in that step's `if:`
@@ -62,6 +63,17 @@ CONTROLS = {
             [(GATE_STEP, 'if', '!cancelled()', 'always()'), (POST_STEP, 'if', '!cancelled()', 'always()')]),
     'M8c': ('M8 in BOTH evidence_gate and the post-apply dry run',
             [(GATE_STEP, 'if', ' && ' + INTEG, ''), (POST_STEP, 'if', ' && ' + INTEG, '')]),
+    # controls for the independent-review corrections (2026-11-05)
+    'M12': ('frozen-source list no longer compared with its anchor',
+            [('INTEGRITY_SH', 'block', 'elif [ "${got%% *}" != "$FROZEN_LIST_SHA256" ]; then', 'elif false; then')]),
+    'M13': ('working-tree mode check back to executable bits only',
+            [('INTEGRITY_SH', 'block', '! -perm 0644', '-perm /111')]),
+    'M14': ('apply step no longer checks the supabase binary hash',
+            [(APPLY_STEP, 'block', '[ "$(sha256sum 2>/dev/null < "$cli" | cut -d\' \' -f1)" != "$SUPABASE_CLI_SHA256" ]', 'false')]),
+    'M15': ('APPLIED no longer requires the applied set to equal the gate-verified set',
+            [(CLASSIFY_STEP, 'block', ' && [ -n "$marked" ] && [ "$applied" = "$marked" ]', '')]),
+    'M16': ('verify-package checkout back to the mutable v4 tag',
+            [('Check out the pinned commit', 'block', 'actions/checkout@11d5960a326750d5838078e36cf38b85af677262', 'actions/checkout@v4')]),
 }
 
 # control -> check group that must be among its failures (a behavioural, simulated-run check)

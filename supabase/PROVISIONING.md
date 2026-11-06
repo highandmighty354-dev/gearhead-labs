@@ -11,7 +11,7 @@
 
 Every step that writes to the project needs explicit owner approval first.
 
-## Provisioning workflow: Option B migration integrity (draft PR; not merged, never run)
+## Provisioning workflow: Option B migration integrity (draft PR; not merged; never dispatched in this repository)
 
 **Status (2026-11-05):**
 
@@ -25,25 +25,32 @@ Every step that writes to the project needs explicit owner approval first.
 | Merge and production release | **NOT AUTHORIZED** | decision record, §5 and §8 |
 
 - Implemented on branch `ops/option-b-migration-integrity` (draft PR #27). The basis is the B6 design FINAL PROPOSED v5 and the consolidated decision record.
-- **Not merged. Never dispatched.** It has been tested only locally, with a fake `supabase` command. No migration was created or changed. The package is still the 19-file `c69ec51` package.
-- Production is up to date, so this copy reports nothing pending, as the current copy does.
+- **Not merged. Never dispatched in this repository**, and never run against the production project or any hosted Supabase project. No migration was created or changed. The package is still the 19-file `c69ec51` package.
+- **How it has been tested** (details under **Tests** below):
+  - locally, with a simulated job runner and a fake `supabase` command (`workflow-option-b.test.py`, `workflow-pending-gate.test.py`, mutation controls);
+  - with the **real** Supabase CLI 2.119.0 against disposable local PostgreSQL 16.15 databases (B6-10, B6-20, B6-21, `cli-isolation.real-cli.sh`);
+  - on **real GitHub runners** in a separate private throwaway repository (`option-b-throwaway-test`), with test-only copies of this workflow, a fixture commit holding a byte-identical copy of the `c69ec51` `supabase/` tree, and a disposable PostgreSQL on the runner: the cancellation tests (fake CLI), the CLI-isolation and debug-suppression runs (real CLI), and the corrected-workflow runs 42134131538 (dry run) and 42134141026 (apply, **APPLIED**).
+- **Production has been at 0409 since 2026-10-22** (run #12). It therefore has nothing pending for this package: a production dry run with this copy fails its gate ("up to date" while 0409 is expected) and an apply ends NOT ATTEMPTED, exactly as with the current copy on `main`. `PRODUCTION_EXPECTED_PENDING` is deliberately left at 0409; the next production migration needs a new pinned package.
 
 **What changes.** The job that applies migrations now verifies, itself, the files it is about to apply. Before, it relied on the earlier `verify-package` job, which runs on a different runner.
 
 | Step | What it does | Credential |
 | --- | --- | --- |
-| `verify-package` check | commit; manifest format; the exact file set, including hidden, nested, ignored and untracked files, symlinks and special files; regular files with mode `100644`; `sha256sum --strict` of every file; frozen sources | none (job has no Environment) |
+| `verify-package` check | commit; manifest format; the exact file set, including hidden, nested, ignored and untracked files, symlinks and special files; mode `100644` blobs in the Git tree **and** working-tree permissions of exactly `0644` (no executable, group/other-write, setuid, setgid or sticky bit; read-only `0444` also fails); `sha256sum --strict` of every file; frozen sources, after the frozen-source list itself matches `FROZEN_LIST_SHA256` | none (job has no Environment) |
 | **V1** (own step, in both database jobs) | the same check on this job's own checkout, before its first CLI call | none in the step (CB-1) |
 | fresh dry run + exact pending gate (apply job) | the existing `pending_gate` and end-of-order check, against the manifest's list (never `ls`). The **last** command writes a gate-pass marker | in the step |
 | **V2** + apply | refuses without the marker; then V2 is **literally the last command before** `supabase db push --yes` | in the step; the integrity script runs with it removed (CB-2) |
 | evidence: **V3** and local evidence | always runs in apply mode. Records V1, V2 and V3 (each PASS, MISMATCH or NOT_COMPLETED) and the run's **integrity result**: MISMATCH if **any** of them verified a discrepancy, even if a later check passed; otherwise NOT_COMPLETED if any could not complete; otherwise PASS | none (CB-3) |
 | evidence: exact-value gate (`evidence_gate`) | no credential. Runs the exact, case-sensitive checks for V3 and the aggregate integrity result. Writes `exact=yes` only for the exact allowed values; rejects missing, unexpected or differently-cased values | none |
 | evidence: post-apply dry run (`evidence_db`) | read-only. Runs only after `evidence_gate` succeeds with `exact=yes`, the V3 step succeeded, V3 is PASS or NOT_COMPLETED, **and the run's integrity result is not MISMATCH** (no verified discrepancy at V1, V2 or V3), and not after cancellation (`!cancelled()`). It repeats the exact-value check as defence in depth | in the step, only after the credential-free gate passes |
-| evidence: classification | APPLIED (the only success), INTEGRITY INCIDENT, EVIDENCE INCOMPLETE, APPLY FAILED, NOT ATTEMPTED. A verified MISMATCH at V1, V2 or V3 is always INTEGRITY INCIDENT, naming the stage(s). A check that could not complete is EVIDENCE INCOMPLETE, never INTEGRITY INCIDENT | none |
+| evidence: classification | APPLIED (the only success), INTEGRITY INCIDENT, EVIDENCE INCOMPLETE, APPLY FAILED, NOT ATTEMPTED. A verified MISMATCH at V1, V2 or V3 is always INTEGRITY INCIDENT, naming the stage(s). A check that could not complete is EVIDENCE INCOMPLETE, never INTEGRITY INCIDENT. **APPLIED also requires** the CLI's own `Applying migration <file>...` lines to equal the gate-pass marker exactly, in order; otherwise EVIDENCE INCOMPLETE | none |
 
 **Other points:**
 - **One manifest and one integrity script**, each defined once in the workflow's `env:` (`MIGRATION_MANIFEST`, `INTEGRITY_SH`). The keep-alive audit still reads the same 19 manifest lines.
 - **P1:** all four `supabase db push` calls pass `--workdir "$GITHUB_WORKSPACE"`. Every database step first asserts that `$GITHUB_WORKSPACE` is the current directory, the Git top level and at the pinned commit. So the CLI reads exactly the folder the checks verify.
+- **Frozen-source list anchor:** `supabase/FROZEN-SOURCES.sha256` is trusted only if its SHA-256 equals `FROZEN_LIST_SHA256` (`7a9d856f…c03b`, the list at `c69ec51`), a literal in the integrity script. Before this, a frozen file changed together with its own list entry passed. Change the anchor only with a new pinned package.
+- **Action pins:** `actions/checkout@11d5960a…` (v4.4.0) and `supabase/setup-cli@1dedf2c6…` (v1.7.3). `@v1` had been the `v1` **branch** of setup-cli (there is no `v1` tag). Both were verified against the upstream repositories: the commits exist there and the named release tags point to them. `premium/tests/action-pins.network.sh` re-checks this.
+- **CLI binary verification:** `setup-cli` downloads the CLI release archive without verifying it. Each of the four `db push` steps refuses to run unless the `supabase` on `PATH` and the `supabase-go` beside it have the SHA-256 values `SUPABASE_CLI_SHA256` / `SUPABASE_GO_SHA256`. Those values come from `supabase_2.119.0_linux_amd64.tar.gz`, whose SHA-256 matches the release's `checksums.txt`. The check runs after the isolation guard, before the database URL is built and before any CLI call. `db push` does not execute `supabase-go` (it only checks that it exists, per `strace`), but both are pinned.
 
 **Owner rules:**
 - **No one intentionally cancels a running apply.**
@@ -56,7 +63,7 @@ Every step that writes to the project needs explicit owner approval first.
 
 Every other risk below is **disclosed, with no separate acceptance recorded**:
 - Option B is **not atomic and not race-free.** A change after V2 and before the CLI reads a file would be applied; that race is accepted under Decision 4. V3 sees such a change only if it persists. A change made and restored escapes every check.
-- **The production-state race** between the fresh dry run and `--yes` remains.
+- **The production-state race** between the fresh dry run and `--yes` remains; since 2026-11-05 it is detected, not prevented (R4 below).
 - **V3 checks the migration files at the time it runs.** It does not prove which bytes the CLI read, that the migration completed fully, or the database state. The post-apply dry run is separate evidence about migration history, and F1 checks the database contents.
 - **Cancellation** (accepted under Decision 5, with the recovery rule): after a whole-job cancellation, the evidence steps may not run or finish. A cancellation during `--yes` may leave a migration partially applied.
   - **Observed in the throwaway-repository tests (2026-11-05).** These runs used a fake `supabase` command, not the real CLI and not a database. They show how GitHub handles cancellation. They do **not** show that any production migration was partially applied.
@@ -68,7 +75,45 @@ Every other risk below is **disclosed, with no separate acceptance recorded**:
     - **Transactional migration:** the CLI exited with code 130 about 0.1 s after SIGINT. The database server kept working: about 22 s later it finished the remaining statements, committed them and recorded the migration-history row. A later dry run reported the database up to date. Stopping the CLI did not stop or roll back that migration.
     - **Migration with a statement that cannot run inside a transaction (`CREATE INDEX CONCURRENTLY`):** the CLI exited with code 130 about 0.1 s after SIGINT. The server completed the statement already in progress. The two statements before it stayed committed (a table and its 1,000 rows). The later statements (the index and a second table) never executed. **No migration-history row was recorded**, and a later dry run reported the migration as **pending**. A normal retry could fail, because the objects the earlier statements created already exist.
     - **A migration reported as pending after an interruption does not show that the database is unchanged, or that a retry is safe.** Part of it may already be committed. The recovery rule above still applies: no retry until read-only F1 checks have established the actual database state and the owner has authorized the next step.
-- **CB-1, CB-2 and CB-3 only reduce accidental credential exposure.** The `env` launcher and the step shells still hold the credential. The CLI receives it as a command-line argument. The hosted runner (passwordless `sudo`, one user) gives no isolation between processes.
+- **CB-1, CB-2 and CB-3 only reduce accidental credential exposure.** The `env` launcher and the step shells still hold the credential. The CLI receives it as a command-line argument. The hosted runner (passwordless `sudo`, one user) gives no isolation between processes. The action pins and the CLI binary check (2026-11-05) narrow what code can run with the credential, but do not change these limits (R3 below).
+- **Four risks re-examined after the independent review (2026-11-05).** None of them is newly accepted here. Decisions 4 and 5 above are unchanged; the owner decisions these risks raise are listed separately after R4.
+  - **R1. Partial database changes after an interruption that is not a cancellation.**
+    - *Scenario:* during `supabase db push --yes`, the runner is lost, the job hits its time limit, the network or the Session pooler drops the connection, or the CLI crashes, part-way through a migration.
+    - *Consequence:* it depends on the migration file. A file that is one transaction either commits completely or not at all, but its migration-history row can still be missing, so it shows as pending again (B6-20: the server finished and committed after the client was gone). A file with statements that cannot run inside a transaction (such as `CREATE INDEX CONCURRENTLY`) can leave committed partial changes and no history row (B6-20); a plain retry may then fail.
+    - *Existing safeguards:* the package is reviewed and pinned by hash. All 16 non-frozen files of this package have an explicit `BEGIN`/`COMMIT`, and none of the 19 uses `CONCURRENTLY`. 0409, the only file production ever had pending from this package, is one idempotent transaction with a post-condition and is already applied. The CLI stops at the first error. The run is classified APPLY FAILED or EVIDENCE INCOMPLETE, never APPLIED, and the stop rule applies.
+    - *Why there is no workflow fix:* whether a migration is atomic is a property of the file, not of the workflow. A workflow-side SQL check would have to parse SQL, and it would reject the frozen files 0001, 0002 and 0101, which have no explicit transaction and must not be edited, so it would block a fresh rehearsal unless it carried a per-file exemption list. That is not proportionate.
+    - *Residual risk:* an interruption can leave the database partly changed, or its migration history out of step with its contents. The workflow cannot prevent this.
+    - *Recovery:* the existing recovery rule. Stop; preserve the logs; notify Trent; establish with read-only F1 checks, for each file that was pending, whether its changes are absent, complete or partial, and whether its history row exists. What happens next (a new approved apply, a history correction, a manual fix or a restore) is decided by the owner. The workflow never retries or repairs.
+  - **R2. V3's verification boundary.**
+    - *Scenario:* a migration file is changed after V2 and restored before V3 runs, so the CLI may read bytes that no check ever sees.
+    - *Consequence:* SQL other than the approved bytes could be applied, and the run could still be classified APPLIED.
+    - *Existing safeguards:* a fresh, single-use runner; a checkout of the pinned commit; V1, then V2 as the last command before `--yes`, then V3; the exact file set, modes and frozen-source anchor. The only code that runs in the job is the workflow's own scripts, the two pinned actions and the hash-verified CLI. A change in that window needs code running on the runner during the job.
+    - *Why it cannot be closed here:* closing it needs the CLI to read an immutable verified copy, or to report a hash of what it executed. CLI 2.119.0 does neither. Making the folder read-only does not stop a process running as the same user or with `sudo`. Decision 4 accepts the V2-to-CLI race; this is the same window, seen from V3.
+    - *Residual risk:* a transient change escapes every check (simulated in B6-08).
+    - *Recovery:* the workflow cannot detect it. F1 checks compare the database contents with the expected state after the migration; any difference triggers the recovery rule.
+  - **R3. GitHub runner and credential exposure.**
+    - *Scenario:* code running in the job reads the database password or URL: a compromised action, a replaced CLI release file, another process on the runner (one user, passwordless `sudo`), the CLI's command line, or a log.
+    - *Consequence:* disclosure of the target database's credentials, which allow full changes to that database.
+    - *Safeguards, after the 2026-11-05 corrections:*
+      - both actions pinned to verified commit SHAs (new);
+      - both CLI binaries checked against their SHA-256 values before the credential is used (new);
+      - the credential is mapped only onto the four steps that build the URL; CB-1, CB-2 and CB-3; masking;
+      - telemetry, the trace log, the upgrade check and debug output off;
+      - `permissions: contents: read`; `persist-credentials: false`;
+      - a required reviewer on the `production` Environment.
+    - *Residual risk:* no isolation between processes on the hosted runner. The CLI receives the URL as an argument. `setup-cli` runs `supabase --version` before the hash check, in a step without the credential. GitHub itself is trusted. The `production` Environment still allows administrator bypass and has no branch restriction (see **GitHub configuration** below); that is an owner action.
+    - *Recovery:* if exposure is suspected, rotate the database password in the Supabase dashboard, update the Environment secret, and review the Supabase logs. These are owner actions.
+  - **R4. The production-state race between the fresh dry run and `--yes`.**
+    - *Scenario:* in the few seconds between the pending gate and `--yes` (while V2 runs), production's migration history changes through another path: the dashboard SQL editor, another CLI session, or another workflow. The concurrency group serializes this workflow per target, but not anything else.
+    - *Consequence:* the CLI works out its own pending list at `--yes`, so it may apply fewer or more files than the gate verified. Only files in the verified package can be applied, because the CLI reads only the verified workspace, and the CLI refuses outright when the database holds a version it does not know.
+    - *New safeguard (detection, not prevention):* APPLIED requires the CLI's own `Applying migration <file>...` lines to equal the gate-pass marker exactly, in order. Otherwise the run is EVIDENCE INCOMPLETE and the stop rule applies (B6-34, verified on a real runner, run 42134141026).
+    - *Residual risk:* the race cannot be prevented with CLI 2.119.0; it can only be detected after the apply.
+    - *Recovery:* the recovery rule: stop, then F1 checks to establish what was applied.
+  - **Owner decisions these raise (none taken here):**
+    1. R1: whether to adopt a package-review rule that every new migration is one transaction, idempotent, without `CONCURRENTLY`, and with a post-condition (0408 and 0409 already are).
+    2. R2: whether to accept the transient-change escape as a residual risk. It is disclosed, not accepted.
+    3. R3: whether to accept the remaining runner and credential-exposure limits, and whether to make the `production` Environment changes listed under **GitHub configuration**.
+    4. R4: whether to adopt an operating rule that nothing else changes production's schema or migration history while an apply is approved or running, and whether to accept the residual race.
 - **AP-5b case-sensitivity workaround (corrected in commit `8c02481`).** GitHub compares strings case-insensitively in `if:`, so a case variant such as `pass` could satisfy a workflow condition.
   - The workflow now runs a separate `evidence_gate` step first. It has **no database credential** and checks the V3 and aggregate integrity values character for character.
   - Only if that credential-free step succeeds and records `exact=yes` can the credential-bearing `evidence_db` post-apply dry-run step start. A differently-cased, missing or unexpected value is rejected before the database credential is made available to that step.
@@ -139,16 +184,65 @@ Every other risk below is **disclosed, with no separate acceptance recorded**:
 - **Not yet proven at run time:** how the CLI behaves on a GitHub runner against **hosted** Supabase (its Session pooler), and how GitHub evaluates the AP-5b condition with unusual values (simulated only, B6-28).
   - In the throwaway apply run 42081870008, GitHub evaluated the AP-5b condition on the success path. The post-apply dry run ran and the run was classified APPLIED, using the real CLI with `--workdir` against a disposable database on the runner.
 
-**Tests** (local unless marked as real GitHub). The latest local run used the test code in the commit that adds this paragraph. The workflow, migrations and manifest it tested are unchanged since `c20c232`:
-- `python3 premium/tests/workflow-option-b.test.py`: **241 checks, 0 failures**. These include:
+**GitHub configuration (verified 2026-11-05; nothing was changed).**
+- **Verified:**
+  - `main`: **no branch protection** (API: `protected: false`; protection endpoint "Branch not protected"); **no rulesets** (API: `[]`).
+  - `production` Environment (Settings page, read in a signed-in browser):
+    - required reviewer `highandmighty354-dev`: on;
+    - prevent self-review: off;
+    - wait timer: off;
+    - **allow administrators to bypass: on**;
+    - **deployment branches and tags: no restriction**;
+    - one secret `SUPABASE_DB_PASSWORD`; one variable `SUPABASE_POOLER_URL` (production project `jmztpjudwzjvrcdtjynd`, Session pooler, with the `[YOUR-PASSWORD]` placeholder).
+  - `rehearsal` Environment: no reviewers, no branch restriction, **no secrets and no variables** (not configured).
+  - Actions settings:
+    - all actions allowed;
+    - "Require actions to be pinned to a full-length commit SHA": off;
+    - default `GITHUB_TOKEN`: read-only;
+    - approval required for first-time contributors;
+    - Actions cannot approve pull requests.
+- **Not verified:** the collaborator list. The API path is blocked for Claude's sessions, and the Access page asks for GitHub sudo re-authentication.
+- **Why nothing was changed:** the API write paths for branch protection and rulesets are blocked by the session's network proxy, and a change in the signed-in browser was declined by the session's permission system. These settings therefore need the owner.
+- **Owner actions (in GitHub → Settings):**
+  1. **Branches → Add branch ruleset (or classic rule) for `main`:**
+     - require a pull request before merging;
+     - include administrators;
+     - block force pushes and deletion.
+
+     The required-approvals count is an owner decision. With one maintainer, GitHub does not let you approve your own pull request, so requiring 1 approval blocks every merge unless administrators may bypass, and a bypass also covers agent sessions that use your token. `prepare-supabase.yml` pushes `supabase-config.js` straight to `main` as `github-actions[bot]` when the public configuration changes. Under this rule that push fails until the bot is allowed to bypass or the change goes through a pull request.
+  2. **Environments → production:**
+     - set "Deployment branches and tags" to **Selected branches and tags → `main`**, so that only workflow revisions that reached `main` can receive the production password;
+     - untick **Allow administrators to bypass configured protection rules**.
+
+     Effect: production runs can no longer start from a feature branch, as runs #10 and #12 did. PR #27's workflow could reach production only after it is merged.
+  3. **Environments → rehearsal**, before any rehearsal:
+     - add a disposable, non-production project's Session pooler URL as variable `SUPABASE_POOLER_URL`, keeping `[YOUR-PASSWORD]`, and its password as secret `SUPABASE_DB_PASSWORD`;
+     - add a required reviewer;
+     - limit deployment branches to `main` and `ops/option-b-migration-integrity`.
+  4. Optional: **Actions → General → Require actions to be pinned to a full-length commit SHA.** First pin `actions/checkout@v4` in `prepare-supabase.yml` and `actions/checkout@v5` in `supabase-keepalive.yml`, which are outside PR #27; otherwise those workflows stop.
+
+**Tests** (local unless marked as real GitHub). The latest runs (2026-11-05) used the workflow and test code of commit `b688575` plus the test-only additions in the commit that adds this paragraph. The migrations, manifest and pin are unchanged since `c69ec51`:
+- `python3 premium/tests/workflow-option-b.test.py`: **291 checks, 0 failures**. These include:
   - B6-28 (14 checks) for the credential-free exact-value gate;
   - B6-29 (44 checks) for CLI isolation: all six CLI steps including both debug switches, the guard's position, and simulated fail-closed cases for each switch missing or wrong;
-  - B6-25g (2 checks, added with this paragraph), described below.
+  - B6-25g (2 checks), described below;
+  - added for the independent-review corrections:
+    - **B6-30** (15): the frozen-source list anchor. Covers the list changed together with a frozen file, an entry changed, a comment changed, an entry removed, a line appended, the list emptied or replaced by a symlink, a frozen file changed, a wrong anchor, and an unhashable list. A control shows that without the anchor the internally consistent tampering passed;
+    - **B6-31** (15): working-tree modes. A fresh checkout is 0644 and passes; 0755, 0744, 0654, 0600, 0640, 0664, 0666, 0646, 0444, 4644, 2644 and 1644 all fail; the Git-tree `100644` check is unchanged;
+    - **B6-32** (3): every action reference is a verified 40-hex SHA with its release in a comment; inputs unchanged;
+    - **B6-33** (8): the CLI-binary constants, the guard's position in all four `db push` steps, and simulated refusals: wrong `supabase`, wrong or missing `supabase-go`, the binary changed between the preflight and the apply step, the post-apply step, and the dry-run job;
+    - **B6-34** (9): APPLIED only for exactly the gate-verified set. Applying nothing, an extra file, a duplicate, a different file, a reordered set or a missing marker gives EVIDENCE INCOMPLETE; CRLF output, rehearsal with one file pending, and all 19 pending each give APPLIED.
   - Against the previous workflow (`e88c76a`), B6-29 fails 28 checks, as expected. Structural checks plus a local simulation of the jobs; it is **not** GitHub Actions.
 - B6-28 was also run against the previous workflow at `49af33f` and failed as expected because the credential-free gate step was absent.
 - `python3 premium/tests/workflow-pending-gate.test.py`: **62 checks, 0 failures**. The steps now run with the workflow's own isolation values.
-- `SUPABASE_CLI_BIN=<dir> bash premium/tests/cli-isolation.real-cli.sh`: **16 checks, 0 failures** with the real CLI 2.119.0, including both debug routes and their positive controls. This test is opt-in.
-- All three are in `premium/tests/run-tests.sh`. The real-CLI test runs only when `SUPABASE_CLI_BIN` is set; otherwise it prints NOT RUN.
+- `SUPABASE_CLI_BIN=<dir> bash premium/tests/cli-isolation.real-cli.sh`: **18 checks, 0 failures** with the real CLI 2.119.0, including both debug routes and their positive controls, and (B1, B2) that the workflow's `SUPABASE_CLI_SHA256` / `SUPABASE_GO_SHA256` are the SHA-256 of the real binaries. This test is opt-in.
+- `bash premium/tests/action-pins.network.sh`: **2 of 2 pins verified** against the upstream repositories (needs network; opt-in). A deliberately wrong SHA and a reverted `@v4` tag were both reported as failures.
+- All four are in `premium/tests/run-tests.sh`. The real-CLI test runs only when `SUPABASE_CLI_BIN` is set, and the pin check only when `ACTION_PINS_NETWORK=1`; otherwise each prints NOT RUN. The complete `run-tests.sh` passed with both switched on: catalogue, encyclopedia and register checks OK; pending gate 62/0; Option B 291/0; real CLI 18/0; action pins 2/2; frontend adapter 55/55; schema contract 26/26 on a disposable local PostgreSQL 16.15.
+- **Real GitHub, corrected workflow (2026-11-05):** throwaway-repository copy of the `b688575` workflow, with the real pinned actions and the real CLI as installed by the pinned `setup-cli`, against a disposable PostgreSQL on the runner. Test-only substitutions: the database, a random masked test password, the fixture pin, and no Environment.
+  - dry run [42134131538](https://github.com/highandmighty354-dev/option-b-throwaway-test/actions/runs/42134131538): success;
+  - apply [42134141026](https://github.com/highandmighty354-dev/option-b-throwaway-test/actions/runs/42134141026): 19 files applied, classified **APPLIED** ("it applied exactly the gate-verified migration(s)": 19 `Applying migration` lines, 19 marker lines).
+  - On both runners: umask `0022` and all 19 files exactly `0644`; the checked-out frozen list matched `FROZEN_LIST_SHA256`; the installed `supabase` and `supabase-go` matched both SHA-256 constants. The test password never appeared unmasked in the logs.
+  - **Limits:** this is not hosted Supabase, not the Session pooler, and not the `rehearsal` or `production` Environment.
 - **B6-25g (simulated whole-run cancellation during the apply step).**
   - The test forces this state: the apply step is recorded as cancelled, then the V3 evidence step (`always()`) still succeeds with allowed values, once with V3 PASS and once with V3 NOT_COMPLETED.
   - It requires that the credential-free exact-value check (`evidence_gate`) and the credential-bearing post-apply dry run are **both skipped**, and that no CLI call follows the apply.
@@ -159,13 +253,20 @@ Every other risk below is **disclosed, with no separate acceptance recorded**:
     - It does not prove every GitHub cancellation scenario.
     - It does not change the Supabase interruption risks recorded under Residual risks (B6-20, B6-25c), which still stand.
     - It has not been run on real GitHub.
-- **Mutation controls:** `python3 premium/tests/workflow-mutation-controls.py`. Not part of `run-tests.sh`; it takes several minutes.
+- **Mutation controls:** `python3 premium/tests/workflow-mutation-controls.py`. Not part of `run-tests.sh`; it takes several minutes. **Latest run (2026-11-05, after the corrections): baseline clean (291/0 and 62/0); 19 of 19 caught** (M1–M11, M2c, M4c, M8c and the new M12–M16); none stale, errored or survived. New controls:
+  - M12, frozen anchor comparison removed: 8 failures (B6-30);
+  - M13, mode check back to executable bits only: 9 (B6-31);
+  - M14, apply step's binary hash check removed: 2 (B6-33);
+  - M15, APPLIED without the exact applied set: 6 (B6-34);
+  - M16, verify-package checkout back to `@v4`: 2 (B6-32).
+
+  The results below for M1–M11 and the combined controls are from the previous run at `3021ab1`. The latest run caught them all again; M1 now fails 27 checks and M6 20, because the new tests also see those faults.
   - **How it works:**
     - Each control injects one deliberate fault into a copy of the workflow and runs both suites against it.
     - A control counts as caught only when a suite finishes and reports at least one failure.
     - A suite crash counts as ERROR, and an edit that no longer applies exactly once counts as STALE; both fail the script.
     - The unmodified workflow is run first and must be clean.
-  - **Run against the current workflow** (unchanged since `c20c232`; the previous run was at `71769c9`):
+  - **Run at `3021ab1`** (workflow then unchanged since `c20c232`; the run before that was at `71769c9`):
     - baseline clean (241/0 and 62/0);
     - 14 of 14 controls caught; none stale, errored or survived.
   - **M3 harness correction.** At `b80f326`, M3 (`--workdir` removed from the `--yes` call) crashed the Option B suite instead of failing it. The B6-29 check could not find the `--yes` line.
