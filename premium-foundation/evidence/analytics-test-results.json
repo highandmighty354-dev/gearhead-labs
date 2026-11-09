@@ -1,0 +1,82 @@
+[
+  {
+    "group": "security",
+    "name": "no client role can read or write any analytics table; RLS enabled and forced; no policies",
+    "pass": true
+  },
+  {
+    "group": "security",
+    "name": "function privileges: ingest = service_role only; dashboard/refresh = signed-in only; rollup/purge = nobody",
+    "pass": true
+  },
+  {
+    "group": "owner",
+    "name": "owner gets the report; a signed-in non-owner, a token without a user, anon and service_role are refused",
+    "pass": true
+  },
+  {
+    "group": "validation",
+    "name": "only catalogued events with allow-listed, well-typed properties are stored; each rejection is counted by reason",
+    "pass": true
+  },
+  {
+    "group": "validation",
+    "name": "bad envelopes: unknown env, empty, oversize (>20) and non-array batches are refused without storing anything",
+    "pass": true
+  },
+  {
+    "group": "duplicates",
+    "name": "a replayed event id is stored once and counted as a duplicate (sendBeacon + retry)",
+    "pass": true
+  },
+  {
+    "group": "abuse",
+    "name": "per-session cap (500 / 24 h), bot flag, skewed client clock, client error counters",
+    "pass": true
+  },
+  {
+    "group": "sessions",
+    "name": "sessionisation: 30-minute gap splits a session; landing/exit pages; channels; engaged flag; time cap; bots flagged",
+    "pass": true
+  },
+  {
+    "group": "aggregation",
+    "name": "daily rollup matches the hand-computed answers; re-running it changes nothing (idempotent)",
+    "pass": true
+  },
+  {
+    "group": "dashboard",
+    "name": "owner report: KPIs, previous-period comparison, date filter boundaries, environment separation, funnel, health",
+    "pass": true
+  },
+  {
+    "group": "dashboard",
+    "name": "empty range returns zeros, not errors; refresh is owner-only and rolls up today",
+    "pass": true
+  },
+  {
+    "group": "retention",
+    "name": "purge deletes raw events older than 90 days (rolling them up first) and keeps the daily rollup",
+    "pass": true
+  },
+  {
+    "group": "billing",
+    "name": "Stripe figures: pending with no data, still pending with TEST-mode data only, live figures from billing tables only",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "handler: live origin -> live env; preview origin -> test; localhost -> dev; UA reduced to a family; always 204",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "handler: refuses foreign origins, GET, oversize bodies, >20 events, junk JSON, rate-limit overflow and the kill switch; never errors",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "handler: database down -> still 204, nothing thrown (the page never sees a failure)",
+    "pass": true
+  }
+]

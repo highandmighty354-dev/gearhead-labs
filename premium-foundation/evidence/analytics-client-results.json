@@ -1,0 +1,64 @@
+{
+  "checks": [
+    {
+      "name": "shipped default: analytics is OFF — no request, no storage, calculators unchanged",
+      "pass": true
+    },
+    {
+      "name": "page views: a live re-render on every keystroke is NOT a new page view; navigation is",
+      "pass": true
+    },
+    {
+      "name": "calculator: start on first input (once), complete 2 s after the last input with a valid result (once); no input values sent",
+      "pass": true
+    },
+    {
+      "name": "calculator: abandonment = started, then left before a completion (no calc_complete; page_leave sent)",
+      "pass": true
+    },
+    {
+      "name": "engagement: active time is counted; time after 30 s without activity is not",
+      "pass": true
+    },
+    {
+      "name": "search: result count after 1.5 s idle, click rank on choosing a result; the search text is never sent",
+      "pass": true
+    },
+    {
+      "name": "Premium funnel: gate view on a Premium calculator, offer view + sign-in request on Profile, checkout return once",
+      "pass": true
+    },
+    {
+      "name": "privacy: every payload has only envelope fields; page keys never carry a URL, query or email; GPC => session-only visitor id",
+      "pass": true
+    },
+    {
+      "name": "ingestion down: calculators keep working, no page error, queue stays capped at 50, sending backs off",
+      "pass": true
+    },
+    {
+      "name": "performance: typing into a calculator with analytics ON vs OFF (same machine, alternating runs)",
+      "pass": true
+    }
+  ],
+  "performance": {
+    "off": [
+      448.29999999981374,
+      329,
+      367.40000000037253,
+      592.6000000000931,
+      368.5,
+      423.89999999990687
+    ],
+    "on": [
+      345.3000000002794,
+      403.10000000009313,
+      467.70000000018626,
+      448.60000000009313,
+      504.10000000009313,
+      454.6999999997206
+    ],
+    "median_off_ms": 423.89999999990687,
+    "median_on_ms": 454.6999999997206
+  }
+}

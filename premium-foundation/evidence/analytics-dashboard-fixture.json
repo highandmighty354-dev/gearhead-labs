@@ -1,0 +1,229 @@
+{
+  "note": "SYNTHETIC test data from analytics.test.js (throwaway database), not real traffic",
+  "report": {
+    "kpis": {
+      "sessions": 4,
+      "visitors": 3,
+      "page_views": 5,
+      "new_visitors": 2,
+      "avg_engaged_ms": 467000,
+      "engaged_sessions": 2,
+      "pages_per_session": 1.25,
+      "returning_visitors": 1
+    },
+    "pages": [
+      {
+        "page": "calc:hp_from_et",
+        "exits": 2,
+        "views": 2,
+        "leaves": 2,
+        "entrances": 1,
+        "engaged_ms": 23000
+      },
+      {
+        "page": "home",
+        "exits": 0,
+        "views": 1,
+        "leaves": 1,
+        "entrances": 1,
+        "engaged_ms": 40000
+      },
+      {
+        "page": "lab:diesel",
+        "exits": 1,
+        "views": 1,
+        "leaves": 1,
+        "entrances": 1,
+        "engaged_ms": 5000
+      },
+      {
+        "page": "view:home",
+        "exits": 1,
+        "views": 1,
+        "leaves": 1,
+        "entrances": 1,
+        "engaged_ms": 1800000
+      }
+    ],
+    "range": {
+      "to": "2026-11-08",
+      "env": "test",
+      "from": "2026-11-02",
+      "timezone": "America/New_York",
+      "previous_to": "2026-11-01",
+      "previous_from": "2026-10-26"
+    },
+    "trend": [
+      {
+        "day": "2026-11-02",
+        "sessions": 0,
+        "visitors": 0,
+        "page_views": 0
+      },
+      {
+        "day": "2026-11-03",
+        "sessions": 4,
+        "visitors": 3,
+        "page_views": 5
+      },
+      {
+        "day": "2026-11-04",
+        "sessions": 0,
+        "visitors": 0,
+        "page_views": 0
+      },
+      {
+        "day": "2026-11-05",
+        "sessions": 0,
+        "visitors": 0,
+        "page_views": 0
+      },
+      {
+        "day": "2026-11-06",
+        "sessions": 0,
+        "visitors": 0,
+        "page_views": 0
+      },
+      {
+        "day": "2026-11-07",
+        "sessions": 0,
+        "visitors": 0,
+        "page_views": 0
+      },
+      {
+        "day": "2026-11-08",
+        "sessions": 0,
+        "visitors": 0,
+        "page_views": 0
+      }
+    ],
+    "funnel": [
+      {
+        "step": "premium_gate_view",
+        "events": 0,
+        "sessions": 0
+      },
+      {
+        "step": "premium_offer_view",
+        "events": 1,
+        "sessions": 1
+      },
+      {
+        "step": "signin_request",
+        "events": 0,
+        "sessions": 0
+      },
+      {
+        "step": "signin_complete",
+        "events": 0,
+        "sessions": 0
+      },
+      {
+        "step": "trial_click",
+        "events": 1,
+        "sessions": 1
+      },
+      {
+        "step": "checkout_redirect",
+        "events": 0,
+        "sessions": 0
+      },
+      {
+        "step": "checkout_return:success",
+        "events": 1,
+        "sessions": 1
+      },
+      {
+        "step": "checkout_return:cancelled",
+        "events": 0,
+        "sessions": 0
+      },
+      {
+        "step": "portal_open",
+        "events": 0,
+        "sessions": 0
+      }
+    ],
+    "health": {
+      "by_day": [],
+      "totals": {},
+      "bot_sessions": 1,
+      "last_event_at": "2026-11-09T17:32:00+00:00",
+      "last_rollup_at": "2026-11-09T11:29:53.723998+00:00",
+      "raw_retention_days": 90
+    },
+    "search": {
+      "searches": 0,
+      "zero_results": 0,
+      "result_clicks": 0
+    },
+    "billing": {
+      "reason": "No live-mode Stripe data yet (test-mode data is never counted).",
+      "status": "pending"
+    },
+    "channels": [
+      {
+        "channel": "direct",
+        "engaged": 0,
+        "sessions": 2
+      },
+      {
+        "channel": "campaign",
+        "engaged": 1,
+        "sessions": 1
+      },
+      {
+        "channel": "organic",
+        "engaged": 1,
+        "sessions": 1
+      }
+    ],
+    "campaigns": [
+      {
+        "medium": "email",
+        "source": "newsletter",
+        "engaged": 1,
+        "campaign": "fall",
+        "sessions": 1
+      }
+    ],
+    "referrers": [
+      {
+        "host": "www.google.com",
+        "sessions": 1
+      }
+    ],
+    "navigation": {
+      "top_paths": [
+        {
+          "n": 1,
+          "path": "home>calc:hp_from_et"
+        }
+      ],
+      "by_element": {
+        "lab_tile": 1
+      }
+    },
+    "calculators": [
+      {
+        "views": 2,
+        "starts": 2,
+        "calc_id": "hp_from_et",
+        "abandons": 1,
+        "completes": 1,
+        "ms_to_complete": 9000,
+        "premium_gate_views": 0
+      }
+    ],
+    "kpis_previous": {
+      "sessions": 4,
+      "visitors": 3,
+      "page_views": 5,
+      "new_visitors": 2,
+      "avg_engaged_ms": 467000,
+      "engaged_sessions": 2,
+      "pages_per_session": 1.25,
+      "returning_visitors": 1
+    }
+  }
+}

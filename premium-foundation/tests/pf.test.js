@@ -22,15 +22,18 @@ const EXPECTED_MIGRATIONS = ['0001_enums.sql', '0002_tables.sql', '0003_constrai
   '0101_test_setups.sql', '0102_test_setups_triggers.sql', '0103_test_setups_rls.sql', '0201_value_write_boundary.sql',
   '0301_value_foundation_v1_seed.sql', '0401_automotive_only.sql', '0402_premium_entitlements.sql', '0403_premium_profiles.sql',
   '0404_premium_garage.sql', '0405_premium_saved_calculations.sql', '0406_premium_engineering_analyses.sql',
-  '0407_premium_product_model.sql', '0408_formula_versions_corrected_formulas.sql'];
-const PUBLIC_TABLES = ['accounts', 'billing_customers', 'calculation_records', 'calculators', 'canonical_fields', 'component_connections',
+  '0407_premium_product_model.sql', '0408_formula_versions_corrected_formulas.sql',
+  '0409_formula_versions_fuel_pump_validity.sql', '0501_analytics.sql'];
+const PUBLIC_TABLES = ['accounts', 'analytics_daily', 'analytics_events', 'analytics_ingest_stats', 'analytics_owners', 'analytics_rollup_runs',
+  'analytics_sessions', 'billing_customers', 'calculation_records', 'calculators', 'canonical_fields', 'component_connections',
   'components', 'engineering_analyses', 'engineering_analyzers', 'entitlement_grants', 'formula_versions', 'garages', 'machine_details',
   'machines', 'plan_offers', 'plan_prices', 'plans', 'profiles', 'saved_calculations', 'stripe_events', 'subscriptions', 'test_setups', 'value_records'];
-const SECURITY_DEFINERS = ['df_handle_new_auth_user', 'df_soft_delete_component', 'df_soft_delete_connection', 'df_soft_delete_garage',
+const SECURITY_DEFINERS = ['analytics_billing_metrics', 'analytics_count', 'analytics_dashboard', 'analytics_ingest', 'analytics_is_owner',
+  'analytics_purge', 'analytics_refresh', 'analytics_require_owner', 'analytics_rollup', 'df_handle_new_auth_user', 'df_soft_delete_component', 'df_soft_delete_connection', 'df_soft_delete_garage',
   'df_soft_delete_machine', 'gf_repin_test_setup_baseline', 'gf_soft_delete_test_setup', 'pf_engineering_analysis_check',
   'pf_handle_new_auth_user', 'pf_has_feature', 'pf_machine_details_primary', 'pf_my_entitlement', 'pf_saved_calculation_links',
   'pf_soft_delete_engineering_analysis', 'pf_soft_delete_saved_calculation'];
-const SERVICE_ONLY = ['pf_grant_manual(uuid, text, timestamptz, text)', 'pf_revoke_grant(uuid)',
+const SERVICE_ONLY = ['analytics_ingest(jsonb, jsonb)', 'pf_grant_manual(uuid, text, timestamptz, text)', 'pf_revoke_grant(uuid)',
   'pf_record_stripe_event(text, text, timestamptz, jsonb)', 'pf_mark_stripe_event_processed(text)', 'pf_upsert_billing_customer(uuid, text)',
   'pf_sync_stripe_subscription(text, uuid, text, text, text, timestamptz, timestamptz, boolean, timestamptz, timestamptz, timestamptz)'];
 const BILLING = ['billing_customers', 'subscriptions', 'entitlement_grants', 'stripe_events', 'plans', 'plan_prices', 'plan_offers'];
@@ -193,7 +196,7 @@ check('integrity', '0408 (GH-ENG-014): exactly the four corrected formula versio
     { calculator_id: 'distance_converter', formula_version: 'fv1-36d27af2', engine_version: '1.1.0', formula_registry: 'GH_LEGACY_FORMULAS', first_release: 'F1.12.3' }], 'original rows');
   eq(await one(c, `SELECT count(*)::int FROM formula_versions WHERE first_release <> 'F1.12.3'`), 4, 'only the four 0408 rows are not from the 0005 seed');
 });
-check('integrity', 'exactly the 22 expected public tables; RLS enabled AND forced on every one', async (c) => {
+check('integrity', 'exactly the 28 expected public tables (22 + 6 analytics, 0501); RLS enabled AND forced on every one', async (c) => {
   const r = await q(c, `SELECT relname, relrowsecurity e, relforcerowsecurity f FROM pg_class WHERE relnamespace = 'public'::regnamespace AND relkind = 'r' ORDER BY relname`);
   eq(r.map(x => x.relname), PUBLIC_TABLES, 'tables');
   eq(r.filter(x => !(x.e && x.f)).map(x => x.relname), [], 'tables without enabled+forced RLS');
@@ -690,6 +693,7 @@ async function fpLines(db, sql = FP_SQL) { const c = await connect(db, 'postgres
 async function fingerprint(db) { return crypto.createHash('sha256').update((await fpLines(db)).join('\n')).digest('hex'); }
 const ROLLBACKS = ['0407_premium_product_model', '0406_premium_engineering_analyses', '0405_premium_saved_calculations', '0404_premium_garage', '0403_premium_profiles',
   '0402_premium_entitlements', '0401_automotive_only'].map(n => path.join(REPO, 'supabase', 'rollback', `${n}.rollback.sql`));
+const ROLLBACK_0501 = path.join(REPO, 'supabase', 'rollback', '0501_analytics.rollback.sql');
 /* Function body taken from a migration, for mutants that must differ from the real definition by one clause. */
 function fnDef(file, name, from, to) {
   const s = fs.readFileSync(path.join(MIG_DIR, file), 'utf8'), i = s.indexOf(`CREATE OR REPLACE FUNCTION public.${name}(`), j = s.indexOf('END $$;', i) + 7;
@@ -796,7 +800,7 @@ const MUTANTS = [
   // must reproduce the full catalog.
   const frozenDb = await freshDb('frozen', { order: EXPECTED_MIGRATIONS.slice(0, 10) });
   const rb = await freshDb('rollback');
-  { const c = await connect(rb, 'postgres'); for (const f of ROLLBACKS) await c.query(fs.readFileSync(f, 'utf8')); await c.end(); }
+  { const c = await connect(rb, 'postgres'); for (const f of [ROLLBACK_0501, ...ROLLBACKS]) await c.query(fs.readFileSync(f, 'utf8')); await c.end(); }
   const frozenLines = await fpLines(frozenDb, FP_CORE_SQL), rbLines = await fpLines(rb, FP_CORE_SQL);
   const extra = rbLines.filter(l => !frozenLines.includes(l)), missing = frozenLines.filter(l => !rbLines.includes(l));
   const residueOk = extra.length === 2 && extra.some(l => l.startsWith('fn pf_handle_new_auth_user() ')) && extra.some(l => l.startsWith('trg CREATE TRIGGER pf_on_auth_user_created '));
