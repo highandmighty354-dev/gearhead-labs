@@ -7,6 +7,9 @@
 --   analytics_sessions      one row per session (sessionised server-side), 13-month retention
 --   analytics_daily         daily rollup (day, env, metric, dim) -> value, kept indefinitely
 --   analytics_rollup_runs   when each day was last rolled up
+--   analytics_visitors      first and last reporting day per anonymous visitor id (new vs returning), 13-month retention
+--   analytics_rate          short-lived rate-limit counters keyed by a salted hash of the sender's network (never the address)
+--   analytics_rate_salt     one random salt per day for those hashes; deleted after two days
 -- Functions:
 --   analytics_ingest(batch, meta)      service_role only (the analytics-ingest Edge Function); validates every event
 --   analytics_rollup(day) / analytics_purge()   postgres only (pg_cron); idempotent
@@ -50,7 +53,7 @@ CREATE INDEX IF NOT EXISTS analytics_events_env_ts  ON public.analytics_events (
 CREATE TABLE IF NOT EXISTS public.analytics_ingest_stats (
   day     date NOT NULL,
   env     text NOT NULL CHECK (env IN ('live', 'test', 'dev', 'unknown')),
-  outcome text NOT NULL CHECK (outcome IN ('accepted', 'duplicate', 'rejected', 'capped', 'bot', 'client_error', 'client_dropped')),
+  outcome text NOT NULL CHECK (outcome IN ('accepted', 'duplicate', 'rejected', 'capped', 'rate_limited', 'bot', 'client_error', 'client_dropped')),
   reason  text NOT NULL DEFAULT '' CHECK (char_length(reason) <= 60),
   n       bigint NOT NULL DEFAULT 0,
   last_at timestamptz NOT NULL DEFAULT now(),
@@ -96,10 +99,33 @@ CREATE TABLE IF NOT EXISTS public.analytics_rollup_runs (
   PRIMARY KEY (day, env)
 );
 
+CREATE TABLE IF NOT EXISTS public.analytics_visitors (
+  env       text NOT NULL,
+  vid       uuid NOT NULL,
+  first_day date NOT NULL,                          -- first reporting day with a (non-bot) session for this random id
+  last_day  date NOT NULL,
+  PRIMARY KEY (env, vid)
+);
+CREATE INDEX IF NOT EXISTS analytics_visitors_first ON public.analytics_visitors (env, first_day);
+
+CREATE TABLE IF NOT EXISTS public.analytics_rate (
+  kind      text NOT NULL CHECK (kind IN ('net_10min', 'net_day', 'global_hour')),
+  key       bytea NOT NULL,                         -- sha256(daily salt | network) or sha256('global' | env); never an address
+  win_start timestamptz NOT NULL,
+  n         integer NOT NULL,
+  PRIMARY KEY (kind, key, win_start)
+);
+
+CREATE TABLE IF NOT EXISTS public.analytics_rate_salt (
+  day  date PRIMARY KEY,
+  salt uuid NOT NULL DEFAULT gen_random_uuid()
+);
+
 -- ---------------------------------------------------------------- lock-down
 DO $$ DECLARE t text;
 BEGIN
-  FOREACH t IN ARRAY ARRAY['analytics_owners','analytics_events','analytics_ingest_stats','analytics_sessions','analytics_daily','analytics_rollup_runs'] LOOP
+  FOREACH t IN ARRAY ARRAY['analytics_owners','analytics_events','analytics_ingest_stats','analytics_sessions','analytics_daily','analytics_rollup_runs',
+                         'analytics_visitors','analytics_rate','analytics_rate_salt'] LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);
     EXECUTE format('ALTER TABLE public.%I FORCE ROW LEVEL SECURITY', t);
     EXECUTE format('REVOKE ALL ON public.%I FROM PUBLIC, anon, authenticated, service_role', t);
@@ -212,8 +238,47 @@ LANGUAGE sql SECURITY DEFINER SET search_path = '' AS $$
   ON CONFLICT (day, env, outcome, reason) DO UPDATE SET n = public.analytics_ingest_stats.n + EXCLUDED.n, last_at = now()
 $$;
 
+-- ---------------------------------------------------------------- abuse limits (best-effort; see docs/ANALYTICS-IMPLEMENTATION.md)
+-- Events per sender network (IPv4 address, or IPv6 /64) per 10 minutes and per day, and per environment per hour (a ceiling
+-- that bounds database growth however many networks send). Generous for a real visitor; a flood is cut off.
+CREATE OR REPLACE FUNCTION public.analytics_limits() RETURNS jsonb LANGUAGE sql IMMUTABLE SET search_path = '' AS $$
+  SELECT '{"net_10min": 600, "net_day": 5000, "global_hour": 60000}'::jsonb
+$$;
+
+-- Counts p_n attempted events against the three limits and returns the first limit exceeded (NULL when within limits).
+-- p_net is the sender network as text; it is hashed with today's random salt immediately and never stored.
+CREATE OR REPLACE FUNCTION public.analytics_rate_check(p_env text, p_net text, p_n int) RETURNS text
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+  lim jsonb := public.analytics_limits(); tz text := public.analytics_tz(); today date := (now() AT TIME ZONE tz)::date;
+  v_inet inet; v_net text; v_salt uuid; v_key bytea; v_global bytea; n10 int; nday int; nglob int;
+BEGIN
+  BEGIN v_inet := p_net::inet; EXCEPTION WHEN others THEN v_inet := NULL; END;
+  v_net := CASE WHEN v_inet IS NULL THEN 'unknown'
+                WHEN family(v_inet) = 6 THEN host(network(set_masklen(v_inet, 64))) || '/64'
+                ELSE host(v_inet) END;
+  INSERT INTO public.analytics_rate_salt (day) VALUES (today) ON CONFLICT (day) DO NOTHING;
+  SELECT salt INTO v_salt FROM public.analytics_rate_salt WHERE day = today;
+  v_key := sha256(convert_to(v_salt::text || '|' || v_net, 'UTF8'));
+  v_global := sha256(convert_to('global|' || p_env, 'UTF8'));
+  INSERT INTO public.analytics_rate AS r (kind, key, win_start, n) VALUES ('net_10min', v_key, date_bin('10 minutes', now(), timestamptz '2000-01-01'), p_n)
+    ON CONFLICT (kind, key, win_start) DO UPDATE SET n = r.n + EXCLUDED.n RETURNING n INTO n10;
+  INSERT INTO public.analytics_rate AS r (kind, key, win_start, n) VALUES ('net_day', v_key, (today::timestamp AT TIME ZONE tz), p_n)
+    ON CONFLICT (kind, key, win_start) DO UPDATE SET n = r.n + EXCLUDED.n RETURNING n INTO nday;
+  INSERT INTO public.analytics_rate AS r (kind, key, win_start, n) VALUES ('global_hour', v_global, date_trunc('hour', now()), p_n)
+    ON CONFLICT (kind, key, win_start) DO UPDATE SET n = r.n + EXCLUDED.n RETURNING n INTO nglob;
+  IF n10 > (lim->>'net_10min')::int THEN RETURN 'net_10min'; END IF;
+  IF nday > (lim->>'net_day')::int THEN RETURN 'net_day'; END IF;
+  IF nglob > (lim->>'global_hour')::int THEN RETURN 'global_hour'; END IF;
+  RETURN NULL;
+END $$;
+
 -- ---------------------------------------------------------------- ingestion (service_role only)
--- p_meta: {"env": "live|test|dev", "ua_family": text, "bot": bool, "client_errors": int, "client_dropped": int}
+-- p_meta: {"env": "live|test|dev" (set by the server deployment, never by the page), "client_env": what the page claimed,
+--          "net": sender network (hashed for rate limits, never stored), "ua_family": text, "bot": bool, "client_errors": int,
+--          "client_dropped": int}
+-- A batch whose client_env differs from the server's env is rejected whole ('env_mismatch'): the page cannot choose its
+-- environment, and a test page pointed at a live endpoint cannot leak into live figures.
 CREATE OR REPLACE FUNCTION public.analytics_ingest(p_batch jsonb, p_meta jsonb DEFAULT '{}'::jsonb) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
@@ -224,17 +289,27 @@ DECLARE
   v_cdrop int := CASE WHEN coalesce(p_meta->>'client_dropped', '') ~ '^[0-9]{1,6}$' THEN (p_meta->>'client_dropped')::int ELSE 0 END;
   e jsonb; why text; n_acc int := 0; n_dup int := 0; n_rej int := 0; n_cap int := 0; n_bot int := 0;
   v_ts timestamptz; v_sid uuid; v_count int; v_rows int;
-  reasons jsonb := '{}'::jsonb; r text;
+  reasons jsonb := '{}'::jsonb; r text; v_n int; v_limit text;
 BEGIN
   IF v_env NOT IN ('live', 'test', 'dev') THEN
     PERFORM public.analytics_count('unknown', 'rejected', 'bad_env', greatest(1, coalesce(jsonb_array_length(CASE WHEN jsonb_typeof(p_batch) = 'array' THEN p_batch END), 1)));
     RETURN jsonb_build_object('accepted', 0, 'rejected', 1, 'reason', 'bad_env');
+  END IF;
+  v_n := CASE WHEN jsonb_typeof(p_batch) = 'array' THEN greatest(jsonb_array_length(p_batch), 1) ELSE 1 END;
+  v_limit := public.analytics_rate_check(v_env, p_meta->>'net', least(v_n, 1000));
+  IF v_limit IS NOT NULL THEN
+    PERFORM public.analytics_count(v_env, 'rate_limited', v_limit, least(v_n, 1000));
+    RETURN jsonb_build_object('accepted', 0, 'rejected', 0, 'rate_limited', v_n, 'reason', v_limit);
   END IF;
   PERFORM public.analytics_count(v_env, 'client_error', '', least(v_cerr, 1000));
   PERFORM public.analytics_count(v_env, 'client_dropped', '', least(v_cdrop, 1000));
   IF jsonb_typeof(p_batch) IS DISTINCT FROM 'array' OR jsonb_array_length(p_batch) = 0 OR jsonb_array_length(p_batch) > 20 THEN
     PERFORM public.analytics_count(v_env, 'rejected', 'bad_batch', greatest(1, coalesce(jsonb_array_length(CASE WHEN jsonb_typeof(p_batch) = 'array' THEN p_batch END), 1)));
     RETURN jsonb_build_object('accepted', 0, 'rejected', 1, 'reason', 'bad_batch');
+  END IF;
+  IF coalesce(p_meta->>'client_env', '') IS DISTINCT FROM v_env THEN
+    PERFORM public.analytics_count(v_env, 'rejected', 'env_mismatch', least(v_n, 1000));
+    RETURN jsonb_build_object('accepted', 0, 'rejected', v_n, 'reason', 'env_mismatch');
   END IF;
   FOR e IN SELECT value FROM jsonb_array_elements(p_batch) LOOP
     why := public.analytics_event_problem(e);
@@ -349,6 +424,12 @@ BEGIN
   INSERT INTO public.analytics_daily (day, env, metric, dim, value)
   SELECT p_day, env, metric, coalesce(dim, ''), sum(value) FROM m WHERE value IS NOT NULL GROUP BY env, metric, coalesce(dim, '');
 
+  -- first / last reporting day per anonymous visitor id (bot sessions never make a visitor). Re-running any day only
+  -- widens the range, so the order in which days are rolled up does not matter.
+  INSERT INTO public.analytics_visitors AS v (env, vid, first_day, last_day)
+  SELECT env, vid, p_day, p_day FROM public.analytics_sessions WHERE day = p_day AND NOT bot GROUP BY env, vid
+  ON CONFLICT (env, vid) DO UPDATE SET first_day = least(v.first_day, EXCLUDED.first_day), last_day = greatest(v.last_day, EXCLUDED.last_day);
+
   INSERT INTO public.analytics_rollup_runs (day, env, ran_at)
   SELECT p_day, x.env, now() FROM (VALUES ('live'), ('test'), ('dev')) x(env)
   ON CONFLICT (day, env) DO UPDATE SET ran_at = now();
@@ -372,16 +453,36 @@ BEGIN
   GET DIAGNOSTICS n_s = ROW_COUNT;
   DELETE FROM public.analytics_ingest_stats WHERE day < (now() AT TIME ZONE public.analytics_tz())::date - 396;
   GET DIAGNOSTICS n_st = ROW_COUNT;
+  -- a visitor id unseen for 13 months is forgotten (if it ever comes back it counts as new)
+  DELETE FROM public.analytics_visitors WHERE last_day < (now() AT TIME ZONE public.analytics_tz())::date - 396;
+  -- rate-limit counters and their salts last two days at most
+  DELETE FROM public.analytics_rate WHERE win_start < now() - interval '2 days';
+  DELETE FROM public.analytics_rate_salt WHERE day < (now() AT TIME ZONE public.analytics_tz())::date - 1;
   RETURN jsonb_build_object('events', n_ev, 'sessions', n_s, 'stats', n_st);
+END $$;
+
+-- Rolls up every day whose raw events arrived after its last rollup (or that was never rolled up), plus today.
+-- Needed so first-visit days (new vs returning) and daily totals never miss a day when pg_cron is not running.
+CREATE OR REPLACE FUNCTION public.analytics_rollup_pending() RETURNS integer
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE tz text := public.analytics_tz(); d date; n int := 0;
+BEGIN
+  FOR d IN
+    SELECT x.day FROM (SELECT (ts_server AT TIME ZONE tz)::date AS day, max(ts_server) AS last_ev FROM public.analytics_events GROUP BY 1) x
+    WHERE NOT EXISTS (SELECT 1 FROM public.analytics_rollup_runs r WHERE r.day = x.day AND r.ran_at >= x.last_ev)
+    UNION SELECT (now() AT TIME ZONE tz)::date
+    ORDER BY 1
+  LOOP
+    PERFORM public.analytics_rollup(d); n := n + 1;
+  END LOOP;
+  RETURN n;
 END $$;
 
 CREATE OR REPLACE FUNCTION public.analytics_refresh() RETURNS void
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
-DECLARE today date := (now() AT TIME ZONE public.analytics_tz())::date;
 BEGIN
   PERFORM public.analytics_require_owner();
-  PERFORM public.analytics_rollup(today - 1);
-  PERFORM public.analytics_rollup(today);
+  PERFORM public.analytics_rollup_pending();
 END $$;
 
 -- ---------------------------------------------------------------- billing metrics (0402 tables, LIVE-mode Stripe data only)
@@ -448,11 +549,17 @@ BEGIN
     'kpis', (SELECT jsonb_build_object('visitors', count(DISTINCT vid), 'sessions', count(*), 'page_views', coalesce(sum(page_views), 0),
               'engaged_sessions', count(*) FILTER (WHERE engaged), 'avg_engaged_ms', coalesce(round(avg(engaged_ms)), 0),
               'pages_per_session', coalesce(round(avg(page_views)::numeric, 2), 0),
-              'new_visitors', count(DISTINCT vid) FILTER (WHERE is_new), 'returning_visitors', count(DISTINCT vid) FILTER (WHERE is_new = false)) FROM s),
+              'new_visitors', (SELECT count(*) FROM (SELECT DISTINCT vid FROM s) a JOIN public.analytics_visitors v ON v.env = p_env AND v.vid = a.vid
+                                AND v.first_day BETWEEN p_from AND p_to),
+              'returning_visitors', (SELECT count(*) FROM (SELECT DISTINCT vid FROM s) a JOIN public.analytics_visitors v ON v.env = p_env AND v.vid = a.vid
+                                AND v.first_day < p_from)) FROM s),
     'kpis_previous', (SELECT jsonb_build_object('visitors', count(DISTINCT vid), 'sessions', count(*), 'page_views', coalesce(sum(page_views), 0),
               'engaged_sessions', count(*) FILTER (WHERE engaged), 'avg_engaged_ms', coalesce(round(avg(engaged_ms)), 0),
               'pages_per_session', coalesce(round(avg(page_views)::numeric, 2), 0),
-              'new_visitors', count(DISTINCT vid) FILTER (WHERE is_new), 'returning_visitors', count(DISTINCT vid) FILTER (WHERE is_new = false)) FROM sp),
+              'new_visitors', (SELECT count(*) FROM (SELECT DISTINCT vid FROM sp) a JOIN public.analytics_visitors v ON v.env = p_env AND v.vid = a.vid
+                                AND v.first_day BETWEEN pf AND pt),
+              'returning_visitors', (SELECT count(*) FROM (SELECT DISTINCT vid FROM sp) a JOIN public.analytics_visitors v ON v.env = p_env AND v.vid = a.vid
+                                AND v.first_day < pf)) FROM sp),
     'trend', (SELECT coalesce(jsonb_agg(jsonb_build_object('day', g.day::date, 'visitors', coalesce(x.visitors, 0), 'sessions', coalesce(x.sessions, 0),
                'page_views', coalesce(x.pv, 0)) ORDER BY g.day), '[]'::jsonb)
               FROM generate_series(p_from, p_to, interval '1 day') g(day)
@@ -504,7 +611,7 @@ DO $$ DECLARE f text;
 BEGIN
   FOREACH f IN ARRAY ARRAY['analytics_events_guard()', 'analytics_is_owner()', 'analytics_require_owner()', 'analytics_prop_spec(text)',
       'analytics_event_problem(jsonb)', 'analytics_count(text, text, text, bigint)', 'analytics_ingest(jsonb, jsonb)', 'analytics_channel(text, text, text)',
-      'analytics_rollup(date)', 'analytics_purge()', 'analytics_refresh()', 'analytics_billing_metrics(date, date)', 'analytics_dashboard(date, date, text)', 'analytics_tz()'] LOOP
+      'analytics_rollup(date)', 'analytics_rollup_pending()', 'analytics_purge()', 'analytics_limits()', 'analytics_rate_check(text, text, integer)', 'analytics_refresh()', 'analytics_billing_metrics(date, date)', 'analytics_dashboard(date, date, text)', 'analytics_tz()'] LOOP
     EXECUTE format('REVOKE ALL ON FUNCTION public.%s FROM PUBLIC, anon, authenticated, service_role', f);
   END LOOP;
 END $$;
@@ -517,8 +624,7 @@ DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_available_extensions WHERE name = 'pg_cron') THEN
     CREATE EXTENSION IF NOT EXISTS pg_cron;
-    PERFORM cron.schedule('analytics-rollup-recent', '*/15 * * * *',
-      $job$SELECT public.analytics_rollup(((now() AT TIME ZONE 'America/New_York')::date)); SELECT public.analytics_rollup(((now() AT TIME ZONE 'America/New_York')::date - 1));$job$);
+    PERFORM cron.schedule('analytics-rollup-recent', '*/15 * * * *', $job$SELECT public.analytics_rollup_pending();$job$);
     PERFORM cron.schedule('analytics-purge', '17 4 * * *', $job$SELECT public.analytics_purge();$job$);
   ELSE
     RAISE NOTICE 'pg_cron is not available: analytics rollups run only through analytics_refresh() (owner) until it is.';
@@ -528,7 +634,8 @@ END $$;
 -- ---------------------------------------------------------------- post-conditions
 DO $$ DECLARE t text; p text;
 BEGIN
-  FOREACH t IN ARRAY ARRAY['analytics_owners','analytics_events','analytics_ingest_stats','analytics_sessions','analytics_daily','analytics_rollup_runs'] LOOP
+  FOREACH t IN ARRAY ARRAY['analytics_owners','analytics_events','analytics_ingest_stats','analytics_sessions','analytics_daily','analytics_rollup_runs',
+                         'analytics_visitors','analytics_rate','analytics_rate_salt'] LOOP
     IF NOT (SELECT relrowsecurity AND relforcerowsecurity FROM pg_class WHERE oid = ('public.' || t)::regclass) THEN
       RAISE EXCEPTION 'ANALYTICS_0501_POSTCONDITION: RLS not enabled and forced on %', t; END IF;
     FOREACH p IN ARRAY ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER'] LOOP
@@ -541,7 +648,10 @@ BEGIN
   END LOOP;
   IF has_function_privilege('anon', 'public.analytics_ingest(jsonb, jsonb)', 'EXECUTE') OR has_function_privilege('authenticated', 'public.analytics_ingest(jsonb, jsonb)', 'EXECUTE')
      OR has_function_privilege('anon', 'public.analytics_dashboard(date, date, text)', 'EXECUTE')
-     OR has_function_privilege('authenticated', 'public.analytics_rollup(date)', 'EXECUTE') OR has_function_privilege('authenticated', 'public.analytics_purge()', 'EXECUTE') THEN
+     OR has_function_privilege('authenticated', 'public.analytics_rollup(date)', 'EXECUTE') OR has_function_privilege('authenticated', 'public.analytics_purge()', 'EXECUTE')
+     OR has_function_privilege('service_role', 'public.analytics_rate_check(text, text, integer)', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.analytics_rate_check(text, text, integer)', 'EXECUTE')
+     OR has_function_privilege('anon', 'public.analytics_rate_check(text, text, integer)', 'EXECUTE') THEN
     RAISE EXCEPTION 'ANALYTICS_0501_POSTCONDITION: function privileges too broad'; END IF;
   IF has_sequence_privilege('anon', 'public.analytics_events_id_seq', 'USAGE') OR has_sequence_privilege('authenticated', 'public.analytics_events_id_seq', 'USAGE') THEN
     RAISE EXCEPTION 'ANALYTICS_0501_POSTCONDITION: a client role can use the events sequence'; END IF;

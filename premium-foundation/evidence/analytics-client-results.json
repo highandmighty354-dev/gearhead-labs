@@ -37,28 +37,134 @@
       "pass": true
     },
     {
+      "name": "completion classifier: empty, placeholder, NaN/Infinity, errors and text are not results; numbers in real formats are",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): default result on screen, nobody types: no start, no completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): scripted fill (untrusted input event): ignored",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): valid integer result after typing: one completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): decimal result: completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): several result fields (one \"—\", one formatted with units): completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): NaN result: no completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): error message: no completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): non-numeric text result: no completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): input that does not re-render the calculator (old default result still showing): no completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): result appears 1 s after the input: completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): result appears 3 s after the input: completion once it appears",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): valid, then invalidated by more input within 2 s: no completion; later valid: exactly one",
+      "pass": true
+    },
+    {
+      "name": "completion on real calculators, two per LAB (gasoline, diesel, EV, towing, universal): exactly one each, nothing before typing",
+      "pass": true
+    },
+    {
+      "name": "real calculator, unparseable input (\"abc\") showing \"—\": no completion",
+      "pass": true
+    },
+    {
+      "name": "catalogue sweep: result-area verdict for every free calculator after an input (exceptions listed in evidence)",
+      "pass": true
+    },
+    {
       "name": "performance: typing into a calculator with analytics ON vs OFF (same machine, alternating runs)",
       "pass": true
     }
   ],
   "performance": {
     "off": [
-      448.29999999981374,
-      329,
-      367.40000000037253,
-      592.6000000000931,
-      368.5,
-      423.89999999990687
+      413.70000000006985,
+      412.80000000004657,
+      447.9000000000233,
+      432.79999999993015,
+      387.0999999999767,
+      422.29999999993015
     ],
     "on": [
-      345.3000000002794,
-      403.10000000009313,
-      467.70000000018626,
-      448.60000000009313,
-      504.10000000009313,
-      454.6999999997206
+      469.20000000006985,
+      458.19999999995343,
+      281,
+      441.4000000000233,
+      394.69999999995343,
+      548.2999999999302
     ],
-    "median_off_ms": 423.89999999990687,
-    "median_on_ms": 454.6999999997206
+    "median_off_ms": 422.29999999993015,
+    "median_on_ms": 458.19999999995343
+  },
+  "catalogue_sweep": {
+    "catalogue": 757,
+    "free": 585,
+    "premium_skipped": 172,
+    "valid": 573,
+    "by_lab": {
+      "universal": {
+        "valid": 307,
+        "no-input": 4,
+        "none": 4
+      },
+      "gasoline": {
+        "valid": 159,
+        "none": 1,
+        "invalid": 2
+      },
+      "towing": {
+        "valid": 26,
+        "invalid": 1
+      },
+      "diesel": {
+        "valid": 42
+      },
+      "ev": {
+        "valid": 39
+      }
+    },
+    "exceptions": [
+      "cam_card (gasoline): none",
+      "christmas_tree (universal): no-input",
+      "ct_push_loose (universal): no-input",
+      "nitrous_jet (gasoline): invalid",
+      "octane_for_cr (gasoline): invalid",
+      "resistor_color (universal): no-input",
+      "rotor_heat (universal): no-input",
+      "sim_braking (universal): none",
+      "sim_gear_rpm (universal): none",
+      "sim_weight_transfer (universal): none",
+      "trailer_sway (towing): invalid",
+      "universal_automotive_converter (universal): none"
+    ]
   }
 }

@@ -238,6 +238,142 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await s.ctx.close();
   });
 
+  /* ---------- calculator completion detector ---------- */
+  await check('completion classifier: empty, placeholder, NaN/Infinity, errors and text are not results; numbers in real formats are', async () => {
+    const s = await open({ url: '?calc=' + FREE });
+    const cases = [['', 'empty'], ['—', 'empty'], ['–', 'empty'], ['-', 'empty'], ['Enter values', 'empty'], ['Select an option', 'empty'],
+      ['NaN', 'bad'], ['NaN psi', 'bad'], ['Infinity', 'bad'], ['-Infinity HP', 'bad'], ['∞', 'bad'], ['undefined', 'bad'], ['null', 'bad'],
+      ['Error: check inputs', 'bad'], ['Invalid input', 'bad'], ['1e999', 'bad'],
+      ['Lean', 'text'], ['High risk', 'text'], ['No unique octane number', 'text'],
+      ['42', 'number'], ['0', 'number'], ['3.14', 'number'], ['.5', 'number'], ['-12.5', 'number'], ['−5.0 °', 'number'], ['1,234.5 lb-ft', 'number'],
+      ['$1,200', 'number'], ['~350HP', 'number'], ['≈ 12.7 sec', 'number'], ['14.7:1', 'number'], ['3/8', 'number'], ['1.2e-3 m³', 'number'],
+      ['6.02 × 10^23', 'number'], ['5,000 RPM', 'number'], ['98.6%', 'number'], ['1 234 kg', 'number']];
+    const got = await s.page.evaluate(cs => cs.map(([t]) => window.GH_ANALYTICS.classifyResult(t)), cases);
+    eq(got, cases.map(c => c[1]), 'classifications');
+    const states = await s.page.evaluate(() => {
+      const make = (html) => { const d = document.implementation.createHTMLDocument('x'); d.body.innerHTML = '<div id="calc-container">' + html + '</div>'; return window.GH_ANALYTICS.resultState(d); };
+      const v = (t) => '<div class="result-value">' + t + '</div>', m = (t) => '<div class="mini-result"><div class="label">L</div><div class="value">' + t + '</div></div>';
+      return [make(''), make(v('')), make(v('—')), make(v('NaN')), make(v('Lean')), make(v('42<span class="unit"> psi</span>')),
+        make('<div class="multi-results">' + m('—') + m('1,234.5<span class="unit"> lb-ft</span>') + '</div>'),
+        make('<div class="multi-results">' + m('12') + m('NaN') + '</div>'), make(v('High risk') + m('7.5')), make(v('0<span class="unit"> NaN-units</span>'))];
+    });
+    eq(states, ['none', 'invalid', 'invalid', 'invalid', 'invalid', 'valid', 'valid', 'invalid', 'valid', 'valid'], 'result areas (unit spans ignored)');
+    await s.ctx.close();
+  });
+
+  /* A synthetic calculator page (served only inside this test) so each result behaviour can be produced on demand.
+     The visitor's typing is REAL (trusted) browser input; the "calculator" doubles the typed number, or misbehaves per mode. */
+  async function openFixture(mode) {
+    const ctx = await browser.newContext(); const page = await ctx.newPage();
+    const env = { batches: [], pageErrors: [] };
+    page.on('pageerror', e => env.pageErrors.push(e.message));
+    const top = `<!doctype html><meta charset="utf-8"><script>window.GH_ANALYTICS_CONFIG={enabled:true,endpoint:'${EP}',env:'test'}</script>
+      <script src="/analytics.js"></script><iframe id="app" src="/fx/frame.html?calc=fixture_calc&mode=${mode}" style="width:800px;height:400px"></iframe>`;
+    const frame = `<!doctype html><meta charset="utf-8"><div id="calc-container"><input id="a" class="field-input" type="text" value="10">
+      <input id="b" class="field-input" type="text" value="1"><div id="out"></div></div><script>
+      const mode = new URLSearchParams(location.search).get('mode'), out = document.getElementById('out');
+      const show = (h) => { out.innerHTML = h; };
+      const r = (t) => '<div class="result-value">' + t + '</div>';
+      const compute = () => { const x = parseFloat(document.getElementById('a').value);
+        if (mode === 'unchanged') return;
+        if (mode === 'error') return show(r('Error: check inputs'));
+        if (mode === 'text') return show(r('Lean'));
+        if (mode === 'multi') return show('<div class="multi-results"><div class="mini-result"><div class="value">—</div></div><div class="mini-result"><div class="value">' + (x * 2).toLocaleString('en-US') + '<span class="unit"> lb-ft</span></div></div></div>');
+        if (mode === 'delay1' || mode === 'delay3') { show(r('—')); clearTimeout(window.__t); window.__t = setTimeout(() => show(r((x * 2) + ' psi')), mode === 'delay1' ? 1000 : 3000); return; }
+        show(r(isFinite(x) ? (x * 2) + ' psi' : 'NaN psi'));
+      };
+      show(r('20 psi'));                                         // a default result is on screen before anyone types
+      document.addEventListener('input', compute);
+      </script>`;
+    await page.route(u => u.pathname === '/fx/top.html', r => r.fulfill({ status: 200, headers: { 'content-type': 'text/html' }, body: top }));
+    await page.route(u => u.pathname === '/fx/frame.html', r => r.fulfill({ status: 200, headers: { 'content-type': 'text/html' }, body: frame }));
+    await page.route(EP, r => { try { env.batches.push(JSON.parse(r.request().postData() || 'null')); } catch (e) { /* ignore */ } return r.fulfill({ status: 204 }); });
+    await page.goto(BASE + 'fx/top.html'); await sleep(800);
+    const f = page.frame({ url: /\/fx\/frame\.html/ });
+    const type = async (sel, text) => { const i = f.locator(sel); await i.click(); await i.press('Control+A'); await i.pressSequentially(text, { delay: 30 }); };
+    const names = async () => { await page.evaluate(() => window.GH_ANALYTICS.flush()); await sleep(300); return env.batches.flatMap(b => b.events).map(e => e.name).filter(n => /^calc_/.test(n)); };
+    return { ctx, page, f, env, type, names };
+  }
+  const FX = [
+    ['default result on screen, nobody types: no start, no completion', 'normal', async (x) => { await sleep(2600); return []; }, ['calc_view']],
+    ['scripted fill (untrusted input event): ignored', 'normal', async (x) => { await x.f.evaluate(() => { const a = document.getElementById('a'); a.value = '77'; a.dispatchEvent(new Event('input', { bubbles: true })); }); await sleep(2600); }, ['calc_view']],
+    ['valid integer result after typing: one completion', 'normal', async (x) => { await x.type('#a', '21'); await sleep(2600); }, ['calc_view', 'calc_start', 'calc_complete']],
+    ['decimal result: completion', 'normal', async (x) => { await x.type('#a', '2.75'); await sleep(2600); }, ['calc_view', 'calc_start', 'calc_complete']],
+    ['several result fields (one "—", one formatted with units): completion', 'multi', async (x) => { await x.type('#a', '1234.5'); await sleep(2600); }, ['calc_view', 'calc_start', 'calc_complete']],
+    ['NaN result: no completion', 'normal', async (x) => { await x.type('#a', 'abc'); await sleep(2600); }, ['calc_view', 'calc_start']],
+    ['error message: no completion', 'error', async (x) => { await x.type('#a', '5'); await sleep(2600); }, ['calc_view', 'calc_start']],
+    ['non-numeric text result: no completion', 'text', async (x) => { await x.type('#a', '5'); await sleep(2600); }, ['calc_view', 'calc_start']],
+    ['input that does not re-render the calculator (old default result still showing): no completion', 'unchanged', async (x) => { await x.type('#a', '5'); await sleep(2600); }, ['calc_view', 'calc_start']],
+    ['result appears 1 s after the input: completion', 'delay1', async (x) => { await x.type('#a', '8'); await sleep(2800); }, ['calc_view', 'calc_start', 'calc_complete']],
+    ['result appears 3 s after the input: completion once it appears', 'delay3', async (x) => { await x.type('#a', '8'); await sleep(2200); eq((await x.names()).includes('calc_complete'), false, 'not yet at 2 s'); await sleep(1600); }, ['calc_view', 'calc_start', 'calc_complete']],
+    ['valid, then invalidated by more input within 2 s: no completion; later valid: exactly one', 'normal', async (x) => {
+      await x.type('#a', '5'); await sleep(800); await x.type('#a', 'x'); await sleep(2600);
+      eq((await x.names()).filter(n => n === 'calc_complete').length, 0, 'none while invalid');
+      await x.type('#a', '6'); await sleep(2600); await x.type('#b', '9'); await sleep(2600); }, ['calc_view', 'calc_start', 'calc_complete']],
+  ];
+  for (const [label, mode, act, want] of FX) {
+    await check('completion (synthetic calculator, real typing): ' + label, async () => {
+      const x = await openFixture(mode);
+      await act(x);
+      eq(await x.names(), want, 'events');
+      const c = x.env.batches.flatMap(b => b.events).find(e => e.name === 'calc_complete');
+      if (c) { eq(Object.keys(c.props).sort(), ['calc_id', 'fields_touched', 'ms_to_complete'], 'props'); ok(!JSON.stringify(x.env.batches).match(/psi|lb-ft|2469|"42"/), 'no result text sent'); }
+      eq(x.env.pageErrors, [], 'errors');
+      await x.ctx.close();
+    });
+  }
+
+  /* Representative REAL calculators from all five labs, real typing into the first field. */
+  const REPS = [['gasoline', 'afr_from_lambda'], ['gasoline', 'boost_for_hp'], ['diesel', 'diesel_bsfc'], ['diesel', 'diesel_bmep'], ['ev', 'ev_battery_current'],
+    ['ev', 'ev_motor_power'], ['towing', 'tow_actual_combined'], ['towing', 'tongue_weight'], ['universal', 'ackermann_angle'], ['universal', 'braking_distance']];
+  await check('completion on real calculators, two per LAB (gasoline, diesel, EV, towing, universal): exactly one each, nothing before typing', async () => {
+    const miss = [];
+    for (const [lab, id] of REPS) {
+      const s = await open({ url: '?calc=' + id }); const f = s.frame();
+      await sleep(2300); await s.flush();
+      if (s.events().some(e => e.name === 'calc_complete')) miss.push(id + ': completed before any input');
+      await typeInto(f, '12'); await sleep(2600); await typeInto(f, '13', 0); await sleep(2600); await s.flush();
+      const n = s.events().filter(e => e.name === 'calc_complete' && e.props.calc_id === id).length;
+      if (n !== 1) miss.push(`${lab}/${id}: ${n} completions`);
+      await s.ctx.close();
+    }
+    eq(miss, [], 'calculators');
+  });
+  await check('real calculator, unparseable input ("abc") showing "—": no completion', async () => {
+    const s = await open({ url: '?calc=ackermann_angle' }); const f = s.frame();
+    await typeInto(f, 'abc'); await sleep(2600); await s.flush();
+    eq(await s.page.evaluate(() => window.GH_ANALYTICS.resultState(document.getElementById('app').contentDocument)), 'invalid', 'result area state');
+    eq(s.events().filter(e => e.name === 'calc_complete').length, 0, 'no completion');
+    await s.ctx.close();
+  });
+
+  /* Catalogue sweep: every catalogue calculator is rendered in the real page, a scripted value is put in its first field, and
+     the detector's verdict on the resulting result area is recorded. This checks the RESULT FORMATS only (scripted input
+     never counts as a visitor's start; the typing tests above cover that). */
+  await check('catalogue sweep: result-area verdict for every free calculator after an input (exceptions listed in evidence)', async () => {
+    const s = await open({ url: '?calc=' + FREE }); const f = s.frame();
+    const cat = JSON.parse(fs.readFileSync(path.join(REPO, 'catalog', 'gearhead-catalog.json'), 'utf8')).tools;
+    const res = await f.evaluate(async (tools) => {
+      const out = [];
+      for (const t of tools) {
+        renderCalc(t.id); await new Promise(r => setTimeout(r, 0));
+        const inp = document.querySelector('#calc-container input.field-input, #calc-container input');
+        if (!inp) { out.push({ id: t.id, lab: t.lab, tier: t.tier, state: 'no-input' }); continue; }
+        const v = parseFloat(inp.value); inp.value = isFinite(v) && v !== 0 ? String(+(v * 1.1).toFixed(4)) : '10';
+        inp.dispatchEvent(new Event('input', { bubbles: true })); await new Promise(r => setTimeout(r, 0));
+        out.push({ id: t.id, lab: t.lab, tier: t.tier, state: parent.GH_ANALYTICS.resultState(document), upsell: !!document.querySelector('#calc-container .gh-premium-upsell') });
+      }
+      return out;
+    }, cat.map(t => ({ id: t.id, lab: t.lab, tier: t.tier })));
+    const free = res.filter(r => r.tier !== 'premium');
+    const tally = {}; free.forEach(r => { tally[r.lab] = tally[r.lab] || {}; tally[r.lab][r.state] = (tally[r.lab][r.state] || 0) + 1; });
+    const exceptions = free.filter(r => r.state !== 'valid').map(r => `${r.id} (${r.lab}): ${r.state}`);
+    results.sweep = { catalogue: cat.length, free: free.length, premium_skipped: res.length - free.length, valid: free.length - exceptions.length, by_lab: tally, exceptions };
+    console.log(`      ${free.length - exceptions.length}/${free.length} free calculators show a result the detector accepts; exceptions: ${exceptions.join('; ')}`);
+    ok(free.length === 585 && free.length - exceptions.length >= 570, 'coverage');
+    await s.ctx.close();
+  });
+
   await check('performance: typing into a calculator with analytics ON vs OFF (same machine, alternating runs)', async () => {
     const timeRun = async (enabled) => {
       const s = await open({ enabled, url: '?calc=' + FREE });
@@ -263,6 +399,6 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const failed = results.filter(r => !r.pass).length;
   console.log(`\nanalytics client: ${results.length} checks, ${results.length - failed} passed, ${failed} failed (synthetic browser sessions, fake endpoint)`);
   const outDir = path.join(REPO, 'premium-foundation', 'evidence'); fs.mkdirSync(outDir, { recursive: true });
-  fs.writeFileSync(path.join(outDir, 'analytics-client-results.json'), JSON.stringify({ checks: results, performance: results.perf || null }, null, 2) + '\n');
+  fs.writeFileSync(path.join(outDir, 'analytics-client-results.json'), JSON.stringify({ checks: results, performance: results.perf || null, catalogue_sweep: results.sweep || null }, null, 2) + '\n');
   process.exit(failed ? 1 : 0);
 })().catch(e => { console.error('SUITE ERROR', e); process.exit(2); });

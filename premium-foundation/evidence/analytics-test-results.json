@@ -65,18 +65,43 @@
     "pass": true
   },
   {
-    "group": "edge",
-    "name": "handler: live origin -> live env; preview origin -> test; localhost -> dev; UA reduced to a family; always 204",
+    "group": "environment",
+    "name": "the environment is fixed by the deployment: a forged production Origin or a page-supplied env cannot make events live",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "database rate limits: per network per 10 min, IPv6 by /64, per network per day, per environment per hour; addresses never stored",
     "pass": true
   },
   {
     "group": "edge",
-    "name": "handler: refuses foreign origins, GET, oversize bodies, >20 events, junk JSON, rate-limit overflow and the kill switch; never errors",
+    "name": "handler: UA reduced to a family; network passed for hashing only; always 204; CORS only for allowed origins",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "LIMITATION made explicit: a script that copies a browser's headers is accepted like a visitor (only limits and bot rules bound it)",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "handler: refuses foreign origins, GET, oversize bodies, >20 events, junk JSON and the kill switch; never errors",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "in-memory limiter is PER INSTANCE (documented as not global): two instances each allow their own quota; window resets",
     "pass": true
   },
   {
     "group": "edge",
     "name": "handler: database down -> still 204, nothing thrown (the page never sees a failure)",
+    "pass": true
+  },
+  {
+    "group": "visitors",
+    "name": "new vs returning are mutually exclusive and come from each id's first recorded day, not the page's flag",
     "pass": true
   }
 ]

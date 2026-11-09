@@ -186,7 +186,7 @@
     firstView = false; newVisitor = false;
     emit('page_view', props);
     var id = calcId(page);
-    if (id) { cur.calc = { id: id, started: false, at: 0, fields: {}, done: false, timer: null }; emit('calc_view', { calc_id: id }); }
+    if (id) { cur.calc = { id: id, started: false, at: 0, fields: {}, done: false, timer: null, lastInput: 0, changedAt: 0 }; emit('calc_view', { calc_id: id }); }
     flush(false);
   }
 
@@ -209,27 +209,70 @@
     cur.reported += ms; cur.unreported -= ms;
   }
 
-  /* ---------- calculators: start = first trusted input; complete = a finite result 2 s after the last input ---------- */
+  /* ---------- calculators ----------
+     start    = the first TRUSTED input/change inside the calculator on this page view (scripted fills are ignored)
+     complete = 2 s after the visitor's last input, the calculator has re-rendered since that input AND shows at least one
+                finite numeric result and no NaN / Infinity / error value. Once per page view. If the result appears later
+                (still within 30 s of the last input), it is checked again shortly after it appears.
+     The result text is only classified here (number / empty / text / bad); it is never stored or sent. */
+  var RESULT_SEL = '#calc-container .result-value, #calc-container .mini-result .value';
+  var BAD_RESULT = /nan|infinity|∞|undefined|null|error|invalid|overflow|divide by zero/i;
+  var NUM_RESULT = /^[~≈<>≤≥±]?\s*[$€£]?\s*([+\-−]?)(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?|\.\d+)(?:\s*(?:[eE]|[×x]\s*10\^?)\s*([+\-−]?\d+))?/;
+  function classifyResult(text) {
+    var t = String(text || '').replace(/[   ]/g, ' ').trim();
+    if (!t || /^[—–\-\s]+$/.test(t) || /^(enter|select|choose|awaiting)\b/i.test(t)) return 'empty';
+    if (BAD_RESULT.test(t)) return 'bad';
+    var m = NUM_RESULT.exec(t);
+    if (!m) return 'text';
+    var n = parseFloat((m[1] === '−' ? '-' : m[1]) + m[2].replace(/,/g, '') + (m[3] ? 'e' + m[3].replace('−', '-') : ''));
+    return isFinite(n) ? 'number' : 'bad';
+  }
+  function valueText(el) {                       // the value without its unit span
+    var c = el.cloneNode(true), u = c.querySelectorAll('.unit');
+    for (var i = 0; i < u.length; i++) u[i].parentNode.removeChild(u[i]);
+    return c.textContent;
+  }
+  function resultState(doc) {
+    var els = doc ? doc.querySelectorAll(RESULT_SEL) : [], n = 0, bad = 0;
+    for (var i = 0; i < els.length; i++) { var k = classifyResult(valueText(els[i])); if (k === 'number') n++; else if (k === 'bad') bad++; }
+    return !els.length ? 'none' : bad ? 'invalid' : n ? 'valid' : 'invalid';
+  }
+  var resultsObs = null, observed = null;
+  function observeResults() {
+    var w = frameWin(), cont = w && w.document.getElementById('calc-container');
+    if (!cont || cont === observed || typeof MutationObserver !== 'function') return;
+    if (resultsObs) resultsObs.disconnect();
+    observed = cont;
+    resultsObs = new MutationObserver(safe(function () {
+      var c = cur.calc; if (!c || !c.started || c.done) return;
+      var t = now(); c.changedAt = t;
+      if (t - c.lastInput <= 30000) schedule(c, Math.max(c.lastInput + COMPLETE_AFTER - t, 250));
+    }));
+    resultsObs.observe(cont, { childList: true, subtree: true, characterData: true });
+  }
+  function schedule(c, ms) {
+    if (c.timer) clearTimeout(c.timer);
+    var pv = cur.pv;
+    c.timer = setTimeout(safe(function () { checkComplete(pv); }), ms);
+  }
   function onCalcInput(t) {
     var c = cur.calc; if (!c) return;
     var cont = t.closest('#calc-container'); if (!cont) return;
+    observeResults();
     var fk = t.id || t.name || ('i' + Array.prototype.indexOf.call(cont.querySelectorAll('input,select,textarea'), t));
     c.fields[fk] = 1;                                     // the field's identity only, to count fields; never its value
     if (!c.started) { c.started = true; c.at = now(); emit('calc_start', { calc_id: c.id }); }
     if (c.done) return;
-    if (c.timer) clearTimeout(c.timer);
-    var pv = cur.pv;
-    c.timer = setTimeout(safe(function () { checkComplete(pv); }), COMPLETE_AFTER);
+    c.lastInput = now(); c.changedAt = 0;
+    schedule(c, COMPLETE_AFTER);
   }
   function checkComplete(pv) {
     var c = cur.calc; if (!c || c.done || cur.pv !== pv) return;
+    if (now() - c.lastInput < COMPLETE_AFTER - 50) return schedule(c, c.lastInput + COMPLETE_AFTER - now());
     var w = frameWin(); if (!w) return;
-    var vals = w.document.querySelectorAll('#calc-container .result-value'), valid = false;
-    for (var i = 0; i < vals.length && !valid; i++) {
-      var s = vals[i].textContent || '';
-      valid = /\d/.test(s) && !/NaN|Infinity|undefined|error/i.test(s);   // presence of a finite number; the text is not kept
-    }
-    if (!valid) return;
+    var replaced = w.document.getElementById('calc-container') !== observed;   // the whole card was re-created: that is a re-render too
+    if (!(c.changedAt >= c.lastInput) && !replaced) return;                       // no re-render since the visitor's last input
+    if (resultState(w.document) !== 'valid') return;
     c.done = true;
     emit('calc_complete', { calc_id: c.id, fields_touched: Math.min(100, Object.keys(c.fields).length), ms_to_complete: Math.min(86400000, now() - c.at) });
   }
@@ -379,5 +422,7 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', safe(start)); else start();
   })();
 
-  window.GH_ANALYTICS = { status: 'on', flush: safe(function () { flush(false); }), _queue: function () { return Q.slice(); } };
+  // read-only helpers for the test suites: classifyResult/resultState return only a category, never a value
+  window.GH_ANALYTICS = { status: 'on', flush: safe(function () { flush(false); }), _queue: function () { return Q.slice(); },
+    classifyResult: classifyResult, resultState: function (doc) { return resultState(doc); } };
 })();

@@ -24,12 +24,12 @@ const EXPECTED_MIGRATIONS = ['0001_enums.sql', '0002_tables.sql', '0003_constrai
   '0404_premium_garage.sql', '0405_premium_saved_calculations.sql', '0406_premium_engineering_analyses.sql',
   '0407_premium_product_model.sql', '0408_formula_versions_corrected_formulas.sql',
   '0409_formula_versions_fuel_pump_validity.sql', '0501_analytics.sql'];
-const PUBLIC_TABLES = ['accounts', 'analytics_daily', 'analytics_events', 'analytics_ingest_stats', 'analytics_owners', 'analytics_rollup_runs',
-  'analytics_sessions', 'billing_customers', 'calculation_records', 'calculators', 'canonical_fields', 'component_connections',
+const PUBLIC_TABLES = ['accounts', 'analytics_daily', 'analytics_events', 'analytics_ingest_stats', 'analytics_owners', 'analytics_rate', 'analytics_rate_salt', 'analytics_rollup_runs',
+  'analytics_sessions', 'analytics_visitors', 'billing_customers', 'calculation_records', 'calculators', 'canonical_fields', 'component_connections',
   'components', 'engineering_analyses', 'engineering_analyzers', 'entitlement_grants', 'formula_versions', 'garages', 'machine_details',
   'machines', 'plan_offers', 'plan_prices', 'plans', 'profiles', 'saved_calculations', 'stripe_events', 'subscriptions', 'test_setups', 'value_records'];
 const SECURITY_DEFINERS = ['analytics_billing_metrics', 'analytics_count', 'analytics_dashboard', 'analytics_ingest', 'analytics_is_owner',
-  'analytics_purge', 'analytics_refresh', 'analytics_require_owner', 'analytics_rollup', 'df_handle_new_auth_user', 'df_soft_delete_component', 'df_soft_delete_connection', 'df_soft_delete_garage',
+  'analytics_purge', 'analytics_rate_check', 'analytics_refresh', 'analytics_require_owner', 'analytics_rollup', 'analytics_rollup_pending', 'df_handle_new_auth_user', 'df_soft_delete_component', 'df_soft_delete_connection', 'df_soft_delete_garage',
   'df_soft_delete_machine', 'gf_repin_test_setup_baseline', 'gf_soft_delete_test_setup', 'pf_engineering_analysis_check',
   'pf_handle_new_auth_user', 'pf_has_feature', 'pf_machine_details_primary', 'pf_my_entitlement', 'pf_saved_calculation_links',
   'pf_soft_delete_engineering_analysis', 'pf_soft_delete_saved_calculation'];
@@ -196,7 +196,7 @@ check('integrity', '0408 (GH-ENG-014): exactly the four corrected formula versio
     { calculator_id: 'distance_converter', formula_version: 'fv1-36d27af2', engine_version: '1.1.0', formula_registry: 'GH_LEGACY_FORMULAS', first_release: 'F1.12.3' }], 'original rows');
   eq(await one(c, `SELECT count(*)::int FROM formula_versions WHERE first_release <> 'F1.12.3'`), 4, 'only the four 0408 rows are not from the 0005 seed');
 });
-check('integrity', 'exactly the 28 expected public tables (22 + 6 analytics, 0501); RLS enabled AND forced on every one', async (c) => {
+check('integrity', 'exactly the 31 expected public tables (22 + 9 analytics, 0501); RLS enabled AND forced on every one', async (c) => {
   const r = await q(c, `SELECT relname, relrowsecurity e, relforcerowsecurity f FROM pg_class WHERE relnamespace = 'public'::regnamespace AND relkind = 'r' ORDER BY relname`);
   eq(r.map(x => x.relname), PUBLIC_TABLES, 'tables');
   eq(r.filter(x => !(x.e && x.f)).map(x => x.relname), [], 'tables without enabled+forced RLS');

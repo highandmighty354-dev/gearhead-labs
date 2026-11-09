@@ -50,7 +50,8 @@ const hex = (i, w = 12) => i.toString(16).padStart(w, '0');
 const uuid = (kind, i) => `0a00000${kind}-0000-4000-8000-${hex(i)}`;      // kind: 1 event, 2 visitor, 3 session, 4 page view
 const ev = (name, o = {}) => ({ event_id: uuid(1, ++n), name, vid: o.vid || uuid(2, 1), sid: o.sid || uuid(3, 1), seq: o.seq ?? n,
   page: o.page || 'home', pv_id: o.pv_id || uuid(4, 1), viewport: 'l', props: o.props || {}, ...(o.ts_client ? { ts_client: o.ts_client } : {}) });
-const ingest = (c, batch, meta = { env: 'test' }) => one(c, `SELECT public.analytics_ingest($1::jsonb, $2::jsonb)`, [JSON.stringify(batch), JSON.stringify(meta)]);
+const META = { env: 'test', client_env: 'test' };
+const ingest = (c, batch, meta = META) => one(c, `SELECT public.analytics_ingest($1::jsonb, $2::jsonb)`, [JSON.stringify(batch), JSON.stringify(meta)]);
 /* Direct insert (as the table owner) with an exact server time, for sessionisation / period tests. ts = ISO with offset. */
 async function put(c, ts, e, env = 'test', bot = false) {
   await c.query(`INSERT INTO public.analytics_events (event_id, env, name, ts_server, vid, sid, pv_id, seq, page, props, bot)
@@ -63,7 +64,8 @@ const checks = [];
 const check = (group, name, fn) => checks.push({ group, name, fn });
 
 check('security', 'no client role can read or write any analytics table; RLS enabled and forced; no policies', async (c) => {
-  const tables = ['analytics_owners', 'analytics_events', 'analytics_ingest_stats', 'analytics_sessions', 'analytics_daily', 'analytics_rollup_runs'];
+  const tables = ['analytics_owners', 'analytics_events', 'analytics_ingest_stats', 'analytics_sessions', 'analytics_daily', 'analytics_rollup_runs',
+    'analytics_visitors', 'analytics_rate', 'analytics_rate_salt'];
   for (const t of tables) {
     for (const who of ['anon', 'other', 'owner', 'service']) {
       await as(c, who); await expectErr(c, `SELECT 1 FROM public.${t} LIMIT 1`, [], DENIED);
@@ -78,7 +80,8 @@ check('security', 'function privileges: ingest = service_role only; dashboard/re
   const x = async (role, f) => one(c, `SELECT has_function_privilege($1, $2, 'EXECUTE')`, [role, 'public.' + f]);
   eq([await x('service_role', 'analytics_ingest(jsonb, jsonb)'), await x('authenticated', 'analytics_ingest(jsonb, jsonb)'), await x('anon', 'analytics_ingest(jsonb, jsonb)')], [true, false, false], 'ingest');
   eq([await x('authenticated', 'analytics_dashboard(date, date, text)'), await x('anon', 'analytics_dashboard(date, date, text)'), await x('service_role', 'analytics_dashboard(date, date, text)')], [true, false, false], 'dashboard');
-  for (const f of ['analytics_rollup(date)', 'analytics_purge()', 'analytics_event_problem(jsonb)', 'analytics_count(text, text, text, bigint)'])
+  for (const f of ['analytics_rollup(date)', 'analytics_rollup_pending()', 'analytics_purge()', 'analytics_event_problem(jsonb)', 'analytics_count(text, text, text, bigint)',
+                   'analytics_rate_check(text, text, integer)'])
     for (const r of ['anon', 'authenticated', 'service_role']) eq(await x(r, f), false, `${r} ${f}`);
   await as(c, 'anon'); await expectErr(c, `SELECT public.analytics_ingest('[]', '{"env":"test"}')`, [], DENIED);
   await as(c, 'owner'); await expectErr(c, `SELECT public.analytics_ingest('[]', '{"env":"test"}')`, [], DENIED);
@@ -122,26 +125,42 @@ check('validation', 'only catalogued events with allow-listed, well-typed proper
     [{ ...ev('page_view'), ip: '203.0.113.9' }, 'unknown_field'],
     [{ ...ev('page_view'), seq: -1 }, 'bad_seq'],
     [{ ...ev('page_view'), ts_client: '2026-13-45T25:00:00Z' }, 'bad_ts'],
-    [ev('page_view', { props: { utm_campaign: 'x'.repeat(101) } }), 'bad_prop:utm_campaign']];
+    [ev('page_view', { props: { utm_campaign: 'x'.repeat(101) } }), 'bad_prop:utm_campaign'],
+    // hostile payloads
+    [{ ...ev('page_view'), env: 'live' }, 'unknown_field'],                                  // an event cannot carry its own environment
+    [{ ...ev('page_view'), name: "page_view'; DROP TABLE analytics_events; --" }, 'unknown_event'],
+    [ev('page_view', { page: '<script>alert(1)</script>' }), 'bad_page'],
+    [ev('page_view', { page: 'calc:' + 'a'.repeat(5000) }), 'bad_page'],
+    [ev('page_view', { page: 'calc:hp\u0430' }), 'bad_page'],                               // a look-alike (Cyrillic) letter
+    [JSON.parse('{"event_id":"0a000001-0000-4000-8000-00000000ffff","name":"calc_start","vid":"0a000002-0000-4000-8000-000000000001","sid":"0a000003-0000-4000-8000-000000000001","seq":1,"page":"home","props":{"calc_id":"x","__proto__":{"admin":true}}}'), 'unknown_prop:__proto__'],
+    [ev('calc_start', { props: { calc_id: { nested: 'x' } } }), 'bad_prop:calc_id'],
+    [ev('calc_start', { props: ['calc_id'] }), 'bad_props'],
+    [{ ...ev('page_view'), seq: 1.5 }, 'bad_seq'],
+    [{ ...ev('page_view'), vid: '0A000002-0000-4000-8000-000000000001' }, 'bad_id'],
+    [ev('page_leave', { props: { engaged_ms: 1e12 } }), 'bad_prop:engaged_ms'],
+    [ev('search', { props: { result_count: 3, clicked_rank: '1 OR 1=1' } }), 'bad_prop:clicked_rank'],
+    ['not an object', 'not_object']];
   await as(c, 'postgres');
-  for (const [e, why] of bad) eq(await one(c, `SELECT public.analytics_event_problem($1::jsonb)`, [JSON.stringify(e)]), why, `reason for ${JSON.stringify(e.props || {})}`);
+  for (const [e, why] of bad) eq(await one(c, `SELECT public.analytics_event_problem($1::jsonb)`, [JSON.stringify(e)]), why, `reason for ${JSON.stringify(e).slice(0, 120)}`);
   await as(c, 'service');
   const all = bad.map(b => b[0]).concat([ev('page_view', { props: { ref_host: 'google.com', utm_source: 'newsletter' } }), ev('calc_start', { props: { calc_id: 'hp_from_et' } })]);
-  const r1 = await ingest(c, all.slice(0, 11)), r2 = await ingest(c, all.slice(11));
-  eq([r1.accepted + r2.accepted, r1.rejected + r2.rejected], [2, bad.length], 'accepted/rejected');
+  let acc = 0, rej = 0;
+  for (let i = 0; i < all.length; i += 20) { const r = await ingest(c, all.slice(i, i + 20)); acc += r.accepted; rej += r.rejected; }
+  eq([acc, rej], [2, bad.length], 'accepted/rejected');
   await as(c, 'postgres');
   eq(+(await one(c, `SELECT count(*) FROM analytics_events`)), 2, 'rows');
   eq(+(await one(c, `SELECT sum(n) FROM analytics_ingest_stats WHERE outcome = 'rejected'`)), bad.length, 'rejected counted');
   eq(+(await one(c, `SELECT n FROM analytics_ingest_stats WHERE outcome = 'rejected' AND reason = 'unknown_prop:value'`)), 1, 'reason kept');
-  eq(+(await one(c, `SELECT count(*) FROM analytics_events WHERE props::text ~ '350|turbo|@'`)), 0, 'no input values / search text / email stored');
+  eq(+(await one(c, `SELECT count(*) FROM analytics_events WHERE props::text ~ '350|turbo|@|admin|DROP'`)), 0, 'no input values / search text / email / hostile content stored');
+  eq(+(await one(c, `SELECT to_regclass('public.analytics_events') IS NOT NULL`)), 1, 'table intact');
 });
 check('validation', 'bad envelopes: unknown env, empty, oversize (>20) and non-array batches are refused without storing anything', async (c) => {
   await as(c, 'service');
   eq((await ingest(c, [ev('page_view')], { env: 'production' })).reason, 'bad_env', 'env');
-  eq((await ingest(c, [], { env: 'test' })).reason, 'bad_batch', 'empty');
+  eq((await ingest(c, [], META)).reason, 'bad_batch', 'empty');
   eq((await ingest(c, Array.from({ length: 21 }, () => ev('page_view')))).reason, 'bad_batch', 'oversize');
-  eq((await one(c, `SELECT public.analytics_ingest('{"a":1}'::jsonb, '{"env":"test"}')`)).reason, 'bad_batch', 'object');
-  eq((await ingest(c, [ev('page_view')], { env: 'test', bot: 'yes', client_errors: 'lots' })).accepted, 1, 'junk meta ignored safely');
+  eq((await one(c, `SELECT public.analytics_ingest('{"a":1}'::jsonb, '{"env":"test","client_env":"test"}')`)).reason, 'bad_batch', 'object');
+  eq((await ingest(c, [ev('page_view')], { ...META, bot: 'yes', client_errors: 'lots' })).accepted, 1, 'junk meta ignored safely');
   await as(c, 'postgres');
   eq(+(await one(c, `SELECT count(*) FROM analytics_events`)), 1, 'only the valid one');
 });
@@ -161,7 +180,7 @@ check('abuse', 'per-session cap (500 / 24 h), bot flag, skewed client clock, cli
                  FROM generate_series(1, 500) g`, [uuid(2, 77), sid]);
   await as(c, 'service');
   eq((await ingest(c, [ev('page_view', { sid })])).capped, 1, 'capped');
-  eq((await ingest(c, [ev('page_view', { sid: uuid(3, 78), ts_client: '2020-01-01T00:00:00Z' })], { env: 'test', bot: true, ua_family: 'HeadlessChrome<script>', client_errors: 4, client_dropped: 2 })).accepted, 1, 'bot accepted for volume');
+  eq((await ingest(c, [ev('page_view', { sid: uuid(3, 78), ts_client: '2020-01-01T00:00:00Z' })], { ...META, bot: true, ua_family: 'HeadlessChrome<script>', client_errors: 4, client_dropped: 2 })).accepted, 1, 'bot accepted for volume');
   await as(c, 'postgres');
   const row = (await q(c, `SELECT bot, ts_client, ua_family FROM analytics_events WHERE sid = $1`, [uuid(3, 78)]))[0];
   eq([row.bot, row.ts_client, row.ua_family], [true, null, 'HeadlessChromescript'], 'bot row, skewed clock dropped, UA sanitised');
@@ -245,7 +264,7 @@ check('dashboard', 'owner report: KPIs, previous-period comparison, date filter 
   await as(c, 'owner');
   const r = await one(c, `SELECT public.analytics_dashboard('2026-11-02', '2026-11-08', 'test')`);
   eq(r.range, { from: '2026-11-02', to: '2026-11-08', previous_from: '2026-10-26', previous_to: '2026-11-01', env: 'test', timezone: 'America/New_York' }, 'range');
-  eq(r.kpis, { visitors: 3, sessions: 4, page_views: 5, engaged_sessions: 2, avg_engaged_ms: 467000, pages_per_session: 1.25, new_visitors: 2, returning_visitors: 1 }, 'kpis');
+  eq(r.kpis, { visitors: 3, sessions: 4, page_views: 5, engaged_sessions: 2, avg_engaged_ms: 467000, pages_per_session: 1.25, new_visitors: 3, returning_visitors: 0 }, 'kpis');
   eq(r.kpis_previous.sessions, 4, 'previous period');
   eq(r.trend.length, 7, 'one trend point per day'); eq(r.trend.find(t => t.day === '2026-11-03').sessions, 4, 'trend day');
   eq(r.trend.filter(t => t.sessions > 0).length, 1, 'nothing outside the range leaks in');
@@ -328,57 +347,178 @@ async function handlerFor(c, opts = {}) {
   const h = await import(require('url').pathToFileURL(HANDLER).href);
   const logs = [];
   const handle = h.makeAnalyticsIngestHandler({ enabled: opts.enabled !== false, log: (m) => logs.push(m), allow: opts.allow,
-    config: { allowedOrigins: [SITE, 'http://localhost:8080', 'https://preview.example.test'], liveOrigins: [SITE] },
+    config: { env: opts.env === undefined ? 'live' : opts.env, allowedOrigins: [SITE, 'http://localhost:8080'] },
     rpc: async (fn, args) => { if (opts.dbDown) return { error: { code: '08006' } };
       await as(c, 'service'); try { await c.query(`SELECT public.${fn}($1::jsonb, $2::jsonb)`, [JSON.stringify(args.p_batch), JSON.stringify(args.p_meta)]); return { error: null }; }
       finally { await as(c, 'postgres'); } } });
-  const post = (body, { origin = SITE, ua = CHROME, method = 'POST', raw } = {}) => handle(new Request('https://x.supabase.co/functions/v1/analytics-ingest',
-    { method, headers: { origin, 'user-agent': ua, 'content-type': 'text/plain;charset=UTF-8', 'x-forwarded-for': '198.51.100.7' },
+  const post = (body, { origin = SITE, ua = CHROME, method = 'POST', raw, ip = '198.51.100.7' } = {}) => handle(new Request('https://x.supabase.co/functions/v1/analytics-ingest',
+    { method, headers: { origin, 'user-agent': ua, 'content-type': 'text/plain;charset=UTF-8', 'x-forwarded-for': ip + ', 10.0.0.1' },
       body: method === 'POST' ? (raw !== undefined ? raw : JSON.stringify(body)) : undefined }));
   return { h, post, logs };
 }
 const rows = async (c) => q(c, `SELECT env, name, ua_family, bot FROM analytics_events ORDER BY id`);
-check('edge', 'handler: live origin -> live env; preview origin -> test; localhost -> dev; UA reduced to a family; always 204', async (c) => {
-  await as(c, 'postgres'); const { post } = await handlerFor(c);
-  for (const [origin, env] of [[SITE, 'live'], ['https://preview.example.test', 'live'], ['http://localhost:8080', 'live']]) {
-    const r = await post({ env, events: [ev('page_view')] }, { origin });
-    eq([r.status, await r.text(), r.headers.get('access-control-allow-origin')], [204, '', origin], 'response');
-  }
-  eq((await post({ env: 'test', events: [ev('page_view')] })).status, 204, 'test from live origin');
-  eq(await rows(c), [{ env: 'live', name: 'page_view', ua_family: 'Chrome', bot: false }, { env: 'test', name: 'page_view', ua_family: 'Chrome', bot: false },
-    { env: 'dev', name: 'page_view', ua_family: 'Chrome', bot: false }, { env: 'test', name: 'page_view', ua_family: 'Chrome', bot: false }], 'stored');
-  eq(+(await one(c, `SELECT count(*) FROM analytics_events WHERE props::text LIKE '%198.51%' OR ua_family LIKE '%Windows%'`)), 0, 'no IP / full UA stored');
-});
-check('edge', 'handler: refuses foreign origins, GET, oversize bodies, >20 events, junk JSON, rate-limit overflow and the kill switch; never errors', async (c) => {
+const stat = async (c, outcome) => (await q(c, `SELECT env, reason, n::int FROM analytics_ingest_stats WHERE outcome = $1 ORDER BY env, reason`, [outcome])).map(r => `${r.env}:${r.reason}=${r.n}`);
+
+check('environment', 'the environment is fixed by the deployment: a forged production Origin or a page-supplied env cannot make events live', async (c) => {
   await as(c, 'postgres');
-  let n = 0; const { post, logs } = await handlerFor(c, { allow: () => ++n <= 6 });
+  const test = await handlerFor(c, { env: 'test' });
+  // a script sends the real site's Origin and claims "live" to a TEST deployment: rejected whole, nothing stored
+  eq((await test.post({ env: 'live', events: [ev('page_view')] }, { origin: SITE })).status, 204, '204');
+  eq(await rows(c), [], 'forged origin + env:live -> nothing stored');
+  // the same forged Origin with the honest env is stored as TEST — the Origin decides nothing
+  await test.post({ env: 'test', events: [ev('page_view')] }, { origin: SITE });
+  // no env at all -> rejected
+  await test.post({ events: [ev('page_view')] }, { origin: SITE });
+  eq((await rows(c)).map(r => r.env), ['test'], 'only the matching batch, stored as test');
+  // a LIVE deployment: a page claiming "test" or "dev" cannot route its events elsewhere either; localhost Origin changes nothing
+  const live = await handlerFor(c, { env: 'live' });
+  await live.post({ env: 'test', events: [ev('page_view')] }, { origin: 'http://localhost:8080' });
+  await live.post({ env: 'dev', events: [ev('page_view')] });
+  await live.post({ env: 'live', events: [ev('page_view')] }, { origin: 'http://localhost:8080' });
+  eq((await rows(c)).map(r => r.env), ['test', 'live'], 'live deployment stores only live, and only when the page agrees');
+  eq(await stat(c, 'rejected'), ['live:env_mismatch=2', 'test:env_mismatch=2'], 'mismatches counted in Data health');
+  // directly at the database: the service caller's env wins; a missing/foreign client_env is refused
+  await as(c, 'service');
+  eq((await ingest(c, [ev('page_view')], { env: 'test', client_env: 'live' })).reason, 'env_mismatch', 'db: claimed live');
+  eq((await ingest(c, [ev('page_view')], { env: 'test' })).reason, 'env_mismatch', 'db: no claim');
+  eq((await ingest(c, [ev('page_view')], { env: 'production', client_env: 'production' })).reason, 'bad_env', 'db: unknown env');
+  // an unconfigured deployment accepts nothing
+  await as(c, 'postgres');
+  const none = await handlerFor(c, { env: '' }); await none.post({ env: 'live', events: [ev('page_view')] });
+  eq((await rows(c)).length, 2, 'no ANALYTICS_ENV -> dropped');
+});
+
+check('limits', 'database rate limits: per network per 10 min, IPv6 by /64, per network per day, per environment per hour; addresses never stored', async (c) => {
+  await as(c, 'service');
+  const batch = (k) => Array.from({ length: 20 }, (_, i) => ev('page_view', { sid: uuid(3, 1000 + k * 20 + i) }));
+  const send = (k, net) => ingest(c, batch(k), { ...META, net });
+  for (let k = 0; k < 30; k++) eq((await send(k, '198.51.100.7')).accepted, 20, 'within limit ' + k);          // 600 = the 10-minute limit
+  eq((await send(30, '198.51.100.7')).reason, 'net_10min', '601st event in 10 minutes');
+  eq((await send(31, '198.51.100.8')).accepted, 20, 'another address is unaffected');
+  for (let k = 0; k < 30; k++) await send(100 + k, '2001:db8:1:2::1');
+  eq((await send(140, '2001:db8:1:2:ffff:ffff:ffff:fffe')).reason, 'net_10min', 'same IPv6 /64 shares the limit');
+  eq((await send(141, '2001:db8:1:3::1')).accepted, 20, 'next /64 is unaffected');
+  await as(c, 'postgres');
+  await c.query(`UPDATE analytics_rate SET n = 5000 WHERE kind = 'net_day'`);                                   // a day's worth already used
+  await c.query(`DELETE FROM analytics_rate WHERE kind = 'net_10min'`);
+  await as(c, 'service');
+  eq((await send(150, '198.51.100.8')).reason, 'net_day', 'daily limit');
+  await as(c, 'postgres');
+  await c.query(`DELETE FROM analytics_rate WHERE kind <> 'global_hour'`); await c.query(`UPDATE analytics_rate SET n = 60000 WHERE kind = 'global_hour'`);
+  await as(c, 'service');
+  eq((await send(151, '203.0.113.50')).reason, 'global_hour', 'environment-wide hourly ceiling, whatever the network');
+  eq((await ingest(c, batch(152), { env: 'dev', client_env: 'dev', net: '203.0.113.50' })).accepted, 20, 'ceiling is per environment');
+  await as(c, 'postgres');
+  eq(await stat(c, 'rate_limited'), ['test:global_hour=20', 'test:net_10min=40', 'test:net_day=20'], 'counted in Data health');
+  // no table holds an address, in any form other than the salted hash
+  for (const t of ['analytics_events', 'analytics_ingest_stats', 'analytics_rate', 'analytics_rate_salt', 'analytics_sessions', 'analytics_daily', 'analytics_visitors'])
+    eq(+(await one(c, `SELECT count(*) FROM public.${t} x WHERE x::text ~ '198\\.51|2001:db8|203\\.0\\.113|\\\\x[0-9a-f]*c63364'`)), 0, 'address in ' + t);
+  eq(+(await one(c, `SELECT count(DISTINCT octet_length(key)) FROM analytics_rate`)), 1, 'keys are fixed-length hashes');
+  eq(+(await one(c, `SELECT count(*) FROM analytics_rate_salt`)), 1, 'one salt (today)');
+  await c.query(`INSERT INTO analytics_rate_salt (day) VALUES (current_date - 5)`);
+  await c.query(`INSERT INTO analytics_rate (kind, key, win_start, n) VALUES ('net_day', '\\x00', now() - interval '3 days', 1)`);
+  await c.query(`SELECT public.analytics_purge()`);
+  eq([+(await one(c, `SELECT count(*) FROM analytics_rate_salt WHERE day < current_date - 1`)), +(await one(c, `SELECT count(*) FROM analytics_rate WHERE win_start < now() - interval '2 days'`))], [0, 0], 'old salts and counters purged');
+});
+
+check('edge', 'handler: UA reduced to a family; network passed for hashing only; always 204; CORS only for allowed origins', async (c) => {
+  await as(c, 'postgres'); const { post, logs } = await handlerFor(c);
+  const r = await post({ env: 'live', events: [ev('page_view')] });
+  eq([r.status, await r.text(), r.headers.get('access-control-allow-origin')], [204, '', SITE], 'response');
+  eq(await rows(c), [{ env: 'live', name: 'page_view', ua_family: 'Chrome', bot: false }], 'stored');
+  eq(+(await one(c, `SELECT count(*) FROM analytics_events WHERE props::text LIKE '%198.51%' OR ua_family LIKE '%Windows%'`)), 0, 'no IP / full UA stored');
+  ok(!logs.join(' ').match(/198\.51/), 'no address logged');
+});
+check('edge', 'LIMITATION made explicit: a script that copies a browser\'s headers is accepted like a visitor (only limits and bot rules bound it)', async (c) => {
+  await as(c, 'postgres'); const { post } = await handlerFor(c);
+  await post({ env: 'live', events: [ev('page_view')] }, { ua: 'curl/8.5.0' });                  // an honest script: flagged bot
+  await post({ env: 'live', events: [ev('page_view')] });                                         // a script forging Origin + Chrome UA
+  eq((await rows(c)).map(r => [r.env, r.bot]), [['live', true], ['live', false]], 'the forged one is indistinguishable from a visitor');
+});
+check('edge', 'handler: refuses foreign origins, GET, oversize bodies, >20 events, junk JSON and the kill switch; never errors', async (c) => {
+  await as(c, 'postgres');
+  const { post, logs } = await handlerFor(c);
   const results = [
     await post({ env: 'live', events: [ev('page_view')] }, { origin: 'https://evil.example' }),
+    await post({ env: 'live', events: [ev('page_view')] }, { origin: '' }),
     await post(null, { method: 'GET' }),
     await post(null, { raw: 'x'.repeat(9000) }),
     await post({ env: 'live', events: Array.from({ length: 21 }, () => ev('page_view')) }),
     await post(null, { raw: '{not json' }),
+    await post(null, { raw: '{"env":"live","events":{"0":1}}' }),
     await post({ env: 'live', events: [ev('page_view')] }, { ua: 'Googlebot/2.1 (+http://www.google.com/bot.html)' }),
     await post({ env: 'live', events: [ev('page_view')], wd: true }),
     await post({ env: 'live', events: [ev('page_view')], client_errors: 3, client_dropped: -4 }),
-    await post({ env: 'live', events: [ev('page_view')] }),            // 7th rate-limited request in the minute: refused
   ];
-  eq(results.map(r => r.status), Array(9).fill(204), 'always 204');
+  eq(results.map(r => r.status), Array(10).fill(204), 'always 204');
   eq(results[0].headers.get('access-control-allow-origin'), null, 'no CORS grant for a foreign origin');
   eq(await rows(c), [{ env: 'live', name: 'page_view', ua_family: 'Bot', bot: true }, { env: 'live', name: 'page_view', ua_family: 'Chrome', bot: true },
     { env: 'live', name: 'page_view', ua_family: 'Chrome', bot: false }], 'only the three valid batches are stored (two flagged bot)');
-  eq((await q(c, `SELECT outcome, reason, n::int FROM analytics_ingest_stats WHERE outcome IN ('rejected','client_error','client_dropped') ORDER BY outcome, reason`))
-    .map(r => `${r.outcome}:${r.reason}=${r.n}`), ['client_error:=3', 'rejected:bad_batch=3'], 'oversize / >20 / junk counted as rejected; negative counter ignored');
-  ok(logs.includes('analytics-ingest: origin refused') && logs.includes('analytics-ingest: rate limited'), 'logged reasons');
+  eq(await stat(c, 'rejected'), ['live:bad_batch=4'], 'oversize / >20 / junk / non-array counted as rejected');
+  eq(await stat(c, 'client_error'), ['live:=3'], 'client error counter; negative ignored');
+  ok(logs.filter(l => l === 'analytics-ingest: origin refused').length === 2, 'logged');
   ok(!logs.join(' ').match(/198\.51|page_view|Windows/), 'logs carry no IP, payload or user agent');
   const off = await handlerFor(c, { enabled: false });
   eq((await off.post({ env: 'live', events: [ev('page_view')] })).status, 204, 'disabled still 204');
   eq((await rows(c)).length, 3, 'kill switch stores nothing');
 });
+check('edge', 'in-memory limiter is PER INSTANCE (documented as not global): two instances each allow their own quota; window resets', async (c) => {
+  const h = await import(require('url').pathToFileURL(HANDLER).href);
+  let t = 0; const a = h.createRateLimiter({ perMinute: 3, now: () => t }), b = h.createRateLimiter({ perMinute: 3, now: () => t });
+  eq([a('k'), a('k'), a('k'), a('k')], [true, true, true, false], 'instance A: 3 then refused');
+  eq([b('k'), b('k'), b('k')], [true, true, true], 'instance B does not know about A');
+  t = 60000; eq(a('k'), true, 'new minute (and a restart would also reset it)');
+  await as(c, 'postgres'); let n = 0; const { post, logs } = await handlerFor(c, { allow: () => ++n <= 1 });
+  await post({ env: 'live', events: [ev('page_view')] }); await post({ env: 'live', events: [ev('page_view')] });
+  eq((await rows(c)).length, 1, 'refused by this instance before reaching the database');
+  ok(logs.includes('analytics-ingest: rate limited (this instance)'), 'logged');
+});
 check('edge', 'handler: database down -> still 204, nothing thrown (the page never sees a failure)', async (c) => {
   const { post, logs } = await handlerFor(c, { dbDown: true });
   eq((await post({ env: 'live', events: [ev('page_view')] })).status, 204, '204');
   ok(logs.some(l => l.startsWith('analytics-ingest: database error')), 'logged');
+});
+
+/* ---------------------------------------------------------------- new vs returning visitors
+ * Period P = 2026-11-02 .. 11-08 (previous: 10-26 .. 11-01). One page view per (visitor, day), each its own session.
+ *   A first 11-03 (one session)              -> P new
+ *   B first 11-03, again 11-05                -> P new (once)
+ *   C first 10-20, again 11-04 (its page claims is_new_visitor: true — ignored) -> P returning
+ *   D first 10-28, again 11-04 and 11-06      -> P returning; previous: new
+ *   E storage cleared: a NEW id on 11-06 (the same person's old id X was seen 10-20 only) -> P new; X not active in P
+ *   F first 11-08 (last day of P)             -> P new
+ *   G first 11-09 (after P)                   -> not in P
+ *   H first 11-01 (last day of previous), again 11-02 (first day of P) -> P returning; previous: new
+ * P: visitors 7 = new 4 (A B E F) + returning 3 (C D H). Previous: visitors 2 = new 2 (D H) + returning 0. */
+check('visitors', 'new vs returning are mutually exclusive and come from each id\'s first recorded day, not the page\'s flag', async (c) => {
+  await as(c, 'postgres');
+  const V = { A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8, X: 9 };
+  const visits = [['A', '11-03'], ['B', '11-03'], ['B', '11-05'], ['C', '10-20'], ['C', '11-04'], ['D', '10-28'], ['D', '11-04'], ['D', '11-06'],
+    ['X', '10-20'], ['E', '11-06'], ['F', '11-08'], ['G', '11-09'], ['H', '11-01'], ['H', '11-02']];
+  let k = 0;
+  for (const [who, d] of visits) {
+    const vid = uuid(2, 700 + V[who]), sid = uuid(3, 700 + ++k);
+    await put(c, NY('2026-' + d, '12:00'), ev('page_view', { vid, sid, pv_id: uuid(4, 700 + k), props: who === 'C' && d === '11-04' ? { is_new_visitor: true } : {} }));
+  }
+  await c.query(`SELECT public.analytics_rollup_pending()`);       // every day with events, oldest first
+  await as(c, 'owner');
+  const r = await one(c, `SELECT public.analytics_dashboard('2026-11-02', '2026-11-08', 'test')`);
+  const pick = (x) => [x.visitors, x.new_visitors, x.returning_visitors];
+  eq(pick(r.kpis), [7, 4, 3], 'period: visitors / new / returning');
+  eq(pick(r.kpis_previous), [2, 2, 0], 'previous period');
+  eq(r.kpis.new_visitors + r.kpis.returning_visitors, r.kpis.visitors, 'mutually exclusive and complete');
+  const one11 = await one(c, `SELECT public.analytics_dashboard('2026-11-04', '2026-11-04', 'test')`);
+  eq(pick(one11.kpis), [2, 0, 2], 'single day 11-04: C and D both returning');
+  // rolling days up again, in reverse order, changes nothing
+  await as(c, 'postgres');
+  for (const d of ['2026-11-08', '2026-11-03', '2026-10-20', '2026-11-04']) await c.query(`SELECT public.analytics_rollup($1)`, [d]);
+  await as(c, 'owner');
+  eq(pick((await one(c, `SELECT public.analytics_dashboard('2026-11-02', '2026-11-08', 'test')`)).kpis), [7, 4, 3], 'order-independent');
+  // bot-only ids never become visitors
+  await as(c, 'postgres');
+  await put(c, NY('2026-11-03', '13:00'), ev('page_view', { vid: uuid(2, 799), sid: uuid(3, 799) }), 'test', true);
+  await c.query(`SELECT public.analytics_rollup('2026-11-03')`);
+  eq(+(await one(c, `SELECT count(*) FROM analytics_visitors WHERE vid = $1`, [uuid(2, 799)])), 0, 'bot id not recorded');
 });
 
 /* ---------------------------------------------------------------- runner */

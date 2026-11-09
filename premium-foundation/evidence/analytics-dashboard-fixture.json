@@ -5,11 +5,11 @@
       "sessions": 4,
       "visitors": 3,
       "page_views": 5,
-      "new_visitors": 2,
+      "new_visitors": 3,
       "avg_engaged_ms": 467000,
       "engaged_sessions": 2,
       "pages_per_session": 1.25,
-      "returning_visitors": 1
+      "returning_visitors": 0
     },
     "pages": [
       {
@@ -149,7 +149,7 @@
       "totals": {},
       "bot_sessions": 1,
       "last_event_at": "2026-11-09T17:32:00+00:00",
-      "last_rollup_at": "2026-11-09T11:29:53.723998+00:00",
+      "last_rollup_at": "2026-11-09T13:05:29.719544+00:00",
       "raw_retention_days": 90
     },
     "search": {
@@ -219,11 +219,11 @@
       "sessions": 4,
       "visitors": 3,
       "page_views": 5,
-      "new_visitors": 2,
+      "new_visitors": 3,
       "avg_engaged_ms": 467000,
       "engaged_sessions": 2,
       "pages_per_session": 1.25,
-      "returning_visitors": 1
+      "returning_visitors": 0
     }
   }
 }
