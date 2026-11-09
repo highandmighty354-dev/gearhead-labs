@@ -1,6 +1,13 @@
 # Gearhead Labs — First-Party Analytics & Owner Dashboard Blueprint
 
-Status: **planning document only (2026-11-06). Nothing here is implemented, deployed or enabled.** Written against `main` at `6a4d08f`, with reference to draft PR #28 (Stripe billing, test mode) at `ff8210c`. Neither was modified.
+> **Read this first (updated 2026-11-09).** This is the original plan, kept unchanged below to record the intended
+> design and scope. It has since been implemented in draft PR #29, and several parts were built differently —
+> environment handling, rate limits, new versus returning visitors, calculator completion, search words and account
+> linking among them. **`docs/ANALYTICS-IMPLEMENTATION.md` is the authoritative record of what was actually built**, its
+> limitations and the open owner decisions (its §10 lists the differences from this plan). Where the two disagree, the
+> implementation record is correct. The "[R]" recommendations and section 12 decisions below are not approvals.
+
+Original status: **planning document only (2026-11-06). Nothing here is implemented, deployed or enabled.** Written against `main` at `6a4d08f`, with reference to draft PR #28 (Stripe billing, test mode) at `ff8210c`. Neither was modified.
 
 Labels used throughout:
 - **[V]** verified in the code or repository;
