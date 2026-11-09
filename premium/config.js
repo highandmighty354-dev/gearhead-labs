@@ -17,6 +17,13 @@ window.GHP_CONFIG = {
     url: '',
     anonKey: ''
   },
+  /* billing: Stripe Checkout / Customer Portal through the Supabase Edge Functions billing-checkout and billing-portal.
+     TEST MODE ONLY at this stage (the functions refuse live Stripe keys). Leave enabled: false until the functions are deployed
+     to a TEST project with Stripe test keys and test prices (docs/BILLING-STRIPE.md). While false, the site keeps saying that
+     online checkout is not open and offers no purchase or trial action. */
+  billing: {
+    enabled: false
+  },
   development: {
     allowOnLocalhost: true,
     allowQueryFlag: false,
