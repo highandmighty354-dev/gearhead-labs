@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-10T16:51:37.986Z",
+ "generated": "2026-11-10T17:22:43.407Z",
  "engine": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
  "valid": true,
  "probes": [
@@ -33,7 +33,7 @@
   },
   {
    "reg": "GH-DEF-052",
-   "what": "track-width input, R to centreline (renderer and registry row)"
+   "what": "PROVISIONAL convention (owner decision D7 open): track-width input, Turn Radius relabelled and computed to the vehicle centreline (renderer, header text and registry row)"
   },
   {
    "reg": "GH-DEF-053",
@@ -128,12 +128,12 @@
   "KA-03": {
    "pass": false,
    "reg": "GH-DEF-046",
-   "detail": "shows 434.8, independent value 29.88197 (|actual - expected| = 404.918 is more than the tolerance 0.35)"
+   "detail": "shows 434.8, independent value 29.98501 (|actual - expected| = 404.815 is more than the tolerance 0.3)"
   },
   "KA-04": {
    "pass": false,
    "reg": "GH-DEF-046",
-   "detail": "shows 46.2, independent value 3.17209 (|actual - expected| = 43.0279 is more than the tolerance 0.06)"
+   "detail": "shows 46.2, independent value 3.18302 (|actual - expected| = 43.017 is more than the tolerance 0.032)"
   },
   "KA-05": {
    "pass": false,
@@ -735,6 +735,9 @@
   }
  },
  "harnessError": null,
+ "limitations": {
+  "GH-DEF-052": "PROVISIONAL CONVENTION, owner approval required (Phase 0 decision D7, still open): Turn Radius measured to the vehicle centreline, inside angle = atan(L / (R - T/2)). The shipped calculator has no Track Width input, so KA-21 is RED only because that input is missing; the inside-angle value is checked only on the temporary probe copy, which adds the input and relabels Turn Radius as measured to the centreline. This does NOT validate the existing two-input UI, and does NOT validate the shipped label \"Turn Radius (to outside wheel path)\": under that convention the expected value would differ (108 / 300 / 60 gives 24.23 deg instead of 21.80 deg)."
+ },
  "redSelftest": {
   "total": 736,
   "passed": 733,
@@ -745,6 +748,11 @@
    "renderer:piston_position 90deg"
   ]
  },
+ "expectedRedSelftestFailures": [
+  "formula:ackermann_angle",
+  "formula:diesel_smoke_limit",
+  "renderer:piston_position 90deg"
+ ],
  "greenSelftest": {
   "total": 736,
   "passed": 736,
