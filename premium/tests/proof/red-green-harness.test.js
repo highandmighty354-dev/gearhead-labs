@@ -86,7 +86,7 @@ rejects('self-test: pageErrors non-empty', 'st-pe-nonempty', () => H.runSelftest
   ok(/PROVISIONAL/.test(L) && /owner approval required/.test(L) && /does NOT validate the existing two-input UI/.test(L), 'GH-DEF-052 limitation recorded: provisional, owner approval required, existing UI not validated');
   const probe = H.PROBES.find(p => p[0] === 'GH-DEF-052'), edits = probe ? probe[2].map(e => e[1]).join('\n') : '';
   ok(/PROVISIONAL/.test(probe && probe[1]), 'GH-DEF-052 probe is described as provisional');
-  ok(/atan\(l\/\(r-t\/2\)\)/.test(edits) && /Turn Radius \(to vehicle centreline\)/.test(edits) && !/outside wheel path/.test(edits), 'GH-DEF-052 probe computes the centreline formula AND labels Turn Radius as centreline (no outside-wheel label left)');
+  ok(/atan\(l\/\(r-t\/2\)\)/.test(edits) && /Turn Radius \(to rear-axle centreline\)/.test(edits) && !/outside wheel path/.test(edits), 'GH-DEF-052 probe computes the centreline formula AND labels Turn Radius as the rear-axle centreline (no outside-wheel label left)');
 }
 /* 5. a genuinely successful child is accepted */
 withMode('ok', () => {

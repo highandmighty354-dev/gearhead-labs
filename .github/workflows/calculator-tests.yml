@@ -65,6 +65,9 @@ jobs:
       - name: Red/green proof harness rejects failed or incomplete child runs (no browser)
         run: node premium/tests/proof/red-green-harness.test.js
 
+      - name: Ackermann reference geometry, independent check of KA-21's expected value (no browser)
+        run: node premium/tests/ackermann-reference.test.js
+
       - name: Engine self-test (known baseline must match exactly)
         run: node premium/tests/engine-selftest.js
 

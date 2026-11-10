@@ -114,12 +114,15 @@ const CASES = [
   { id: 'KA-C1', reg: null, calc: 'bolt_pattern', edit: { lugs: 5, meas: 4.5 }, row: 'Bolt Circle', want: 4.5 / Math.sin(Math.PI / 5), tol: 0.002, why: 'control (correct today): 5-lug adjacent studs, PCD = 7.656 in' },
   { id: 'KA-C2', reg: null, calc: 'bolt_pattern', edit: { lugs: 6, meas: 5.5 }, row: 'Bolt Circle', want: 5.5, tol: 0.002, why: 'control (correct today): 6-lug opposite studs, PCD = 5.500 in' },
   // RC-08 / GH-DEF-052 ackermann_angle — PROVISIONAL CONVENTION, OWNER APPROVAL REQUIRED (Phase 0 decision D7, still open; not the D7 of the ENG-014 proposal).
-  // Expected value assumes Turn Radius is measured to the VEHICLE CENTRELINE: inside angle = atan(L / (R - T/2)), with T = track width as an input.
+  // Expected value assumes Turn Radius R is measured from the turn centre to the MIDPOINT OF THE REAR AXLE (rear-axle centreline), T = front track between wheel
+  // centres: inside angle = atan(L / (R - T/2)). "Vehicle centreline" alone is not enough: 300 in to the front-axle midpoint gives 23.37 deg, not 21.80 deg.
+  // Geometry verified independently in premium/tests/ackermann-reference.test.js (inside 21.80, outside 18.12, outside front wheel-centre radius 347.22 in).
   // LIMITATION: the shipped calculator has no Track Width input (aa_t) and labels Turn Radius "to outside wheel path". So on the shipped engine this case fails
   // only because the input is missing; it does not check the value the existing two-input UI shows. The case also requires the Turn Radius label to state the
-  // centreline convention (fieldLabel), so a calculator that computes the centreline formula under an "outside wheel" label cannot pass. If the owner chooses the
-  // outside-wheel convention instead, the expected value becomes atan(L / (R - T)) = 24.23 deg for 108 / 300 / 60 and fieldLabel changes with it.
-  { id: 'KA-21', reg: 'GH-DEF-052', calc: 'ackermann_angle', edit: { aa_l: 108, aa_r: 300, aa_t: 60 }, fieldLabel: { aa_r: /cent(re|er) ?line/i }, row: 'Inside Steering Angle', want: Math.atan(108 / (300 - 30)) * R2D, tol: 0.05, conv: 'PROVISIONAL, owner approval required (D7): R measured to the vehicle centreline; track width as an input', why: 'atan(108 / (300 - 60/2)) = 21.80 deg' },
+  // rear-axle centreline convention (fieldLabel), so a calculator that computes this formula under an "outside wheel" or a bare "centreline" label cannot pass.
+  // If the owner chooses another measurement point, the expected value changes with it (300 in to the outside FRONT wheel centre: 26.16 deg; to the outside
+  // REAR wheel centre: atan(L / (R - T)) = 24.23 deg; to the front-axle midpoint: 23.37 deg) and so does fieldLabel.
+  { id: 'KA-21', reg: 'GH-DEF-052', calc: 'ackermann_angle', edit: { aa_l: 108, aa_r: 300, aa_t: 60 }, fieldLabel: { aa_r: /rear[- ]axle cent(re|er) ?line/i }, row: 'Inside Steering Angle', want: Math.atan(108 / (300 - 30)) * R2D, tol: 0.05, conv: 'PROVISIONAL, owner approval required (D7): R measured to the midpoint of the rear axle; front track width as an input', why: 'atan(108 / (300 - 60/2)) = 21.80 deg' },
   // RC-09 / GH-DEF-053 fuel_line_loss — relative roughness in consistent units
   { id: 'KA-22', reg: 'GH-DEF-053', calc: 'fuel_line_loss', edit: { flow_gph: 50, line_len: 10, line_id: 0.375, fuel_sg: 0.74, fuel_visc: 0.6, fuel_rough: 0.00006 }, row: 'Darcy Friction Factor', want: fuelLine(50, 10, 0.375, 0.00006, 0.74, 0.6).f, tol: 0.0006, why: 'f = 0.0325 (the defect gives 0.0408)' },
   { id: 'KA-23', reg: 'GH-DEF-053', calc: 'fuel_line_loss', edit: { flow_gph: 300, line_len: 20, line_id: 0.5, fuel_sg: 0.74, fuel_visc: 0.6, fuel_rough: 0.00006 }, row: 'Pressure Drop', want: fuelLine(300, 20, 0.5, 0.00006, 0.74, 0.6).psi, tol: 0.02 * 3.575, why: 'dP = 3.58 psi (the defect gives 5.2 psi)' },
