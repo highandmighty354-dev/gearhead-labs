@@ -1527,7 +1527,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Commits:** None (test only: 3b4268a).
 - **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-03, KA-04 (failing, in the known-open ledger `premium/tests/data/known-answer-open.json`).
 - **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline.
-- **Verification:** 1. 500 / 1.15 gives 30.0 lb/min (stoich 14.4–14.7 accepted). 2. Self-test row `formula:diesel_smoke_limit` passes and is removed from `KNOWN_BASELINE_IDS`. 3. A registry formula change follows the formula-version path (owner decision D9).
+- **Verification:** 1. 500 / 1.15 gives 29.99 lb/min with the reference stoichiometric AFR 14.5 (known-answer tolerance ±1 % for display rounding; a tolerance, not a second reference value). 2. Self-test row `formula:diesel_smoke_limit` passes and is removed from `KNOWN_BASELINE_IDS`. 3. A registry formula change follows the formula-version path (owner decision D9).
   The listed known-answer cases pass and are removed from the ledger in the same change; full browser regression passes.
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
 
@@ -1633,7 +1633,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Dependencies:** None.
 - **Revisit:** Stage 2 (calculator repairs), on owner authorisation.
 - **Commits:** None (test only: 3b4268a).
-- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-21 (failing, in the known-open ledger `premium/tests/data/known-answer-open.json`).
+- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-21 (failing, in the known-open ledger `premium/tests/data/known-answer-open.json`). KA-21 uses the PROVISIONAL centreline convention (owner decision D7 open) and needs a Track Width input the shipped calculator does not have, so today it fails because the input is missing; it does not check the existing two-input UI. It also requires the Turn Radius label to state the centreline convention.
 - **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline.
 - **Verification:** 1. A Track Width input exists; 108 / 300 / 60 gives the approved-convention value. 2. Self-test row passes and is removed from the baseline. 3. Registry change via the formula-version path (D9).
   The listed known-answer cases pass and are removed from the ledger in the same change; full browser regression passes.

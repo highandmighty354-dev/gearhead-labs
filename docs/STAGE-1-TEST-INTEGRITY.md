@@ -101,8 +101,8 @@ Every new entry states its class in the first words of **Evidence**:
 | Row | Asserted before (the defect) | Asserts now (independent) | Register |
 | --- | --- | --- | --- |
 | `renderer:piston_position 90deg` | r·cos θ + √(L² − r² sin² θ) − L (= r − x) | x = r(1 − cos θ) + L − √(L² − r² sin² θ) | GH-DEF-047 |
-| `formula:ackermann_angle` | atan(L / (R − L/2)), 2 inputs | atan(L / (R − T/2)), 3 inputs (provisional convention, D7) | GH-DEF-052 |
-| `formula:diesel_smoke_limit` | air / λ | air / (λ × 14.5), 14.4–14.7 accepted | GH-DEF-046 |
+| `formula:ackermann_angle` | atan(L / (R − L/2)), 2 inputs | atan(L / (R − T/2)), 3 inputs (**provisional** centreline convention, owner decision D7 open) | GH-DEF-052 |
+| `formula:diesel_smoke_limit` | air / λ | air / (λ × 14.5); row tolerance 0.04 (a tolerance, not a second reference) | GH-DEF-046 |
 
 `premium/tests/engine-selftest.js` now lists the three rows in `KNOWN_BASELINE_IDS`. It fails on any other failure and on a listed row that starts passing.
 
@@ -113,13 +113,13 @@ The suite is `premium/tests/known-answer-critical.test.js`: 48 cases, 44 tied to
 | Register | Calculator(s) | Cases | Basis |
 | --- | --- | --- | --- |
 | GH-DEF-045 | diesel_power_from_fuel | KA-01, 02 | HP = fuel / BSFC |
-| GH-DEF-046 | diesel_smoke_limit | KA-03, 04 | air / (λ × AFR) |
+| GH-DEF-046 | diesel_smoke_limit | KA-03, 04 | air / (λ × 14.5), tolerance ±1 % (display rounding) |
 | GH-DEF-047 | piston_position | KA-05 to 08 | slider-crank at 0°, 60°, 90°, 180° |
 | GH-DEF-048 | cranking_compression | KA-09 to 12 | IVC ABDC, trapped stroke = x |
 | GH-DEF-049 | ct_sway_bar | KA-13, 14 | k T² π/180 (provisional MR 1) **and** a convention-free check that track width matters |
 | GH-DEF-050 | wet_bulb | KA-15 to 17 | Stull (2011) in °C |
 | GH-DEF-051 | bolt_pattern | KA-18 to 20 (+ controls C1, C2) | the page's own measuring rule |
-| GH-DEF-052 | ackermann_angle | KA-21 | track-width input (provisional, D7) |
+| GH-DEF-052 | ackermann_angle | KA-21 | **provisional** (D7 open): R to the centreline, track-width input, Turn Radius label must say centreline. Fails today only because the input is missing (§4.5) |
 | GH-DEF-053 | fuel_line_loss | KA-22, 23 | Darcy–Weisbach, Swamee–Jain |
 | GH-DEF-054 | 4 simulators | KA-24 to 27 | **convention-free** power-limited bounds (top speed ≤ 174.3 mph, trap ≤ 115.7 mph, 0–130 ≥ 15.27 s) and ½ρC_L·A·v² |
 | GH-DEF-055 | camshaft_exhaust_events | KA-28, 29 | the page's own values must satisfy LSA = (ICL + ECL)/2 |
@@ -138,7 +138,7 @@ The suite is `premium/tests/known-answer-critical.test.js`: 48 cases, 44 tied to
 
 **Provisional conventions (need your decisions before Stage 2):**
 
-- Ackermann R measured to the centreline, with a track input (D7)
+- Ackermann R measured to the centreline, with a track input (Phase 0 decision D7, still open; not the D7 in the ENG-014 proposal). Today's calculator labels R "to outside wheel path"; under that convention 108 / 300 / 60 gives 24.23° instead of 21.80°
 - sway-bar end links at the track width
 - E85 refill fuel E0
 - diesel stoichiometric AFR 14.5
@@ -200,6 +200,35 @@ Regression tests: `node premium/tests/proof/red-green-harness.test.js`, a few se
 
 Removing the four exit-status checks from a copy of the harness makes 11 of these checks fail, so the tests depend on those checks.
 
+### 4.5 Final test-integrity corrections (PR #30 review, second round)
+
+1. **Ackermann (GH-DEF-052): the convention is provisional and labelled that way.** No owner decision on how Turn Radius is measured exists in the repository (Phase 0 decision D7 is open), so the recommended centreline convention stays **provisional and needs owner approval**. The fixes:
+   - **The probe now matches its formula.** Before, it computed atan(L / (R − T/2)), which assumes R is measured to the centreline, while still labelling the box "Turn Radius (to outside wheel path)". It now relabels the box "(to vehicle centreline)" and changes the header formula to use track width. These changes exist only in the temporary copy.
+   - **KA-21 checks the label as well as the value.** It now also requires the Turn Radius label to say "centreline", so a page that computes the centreline formula under an outside-wheel label cannot pass.
+   - **What it does not show.** The shipped calculator has no Track Width input, so KA-21 is RED today only because the input is missing. It does **not** check the value the existing two-input page shows. The value is checked only on the probe copy.
+   - **The report says so.** The proof report carries this limitation (`limitations` in `red-green.json`) and prints it on every run.
+   - **If the owner picks the outside-wheel convention instead,** 108 / 300 / 60 gives 24.23° (not 21.80°), and KA-21's value and label check change with it.
+2. **Diesel AFR (GH-DEF-046): 14.5 everywhere.** These now use the documented reference value of 14.5 instead of 14.55:
+   - KA-03 and KA-04;
+   - the engine self-test reference row (one line inside the self-test block; no calculator code);
+   - the probe, which already used 14.5.
+
+   The tolerances are documented as tolerances: ±1 % of the 14.5-based value, for display rounding. They are not a second reference value. The "14.4–14.7 accepted" wording is removed: the old tolerances did not actually admit that range. 14.5 itself is still the recommended, not yet approved, value.
+3. **Page errors must be reported explicitly.** Both the known-answer result and the self-test summary must carry `pageErrors` as an array, and it must be empty. Missing, `null`, a string, an array-like object, or any entry invalidates the proof.
+4. **Exact self-test outcome per phase.**
+   - **RED:** the shipped engine must fail exactly `formula:ackermann_angle`, `formula:diesel_smoke_limit` and `renderer:piston_position 90deg`. An extra failure, a missing one, or a swap of one for another invalidates the proof and is named in the report.
+   - **GREEN:** the corrected copy must have zero failures.
+   - **Consistency:** a regression test checks that this list matches `KNOWN_BASELINE_IDS` in `engine-selftest.js`.
+
+New regression tests in `red-green-harness.test.js`:
+
+- missing, null, string and array-like `pageErrors` in the known-answer path; missing, null and string `pageErrors` in the self-test path; non-empty `pageErrors` in both;
+- an unexpected RED failure, a missing RED failure, zero RED failures, a swapped RED failure, a GREEN failure, and the RED baseline appearing in GREEN;
+- end-to-end harness runs for each self-test discrepancy;
+- the GH-DEF-052 limitation and probe consistency.
+
+Putting the old lenient checks back in a copy makes 10 of the new checks fail.
+
 ---
 
 ## 5. GitHub Actions workflow — `.github/workflows/calculator-tests.yml`
@@ -230,6 +259,7 @@ Removing the four exit-status checks from a copy of the harness makes 11 of thes
 | `premium/tests/proof/red-green.js` | New: test-only red/green/isolation proof. |
 | `premium/tests/proof/out/red-green.json` | New: proof results (now carries `valid`, `caseIds`, `harnessError`). |
 | `premium/tests/proof/red-green-harness.test.js`, `premium/tests/proof/fixtures/*.js` | New (PR #30 correction): harness regression tests and their stand-in child processes (§4.4). |
+| Second PR #30 round (§4.5) | `red-green.js` (strict page errors, exact RED/GREEN self-test, GH-DEF-052 probe relabel and recorded limitation); `known-answer-critical.test.js` (KA-03/04 at 14.5, KA-21 label check and provisional note); `fake-child.js` and the harness tests; engine self-test reference row `formula:diesel_smoke_limit` 14.55 → 14.5 (inside the self-test block, no calculator code), with the catalog source hashes regenerated by their build scripts (hash fields only); the register's GH-DEF-046 verification text and GH-DEF-052 test note (no status, severity or classification change). |
 | `premium/tests/engine-selftest.js`, `premium/tests/known-answer-critical.test.js` (PR #30 correction) | Added report/list modes (`SELFTEST_REPORT`, `KA_REPORT`, `KA_LIST`) and a crash handler that exits 3. The result JSON now records `complete`, `caseIds` and `pageErrors`. Default behaviour, cases, expected values, ledger and baseline are unchanged. |
 | `premium/tests/register-check.js` | Traces the two new ledgers to open entries. |
 | `premium/tests/run-browser-tests.sh` | Adds the new suite; describes the self-test baseline. |

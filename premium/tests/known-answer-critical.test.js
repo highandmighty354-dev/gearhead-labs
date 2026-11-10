@@ -15,7 +15,8 @@
    that does not name an open register entry.
 
    PROVISIONAL CONVENTIONS (owner decisions D7 / D8 in the Phase 0 baseline are still open). Where the right answer depends on a convention not yet approved, the case
-   says so in `conv` and uses the convention recommended in the Phase 0 baseline. Where a convention-free check is possible (a property every correct answer must
+   says so in `conv` and uses the convention recommended in the Phase 0 baseline; such a case is provisional and must be re-derived if the owner decides otherwise.
+   A case may also require an input's label to state that convention (`fieldLabel`), so the page and the expected value cannot silently disagree. Where a convention-free check is possible (a property every correct answer must
    satisfy), it is used instead or as well.
 
    Run: node premium/tests/known-answer-critical.test.js
@@ -84,9 +85,11 @@ const CASES = [
   // RC-01 / GH-DEF-045 diesel_power_from_fuel — HP = fuel [lb/hr] / BSFC [lb/hp-hr]
   { id: 'KA-01', reg: 'GH-DEF-045', calc: 'diesel_power_from_fuel', edit: { dpf_fuel: 25, dpf_bsfc: 0.40 }, row: 'Estimated Brake Power', want: 25 / 0.40, tol: 0.6, why: 'HP = 25 lb/hr / 0.40 lb/hp-hr = 62.5' },
   { id: 'KA-02', reg: 'GH-DEF-045', calc: 'diesel_power_from_fuel', edit: { dpf_fuel: 100, dpf_bsfc: 0.38 }, row: 'Estimated Brake Power', want: 100 / 0.38, tol: 0.6, why: 'HP = 100 / 0.38 = 263.2' },
-  // RC-02 / GH-DEF-046 diesel_smoke_limit — fuel = air / (lambda x stoich AFR); diesel stoichiometric AFR 14.5 (14.4-14.7 accepted)
-  { id: 'KA-03', reg: 'GH-DEF-046', calc: 'diesel_smoke_limit', edit: { dsl_a: 500, dsl_l: 1.15 }, row: 'Smoke-Limited Fuel', want: 500 / (1.15 * 14.55), tol: 0.35, why: '500 / (1.15 x 14.5) = 30.0 lb/min' },
-  { id: 'KA-04', reg: 'GH-DEF-046', calc: 'diesel_smoke_limit', edit: { dsl_a: 60, dsl_l: 1.3 }, row: 'Smoke-Limited Fuel', want: 60 / (1.3 * 14.55), tol: 0.06, why: '60 / (1.3 x 14.5) = 3.18 lb/min' },
+  // RC-02 / GH-DEF-046 diesel_smoke_limit — fuel = air / (lambda x stoich AFR). Reference value: diesel stoichiometric AFR 14.5 (the documented convention).
+  // The tolerance is a TOLERANCE, not a second reference: +/-1 % of the 14.5-based value, for display rounding. It happens to admit a stoichiometric AFR of
+  // roughly 14.36-14.65, but the expected value is computed with 14.5 only. The shipped engine (air / lambda, no AFR) is about 14.5x too high and fails either way.
+  { id: 'KA-03', reg: 'GH-DEF-046', calc: 'diesel_smoke_limit', edit: { dsl_a: 500, dsl_l: 1.15 }, row: 'Smoke-Limited Fuel', want: 500 / (1.15 * 14.5), tol: 0.30, why: '500 / (1.15 x 14.5) = 29.99 lb/min (tolerance +/-1 %)' },
+  { id: 'KA-04', reg: 'GH-DEF-046', calc: 'diesel_smoke_limit', edit: { dsl_a: 60, dsl_l: 1.3 }, row: 'Smoke-Limited Fuel', want: 60 / (1.3 * 14.5), tol: 0.032, why: '60 / (1.3 x 14.5) = 3.183 lb/min (tolerance +/-1 %)' },
   // RC-03 / GH-DEF-047 piston_position — slider-crank
   { id: 'KA-05', reg: 'GH-DEF-047', calc: 'piston_position', edit: { str6: 3.75, rl2: 6.76, ang: 90 }, row: 'Piston Position', want: pistonX(3.75, 6.76, 90), tol: 0.001, why: 'x(90 deg) = 2.1402 in' },
   { id: 'KA-06', reg: 'GH-DEF-047', calc: 'piston_position', edit: { str6: 3.75, rl2: 6.76, ang: 0 }, row: 'Piston Position', want: 0, tol: 0.001, why: 'at TDC the piston is 0 in from TDC' },
@@ -110,8 +113,13 @@ const CASES = [
   { id: 'KA-20', reg: 'GH-DEF-051', calc: 'bolt_pattern', edit: { lugs: 10, meas: 3.0 }, row: 'Bolt Circle', want: 3.0, tol: 0.002, why: '10-lug (fallback branch) opposite studs: PCD = 3.000 in' },
   { id: 'KA-C1', reg: null, calc: 'bolt_pattern', edit: { lugs: 5, meas: 4.5 }, row: 'Bolt Circle', want: 4.5 / Math.sin(Math.PI / 5), tol: 0.002, why: 'control (correct today): 5-lug adjacent studs, PCD = 7.656 in' },
   { id: 'KA-C2', reg: null, calc: 'bolt_pattern', edit: { lugs: 6, meas: 5.5 }, row: 'Bolt Circle', want: 5.5, tol: 0.002, why: 'control (correct today): 6-lug opposite studs, PCD = 5.500 in' },
-  // RC-08 / GH-DEF-052 ackermann_angle — needs a track-width input; R to the vehicle centreline (provisional, D7)
-  { id: 'KA-21', reg: 'GH-DEF-052', calc: 'ackermann_angle', edit: { aa_l: 108, aa_r: 300, aa_t: 60 }, row: 'Inside Steering Angle', want: Math.atan(108 / (300 - 30)) * R2D, tol: 0.05, conv: 'R measured to the vehicle centreline; track width as an input (D7)', why: 'atan(108 / (300 - 60/2)) = 21.80 deg' },
+  // RC-08 / GH-DEF-052 ackermann_angle — PROVISIONAL CONVENTION, OWNER APPROVAL REQUIRED (Phase 0 decision D7, still open; not the D7 of the ENG-014 proposal).
+  // Expected value assumes Turn Radius is measured to the VEHICLE CENTRELINE: inside angle = atan(L / (R - T/2)), with T = track width as an input.
+  // LIMITATION: the shipped calculator has no Track Width input (aa_t) and labels Turn Radius "to outside wheel path". So on the shipped engine this case fails
+  // only because the input is missing; it does not check the value the existing two-input UI shows. The case also requires the Turn Radius label to state the
+  // centreline convention (fieldLabel), so a calculator that computes the centreline formula under an "outside wheel" label cannot pass. If the owner chooses the
+  // outside-wheel convention instead, the expected value becomes atan(L / (R - T)) = 24.23 deg for 108 / 300 / 60 and fieldLabel changes with it.
+  { id: 'KA-21', reg: 'GH-DEF-052', calc: 'ackermann_angle', edit: { aa_l: 108, aa_r: 300, aa_t: 60 }, fieldLabel: { aa_r: /cent(re|er) ?line/i }, row: 'Inside Steering Angle', want: Math.atan(108 / (300 - 30)) * R2D, tol: 0.05, conv: 'PROVISIONAL, owner approval required (D7): R measured to the vehicle centreline; track width as an input', why: 'atan(108 / (300 - 60/2)) = 21.80 deg' },
   // RC-09 / GH-DEF-053 fuel_line_loss — relative roughness in consistent units
   { id: 'KA-22', reg: 'GH-DEF-053', calc: 'fuel_line_loss', edit: { flow_gph: 50, line_len: 10, line_id: 0.375, fuel_sg: 0.74, fuel_visc: 0.6, fuel_rough: 0.00006 }, row: 'Darcy Friction Factor', want: fuelLine(50, 10, 0.375, 0.00006, 0.74, 0.6).f, tol: 0.0006, why: 'f = 0.0325 (the defect gives 0.0408)' },
   { id: 'KA-23', reg: 'GH-DEF-053', calc: 'fuel_line_loss', edit: { flow_gph: 300, line_len: 20, line_id: 0.5, fuel_sg: 0.74, fuel_visc: 0.6, fuel_rough: 0.00006 }, row: 'Pressure Drop', want: fuelLine(300, 20, 0.5, 0.00006, 0.74, 0.6).psi, tol: 0.02 * 3.575, why: 'dP = 3.58 psi (the defect gives 5.2 psi)' },
@@ -182,7 +190,13 @@ if (process.env.KA_LIST) { process.stdout.write(JSON.stringify({ ids: CASES.map(
         await fresh(c.calc);
         const needed = c.kind === 'blank' || c.kind === 'huge' ? [c.field] : Object.keys(c.edit || {});
         const miss = await missingFields(needed);
+        const badLabel = miss.length || !c.fieldLabel ? [] : await page.evaluate(spec => Object.entries(spec).map(([id, src]) => {
+          const box = document.getElementById(id), lab = box && box.closest('.field') && box.closest('.field').querySelector('.field-label');
+          const text = lab ? lab.textContent.replace(/\s+/g, ' ').trim() : '';
+          return new RegExp(src[0], src[1]).test(text) ? null : `${id} is labelled "${text}"`;
+        }).filter(Boolean), Object.fromEntries(Object.entries(c.fieldLabel).map(([k, re]) => [k, [re.source, re.flags]])));
         if (miss.length) fail = `field id(s) not on the page: ${miss.join(', ')} (the calculator cannot take this input)`;
+        else if (badLabel.length) fail = `input label does not state the convention this case assumes: ${badLabel.join('; ')}`;
         else if (c.kind === 'blank' || c.kind === 'huge') {
           const w0 = await warnings();
           await type(c.field, c.value);

@@ -32,7 +32,7 @@ const PROBES = [
   ['GH-DEF-049', 'roll stiffness = k_bar x T^2 x pi/180', [["const k_roll = +(k_bar*Math.pow(sb_arm/tw_sb,2)*tw_sb*tw_sb/2).toFixed(0);", "const k_roll = +(((11500000*Math.PI*Math.pow(sb_wire,4))/(32*sb_len*Math.pow(sb_arm,2)))*tw_sb*tw_sb*Math.PI/180).toFixed(0);", 1]]],
   ['GH-DEF-050', 'Stull in degC', [["const wb = +(temp_wb*Math.atan(0.151977*Math.sqrt(rh_wb+8.313659))+Math.atan(temp_wb+rh_wb)-Math.atan(rh_wb-1.676331)+0.00391838*Math.pow(rh_wb,1.5)*Math.atan(0.023101*rh_wb)-4.686035).toFixed(1);", "const _tc=(temp_wb-32)*5/9; const wb = +((_tc*Math.atan(0.151977*Math.sqrt(rh_wb+8.313659))+Math.atan(_tc+rh_wb)-Math.atan(rh_wb-1.676331)+0.00391838*Math.pow(rh_wb,1.5)*Math.atan(0.023101*rh_wb)-4.686035)*9/5+32).toFixed(1);", 1]]],
   ['GH-DEF-051', 'even counts: PCD = measurement', [["if(lugs===4){ pcd = +(meas/Math.sin(Math.PI/4)).toFixed(3); }", "if(lugs===4){ pcd = +(meas).toFixed(3); }", 1], ["else if(lugs===8){ pcd = +(meas/Math.sin(Math.PI/8)).toFixed(3); }", "else if(lugs===8){ pcd = +(meas).toFixed(3); }", 1], ["else { pcd = +(meas/(2*Math.sin(Math.PI/lugs))).toFixed(3); }", "else { pcd = +(lugs%2===0?meas:meas/Math.sin(Math.PI/lugs)).toFixed(3); }", 1]]],
-  ['GH-DEF-052', 'track-width input, R to centreline (renderer and registry row)', [["const l=certValue('aa_l',108),r=certValue('aa_r',300);const a=r===null||l===null||(r-l/2)===0?NaN:Math.atan(l/(r-l/2))*180/Math.PI;", "const l=certValue('aa_l',108),r=certValue('aa_r',300),t=certValue('aa_t',60);const a=r===null||l===null||t===null||(r-t/2)===0?NaN:Math.atan(l/(r-t/2))*180/Math.PI;", 1], ["${field('Turn Radius (to outside wheel path)','aa_r',300,'in')}", "${field('Turn Radius (to outside wheel path)','aa_r',300,'in')}${field('Track Width','aa_t',60,'in')}", 1], ['"labels":["Wheelbase","Turn Radius"],"vars":["l","r"],"expr":"Math.atan(l/(r-l/2))*180/Math.PI","out":"Inside Steering Angle","unit":"deg","post":"result","defaults":[108,300]', '"labels":["Wheelbase","Turn Radius","Track Width"],"vars":["l","r","t"],"expr":"Math.atan(l/(r-t/2))*180/Math.PI","out":"Inside Steering Angle","unit":"deg","post":"result","defaults":[108,300,60]', 1]]],
+  ['GH-DEF-052', 'PROVISIONAL convention (owner decision D7 open): track-width input, Turn Radius relabelled and computed to the vehicle centreline (renderer, header text and registry row)', [["const l=certValue('aa_l',108),r=certValue('aa_r',300);const a=r===null||l===null||(r-l/2)===0?NaN:Math.atan(l/(r-l/2))*180/Math.PI;", "const l=certValue('aa_l',108),r=certValue('aa_r',300),t=certValue('aa_t',60);const a=r===null||l===null||t===null||(r-t/2)===0?NaN:Math.atan(l/(r-t/2))*180/Math.PI;", 1], ["${field('Turn Radius (to outside wheel path)','aa_r',300,'in')}", "${field('Turn Radius (to vehicle centreline)','aa_r',300,'in')}${field('Track Width','aa_t',60,'in')}", 1], ['arctan[Wheelbase \\u00f7 (Turn Radius \\u2212 Wheelbase\\u00f72)]', 'arctan[Wheelbase \\u00f7 (Turn Radius \\u2212 Track Width\\u00f72)]', 1], ['"labels":["Wheelbase","Turn Radius"],"vars":["l","r"],"expr":"Math.atan(l/(r-l/2))*180/Math.PI","out":"Inside Steering Angle","unit":"deg","post":"result","defaults":[108,300]', '"labels":["Wheelbase","Turn Radius","Track Width"],"vars":["l","r","t"],"expr":"Math.atan(l/(r-t/2))*180/Math.PI","out":"Inside Steering Angle","unit":"deg","post":"result","defaults":[108,300,60]', 1]]],
   ['GH-DEF-053', 'relative roughness in consistent units', [["const rel=rough/D;", "const rel=rough/line_id;", 1]]],
   ['GH-DEF-054', 'density value is slug/ft^3: no /32.174 (shared helper and the sim_cornering copy)', [["const rhoSlugs=rhoLbFt3/32.174;", "const rhoSlugs=rhoLbFt3;", 1], ["const rhoSlug=b.rho/32.174;", "const rhoSlug=b.rho;", 1]]],
   ['GH-DEF-055', 'exhaust events use the ICL shown on the page (no hidden advance)', [["camshaft_exhaust_events:function(){var c=ast().cam,x=cam(c);", "camshaft_exhaust_events:function(){var c=ast().cam,x=cam(Object.assign({},c,{advance:0}));", null]]],
@@ -105,7 +105,7 @@ function runSuite(engine, expectedIds, cfg = config()) {
   const res = doc && doc.results;
   if (!doc || doc.complete !== true) throw new HarnessError(`${label}: result not marked complete`, diag);
   if (doc.strict !== true) throw new HarnessError(`${label}: result was not produced in strict mode`, diag);
-  if (Array.isArray(doc.pageErrors) && doc.pageErrors.length) throw new HarnessError(`${label}: page errors: ${doc.pageErrors.join(' | ').slice(0, 500)}`, diag);
+  checkPageErrors(label, doc.pageErrors, diag);
   if (!Array.isArray(res)) throw new HarnessError(`${label}: result has no results array`, diag);
   const ids = res.map(x => x && x.id);
   if (new Set(ids).size !== ids.length) throw new HarnessError(`${label}: duplicate case ids in result`, diag);
@@ -123,21 +123,57 @@ function runSelftest(engine, cfg = config()) {
   const lines = String(r.stdout).split('\n').filter(l => l.startsWith('SELFTEST_JSON '));
   if (lines.length !== 1) throw new HarnessError(`${label}: expected exactly one SELFTEST_JSON line, found ${lines.length}`, diag);
   let x; try { x = JSON.parse(lines[0].slice('SELFTEST_JSON '.length)); } catch (e) { throw new HarnessError(`${label}: SELFTEST_JSON is not valid JSON`, diag); }
-  const ok = x && [x.total, x.passed, x.failed].every(Number.isInteger) && x.total > 0 && x.passed + x.failed === x.total && Array.isArray(x.failures) && x.failures.length === x.failed && !(x.pageErrors && x.pageErrors.length);
+  if (!x || typeof x !== 'object') throw new HarnessError(`${label}: SELFTEST_JSON is not an object`, diag);
+  checkPageErrors(label, x.pageErrors, diag);
+  const ok = [x.total, x.passed, x.failed].every(Number.isInteger) && x.total > 0 && x.passed + x.failed === x.total && Array.isArray(x.failures) && x.failures.length === x.failed
+    && x.failures.every(f => typeof f === 'string' && f) && new Set(x.failures).size === x.failures.length;
   if (!ok) throw new HarnessError(`${label}: inconsistent self-test result ${JSON.stringify(x).slice(0, 300)}`, diag);
   return { total: x.total, passed: x.passed, failed: x.failed, failures: x.failures };
 }
+/* page errors (PR #30 review): the property must be present and be an array, and a valid run has none. Missing, null, any non-array value, or any
+   entry at all invalidates the run — an absent property is never read as "no errors". */
+function checkPageErrors(label, pe, diag) {
+  if (pe === undefined) throw new HarnessError(`${label}: pageErrors is missing (a run must report its page errors explicitly, as an empty array)`, diag);
+  if (pe === null || !Array.isArray(pe)) throw new HarnessError(`${label}: pageErrors is malformed (${pe === null ? 'null' : typeof pe}; an array is required)`, diag);
+  if (pe.length) throw new HarnessError(`${label}: page errors: ${pe.map(String).join(' | ').slice(0, 500)}`, diag);
+}
+/* the exact self-test outcome each phase must show (PR #30 review). RED, the shipped engine: exactly the three rows corrected in Stage 1, which fail because of
+   their open register entries (the same three as KNOWN_BASELINE_IDS in premium/tests/engine-selftest.js; red-green-harness.test.js checks the two lists agree).
+   GREEN, the temp copy with every probe: no failures at all. Returns a list of discrepancies (empty = as expected). */
+const EXPECTED_RED_SELFTEST_FAILURES = ['formula:ackermann_angle', 'formula:diesel_smoke_limit', 'renderer:piston_position 90deg'];
+function selftestDiscrepancies(phase, s) {
+  const got = s.failures;
+  if (phase === 'RED') {
+    const unexpected = got.filter(f => !EXPECTED_RED_SELFTEST_FAILURES.includes(f)), missing = EXPECTED_RED_SELFTEST_FAILURES.filter(f => !got.includes(f));
+    const out = [];
+    if (unexpected.length) out.push(`RED: engine self-test on the shipped engine has unexpected failure(s): ${unexpected.join(', ')}`);
+    if (missing.length) out.push(`RED: engine self-test on the shipped engine is missing expected baseline failure(s): ${missing.join(', ')} (the row passes, or was not run)`);
+    if (s.failed !== EXPECTED_RED_SELFTEST_FAILURES.length && !unexpected.length && !missing.length) out.push(`RED: engine self-test reports ${s.failed} failures, expected exactly ${EXPECTED_RED_SELFTEST_FAILURES.length}`);
+    return out;
+  }
+  if (phase === 'GREEN') return s.failed === 0 && !got.length ? [] : [`GREEN: engine self-test on the corrected copy: ${s.failed} failure(s): ${got.join(', ')} (expected none)`];
+  throw new Error('unknown phase ' + phase);
+}
+/* What the GH-DEF-052 evidence does and does not show (PR #30 review). Recorded in the report so the proof cannot claim more than it demonstrates. */
+const LIMITATIONS = {
+  'GH-DEF-052': 'PROVISIONAL CONVENTION, owner approval required (Phase 0 decision D7, still open): Turn Radius measured to the vehicle centreline, inside angle = atan(L / (R - T/2)). ' +
+    'The shipped calculator has no Track Width input, so KA-21 is RED only because that input is missing; the inside-angle value is checked only on the temporary probe copy, ' +
+    'which adds the input and relabels Turn Radius as measured to the centreline. This does NOT validate the existing two-input UI, and does NOT validate the shipped label ' +
+    '"Turn Radius (to outside wheel path)": under that convention the expected value would differ (108 / 300 / 60 gives 24.23 deg instead of 21.80 deg).'
+};
 
 /* ---------- the proof ---------- */
 function main() {
   const cfg = config();
-  const problems = [], out = { generated: new Date().toISOString(), engine: F124, valid: false, probes: PROBES.map(p => ({ reg: p[0], what: p[1] })), caseIds: null, red: null, green: null, isolation: {}, harnessError: null };
+  const problems = [], out = { generated: new Date().toISOString(), engine: F124, valid: false, probes: PROBES.map(p => ({ reg: p[0], what: p[1] })), caseIds: null, red: null, green: null, isolation: {}, harnessError: null, limitations: LIMITATIONS };
   const write = () => { fs.mkdirSync(path.dirname(OUT), { recursive: true }); fs.writeFileSync(OUT, JSON.stringify(out, null, 1)); };
   try {
     const ids = listCases(cfg); out.caseIds = ids;
     console.log(`case list: ${ids.length} cases`);
     console.log('RED: shipped engine, ledger ignored');
     const red = runSuite(null, ids, cfg); out.red = red; out.redSelftest = runSelftest(null, cfg);
+    out.expectedRedSelftestFailures = EXPECTED_RED_SELFTEST_FAILURES;
+    problems.push(...selftestDiscrepancies('RED', out.redSelftest));
     for (const [id, x] of Object.entries(red)) {
       if (x.reg && x.pass) problems.push(`RED: ${id} (${x.reg}) passes on the shipped engine — the test does not detect its defect`);
       if (!x.reg && !x.pass) problems.push(`RED: control ${id} fails on the shipped engine: ${x.detail}`);
@@ -148,7 +184,7 @@ function main() {
     const allEngine = makeEngine(PROBES.map(p => p[0]));
     const green = runSuite(allEngine, ids, cfg); out.green = green; out.greenSelftest = runSelftest(allEngine, cfg);
     for (const [id, x] of Object.entries(green)) if (!x.pass) problems.push(`GREEN: ${id} (${x.reg || 'control'}) still fails with every probe applied: ${x.detail}`);
-    if (out.greenSelftest.failed !== 0) problems.push(`GREEN: engine self-test on the corrected copy: ${out.greenSelftest.failed} failure(s): ${out.greenSelftest.failures.join(', ')}`);
+    problems.push(...selftestDiscrepancies('GREEN', out.greenSelftest));
     console.log(`  ${Object.values(green).filter(x => x.pass).length} passing / ${Object.keys(green).length}; self-test ${out.greenSelftest.passed}/${out.greenSelftest.total}`);
 
     console.log('ISOLATION: one probe at a time');
@@ -178,11 +214,12 @@ function main() {
   out.valid = problems.length === 0;
   try { write(); } catch (e) { console.error('could not write the proof report: ' + e.message); return 1; }
   problems.forEach(p => console.error('  PROBLEM ' + p));
+  Object.entries(LIMITATIONS).forEach(([reg, t]) => console.log(`  LIMITATION ${reg}: ${t}`));
   console.log(`red-green proof: ${problems.length ? problems.length + ' problem(s) — NOT a valid proof' : 'all expectations hold'} — written to ${path.relative(REPO, OUT)}`);
   return problems.length ? 1 : 0;
 }
 
-module.exports = { HarnessError, runChild, listCases, runSuite, runSelftest, makeEngine, PROBES, main };
+module.exports = { HarnessError, runChild, listCases, runSuite, runSelftest, checkPageErrors, selftestDiscrepancies, EXPECTED_RED_SELFTEST_FAILURES, LIMITATIONS, makeEngine, PROBES, main };
 if (require.main === module) {
   let code = 1;
   try { code = main(); } catch (e) { console.error('red-green harness crashed: ' + (e && e.stack || e)); code = 1; }

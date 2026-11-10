@@ -12145,7 +12145,7 @@ RENDERS.power_split_device_kinematics=()=>{
  intercooler_temp_drop:[[300,130], 170,1e-9,'Tin-Tout'],
  diesel_exhaust_flow:[[60,3], 63,1e-9,'air+fuel'],
  diesel_egr_flow:[[60,0.25], 15,1e-9,'flow*fraction'],
- diesel_smoke_limit:[[60,1.3], 60/(1.3*14.55),0.04,'GH-DEF-046: fuel = air/(lambda x stoich AFR), diesel stoich 14.5 (14.4-14.7 accepted); the old row asserted air/lambda'],
+ diesel_smoke_limit:[[60,1.3], 60/(1.3*14.5),0.04,'GH-DEF-046: fuel = air/(lambda x stoich AFR), reference diesel stoich AFR 14.5; 0.04 is the row tolerance, not a second reference; the old row asserted air/lambda'],
  diesel_afr_lambda:[[1.5,14.6], 21.9,1e-9,'lambda*stoich'],
  diesel_dpf_soot:[[0.8,0.3,10], 5,1e-9,'(gen-regen)*t'],
  diesel_regen_interval:[[30,0.5], 60,1e-9,'capacity/rate'],
