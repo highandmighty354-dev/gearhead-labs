@@ -216,11 +216,15 @@ Evidence: `premium/tests/proof/out/red-green.json`. Reproduce with `node premium
 
 ## 7. Test results on this branch
 
-See the pull request description. It carries:
-
-- the GitHub workflow result
-- the full local browser regression (`run-browser-tests.sh`, all suites)
-- `register-check`
-- `check-catalog`
+| Check | Result |
+| --- | --- |
+| GitHub workflow on PR #30 (run 42772112085), Fast gate | **Passed**, every step |
+| `register-check.js` | OK: 126 entries, 48 ledger ids traced to open entries |
+| `catalog/check-catalog.js` | OK: 585 Free, 158 Premium, 14 Engineering Lab, 757 in Premium |
+| `engine-selftest.js` | 733 / 736. Exactly the 3 known-baseline rows; 0 new, 0 stale |
+| `known-answer-critical.test.js` | 44 / 44 known-open present, 0 unexpected, 0 stale; 4 controls pass |
+| Full local browser regression, `run-browser-tests.sh` (51 suites) | **50 / 51 passed.** `bolt-stretch-def036` failed once on a click timeout (`#bst_ls` "waiting for element to be stable", 2 of 439 checks). It passed 439 / 439 on two immediate re-runs on the same branch and passed on `main` on 2026-11-09. The suite is untouched by this change, so this reads as a timing flake under load, **not proven**. Recommend a re-run before merge. |
+| `formula-fingerprints.test.js` | 572 identical to the production seed, 5 recorded corrections, 0 failures. This confirms no registry formula changed |
+| Ledger tamper check (local) | Removing KA-01 and listing the passing control KA-C1 gives 1 unexpected failure and 1 stale entry: the run fails as designed |
 
 **Stop point.** Stage 1 ends here. Calculator repairs (Stage 2) wait for your approval and for decisions D4, D7, D8 and D9.

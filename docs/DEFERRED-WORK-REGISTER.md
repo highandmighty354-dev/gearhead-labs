@@ -1798,6 +1798,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`.
 - **Verification:** 1. The workflow runs green on the Stage 1 PR. 2. A deliberately broken ledger fails it. 3. Owner marks it a required check.
 - **History:** 2026-11-10 — workflow added on the Stage 1 branch; awaiting first run.
+  2026-11-10 — first run on pull request #30: workflow run 42772112085, "Fast gate" job green on every step (register, catalog, self-test baseline, known-answer ledger, unit factors, legacy fixes, numeric guard). Ledger tamper check run locally: removing KA-01 and listing the passing control KA-C1 gives 1 unexpected failure and 1 stale entry (run fails). Remaining: owner makes the check required.
 
 ### GH-DEF-062 — Top Speed simulator: "Drag + Rolling" shows the drag at the last speed tested, not at the reported top speed
 - **Status:** OPEN
