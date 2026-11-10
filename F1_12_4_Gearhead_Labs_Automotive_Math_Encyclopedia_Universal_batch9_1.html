@@ -12086,7 +12086,7 @@ RENDERS.power_split_device_kinematics=()=>{
     following_distance:   [[60,2],          60*1.46667*2,              1e-4, 'ft=mph*1.46667*s'],
     sensor_fov:           [[10,50],         2*Math.atan(5/50)*180/Math.PI, 1e-9,'2atan(w/2d)'],
     slip_angle:           [[5,100],         Math.atan(5/100)*180/Math.PI, 1e-9,'atan(vy/vx)'],
-    ackermann_angle:      [[110,300],       Math.atan(110/(300-55))*180/Math.PI, 1e-9,'atan(L/(R-t/2))'],
+    ackermann_angle:      [[110,300,60],    Math.atan(110/(300-30))*180/Math.PI, 1e-9,'GH-DEF-052: atan(L/(R-T/2)), R to the vehicle centreline, T = track width (the old row asserted L/2, i.e. wheelbase used as track; convention provisional, owner decision D7)'],
     decibel_ratio:        [[10],            20*Math.log10(10),         1e-9, '20log10'],
     friction_circle:      [[0.8,0.9],       Math.sqrt(0.8*0.8+0.9*0.9), 1e-9,'sqrt(x^2+y^2)'],
     load_transfer_lateral:[[3500,20,60,1.0],3500*20*1.0/60,            1e-9, 'W*h*a/t'],
@@ -12145,7 +12145,7 @@ RENDERS.power_split_device_kinematics=()=>{
  intercooler_temp_drop:[[300,130], 170,1e-9,'Tin-Tout'],
  diesel_exhaust_flow:[[60,3], 63,1e-9,'air+fuel'],
  diesel_egr_flow:[[60,0.25], 15,1e-9,'flow*fraction'],
- diesel_smoke_limit:[[60,1.3], 60/1.3,1e-9,'air/lambda'],
+ diesel_smoke_limit:[[60,1.3], 60/(1.3*14.55),0.04,'GH-DEF-046: fuel = air/(lambda x stoich AFR), diesel stoich 14.5 (14.4-14.7 accepted); the old row asserted air/lambda'],
  diesel_afr_lambda:[[1.5,14.6], 21.9,1e-9,'lambda*stoich'],
  diesel_dpf_soot:[[0.8,0.3,10], 5,1e-9,'(gen-regen)*t'],
  diesel_regen_interval:[[30,0.5], 60,1e-9,'capacity/rate'],
@@ -12350,7 +12350,7 @@ RENDERS.power_split_device_kinematics=()=>{
     T('hp_aero_drag 100mph','hp_aero_drag',{cd:0.35,fa:22,spd_a:100},'hp required',0.5*0.00237*Math.pow(100*1.467,3)*0.35*22/550,0.5,'P=1/2 rho v^3 Cd A /550');
     T('crosswind_force','crosswind_force',{spd2:60,wind:20,area2:60,ca:0.8},'force',0.5*0.00237*Math.pow(Math.sqrt(60*60+20*20)*1.467,2)*0.8*60,2,'1/2 rho vrel^2 Ca A');
     T('climb_rate','climb_rate',{hp6:425,wt6:3420,eff6:0.85},'rate',425*33000*0.85/3420,2,'HP*33000*eff/W');
-    T('piston_position 90deg','piston_position',{str6:3.75,rl2:6.76,ang:90},'position',(3.75/2)*Math.cos(Math.PI/2)+Math.sqrt(6.76*6.76-Math.pow((3.75/2)*Math.sin(Math.PI/2),2))-6.76,0.001,'slider-crank');
+    T('piston_position 90deg','piston_position',{str6:3.75,rl2:6.76,ang:90},'position',(3.75/2)*(1-Math.cos(Math.PI/2))+6.76-Math.sqrt(6.76*6.76-Math.pow((3.75/2)*Math.sin(Math.PI/2),2)),0.001,'GH-DEF-047: slider-crank x = r(1-cos a) + L - sqrt(L^2 - r^2 sin^2 a), distance below TDC (the old row asserted r cos a + sqrt(...) - L = r - x)');
     T('milling_heads','milling_heads',{bore3:4.25,depth:0.02},'volume',Math.PI*Math.pow(4.25/2,2)*0.02*16.387,0.01,'cc removed');
     T('engine_rpm_speed 60mph','engine_rpm_speed',{spd4:60,gr2:2.73,ta2:26},'rpm',60*2.73*1056/(26*Math.PI),3,'rpm=mph*gr*1056/(pi*d)');
     T('crawl_ratio','crawl_ratio',{t1:2.72,la:4.10,ta3:3.73},'crawl',2.72*4.10*3.73,0.02,'product');
