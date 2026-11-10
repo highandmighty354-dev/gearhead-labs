@@ -1,6 +1,7 @@
 {
- "generated": "2026-11-10T06:44:39.085Z",
+ "generated": "2026-11-10T16:51:37.986Z",
  "engine": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
+ "valid": true,
  "probes": [
   {
    "reg": "GH-DEF-045",
@@ -62,6 +63,56 @@
    "reg": "GH-DEF-059",
    "what": "display guard: a value of 1e12 or more is withheld"
   }
+ ],
+ "caseIds": [
+  "KA-01",
+  "KA-02",
+  "KA-03",
+  "KA-04",
+  "KA-05",
+  "KA-06",
+  "KA-07",
+  "KA-08",
+  "KA-09",
+  "KA-10",
+  "KA-11",
+  "KA-12",
+  "KA-13",
+  "KA-14",
+  "KA-15",
+  "KA-16",
+  "KA-17",
+  "KA-18",
+  "KA-19",
+  "KA-20",
+  "KA-C1",
+  "KA-C2",
+  "KA-21",
+  "KA-22",
+  "KA-23",
+  "KA-24",
+  "KA-25",
+  "KA-26",
+  "KA-27",
+  "KA-28",
+  "KA-29",
+  "KA-30",
+  "KA-31",
+  "KA-32",
+  "KA-33",
+  "KA-34",
+  "KA-35",
+  "KA-36",
+  "KA-37",
+  "KA-38",
+  "KA-39",
+  "KA-40",
+  "KA-C3",
+  "KA-C4",
+  "KA-41",
+  "KA-42",
+  "KA-43",
+  "KA-44"
  ],
  "red": {
   "KA-01": {
@@ -683,15 +734,22 @@
    "stillFailing": []
   }
  },
+ "harnessError": null,
  "redSelftest": {
   "total": 736,
   "passed": 733,
-  "failed": 3
+  "failed": 3,
+  "failures": [
+   "formula:ackermann_angle",
+   "formula:diesel_smoke_limit",
+   "renderer:piston_position 90deg"
+  ]
  },
  "greenSelftest": {
   "total": 736,
   "passed": 736,
-  "failed": 0
+  "failed": 0,
+  "failures": []
  },
  "problems": []
 }
