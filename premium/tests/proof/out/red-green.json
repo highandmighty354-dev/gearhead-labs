@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-10T17:22:43.407Z",
+ "generated": "2026-11-10T21:01:59.967Z",
  "engine": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
  "valid": true,
  "probes": [
@@ -33,7 +33,7 @@
   },
   {
    "reg": "GH-DEF-052",
-   "what": "PROVISIONAL convention (owner decision D7 open): track-width input, Turn Radius relabelled and computed to the vehicle centreline (renderer, header text and registry row)"
+   "what": "PROVISIONAL convention (owner decision D7 open): track-width input, Turn Radius relabelled and computed to the rear-axle centreline, i.e. the midpoint of the rear axle (renderer, header text and registry row)"
   },
   {
    "reg": "GH-DEF-053",
@@ -736,7 +736,7 @@
  },
  "harnessError": null,
  "limitations": {
-  "GH-DEF-052": "PROVISIONAL CONVENTION, owner approval required (Phase 0 decision D7, still open): Turn Radius measured to the vehicle centreline, inside angle = atan(L / (R - T/2)). The shipped calculator has no Track Width input, so KA-21 is RED only because that input is missing; the inside-angle value is checked only on the temporary probe copy, which adds the input and relabels Turn Radius as measured to the centreline. This does NOT validate the existing two-input UI, and does NOT validate the shipped label \"Turn Radius (to outside wheel path)\": under that convention the expected value would differ (108 / 300 / 60 gives 24.23 deg instead of 21.80 deg)."
+  "GH-DEF-052": "PROVISIONAL CONVENTION, owner approval required (Phase 0 decision D7, still open): Turn Radius R measured from the turn centre to the midpoint of the rear axle, T = front track between wheel centres, inside angle = atan(L / (R - T/2)). The shipped calculator has no Track Width input, so KA-21 is RED only because that input is missing; the inside-angle value is checked only on the temporary probe copy, which adds the input and relabels Turn Radius as measured to the rear-axle centreline. This does NOT validate the existing two-input UI, and does NOT validate the shipped label \"Turn Radius (to outside wheel path)\", whose measurement point is undefined: for 108 / 300 / 60 the inside angle is 26.16 deg if 300 is the outside FRONT wheel-centre radius, 24.23 deg only if 300 is the outside REAR wheel-centre radius (lateral distance to the outside track), 23.37 deg to the front-axle midpoint. See premium/tests/ackermann-reference.test.js."
  },
  "redSelftest": {
   "total": 736,
