@@ -1,0 +1,697 @@
+{
+ "generated": "2026-11-10T06:44:39.085Z",
+ "engine": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
+ "probes": [
+  {
+   "reg": "GH-DEF-045",
+   "what": "fuel flow is lb/hr: drop the x60"
+  },
+  {
+   "reg": "GH-DEF-046",
+   "what": "divide by lambda x 14.5 (renderer and registry row)"
+  },
+  {
+   "reg": "GH-DEF-047",
+   "what": "slider-crank distance below TDC"
+  },
+  {
+   "reg": "GH-DEF-048",
+   "what": "IVC is ABDC; trapped stroke = x"
+  },
+  {
+   "reg": "GH-DEF-049",
+   "what": "roll stiffness = k_bar x T^2 x pi/180"
+  },
+  {
+   "reg": "GH-DEF-050",
+   "what": "Stull in degC"
+  },
+  {
+   "reg": "GH-DEF-051",
+   "what": "even counts: PCD = measurement"
+  },
+  {
+   "reg": "GH-DEF-052",
+   "what": "track-width input, R to centreline (renderer and registry row)"
+  },
+  {
+   "reg": "GH-DEF-053",
+   "what": "relative roughness in consistent units"
+  },
+  {
+   "reg": "GH-DEF-054",
+   "what": "density value is slug/ft^3: no /32.174 (shared helper and the sim_cornering copy)"
+  },
+  {
+   "reg": "GH-DEF-055",
+   "what": "exhaust events use the ICL shown on the page (no hidden advance)"
+  },
+  {
+   "reg": "GH-DEF-056",
+   "what": "drain-and-replace with E0"
+  },
+  {
+   "reg": "GH-DEF-057",
+   "what": "floor after rounding off floating-point noise"
+  },
+  {
+   "reg": "GH-DEF-058",
+   "what": "vd(): blank or non-numeric gives NaN instead of the default"
+  },
+  {
+   "reg": "GH-DEF-059",
+   "what": "display guard: a value of 1e12 or more is withheld"
+  }
+ ],
+ "red": {
+  "KA-01": {
+   "pass": false,
+   "reg": "GH-DEF-045",
+   "detail": "shows 3,750, independent value 62.5 (|actual - expected| = 3687.5 is more than the tolerance 0.6)"
+  },
+  "KA-02": {
+   "pass": false,
+   "reg": "GH-DEF-045",
+   "detail": "shows 15,789.4737, independent value 263.15789 (|actual - expected| = 15526.3 is more than the tolerance 0.6)"
+  },
+  "KA-03": {
+   "pass": false,
+   "reg": "GH-DEF-046",
+   "detail": "shows 434.8, independent value 29.88197 (|actual - expected| = 404.918 is more than the tolerance 0.35)"
+  },
+  "KA-04": {
+   "pass": false,
+   "reg": "GH-DEF-046",
+   "detail": "shows 46.2, independent value 3.17209 (|actual - expected| = 43.0279 is more than the tolerance 0.06)"
+  },
+  "KA-05": {
+   "pass": false,
+   "reg": "GH-DEF-047",
+   "detail": "shows -0.2652, independent value 2.14023 (|actual - expected| = 2.40543 is more than the tolerance 0.001)"
+  },
+  "KA-06": {
+   "pass": false,
+   "reg": "GH-DEF-047",
+   "detail": "shows 1.875, independent value 0 (|actual - expected| = 1.875 is more than the tolerance 0.001)"
+  },
+  "KA-07": {
+   "pass": false,
+   "reg": "GH-DEF-047",
+   "detail": "shows 0.7446, independent value 1.25544 (|actual - expected| = 0.510837 is more than the tolerance 0.001)"
+  },
+  "KA-08": {
+   "pass": false,
+   "reg": "GH-DEF-047",
+   "detail": "shows -1.875, independent value 3.75 (|actual - expected| = 5.625 is more than the tolerance 0.001)"
+  },
+  "KA-09": {
+   "pass": false,
+   "reg": "GH-DEF-048",
+   "detail": "shows 9.079, independent value 9.69852 (|actual - expected| = 0.619522 is more than the tolerance 0.006)"
+  },
+  "KA-10": {
+   "pass": false,
+   "reg": "GH-DEF-048",
+   "detail": "shows 270, independent value 294.96378 (|actual - expected| = 24.9638 is more than the tolerance 1)"
+  },
+  "KA-11": {
+   "pass": false,
+   "reg": "GH-DEF-048",
+   "detail": "shows 6.876, independent value 7.87441 (|actual - expected| = 0.998413 is more than the tolerance 0.006)"
+  },
+  "KA-12": {
+   "pass": false,
+   "reg": "GH-DEF-048",
+   "detail": "shows 187, independent value 224.03989 (|actual - expected| = 37.0399 is more than the tolerance 1)"
+  },
+  "KA-13": {
+   "pass": false,
+   "reg": "GH-DEF-049",
+   "detail": "shows 18,378, independent value 64170.40929 (|actual - expected| = 45792.4 is more than the tolerance 320.85)"
+  },
+  "KA-14": {
+   "pass": false,
+   "reg": "GH-DEF-049",
+   "detail": "track 40 in gives 18378, track 80 in gives 18378: Track Width has no effect"
+  },
+  "KA-15": {
+   "pass": false,
+   "reg": "GH-DEF-050",
+   "detail": "shows 69.6, independent value 71.27457 (|actual - expected| = 1.67457 is more than the tolerance 0.15)"
+  },
+  "KA-16": {
+   "pass": false,
+   "reg": "GH-DEF-050",
+   "detail": "shows 58.9, independent value 68.7752 (|actual - expected| = 9.8752 is more than the tolerance 0.15)"
+  },
+  "KA-17": {
+   "pass": false,
+   "reg": "GH-DEF-050",
+   "detail": "shows 41, independent value 45.42747 (|actual - expected| = 4.42747 is more than the tolerance 0.15)"
+  },
+  "KA-18": {
+   "pass": false,
+   "reg": "GH-DEF-051",
+   "detail": "shows 6.364, independent value 4.5 (|actual - expected| = 1.864 is more than the tolerance 0.002)"
+  },
+  "KA-19": {
+   "pass": false,
+   "reg": "GH-DEF-051",
+   "detail": "shows 16.985, independent value 6.5 (|actual - expected| = 10.485 is more than the tolerance 0.002)"
+  },
+  "KA-20": {
+   "pass": false,
+   "reg": "GH-DEF-051",
+   "detail": "shows 4.854, independent value 3 (|actual - expected| = 1.854 is more than the tolerance 0.002)"
+  },
+  "KA-C1": {
+   "pass": true,
+   "reg": null,
+   "detail": null
+  },
+  "KA-C2": {
+   "pass": true,
+   "reg": null,
+   "detail": null
+  },
+  "KA-21": {
+   "pass": false,
+   "reg": "GH-DEF-052",
+   "detail": "field id(s) not on the page: aa_t (the calculator cannot take this input)"
+  },
+  "KA-22": {
+   "pass": false,
+   "reg": "GH-DEF-053",
+   "detail": "shows 0.0408, independent value 0.0325 (|actual - expected| = 0.00830055 is more than the tolerance 0.0006)"
+  },
+  "KA-23": {
+   "pass": false,
+   "reg": "GH-DEF-053",
+   "detail": "shows 5.2, independent value 3.57464 (|actual - expected| = 1.62536 is more than the tolerance 0.0715)"
+  },
+  "KA-24": {
+   "pass": false,
+   "reg": "GH-DEF-054",
+   "detail": "shows 218.5; physics allows at most 174.28"
+  },
+  "KA-25": {
+   "pass": false,
+   "reg": "GH-DEF-054",
+   "detail": "shows 117.0; physics allows at most 115.73"
+  },
+  "KA-26": {
+   "pass": false,
+   "reg": "GH-DEF-054",
+   "detail": "shows 15.200; physics needs at least 15.267"
+  },
+  "KA-27": {
+   "pass": false,
+   "reg": "GH-DEF-054",
+   "detail": "shows 8, independent value 242.96862 (|actual - expected| = 234.969 is more than the tolerance 2)"
+  },
+  "KA-28": {
+   "pass": false,
+   "reg": "GH-DEF-055",
+   "detail": "shows 114, independent value 110 (|actual - expected| = 4 is more than the tolerance 0.5)"
+  },
+  "KA-29": {
+   "pass": false,
+   "reg": "GH-DEF-055",
+   "detail": "shows 1, independent value 5 (|actual - expected| = 4 is more than the tolerance 0.5)"
+  },
+  "KA-30": {
+   "pass": false,
+   "reg": "GH-DEF-056",
+   "detail": "shows 10.67, independent value 8 (|actual - expected| = 2.67 is more than the tolerance 0.02)"
+  },
+  "KA-31": {
+   "pass": false,
+   "reg": "GH-DEF-057",
+   "detail": "shows 29, independent value 30 (|actual - expected| = 1 is more than the tolerance 0)"
+  },
+  "KA-32": {
+   "pass": false,
+   "reg": "GH-DEF-058",
+   "detail": "shows 1 numeric result(s) (Piston Position from TDC -0.2652) from a blank required input"
+  },
+  "KA-33": {
+   "pass": false,
+   "reg": "GH-DEF-058",
+   "detail": "shows 1 numeric result(s) (Estimated Brake Power 3,750) from a blank required input"
+  },
+  "KA-34": {
+   "pass": false,
+   "reg": "GH-DEF-058",
+   "detail": "shows 2 numeric result(s) (Bar Spring Rate 1,021; Roll Stiffness Added 18,378) from a blank required input"
+  },
+  "KA-35": {
+   "pass": false,
+   "reg": "GH-DEF-058",
+   "detail": "shows 1 numeric result(s) (Wet Bulb Temperature 69.6) from a blank required input"
+  },
+  "KA-36": {
+   "pass": false,
+   "reg": "GH-DEF-058",
+   "detail": "shows 4 numeric result(s) (Flow Velocity 2.42; Reynolds Number 8,659) from a blank required input"
+  },
+  "KA-37": {
+   "pass": false,
+   "reg": "GH-DEF-058",
+   "detail": "shows 2 numeric result(s) (Effective Compression Ratio 9.079; Estimated Cranking Pressure 270) from a blank required input"
+  },
+  "KA-38": {
+   "pass": false,
+   "reg": "GH-DEF-058",
+   "detail": "shows 1 numeric result(s) (Bolt Circle Diameter (PCD) 7.656) from a blank required input"
+  },
+  "KA-39": {
+   "pass": false,
+   "reg": "GH-DEF-058",
+   "detail": "shows 1 numeric result(s) (Estimated Flywheel HP 383) from a blank required input"
+  },
+  "KA-40": {
+   "pass": false,
+   "reg": "GH-DEF-058",
+   "detail": "shows 1 numeric result(s) (Piston Position from TDC -0.2652) from a non-numeric required input"
+  },
+  "KA-C3": {
+   "pass": true,
+   "reg": null,
+   "detail": null
+  },
+  "KA-C4": {
+   "pass": true,
+   "reg": null,
+   "detail": null
+  },
+  "KA-41": {
+   "pass": false,
+   "reg": "GH-DEF-059",
+   "detail": "shows Bar Spring Rate = 1,742,299,166,487,395,000,000,000,000,000,000,000,000 with no warning"
+  },
+  "KA-42": {
+   "pass": false,
+   "reg": "GH-DEF-059",
+   "detail": "shows Spring Rate = 9,200,000,000,000,000,000,000,000,000,000,000,000,000 with no warning"
+  },
+  "KA-43": {
+   "pass": false,
+   "reg": "GH-DEF-059",
+   "detail": "shows Estimated Flywheel HP = 266,918,412,875,020,430,000,000 with no warning"
+  },
+  "KA-44": {
+   "pass": false,
+   "reg": "GH-DEF-059",
+   "detail": "shows Pressure Drop = 121,816,099,082,836.11 with no warning"
+  }
+ },
+ "green": {
+  "KA-01": {
+   "pass": true,
+   "reg": "GH-DEF-045",
+   "detail": null
+  },
+  "KA-02": {
+   "pass": true,
+   "reg": "GH-DEF-045",
+   "detail": null
+  },
+  "KA-03": {
+   "pass": true,
+   "reg": "GH-DEF-046",
+   "detail": null
+  },
+  "KA-04": {
+   "pass": true,
+   "reg": "GH-DEF-046",
+   "detail": null
+  },
+  "KA-05": {
+   "pass": true,
+   "reg": "GH-DEF-047",
+   "detail": null
+  },
+  "KA-06": {
+   "pass": true,
+   "reg": "GH-DEF-047",
+   "detail": null
+  },
+  "KA-07": {
+   "pass": true,
+   "reg": "GH-DEF-047",
+   "detail": null
+  },
+  "KA-08": {
+   "pass": true,
+   "reg": "GH-DEF-047",
+   "detail": null
+  },
+  "KA-09": {
+   "pass": true,
+   "reg": "GH-DEF-048",
+   "detail": null
+  },
+  "KA-10": {
+   "pass": true,
+   "reg": "GH-DEF-048",
+   "detail": null
+  },
+  "KA-11": {
+   "pass": true,
+   "reg": "GH-DEF-048",
+   "detail": null
+  },
+  "KA-12": {
+   "pass": true,
+   "reg": "GH-DEF-048",
+   "detail": null
+  },
+  "KA-13": {
+   "pass": true,
+   "reg": "GH-DEF-049",
+   "detail": null
+  },
+  "KA-14": {
+   "pass": true,
+   "reg": "GH-DEF-049",
+   "detail": null
+  },
+  "KA-15": {
+   "pass": true,
+   "reg": "GH-DEF-050",
+   "detail": null
+  },
+  "KA-16": {
+   "pass": true,
+   "reg": "GH-DEF-050",
+   "detail": null
+  },
+  "KA-17": {
+   "pass": true,
+   "reg": "GH-DEF-050",
+   "detail": null
+  },
+  "KA-18": {
+   "pass": true,
+   "reg": "GH-DEF-051",
+   "detail": null
+  },
+  "KA-19": {
+   "pass": true,
+   "reg": "GH-DEF-051",
+   "detail": null
+  },
+  "KA-20": {
+   "pass": true,
+   "reg": "GH-DEF-051",
+   "detail": null
+  },
+  "KA-C1": {
+   "pass": true,
+   "reg": null,
+   "detail": null
+  },
+  "KA-C2": {
+   "pass": true,
+   "reg": null,
+   "detail": null
+  },
+  "KA-21": {
+   "pass": true,
+   "reg": "GH-DEF-052",
+   "detail": null
+  },
+  "KA-22": {
+   "pass": true,
+   "reg": "GH-DEF-053",
+   "detail": null
+  },
+  "KA-23": {
+   "pass": true,
+   "reg": "GH-DEF-053",
+   "detail": null
+  },
+  "KA-24": {
+   "pass": true,
+   "reg": "GH-DEF-054",
+   "detail": null
+  },
+  "KA-25": {
+   "pass": true,
+   "reg": "GH-DEF-054",
+   "detail": null
+  },
+  "KA-26": {
+   "pass": true,
+   "reg": "GH-DEF-054",
+   "detail": null
+  },
+  "KA-27": {
+   "pass": true,
+   "reg": "GH-DEF-054",
+   "detail": null
+  },
+  "KA-28": {
+   "pass": true,
+   "reg": "GH-DEF-055",
+   "detail": null
+  },
+  "KA-29": {
+   "pass": true,
+   "reg": "GH-DEF-055",
+   "detail": null
+  },
+  "KA-30": {
+   "pass": true,
+   "reg": "GH-DEF-056",
+   "detail": null
+  },
+  "KA-31": {
+   "pass": true,
+   "reg": "GH-DEF-057",
+   "detail": null
+  },
+  "KA-32": {
+   "pass": true,
+   "reg": "GH-DEF-058",
+   "detail": null
+  },
+  "KA-33": {
+   "pass": true,
+   "reg": "GH-DEF-058",
+   "detail": null
+  },
+  "KA-34": {
+   "pass": true,
+   "reg": "GH-DEF-058",
+   "detail": null
+  },
+  "KA-35": {
+   "pass": true,
+   "reg": "GH-DEF-058",
+   "detail": null
+  },
+  "KA-36": {
+   "pass": true,
+   "reg": "GH-DEF-058",
+   "detail": null
+  },
+  "KA-37": {
+   "pass": true,
+   "reg": "GH-DEF-058",
+   "detail": null
+  },
+  "KA-38": {
+   "pass": true,
+   "reg": "GH-DEF-058",
+   "detail": null
+  },
+  "KA-39": {
+   "pass": true,
+   "reg": "GH-DEF-058",
+   "detail": null
+  },
+  "KA-40": {
+   "pass": true,
+   "reg": "GH-DEF-058",
+   "detail": null
+  },
+  "KA-C3": {
+   "pass": true,
+   "reg": null,
+   "detail": null
+  },
+  "KA-C4": {
+   "pass": true,
+   "reg": null,
+   "detail": null
+  },
+  "KA-41": {
+   "pass": true,
+   "reg": "GH-DEF-059",
+   "detail": null
+  },
+  "KA-42": {
+   "pass": true,
+   "reg": "GH-DEF-059",
+   "detail": null
+  },
+  "KA-43": {
+   "pass": true,
+   "reg": "GH-DEF-059",
+   "detail": null
+  },
+  "KA-44": {
+   "pass": true,
+   "reg": "GH-DEF-059",
+   "detail": null
+  }
+ },
+ "isolation": {
+  "GH-DEF-045": {
+   "flipped": [
+    "KA-01:fail->pass",
+    "KA-02:fail->pass"
+   ],
+   "collateral": [],
+   "stillFailing": []
+  },
+  "GH-DEF-046": {
+   "flipped": [
+    "KA-03:fail->pass",
+    "KA-04:fail->pass"
+   ],
+   "collateral": [],
+   "stillFailing": []
+  },
+  "GH-DEF-047": {
+   "flipped": [
+    "KA-05:fail->pass",
+    "KA-06:fail->pass",
+    "KA-07:fail->pass",
+    "KA-08:fail->pass"
+   ],
+   "collateral": [],
+   "stillFailing": []
+  },
+  "GH-DEF-048": {
+   "flipped": [
+    "KA-09:fail->pass",
+    "KA-10:fail->pass",
+    "KA-11:fail->pass",
+    "KA-12:fail->pass"
+   ],
+   "collateral": [],
+   "stillFailing": []
+  },
+  "GH-DEF-049": {
+   "flipped": [
+    "KA-13:fail->pass",
+    "KA-14:fail->pass"
+   ],
+   "collateral": [],
+   "stillFailing": []
+  },
+  "GH-DEF-050": {
+   "flipped": [
+    "KA-15:fail->pass",
+    "KA-16:fail->pass",
+    "KA-17:fail->pass"
+   ],
+   "collateral": [],
+   "stillFailing": []
+  },
+  "GH-DEF-051": {
+   "flipped": [
+    "KA-18:fail->pass",
+    "KA-19:fail->pass",
+    "KA-20:fail->pass"
+   ],
+   "collateral": [],
+   "stillFailing": []
+  },
+  "GH-DEF-052": {
+   "flipped": [
+    "KA-21:fail->pass"
+   ],
+   "collateral": [],
+   "stillFailing": []
+  },
+  "GH-DEF-053": {
+   "flipped": [
+    "KA-22:fail->pass",
+    "KA-23:fail->pass"
+   ],
+   "collateral": [],
+   "stillFailing": []
+  },
+  "GH-DEF-054": {
+   "flipped": [
+    "KA-24:fail->pass",
+    "KA-25:fail->pass",
+    "KA-26:fail->pass",
+    "KA-27:fail->pass"
+   ],
+   "collateral": [],
+   "stillFailing": []
+  },
+  "GH-DEF-055": {
+   "flipped": [
+    "KA-28:fail->pass",
+    "KA-29:fail->pass"
+   ],
+   "collateral": [],
+   "stillFailing": []
+  },
+  "GH-DEF-056": {
+   "flipped": [
+    "KA-30:fail->pass"
+   ],
+   "collateral": [],
+   "stillFailing": []
+  },
+  "GH-DEF-057": {
+   "flipped": [
+    "KA-31:fail->pass"
+   ],
+   "collateral": [],
+   "stillFailing": []
+  },
+  "GH-DEF-058": {
+   "flipped": [
+    "KA-32:fail->pass",
+    "KA-33:fail->pass",
+    "KA-34:fail->pass",
+    "KA-35:fail->pass",
+    "KA-36:fail->pass",
+    "KA-37:fail->pass",
+    "KA-38:fail->pass",
+    "KA-39:fail->pass",
+    "KA-40:fail->pass"
+   ],
+   "collateral": [],
+   "stillFailing": []
+  },
+  "GH-DEF-059": {
+   "flipped": [
+    "KA-41:fail->pass",
+    "KA-42:fail->pass",
+    "KA-43:fail->pass",
+    "KA-44:fail->pass"
+   ],
+   "collateral": [],
+   "stillFailing": []
+  }
+ },
+ "redSelftest": {
+  "total": 736,
+  "passed": 733,
+  "failed": 3
+ },
+ "greenSelftest": {
+  "total": 736,
+  "passed": 736,
+  "failed": 0
+ },
+ "problems": []
+}
