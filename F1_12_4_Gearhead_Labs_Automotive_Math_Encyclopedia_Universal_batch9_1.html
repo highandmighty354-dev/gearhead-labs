@@ -12086,7 +12086,7 @@ RENDERS.power_split_device_kinematics=()=>{
     following_distance:   [[60,2],          60*1.46667*2,              1e-4, 'ft=mph*1.46667*s'],
     sensor_fov:           [[10,50],         2*Math.atan(5/50)*180/Math.PI, 1e-9,'2atan(w/2d)'],
     slip_angle:           [[5,100],         Math.atan(5/100)*180/Math.PI, 1e-9,'atan(vy/vx)'],
-    ackermann_angle:      [[110,300,60],    Math.atan(110/(300-30))*180/Math.PI, 1e-9,'GH-DEF-052: atan(L/(R-T/2)), R to the vehicle centreline, T = track width (the old row asserted L/2, i.e. wheelbase used as track; convention provisional, owner decision D7)'],
+    ackermann_angle:      [[110,300,60],    Math.atan(110/(300-30))*180/Math.PI, 1e-9,'GH-DEF-052: atan(L/(R-T/2)), R measured from the instantaneous turn centre to the midpoint of the rear axle (rear-axle centreline), T = front track between wheel centres (the old row asserted L/2, i.e. wheelbase used as track; PROVISIONAL convention, requires owner approval, Phase 0 decision D7)'],
     decibel_ratio:        [[10],            20*Math.log10(10),         1e-9, '20log10'],
     friction_circle:      [[0.8,0.9],       Math.sqrt(0.8*0.8+0.9*0.9), 1e-9,'sqrt(x^2+y^2)'],
     load_transfer_lateral:[[3500,20,60,1.0],3500*20*1.0/60,            1e-9, 'W*h*a/t'],
