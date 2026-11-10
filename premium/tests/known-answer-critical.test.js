@@ -22,7 +22,10 @@
         VERBOSE=1        prints every case
         GH_ENGINE=path   tests another copy of the engine
         KA_STRICT=1      ignores KNOWN_OPEN (every case must pass) — used by premium/tests/proof/red-green.js against a corrected copy
-        KA_JSON=path     also writes the per-case results as JSON
+        KA_JSON=path     also writes the per-case results as JSON ({complete, caseIds, results, ...})
+        KA_REPORT=1      report mode (used by premium/tests/proof/red-green.js): the exit code says whether the RUN is valid, not whether cases passed —
+                         0 only if every case was evaluated, the JSON was written and no page error occurred; 2 otherwise. Case results are in the JSON.
+        KA_LIST=1        prints {"ids":[...]} (every case id, in order) and exits 0 without opening a browser
    Exit code 0 = clean against the ledger, 1 = otherwise. */
 'use strict';
 const { parseShown, mismatch } = require('./lib/numeric-guard');
@@ -138,6 +141,8 @@ const CASES = [
 /* the ledger (premium/tests/data/known-answer-open.json): cases failing today because of a registered, still-open defect */
 const KNOWN_OPEN = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'known-answer-open.json'), 'utf8')).open;
 
+if (process.env.KA_LIST) { process.stdout.write(JSON.stringify({ ids: CASES.map(c => c.id) }) + '\n'); process.exit(0); }
+
 (async () => {
   const strict = !!process.env.KA_STRICT;
   const browser = await playwright.chromium.launch({ executablePath: CHROMIUM });
@@ -210,9 +215,11 @@ const KNOWN_OPEN = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'know
   }
   stale.forEach(id => console.error(`  FAIL ${id} is in KNOWN_OPEN (${KNOWN_OPEN[id]}) but now passes: remove it from the ledger and update the register entry`));
   if (pageErrors.length) console.error('  page errors: ' + pageErrors.join(' | '));
-  if (process.env.KA_JSON) fs.writeFileSync(process.env.KA_JSON, JSON.stringify({ engine: ENGINE, strict, results }, null, 1));
+  const complete = results.length === CASES.length && results.every((r, i) => r.id === CASES[i].id);
+  if (process.env.KA_JSON) fs.writeFileSync(process.env.KA_JSON, JSON.stringify({ engine: ENGINE, strict, complete, caseIds: CASES.map(c => c.id), pageErrors, results }, null, 1));
   const known = failing.length - unexpected.length;
   console.log(`known-answer (Critical/High): ${results.length} cases, ${results.filter(r => r.pass).length} passed, ${failing.length} failed — ${known} of the ${Object.keys(KNOWN_OPEN).length} known-open failures present${strict ? ' (STRICT: ledger ignored)' : ''}, ${unexpected.length} unexpected failure(s), ${stale.length} stale ledger entr${stale.length === 1 ? 'y' : 'ies'}`);
+  if (process.env.KA_REPORT) process.exit(complete && !pageErrors.length && process.env.KA_JSON ? 0 : 2);
   process.exit(unexpected.length || stale.length || pageErrors.length ? 1 : 0);
-})();
+})().catch(e => { console.error('known-answer suite crashed: ' + (e && e.stack || e)); process.exit(3); });
 

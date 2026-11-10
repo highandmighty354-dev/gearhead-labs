@@ -62,6 +62,9 @@ jobs:
       - name: Catalog consistency (inventory 743 + 14, sources unchanged since generation)
         run: node catalog/check-catalog.js
 
+      - name: Red/green proof harness rejects failed or incomplete child runs (no browser)
+        run: node premium/tests/proof/red-green-harness.test.js
+
       - name: Engine self-test (known baseline must match exactly)
         run: node premium/tests/engine-selftest.js
 

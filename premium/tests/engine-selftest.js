@@ -16,7 +16,9 @@
    KNOWN_BASELINE_IDS with their open register entries. The runner fails on any failure that is NOT listed, and also when a listed row
    starts passing (so the baseline can never go stale and a repair must update it). register-check.js checks every listed id is open.
 
-   Run: node premium/tests/engine-selftest.js     GH_ENGINE=path tests another copy of the engine     VERBOSE=1 prints every failure's detail */
+   Run: node premium/tests/engine-selftest.js     GH_ENGINE=path tests another copy of the engine     VERBOSE=1 prints every failure's detail
+        SELFTEST_REPORT=1  report mode (used by premium/tests/proof/red-green.js): prints one line `SELFTEST_JSON {...}` with the totals and the failing rows,
+                           ignores the baseline, and exits 0 only if the self-test ran and produced a consistent result (no page error); 2 otherwise */
 'use strict';
 const path = require('path'), fs = require('fs'), { execSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..');
@@ -49,6 +51,11 @@ const KNOWN_BASELINE = Object.keys(KNOWN_BASELINE_IDS);
   regressions.forEach(k => console.error('  FAIL new self-test failure: ' + k));
   stale.forEach(k => console.error('  FAIL baseline entry now passes: ' + k + ' (remove it from KNOWN_BASELINE_IDS and update its register entry)'));
   if (errors.length) console.error('  page errors: ' + errors.join(' | '));
+  if (process.env.SELFTEST_REPORT) {
+    const ok = Number.isInteger(r.total) && r.total > 0 && r.passed + r.failed === r.total && r.failures.length === r.failed && !errors.length;
+    console.log('SELFTEST_JSON ' + JSON.stringify({ total: r.total, passed: r.passed, failed: r.failed, failures: got, pageErrors: errors }));
+    process.exit(ok ? 0 : 2);
+  }
   console.log(`engine self-test (ghSelfTest): ${r.total} total, ${r.passed} passed, ${r.failed} failed — ${got.length - regressions.length} of the ${KNOWN_BASELINE.length} known baseline failures present, ${regressions.length} new failure(s), ${stale.length} stale baseline entr${stale.length === 1 ? 'y' : 'ies'}`);
   process.exit(regressions.length || stale.length || errors.length ? 1 : 0);
-})();
+})().catch(e => { console.error('engine self-test crashed: ' + (e && e.stack || e)); process.exit(3); });

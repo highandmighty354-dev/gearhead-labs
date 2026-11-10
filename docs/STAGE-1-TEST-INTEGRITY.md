@@ -176,6 +176,30 @@ Evidence: `premium/tests/proof/out/red-green.json`. Reproduce with `node premium
 
 **The probes are not fixes.** They prove the tests discriminate. Stage 2 repairs are designed and reviewed on their own, several after your decisions D4, D7 and D8.
 
+### 4.4 How the proof harness checks its own runs (PR #30 review correction)
+
+The first version of `red-green.js` started each suite with `spawnSync` but never checked whether it succeeded. A suite that crashed after writing an all-green result file, or after printing a perfect summary, would still have been counted as a pass. That version is corrected:
+
+- **Every child is checked before its output is read.** Anything except a normal exit with status 0 is a failure, and the proof stops. That covers a nonzero status, a program that cannot be started, a timeout (15 min known-answer, 5 min self-test) and a kill signal.
+- **Known-answer output is validated.** The harness first asks the suite for its case list (`KA_LIST`, 48 ids). The result file must exist and be valid JSON. It must be marked `complete` and `strict`, have no page errors, contain each expected case exactly once with a true/false result, and contain no extra cases.
+- **Self-test output is validated.** There must be exactly one `SELFTEST_JSON` line, and its totals must add up.
+- **Suites report run validity, not case outcomes.** The RED run is meant to fail 44 cases, and the GREEN self-test leaves the 3 baseline rows "stale" by design, so normal-mode exit codes cannot be required to be 0. The harness therefore runs them in a report mode (`KA_REPORT`, `SELFTEST_REPORT`), where exit 0 means "the suite ran completely" and the case results are read from the validated output. Normal mode, the ledgers and the baseline are unchanged.
+- **Failure reporting.** On any failure the harness prints the child's command, status, signal, error and the last 2,000 characters of its stdout and stderr. It writes the report with `"valid": false` and the cause, and exits 1. A clean run writes `"valid": true` and exits 0.
+
+Regression tests: `node premium/tests/proof/red-green-harness.test.js`, a few seconds with no browser, run in the fast gate. They use the stand-in `premium/tests/proof/fixtures/fake-child.js` and cover:
+
+- all-green JSON followed by exit 1;
+- a perfect self-test summary followed by exit 1;
+- a missing program;
+- a timeout;
+- SIGKILL;
+- a missing result file, malformed JSON, a missing case, a duplicate case, an extra case, and the "complete" or "strict" flags not set;
+- page errors, missing pass flags and inconsistent self-test totals;
+- end-to-end runs of the harness itself, which must exit 1 with `valid: false`;
+- the success path.
+
+Removing the four exit-status checks from a copy of the harness makes 11 of these checks fail, so the tests depend on those checks.
+
 ---
 
 ## 5. GitHub Actions workflow — `.github/workflows/calculator-tests.yml`
@@ -187,7 +211,7 @@ Evidence: `premium/tests/proof/out/red-green.json`. Reproduce with `node premium
 | Secrets? | None referenced. Fork pull requests receive none. |
 | Credentials left on the runner? | `persist-credentials: false` on checkout. |
 | Can it deploy or alter production? | **No.** It has no deploy, Pages, Supabase, Stripe or migration step. It does not call the existing Supabase workflows. The tests open the engine from the checked-out files (`file://`) in headless Chromium and make no request to gearhead-labs.com or Supabase. |
-| What does it run? | **Fast gate** on every PR: `register-check`, `check-catalog`, `engine-selftest`, `known-answer-critical`, `unit-factors`, `legacy-fixes`, `numeric-guard`. **Full regression**, manual only: `run-browser-tests.sh`, about 2.5 hours. |
+| What does it run? | **Fast gate** on every PR: `register-check`, `check-catalog`, `red-green-harness`, `engine-selftest`, `known-answer-critical`, `unit-factors`, `legacy-fixes`, `numeric-guard`. **Full regression**, manual only: `run-browser-tests.sh`, about 2.5 hours. |
 | External code | `actions/checkout@v4`, `actions/setup-node@v4` and Playwright 1.63.0 from npm. Pinning the two actions to commit SHAs is a further hardening option. |
 
 **After merge (your action, in the GitHub web UI):** Settings → Branches → the `main` rule → "Require status checks to pass" → select "Fast gate (known-answer, self-test, register)". Until then the workflow reports but does not block.
@@ -204,7 +228,9 @@ Evidence: `premium/tests/proof/out/red-green.json`. Reproduce with `node premium
 | `premium/tests/known-answer-critical.test.js` | New: 48-case independent suite. |
 | `premium/tests/data/known-answer-open.json` | New: known-open ledger (44 cases). |
 | `premium/tests/proof/red-green.js` | New: test-only red/green/isolation proof. |
-| `premium/tests/proof/out/red-green.json` | New: proof results. |
+| `premium/tests/proof/out/red-green.json` | New: proof results (now carries `valid`, `caseIds`, `harnessError`). |
+| `premium/tests/proof/red-green-harness.test.js`, `premium/tests/proof/fixtures/*.js` | New (PR #30 correction): harness regression tests and their stand-in child processes (§4.4). |
+| `premium/tests/engine-selftest.js`, `premium/tests/known-answer-critical.test.js` (PR #30 correction) | Added report/list modes (`SELFTEST_REPORT`, `KA_REPORT`, `KA_LIST`) and a crash handler that exits 3. The result JSON now records `complete`, `caseIds` and `pageErrors`. Default behaviour, cases, expected values, ledger and baseline are unchanged. |
 | `premium/tests/register-check.js` | Traces the two new ledgers to open entries. |
 | `premium/tests/run-browser-tests.sh` | Adds the new suite; describes the self-test baseline. |
 | `.github/workflows/calculator-tests.yml` | New: read-only PR gate. |
