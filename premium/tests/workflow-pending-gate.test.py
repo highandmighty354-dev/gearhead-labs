@@ -6,10 +6,12 @@ Everything is read from the workflow file itself, so the code tested is the code
      format of Supabase CLI 2.119.0 `db push --dry-run` (apps/cli/src/command-internal/db-push-core.ts):
        "DRY RUN: migrations will *not* be pushed to the database." / "Would push these migrations:" / " • <file>" /
        "Remote database is up to date."
-  B. the dry-run job's and the apply job's own `run:` scripts, executed end to end in a checkout of the pinned commit
-     with a FAKE `supabase` command on PATH (it only prints a fixture and records its arguments; nothing can reach a
-     database). Checks: exit status, the job summary, no password in the summary, and that the dry-run job never calls
-     anything but `db push --dry-run` and the apply job never reaches `--yes` when the gate fails.
+  B. the dry-run job's gate step and the apply job's preflight step (AP-3b: fresh dry run + gate), executed end to end
+     in a checkout of the pinned commit with a FAKE `supabase` command on PATH (it only prints a fixture and records
+     its arguments; nothing can reach a database). Checks: exit status, the job summary, no password in the summary,
+     that the dry-run job never calls anything but `db push --dry-run`, and that the preflight writes its gate-pass
+     marker only when the gate passes. The multi-step apply job (V1, V2, --yes, evidence) is tested by
+     premium/tests/workflow-option-b.test.py.
 Needs: python3 with PyYAML, bash, git. Run from anywhere:  python3 premium/tests/workflow-pending-gate.test.py
 Exit 0 = every check passed; 1 = a failure; 2 = could not run (missing tool or checkout)."""
 import os, subprocess, sys, tempfile, shutil, stat
@@ -28,7 +30,7 @@ def step(job, prefix):
     for s in wf['jobs'][job]['steps']:
         if s.get('name', '').startswith(prefix): return s
     raise SystemExit(f'step {prefix!r} not found in job {job}')
-DRY_STEP, APPLY_STEP = step('dry-run', 'Dry run against'), step('apply', 'Re-check target')
+DRY_STEP, APPLY_STEP = step('dry-run', 'Dry run against'), step('apply', 'Re-check target')   # APPLY_STEP = AP-3b preflight
 
 checks = failures = 0
 def check(name, ok, detail=''):
@@ -134,7 +136,22 @@ f="$FAKE_DIR/out$n.txt"; [ -f "$f" ] || f="$FAKE_DIR/out.txt"
 cat "$f"; exit "$(cat "$FAKE_DIR/rc$n" 2>/dev/null || echo 0)"
 ''')
     os.chmod(fake, os.stat(fake).st_mode | stat.S_IEXEC)
+    open(os.path.join(fakebin, 'supabase-go'), 'w').write('#!/usr/bin/env bash\nexit 99\n')
+    # the fake CLI is not the verified build: feed the workflow's CLI-binary guard the fakes' own SHA-256 values
+    import hashlib
+    FAKE_CLI_HASHES = {k: hashlib.sha256(open(os.path.join(fakebin, f), 'rb').read()).hexdigest()
+                       for k, f in (('SUPABASE_CLI_SHA256', 'supabase'), ('SUPABASE_GO_SHA256', 'supabase-go'))}
     PASSWORD = 'S3cret-PW!/not-real'
+    def isolation_env(step_def, rt):
+        """The workflow's CLI-isolation variables for this step: the two workflow-level flags, the step's own
+        SUPABASE_HOME with ${{ runner.temp }} resolved to this run's RUNNER_TEMP (as GitHub resolves it), and the
+        step's own SUPABASE_DEBUG / SUPABASE_TELEMETRY_DEBUG values."""
+        home = str((step_def.get('env') or {}).get('SUPABASE_HOME', '')).replace('${{ runner.temp }}', rt)
+        return {'SUPABASE_TELEMETRY_DISABLED': str(ENV.get('SUPABASE_TELEMETRY_DISABLED', '')),
+                'SUPABASE_NO_UPDATE_NOTIFIER': str(ENV.get('SUPABASE_NO_UPDATE_NOTIFIER', '')), 'SUPABASE_HOME': home,
+                **{k: str(v) for k, v in (step_def.get('env') or {}).items() if k in ('SUPABASE_DEBUG', 'SUPABASE_TELEMETRY_DEBUG')},
+                **FAKE_CLI_HASHES}
+
     def run_job(step_def, outputs, target='production', rcs=None, apply=False):
         d = tempfile.mkdtemp(dir=tmp); log = os.path.join(d, 'calls.log'); open(log, 'w').close()
         for i, o in enumerate(outputs, 1): open(os.path.join(d, f'out{i}.txt'), 'w', encoding='utf-8').write(o)
@@ -144,18 +161,21 @@ cat "$f"; exit "$(cat "$FAKE_DIR/rc$n" 2>/dev/null || echo 0)"
         script = step_def['run']
         assert '${{' not in script, 'the run script still contains a ${{ }} expression'
         env = {'PATH': fakebin + os.pathsep + os.environ['PATH'], 'HOME': d, 'FAKE_LOG': log, 'FAKE_DIR': d,
-               'RUNNER_TEMP': rt, 'GITHUB_STEP_SUMMARY': summary, 'PINNED_SHA': PINNED,
+               'RUNNER_TEMP': rt, 'GITHUB_STEP_SUMMARY': summary, 'PINNED_SHA': PINNED, **isolation_env(step_def, rt),
                'SUPABASE_CLI_VERSION': ENV['SUPABASE_CLI_VERSION'], 'PENDING_GATE_SH': GATE,
                'PRODUCTION_EXPECTED_PENDING': EXPECTED, 'TARGET': target, 'NO_COLOR': '1',
                'POOLER_URL': 'postgresql://postgres.jmztpjudwzjvrcdtjynd:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:5432/postgres',
-               'DB_PASSWORD': PASSWORD, 'CONFIRM_REF': 'jmztpjudwzjvrcdtjynd'}
+               'DB_PASSWORD': PASSWORD, 'CONFIRM_REF': 'jmztpjudwzjvrcdtjynd', 'GITHUB_WORKSPACE': wt,
+               'INTEGRITY_SH': ENV['INTEGRITY_SH'], 'MIGRATION_MANIFEST': ENV['MIGRATION_MANIFEST']}
         r = subprocess.run(['bash', '--noprofile', '--norc', '-eo', 'pipefail', '-c', script], cwd=wt, env=env,
                            capture_output=True, text=True)
+        run_job.marker = os.path.exists(os.path.join(rt, 'gate-pass.txt'))
         return r.returncode, open(summary, encoding='utf-8').read(), [l for l in open(log).read().splitlines() if l], r.stdout + r.stderr
 
-    def job_case(name, outputs, passes, target='production', rcs=None, step_def=DRY_STEP, must_say=(), yes_calls=None):
+    def job_case(name, outputs, passes, target='production', rcs=None, step_def=DRY_STEP, must_say=(), yes_calls=None, marker=None):
         rc, summ, calls, raw = run_job(step_def, outputs, target, rcs)
         ok = (rc == 0) == passes
+        if marker is not None: ok = ok and run_job.marker == marker
         ok = ok and all(s in summ for s in must_say)
         ok = ok and PASSWORD not in summ and 'YOUR-PASSWORD' not in summ   # the summary never carries the credential or the URL
         if step_def is DRY_STEP: ok = ok and calls and all(c.startswith('db push --dry-run ') for c in calls)
@@ -177,35 +197,38 @@ cat "$f"; exit "$(cat "$FAKE_DIR/rc$n" 2>/dev/null || echo 0)"
         open(os.path.join(d, 'out.txt'), 'w').write(cli([MNEW]))
         summary = os.path.join(d, 'summary.md'); open(summary, 'w').close(); rt = os.path.join(d, 'rt'); os.makedirs(rt)
         env = {'PATH': fakebin + os.pathsep + os.environ['PATH'], 'HOME': d, 'FAKE_LOG': log, 'FAKE_DIR': d, 'RUNNER_TEMP': rt,
-               'GITHUB_STEP_SUMMARY': summary, 'PINNED_SHA': PINNED, 'SUPABASE_CLI_VERSION': '2.119.0', 'PENDING_GATE_SH': GATE,
+               **isolation_env(DRY_STEP, rt), 'GITHUB_STEP_SUMMARY': summary, 'PINNED_SHA': PINNED, 'SUPABASE_CLI_VERSION': '2.119.0', 'PENDING_GATE_SH': GATE,
                'PRODUCTION_EXPECTED_PENDING': EXPECTED, 'TARGET': 'production',
                'POOLER_URL': 'postgresql://postgres.jmztpjudwzjvrcdtjynd:[YOUR-PASSWORD]@h:5432/postgres', 'DB_PASSWORD': PASSWORD,
-               'CONFIRM_REF': 'abcdefghijklmnopqrst'}
+               'CONFIRM_REF': 'abcdefghijklmnopqrst', 'GITHUB_WORKSPACE': wt,
+               'INTEGRITY_SH': ENV['INTEGRITY_SH'], 'MIGRATION_MANIFEST': ENV['MIGRATION_MANIFEST']}
         r = subprocess.run(['bash', '--noprofile', '--norc', '-eo', 'pipefail', '-c', DRY_STEP['run']], cwd=wt, env=env, capture_output=True, text=True)
         return r.returncode, open(log).read()
     rc8, log8 = run_wrong_ref()
     check('B8 dry-run job, wrong project ref typed: fails and never calls the CLI', rc8 != 0 and log8 == '', f'rc={rc8} calls={log8!r}')
     check('B9 the dry-run job script never contains an apply command', '--yes' not in DRY_STEP['run'] and 'db push --db-url' not in DRY_STEP['run'])
 
-    # apply job: its existing checks stay, the gate is added; the fake records whether --yes was reached
-    job_case('B10 apply job, production 0409 then "up to date": succeeds, one --yes call',
-             [cli([MNEW]), 'Applying migration 0409_formula_versions_fuel_pump_validity.sql...\nFinished supabase db push.\n', cli(uptodate=True)],
-             True, step_def=APPLY_STEP, yes_calls=1, must_say=('APPLY complete — production',))
-    job_case('B11 apply job, production 0408 + 0409 (the old suffix check alone would accept it): refused, --yes never called',
-             [cli(APPROVED[-2:])], False, step_def=APPLY_STEP, yes_calls=0)
-    job_case('B12 apply job, "up to date" before applying: refused, --yes never called',
-             [cli(uptodate=True)], False, step_def=APPLY_STEP, yes_calls=0)
-    job_case('B13 apply job, file name only in log text: refused, --yes never called',
-             [cli(uptodate=True, extra_before=log_only)], False, step_def=APPLY_STEP, yes_calls=0)
-    job_case('B13b apply job, database already "up to date" but a log line names 0409 (the old parser read it as pending and would have applied): refused, --yes never called',
+    # apply job, AP-3b (preflight): the fresh dry run and the gate; the gate-pass marker is written only when they pass.
+    # --yes lives in the next step (AP-4) and is never reachable from this one.
+    job_case('B10 preflight, production with exactly 0409 pending: succeeds, writes the gate-pass marker, no --yes call',
+             [cli([MNEW])], True, step_def=APPLY_STEP, yes_calls=0, marker=True)
+    job_case('B11 preflight, production 0408 + 0409 (the old suffix check alone would accept it): refused, no marker',
+             [cli(APPROVED[-2:])], False, step_def=APPLY_STEP, yes_calls=0, marker=False)
+    job_case('B12 preflight, "up to date" before applying: refused, no marker',
+             [cli(uptodate=True)], False, step_def=APPLY_STEP, yes_calls=0, marker=False)
+    job_case('B13 preflight, file name only in log text: refused, no marker',
+             [cli(uptodate=True, extra_before=log_only)], False, step_def=APPLY_STEP, yes_calls=0, marker=False)
+    job_case('B13b preflight, database already "up to date" but a log line names 0409 (the old parser read it as pending): refused, no marker',
              [cli(uptodate=True, extra_before=['WARN: checked 0409_formula_versions_fuel_pump_validity.sql against the remote history'])],
-             False, step_def=APPLY_STEP, yes_calls=0)
-    job_case('B14 apply job, the verification dry run has no "up to date" line (the old empty-list check alone would pass): job fails',
-             [cli([MNEW]), 'Applying migration 0409_formula_versions_fuel_pump_validity.sql...\nFinished supabase db push.\n',
-              DRY + '\nConnecting to remote database...\n'], False, step_def=APPLY_STEP, yes_calls=1)
-    for kept in ('is_suffix "$pending" "$expected"', 'supabase db push --dry-run --db-url "$url"', 'if [ -n "$left" ]; then',
-                 'if [ "$ref" != "$CONFIRM_REF" ]; then', '::add-mask::$url'):
-        check(f'B15 apply job keeps its existing check: {kept}', kept in APPLY_STEP['run'])
+             False, step_def=APPLY_STEP, yes_calls=0, marker=False)
+    job_case('B14 preflight, the fresh dry run exits with an error: refused, no marker', [cli([MNEW])], False, rcs={1: 1},
+             step_def=APPLY_STEP, yes_calls=0, marker=False)
+    check('B14b the preflight script never contains --yes (the apply is a separate step)', '--yes' not in APPLY_STEP['run'])
+    for kept in ('is_suffix "$pending"', 'supabase db push --dry-run --workdir "$GITHUB_WORKSPACE" --db-url "$url"',
+                 'if [ "$ref" != "$CONFIRM_REF" ]; then', '::add-mask::$url', 'pending_gate "$TARGET"'):
+        check(f'B15 the apply job\'s preflight keeps its check: {kept}', kept in APPLY_STEP['run'])
+    post = next(s2 for s2 in wf['jobs']['apply']['steps'] if s2.get('id') == 'evidence_db')['run']
+    check('B15b the post-apply verification still requires a positive "up to date" (uptodate_gate)', 'uptodate_gate "$RUNNER_TEMP/after.txt"' in post)
     check('B16 verify-package still requires the typed APPLY before anything else', any(
         'CONFIRM_APPLY' in (s.get('run') or '') for s in wf['jobs']['verify-package']['steps']))
     check('B17 still manual only (workflow_dispatch, no other trigger)', list(wf[True]) == ['workflow_dispatch'])
