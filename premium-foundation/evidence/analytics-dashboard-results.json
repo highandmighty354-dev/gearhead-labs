@@ -1,0 +1,50 @@
+[
+  {
+    "name": "signed out: the sign-in form only; no report request is made",
+    "pass": true
+  },
+  {
+    "name": "signed in, not the owner: \"Not authorised\"; the report function is never called and nothing is shown",
+    "pass": true
+  },
+  {
+    "name": "database refuses even though the page was tricked into believing it is the owner: error shown, no figures",
+    "pass": true
+  },
+  {
+    "name": "analytics not installed on the database: a clear message, no crash",
+    "pass": true
+  },
+  {
+    "name": "owner: every section renders the synthetic report exactly (KPIs, comparison, pages, traffic, calculators, LABs, funnel, health)",
+    "pass": true
+  },
+  {
+    "name": "date filters: 7 / 30 / 90 days / 12 months / custom send the right range; environment switch; bad custom range refused locally",
+    "pass": true
+  },
+  {
+    "name": "live Stripe figures (synthetic live-mode billing) replace the pending status",
+    "pass": true
+  },
+  {
+    "name": "empty live database: zeros and the \"no live visitor data yet\" notice, no errors",
+    "pass": true
+  },
+  {
+    "name": "layout phone 390x844: no horizontal page scroll; controls reachable; tables scroll inside their own box",
+    "pass": true
+  },
+  {
+    "name": "layout tablet 768x1024: no horizontal page scroll; controls reachable; tables scroll inside their own box",
+    "pass": true
+  },
+  {
+    "name": "layout desktop 1440x900: no horizontal page scroll; controls reachable; tables scroll inside their own box",
+    "pass": true
+  },
+  {
+    "name": "the dashboard is not linked from the public site and is marked noindex",
+    "pass": true
+  }
+]

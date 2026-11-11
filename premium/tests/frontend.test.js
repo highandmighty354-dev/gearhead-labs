@@ -452,7 +452,9 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
   });
   await test('the Supabase client is touched only by supabase-boot.js (creates it) and foundation.js (uses it), in every frontend file', () => {
     const touch = FILES.filter(f => /\bGH_SUPABASE\b|window\.supabase\b/.test(stripComments(contents[f])));
-    eq(touch.sort(), ['premium/adapters/foundation.js', 'supabase-boot.js'], 'files touching the client');
+    // owner/analytics.js (0501): the separate owner-only dashboard page uses the bootstrap client for sign-in and the
+    // owner-checked analytics_* functions only; it creates no client (check 1) and reads no table.
+    eq(touch.sort(), ['owner/analytics.js', 'premium/adapters/foundation.js', 'supabase-boot.js'], 'files touching the client');
     assert(!/window\.supabase\b/.test(stripComments(FOUNDATION)), 'foundation.js reaches for the library instead of the bootstrap client');
   });
   await test('live premium code: no client creation, no obsolete adapter, no hard deletes, no raw table access', () => {
@@ -473,7 +475,7 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
     const srcs = scripts.map(a => (a.match(/\bsrc="([^"]+)"/) || [])[1]);
     eq(srcs.map(s => s.replace(/\?v=[^"]*$/, '')), ['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js', 'supabase-config.js', 'supabase-boot.js',
       'premium/models.js', 'premium/adapters/foundation.js', 'premium/config.js', 'premium/adapters/dev-local.js', 'premium/services.js', 'premium/engineering-bridge.js',
-      'premium/shell.js', 'app-shell.js', 'final-ui-fix.js'], 'script order');
+      'premium/shell.js', 'app-shell.js', 'final-ui-fix.js', 'analytics-config.js', 'analytics.js'], 'script order');   // analytics: 0501, shipped OFF
     const cdn = scripts[0];
     assert(/\bintegrity="sha384-Rj26LVGvoeRVR6\+mwQmFfcR3QOBEwT\+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok"/.test(cdn) && /\bcrossorigin="anonymous"/.test(cdn), 'SRI + crossorigin on the library');
     eq(srcs.filter(s => /^https?:/.test(s)).length, 1, 'exactly one external script');

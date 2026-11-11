@@ -81,7 +81,8 @@ const same = (a, b, m) => assert(JSON.stringify(a) === JSON.stringify(b), `${m}:
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,HEAD,OPTIONS' };
 const PGRST = (status, code, message) => ({ status, headers: Object.assign({ 'content-type': 'application/json' }, CORS), body: JSON.stringify({ code, details: null, hint: null, message }) });
 const EXPECTED_ORDER = lib => [lib.url, 'supabase-config.js', 'supabase-boot.js', 'premium/models.js', 'premium/adapters/foundation.js', 'premium/config.js',
-  'premium/adapters/dev-local.js', 'premium/services.js', 'premium/engineering-bridge.js', 'premium/shell.js', 'app-shell.js', 'final-ui-fix.js'];
+  'premium/adapters/dev-local.js', 'premium/services.js', 'premium/engineering-bridge.js', 'premium/shell.js', 'app-shell.js', 'final-ui-fix.js',
+  'analytics-config.js', 'analytics.js'];   // first-party analytics (0501): shipped OFF; analytics.js is deferred and returns at once when off
 /* Known, environment-only console noise: the calculator page's Google Fonts stylesheet cannot pass this sandbox's
    TLS-intercepting proxy. It affects only typefaces, never Gearhead Labs logic. */
 const ENV_NOISE = /ERR_CERT_AUTHORITY_INVALID|fonts\.googleapis\.com/;
@@ -316,7 +317,7 @@ const BOOT_FAILED = /Supabase initialization failed|Supabase connection check fa
     for (let i = 0; i < 5; i++) {
       const env = await open(base + '?gh_dev=0', { supabase: 'provisioned' });
       const f = await bootFacts(env.page);
-      same([f.mode, f.createClient, f.ready, f.order.length], ['production', 1, true, 12], 'load ' + i);
+      same([f.mode, f.createClient, f.ready, f.order.length], ['production', 1, true, EXPECTED_ORDER(LIB).length], 'load ' + i);
       await env.ctx.close();
     }
   });

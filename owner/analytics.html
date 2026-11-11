@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#050607">
+<title>Owner Analytics — Gearhead Labs</title>
+<!-- Owner-only. Not linked from the site. Hiding the address is NOT the protection: every figure comes from database
+     functions that refuse anyone who is not signed in AND listed in public.analytics_owners. -->
+<link rel="stylesheet" href="analytics.css?v=20261109-0100">
+</head>
+<body>
+<header class="oa-top">
+  <div class="oa-brand"><b>GEARHEAD LABS</b><span>Owner analytics</span></div>
+  <div class="oa-who" id="oa-who"></div>
+</header>
+<main id="oa-main" aria-live="polite">
+  <section class="oa-card oa-center" id="oa-loading"><p>Loading…</p></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
+<script src="../supabase-config.js?v=20261005-1"></script>
+<script src="../supabase-boot.js?v=20261005-1"></script>
+<script src="analytics.js?v=20261109-0100"></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+[
+  {
+    "group": "security",
+    "name": "no client role can read or write any analytics table; RLS enabled and forced; no policies",
+    "pass": true
+  },
+  {
+    "group": "security",
+    "name": "function privileges: ingest = service_role only; dashboard/refresh = signed-in only; rollup/purge = nobody",
+    "pass": true
+  },
+  {
+    "group": "owner",
+    "name": "owner gets the report; a signed-in non-owner, a token without a user, anon and service_role are refused",
+    "pass": true
+  },
+  {
+    "group": "validation",
+    "name": "only catalogued events with allow-listed, well-typed properties are stored; each rejection is counted by reason",
+    "pass": true
+  },
+  {
+    "group": "validation",
+    "name": "bad envelopes: unknown env, empty, oversize (>20) and non-array batches are refused without storing anything",
+    "pass": true
+  },
+  {
+    "group": "duplicates",
+    "name": "a replayed event id is stored once and counted as a duplicate (sendBeacon + retry)",
+    "pass": true
+  },
+  {
+    "group": "abuse",
+    "name": "per-session cap (500 / 24 h), bot flag, skewed client clock, client error counters",
+    "pass": true
+  },
+  {
+    "group": "sessions",
+    "name": "sessionisation: 30-minute gap splits a session; landing/exit pages; channels; engaged flag; time cap; bots flagged",
+    "pass": true
+  },
+  {
+    "group": "aggregation",
+    "name": "daily rollup matches the hand-computed answers; re-running it changes nothing (idempotent)",
+    "pass": true
+  },
+  {
+    "group": "dashboard",
+    "name": "owner report: KPIs, previous-period comparison, date filter boundaries, environment separation, funnel, health",
+    "pass": true
+  },
+  {
+    "group": "dashboard",
+    "name": "empty range returns zeros, not errors; refresh is owner-only and rolls up today",
+    "pass": true
+  },
+  {
+    "group": "retention",
+    "name": "purge deletes raw events older than 90 days (rolling them up first) and keeps the daily rollup",
+    "pass": true
+  },
+  {
+    "group": "billing",
+    "name": "Stripe figures: pending with no data, still pending with TEST-mode data only, live figures from billing tables only",
+    "pass": true
+  },
+  {
+    "group": "environment",
+    "name": "the environment is fixed by the deployment: a forged production Origin or a page-supplied env cannot make events live",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "database rate limits: per network per 10 min, IPv6 by /64, per network per day, per environment per hour; addresses never stored",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "handler: UA reduced to a family; network passed for hashing only; always 204; CORS only for allowed origins",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "LIMITATION made explicit: a script that copies a browser's headers is accepted like a visitor (only limits and bot rules bound it)",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "handler: refuses foreign origins, GET, oversize bodies, >20 events, junk JSON and the kill switch; never errors",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "in-memory limiter is PER INSTANCE (documented as not global): two instances each allow their own quota; window resets",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "handler: database down -> still 204, nothing thrown (the page never sees a failure)",
+    "pass": true
+  },
+  {
+    "group": "visitors",
+    "name": "new vs returning are mutually exclusive and come from each id's first recorded day, not the page's flag",
+    "pass": true
+  }
+]
