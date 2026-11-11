@@ -1,0 +1,108 @@
+# Gearhead Labs — calculator regression gate (Stage 1, docs/STAGE-1-TEST-INTEGRITY.md)
+#
+# READ-ONLY BY DESIGN. This workflow only checks out the code and runs tests in a throwaway GitHub runner.
+#   - Triggers: pull requests into main, and a manual run (workflow_dispatch). It never runs on push, so it cannot run on a merge or a release.
+#   - permissions: contents: read — the job token cannot push, comment, create releases, change Pages or touch any other repository setting.
+#   - No secrets are referenced. Pull requests from forks get no secrets anyway.
+#   - persist-credentials: false — the checkout does not leave a token in the runner's git config.
+#   - No deploy, Pages, Supabase, Stripe or migration step exists here. The Supabase workflows in this folder are separate, manual and approval-gated, and are
+#     not called from this file.
+#   - The tests open the engine page from the checked-out files (file://) in headless Chromium; they make no requests to gearhead-labs.com or Supabase.
+#
+# Jobs
+#   fast-gate        every pull request: register / catalog consistency, the engine self-test (with its known baseline), the independent known-answer suite for
+#                    the Critical and High defects (with its known-open ledger), and three fast physics/unit suites. About 5-10 minutes.
+#   full-regression  manual only (Actions tab -> "Calculator tests" -> Run workflow -> full = true): the whole browser suite, about 2.5 hours.
+name: Calculator tests
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "Also run the full browser regression suite (about 2.5 hours)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: calculator-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PLAYWRIGHT_VERSION: "1.63.0"
+
+jobs:
+  fast-gate:
+    name: Fast gate (known-answer, self-test, register)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out (read-only, no persisted token)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Playwright and Chromium (test tooling only)
+        run: |
+          npm install -g "playwright@${PLAYWRIGHT_VERSION}"
+          npx -y "playwright@${PLAYWRIGHT_VERSION}" install --with-deps chromium
+
+      - name: Register consistency (ids, fields, ledgers traced to open entries)
+        run: node premium/tests/register-check.js
+
+      - name: Catalog consistency (inventory 743 + 14, sources unchanged since generation)
+        run: node catalog/check-catalog.js
+
+      - name: Red/green proof harness rejects failed or incomplete child runs (no browser)
+        run: node premium/tests/proof/red-green-harness.test.js
+
+      - name: Ackermann reference geometry, independent check of KA-21's expected value (no browser)
+        run: node premium/tests/ackermann-reference.test.js
+
+      - name: Engine self-test (known baseline must match exactly)
+        run: node premium/tests/engine-selftest.js
+
+      - name: Known-answer suite for Critical/High defects (known-open ledger must match exactly)
+        run: node premium/tests/known-answer-critical.test.js
+
+      - name: Unit factors against exact SI definitions
+        run: node premium/tests/unit-factors.test.js
+
+      - name: Legacy fixes against independent physics
+        run: node premium/tests/legacy-fixes.test.js
+
+      - name: Numeric guard self-check
+        run: node premium/tests/numeric-guard.test.js
+
+  full-regression:
+    name: Full browser regression (manual)
+    if: github.event_name == 'workflow_dispatch' && inputs.full
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - name: Check out (read-only, no persisted token)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Playwright and Chromium (test tooling only)
+        run: |
+          npm install -g "playwright@${PLAYWRIGHT_VERSION}"
+          npx -y "playwright@${PLAYWRIGHT_VERSION}" install --with-deps chromium
+
+      - name: Full browser regression suite
+        run: bash premium/tests/run-browser-tests.sh

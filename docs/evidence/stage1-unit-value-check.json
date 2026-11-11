@@ -1,0 +1,198 @@
+{
+ "stats": {
+  "in": {
+   "ok": 1092,
+   "nonnumeric": 11
+  },
+  "out": {
+   "ok": 525,
+   "bad": 12,
+   "nonnumeric": 2
+  }
+ },
+ "unchecked_in": [],
+ "unchecked_out": [],
+ "bad": [
+  [
+   "out",
+   "helicoil_size",
+   [
+    "Approx. STI Drill Size",
+    "0.4437",
+    "in"
+   ],
+   [
+    "Approx. STI Drill Size",
+    "11.2725",
+    "mm"
+   ],
+   11.269979999999999
+  ],
+  [
+   "out",
+   "intake_port_cfm",
+   [
+    "Area/Pressure Estimate",
+    "285.7698",
+    "CFM"
+   ],
+   [
+    "Area/Pressure Estimate",
+    "8,092.0964",
+    "L/min"
+   ],
+   8092.099587226521
+  ],
+  [
+   "out",
+   "exhaust_port_cfm",
+   [
+    "Area/Pressure Estimate",
+    "204.1213",
+    "CFM"
+   ],
+   [
+    "Area/Pressure Estimate",
+    "5,780.0624",
+    "L/min"
+   ],
+   5780.07153825961
+  ],
+  [
+   "out",
+   "brake_energy",
+   [
+    "Kinetic Energy",
+    "421,210",
+    "ft-lb"
+   ],
+   [
+    "Kinetic Energy",
+    "571,082",
+    "J"
+   ],
+   571084.0780166689
+  ],
+  [
+   "out",
+   "thread_stripping_strength",
+   [
+    "Internal Thread Shear Area (An)",
+    "0.56174",
+    "sq in"
+   ],
+   [
+    "Internal Thread Shear Area (An)",
+    "362.40727",
+    "mm\u00b2"
+   ],
+   362.4121784
+  ],
+  [
+   "out",
+   "thread_stripping_strength",
+   [
+    "Internal Thread Stripping Load",
+    "33,705",
+    "lbf"
+   ],
+   [
+    "Internal Thread Stripping Load",
+    "149,923",
+    "N"
+   ],
+   149927.30954235513
+  ],
+  [
+   "out",
+   "density_altitude",
+   [
+    "Density Altitude",
+    "130",
+    "ft"
+   ],
+   [
+    "Density Altitude",
+    "39.3192",
+    "m"
+   ],
+   39.624
+  ],
+  [
+   "out",
+   "engine_airflow_estimate",
+   [
+    "Engine Volume Flow",
+    "592.4479",
+    "CFM"
+   ],
+   [
+    "Engine Volume Flow",
+    "16,776.2498",
+    "L/min"
+   ],
+   16776.256298052558
+  ],
+  [
+   "out",
+   "engine_airflow_estimate",
+   [
+    "Ambient-Equivalent CFM",
+    "592.4479",
+    "CFM"
+   ],
+   [
+    "Ambient-Equivalent CFM",
+    "16,776.2498",
+    "L/min"
+   ],
+   16776.256298052558
+  ],
+  [
+   "out",
+   "airflow_power_estimate",
+   [
+    "Estimated Airflow",
+    "592.4479",
+    "CFM"
+   ],
+   [
+    "Estimated Airflow",
+    "16,776.2498",
+    "L/min"
+   ],
+   16776.256298052558
+  ],
+  [
+   "out",
+   "tow_brake_energy",
+   [
+    "Kinetic Energy",
+    "1,567,418",
+    "ft-lb"
+   ],
+   [
+    "Kinetic Energy",
+    "2,125,132",
+    "J"
+   ],
+   2125133.456937706
+  ],
+  [
+   "out",
+   "brake_torque",
+   [
+    "Brake Torque",
+    "366.6667",
+    "lb-ft"
+   ],
+   [
+    "Brake Torque",
+    "497.1331",
+    "N\u00b7m"
+   ],
+   497.1332929154449
+  ]
+ ],
+ "_doc": "Stage 1 reconciliation, point 2. Every calculator switched imperial -> metric with the engine's own setUnit() (engine main d25afa2, 2026-11-09). Each input box and result row whose unit text changed was value-checked against exact SI factors written independently of the engine (NIST definitions). Outputs are compared within the rounding of both displayed values. \"bad\" lists rows that differ by more than display rounding."
+}
