@@ -63,11 +63,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     });
     await page.goto(BASE + url);
     await page.waitForFunction(() => document.getElementById('app').__ghReady === true, null, { timeout: 30000 });
-    const readyAt = Date.now();
     const frame = () => page.frame({ url: /F1_12_4/ });
     const events = () => env.batches.flatMap(b => (b && b.events) || []);
     const flush = async () => { await page.evaluate(() => window.GH_ANALYTICS.flush && window.GH_ANALYTICS.flush()); await sleep(300); };
-    return { ctx, page, env, frame, events, flush, readyAt };
+    return { ctx, page, env, frame, events, flush };
   }
   /* Real typing into the first number input of the calculator (each keystroke re-renders the calculator). */
   async function typeInto(f, text, which = 0) {
@@ -232,12 +231,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     keys: Object.keys(localStorage).concat(Object.keys(sessionStorage)).filter(k => k.startsWith('gh_a_')).sort() }));
   const box = (s) => s.frame().locator('[data-gh-analytics-choice]');
   /* The Privacy page is a page of the calculator frame (?page=privacy inside the frame), as a visitor reaches it from the footer. */
-  /* app-shell.js re-syncs the frame route about 300 ms and 1 s after the frame is ready (ready() in app-shell.js); that
-     re-sync calls the frame's ghRoute(), which does not know ?page=privacy and renders the dashboard over it. Opening the
-     Privacy page before the re-syncs finish let the control vanish mid-check (intermittent "locator.click: Timeout").
-     So wait until the shell has settled. Timing only: no assertion is changed. */
-  const SHELL_SETTLE_MS = 1300;
-  const toPrivacy = async (s) => { await sleep(Math.max(0, s.readyAt + SHELL_SETTLE_MS - Date.now())); await s.frame().evaluate(() => { history.pushState(null, '', '?page=privacy'); window.ghCertRoute(); }); await box(s).locator('[data-gh-analytics-status]').waitFor(); };
+  const toPrivacy = async (s) => { await s.frame().evaluate(() => { history.pushState(null, '', '?page=privacy'); window.ghCertRoute(); }); await box(s).locator('[data-gh-analytics-status]').waitFor(); };
   for (const [label, o] of [['GPC', { gpc: true }], ['Do Not Track', { dnt: true }]]) {
     await check(`opt-out: ${label} => nothing is sent and no identifier is ever created (page loads, navigation, typing, leaving)`, async () => {
       const s = await open({ ...o, url: '?calc=' + FREE });
@@ -326,7 +320,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     eq(await gh(a), { status: 'opted-out', keys: ['gh_a_optout'] }, 'tab A: nothing written back');
     eq(a.env.ingestCalls, callsA, 'tab A: nothing sent');
     // opt back in (tab B): the stopped tab A stays stopped until it reloads; then NEW identifiers, never the old ones
-    await b.page.bringToFront(); await toPrivacy(b);            // re-open the Privacy page (the frame was showing its home view again by now)
+    await b.page.bringToFront(); await toPrivacy(b);            // open the Privacy page again (a fresh control on the page)
     await box(b).locator('button[data-gh-analytics-toggle]').click(); await sleep(300);
     eq(await box(b).getAttribute('data-state'), 'allowed', 'back on');
     eq(await a.page.evaluate(() => window.GH_ANALYTICS.status), 'opted-out', 'tab A not resumed mid-page');
