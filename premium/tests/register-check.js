@@ -12,6 +12,7 @@
      5. every GH-... reference inside the register points at an entry that exists;
      6. every id in the known-open ledger of premium/tests/toggle-sweep.test.js appears (in backticks) in an entry that is still open,
         and a non-empty premium/tests/data/nav-return-open.json or label-consistency-open.json is named by one, so the test ledgers and the register cannot drift apart;
+     6b. every id in premium/tests/data/known-answer-open.json and in engine-selftest.js KNOWN_BASELINE_IDS names a register entry that is still open (Stage 1, 2026-11-10);
      7. the generated index between the INDEX markers matches the entries (node premium/tests/register-check.js --write-index rewrites it).
 
    Run: node premium/tests/register-check.js          exit 0 = register is consistent, 1 = it is not
@@ -115,6 +116,15 @@ function checkLedger(entries) {
     let ids = []; try { ids = JSON.parse(fs.readFileSync(file, 'utf8')).ids || []; } catch (e) { bad(rel + ' is not valid JSON'); }
     if (ids.length) { n += ids.length; if (!liveText.includes(rel)) bad(`${rel} lists ${ids.length} calculators but no entry that is still open names ${rel}`); }
   }
+  /* Stage 1 (2026-11-10): the known-answer ledger and the engine self-test baseline name register ids directly; each must be an entry that is still open */
+  const openIds = new Set(live.map(e => e.id)), allIds = new Set(entries.map(e => e.id));
+  const ka = path.join(REPO, 'premium', 'tests', 'data', 'known-answer-open.json');
+  if (fs.existsSync(ka)) {
+    let led = {}; try { led = JSON.parse(fs.readFileSync(ka, 'utf8')).open || {}; } catch (e) { bad('premium/tests/data/known-answer-open.json is not valid JSON'); }
+    for (const [cs, id] of Object.entries(led)) { n++; if (!openIds.has(id)) bad(`known-answer ledger case ${cs} names ${id}, which ${allIds.has(id) ? 'is not open' : 'has no entry'}`); }
+  }
+  const st = fs.readFileSync(path.join(REPO, 'premium', 'tests', 'engine-selftest.js'), 'utf8').match(/const KNOWN_BASELINE_IDS = \{([\s\S]*?)\};/);
+  if (st) for (const m of st[1].matchAll(/'([^']+)'\s*:\s*'(GH-[A-Z]+-\d{3})'/g)) { n++; if (!openIds.has(m[2])) bad(`engine self-test baseline "${m[1]}" names ${m[2]}, which ${allIds.has(m[2]) ? 'is not open' : 'has no entry'}`); }
   return n;
 }
 
