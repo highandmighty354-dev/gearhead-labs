@@ -145,6 +145,8 @@ const addDays = (d, n) => { const t = new Date(d + 'T12:00:00Z'); t.setUTCDate(t
     ok(/Premium offer seen/.test(f) && /Trial button clicked/.test(f) && /Back from checkout: success/.test(f), 'funnel steps');
     ok(await s.page.locator('[data-billing="pending"]').count(), 'Stripe pending status');
     ok(/Bot sessions excluded/i.test(await text(s.page, '#health')) && /Last event received/.test(await text(s.page, '#health')), 'data health');
+    { const h = await s.page.locator('#health').evaluate(e => e.textContent.replace(/\s+/g, ' '));     // textContent: the card may be off-screen
+      ok(/Refused by limits/.test(h) && /Analytics storage: [0-9.]+ MB used · new events stop at 118 MB · budget 150 MB/.test(h), 'data health: refusals and storage budget'); }
     ok(await s.page.locator('[data-banner="test"]').count() === 0, 'no test banner for live');
     eq(s.env.rpc.slice(0, 3).map(x => x.fn), ['analytics_is_owner', 'analytics_refresh', 'analytics_dashboard'], 'call order');
     eq(s.env.pageErrors, [], 'errors');

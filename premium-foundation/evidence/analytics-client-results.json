@@ -29,7 +29,47 @@
       "pass": true
     },
     {
-      "name": "privacy: every payload has only envelope fields; page keys never carry a URL, query or email; GPC => session-only visitor id",
+      "name": "privacy: every payload has only envelope fields; page keys never carry a URL, query or email",
+      "pass": true
+    },
+    {
+      "name": "opt-out: GPC => nothing is sent and no identifier is ever created (page loads, navigation, typing, leaving)",
+      "pass": true
+    },
+    {
+      "name": "opt-out: Do Not Track => nothing is sent and no identifier is ever created (page loads, navigation, typing, leaving)",
+      "pass": true
+    },
+    {
+      "name": "opt-out: identifiers left from earlier visits are deleted when a browser signal is present",
+      "pass": true
+    },
+    {
+      "name": "opt-out switch: Privacy page control turns analytics off at once, deletes ids, persists over reloads and navigation; accessible",
+      "pass": true
+    },
+    {
+      "name": "opt-out switch: reversible — \"turn back on\" says it resumes on the next page load; a NEW identifier is created then",
+      "pass": true
+    },
+    {
+      "name": "opt-out: turning it off in one tab stops another open tab of the site immediately",
+      "pass": true
+    },
+    {
+      "name": "opt-out across tabs: the OTHER tab stops at once and deletes ITS OWN session identifiers and unsent queue; a later opt-in starts new ids; GPC still wins",
+      "pass": true
+    },
+    {
+      "name": "opt-out across tabs: storage unavailable in a tab = analytics never runs there (fails closed)",
+      "pass": true
+    },
+    {
+      "name": "opt-out: the control works while analytics is switched off site-wide, and a missing choice module means analytics never runs",
+      "pass": true
+    },
+    {
+      "name": "opt-out: a browser signal shows an explanation and no button (the browser setting decides)",
       "pass": true
     },
     {
@@ -107,23 +147,23 @@
   ],
   "performance": {
     "off": [
-      413.70000000006985,
-      412.80000000004657,
-      447.9000000000233,
-      432.79999999993015,
-      387.0999999999767,
-      422.29999999993015
+      354.20000000018626,
+      486,
+      455.29999999981374,
+      355.29999999981374,
+      503,
+      354.5
     ],
     "on": [
-      469.20000000006985,
-      458.19999999995343,
-      281,
-      441.4000000000233,
-      394.69999999995343,
-      548.2999999999302
+      361.39999999990687,
+      310.1999999997206,
+      545.8000000002794,
+      342.5,
+      613.1999999997206,
+      514.1000000000931
     ],
-    "median_off_ms": 422.29999999993015,
-    "median_on_ms": 458.19999999995343
+    "median_off_ms": 455.29999999981374,
+    "median_on_ms": 514.1000000000931
   },
   "catalogue_sweep": {
     "catalogue": 757,

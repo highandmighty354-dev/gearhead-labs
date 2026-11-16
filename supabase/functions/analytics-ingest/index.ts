@@ -7,6 +7,10 @@
 //                              Not changeable by a request. Missing or invalid: every request is dropped.
 //   ANALYTICS_ALLOWED_ORIGINS  comma-separated origins allowed by CORS, e.g. https://www.gearhead-labs.com,https://gearhead-labs.com
 //                              (browser hygiene only: Origin is a client-controlled header and proves nothing)
+//   ANALYTICS_ADDRESS_SOURCE   none (default) | cf-connecting-ip | xff-right-1 | xff-right-2 | xff-right-3
+//                              which request header carries the platform-observed client address. Leave it unset (none)
+//                              until the TEST-project probe has shown which header the platform sets and a caller cannot
+//                              forge (docs/ANALYTICS-IMPLEMENTATION.md, "Sender address"). Never the left-most X-Forwarded-For.
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by the Supabase runtime.
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
 import { makeAnalyticsIngestHandler } from '../_shared/analytics-ingest.js';
@@ -18,6 +22,7 @@ const service = url && key ? createClient(url, key, { auth: { persistSession: fa
 Deno.serve(makeAnalyticsIngestHandler({
   enabled: Deno.env.get('ANALYTICS_INGEST_ENABLED') === 'true' && !!service,
   rpc: (fn: string, args: Record<string, unknown>) => service!.rpc(fn, args),
-  config: { env: Deno.env.get('ANALYTICS_ENV') ?? '', allowedOrigins: list('ANALYTICS_ALLOWED_ORIGINS') },
+  config: { env: Deno.env.get('ANALYTICS_ENV') ?? '', allowedOrigins: list('ANALYTICS_ALLOWED_ORIGINS'),
+            addressSource: Deno.env.get('ANALYTICS_ADDRESS_SOURCE') ?? 'none' },
   log: (msg: string) => console.log(msg),
 }));

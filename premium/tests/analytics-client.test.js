@@ -39,13 +39,19 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   /* A page with analytics either as shipped (enabled:false) or switched on by answering analytics-config.js differently.
      All requests are recorded; the ingest endpoint is answered with 204 (or aborted when down). */
-  async function open({ enabled = true, down = false, url = '', gpc = false, viewport } = {}) {
-    const ctx = await browser.newContext(viewport ? { viewport } : {});
+  async function open({ enabled = true, down = false, url = '', gpc = false, dnt = false, preset = null, noChoice = false, viewport, ctx: shared } = {}) {
+    const ctx = shared || await browser.newContext(viewport ? { viewport } : {});
     const page = await ctx.newPage();
     const env = { requests: [], batches: [], pageErrors: [], ingestCalls: 0 };
     page.on('pageerror', e => env.pageErrors.push(e.message));
     page.on('request', r => env.requests.push(r.url()));
     if (gpc) await page.addInitScript(() => Object.defineProperty(Navigator.prototype, 'globalPrivacyControl', { get: () => true }));
+    if (dnt) await page.addInitScript(() => Object.defineProperty(Navigator.prototype, 'doNotTrack', { get: () => '1' }));
+    if (preset) await page.addInitScript((kv) => {                      // once per tab: earlier state, not re-applied on reload
+      if (sessionStorage.getItem('__test_preset')) return; sessionStorage.setItem('__test_preset', '1');
+      for (const k in kv) localStorage.setItem(k, kv[k]);
+    }, preset);
+    if (noChoice) await page.route(u => u.pathname.startsWith('/analytics-choice.js'), r => r.fulfill({ status: 404, body: '' }));
     await page.route('https://cdn.jsdelivr.net/**', r => r.abort());
     if (enabled) await page.route(u => u.pathname.startsWith('/analytics-config.js'), r => r.fulfill({ status: 200, headers: { 'content-type': 'text/javascript' },
       body: `window.GH_ANALYTICS_CONFIG = { enabled: true, endpoint: '${EP}', env: 'test' };` }));
@@ -207,19 +213,156 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await s.ctx.close();
   });
 
-  await check('privacy: every payload has only envelope fields; page keys never carry a URL, query or email; GPC => session-only visitor id', async () => {
-    const s = await open({ url: '?calc=' + FREE + '&utm_source=Forum%20Post&utm_medium=social&email=x%40y.z', gpc: true });
+  await check('privacy: every payload has only envelope fields; page keys never carry a URL, query or email', async () => {
+    const s = await open({ url: '?calc=' + FREE + '&utm_source=Forum%20Post&utm_medium=social&email=x%40y.z' });
     await typeInto(s.frame(), '42'); await sleep(2600); await s.flush();
     const fields = new Set(s.events().flatMap(e => Object.keys(e)));
     eq([...fields].sort(), ['event_id', 'name', 'page', 'props', 'pv_id', 'seq', 'sid', 'ts_client', 'vid', 'viewport'], 'envelope');
     ok(s.events().every(e => /^[a-z0-9:_./-]+$/.test(e.page)), 'page keys');
     ok(!JSON.stringify(s.env.batches).includes('x@y.z') && !JSON.stringify(s.env.batches).includes('email'), 'no email');
     const pv = s.events().find(e => e.name === 'page_view');
-    eq([pv.props.utm_source, pv.props.utm_medium, 'is_new_visitor' in pv.props], ['forum-post', 'social', false], 'utm normalised; no new/returning under GPC');
-    const st = await s.page.evaluate(() => ({ local: Object.keys(localStorage).filter(k => k.startsWith('gh_a_')), session: Object.keys(sessionStorage).filter(k => k.startsWith('gh_a_')) }));
-    eq(st.local, [], 'nothing in localStorage under GPC');
-    ok(st.session.includes('gh_a_vid'), 'session-only id');
+    eq([pv.props.utm_source, pv.props.utm_medium, pv.props.is_new_visitor], ['forum-post', 'social', true], 'utm normalised; new visitor');
     eq(s.env.batches.every(b => b.wd === true), true, 'automation flag sent (server marks these as bot traffic)');
+    await s.ctx.close();
+  });
+
+  /* ---------------------------------------------------------------- opt-out (analytics-choice.js) */
+  const gh = (s) => s.page.evaluate(() => ({ status: window.GH_ANALYTICS && window.GH_ANALYTICS.status,
+    keys: Object.keys(localStorage).concat(Object.keys(sessionStorage)).filter(k => k.startsWith('gh_a_')).sort() }));
+  const box = (s) => s.frame().locator('[data-gh-analytics-choice]');
+  /* The Privacy page is a page of the calculator frame (?page=privacy inside the frame), as a visitor reaches it from the footer. */
+  const toPrivacy = async (s) => { await s.frame().evaluate(() => { history.pushState(null, '', '?page=privacy'); window.ghCertRoute(); }); await box(s).locator('[data-gh-analytics-status]').waitFor(); };
+  for (const [label, o] of [['GPC', { gpc: true }], ['Do Not Track', { dnt: true }]]) {
+    await check(`opt-out: ${label} => nothing is sent and no identifier is ever created (page loads, navigation, typing, leaving)`, async () => {
+      const s = await open({ ...o, url: '?calc=' + FREE });
+      await typeInto(s.frame(), '42'); await sleep(2600); await navTo(s.frame(), FREE2); await sleep(500);
+      await s.page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+      await s.page.reload(); await s.page.waitForFunction(() => document.getElementById('app').__ghReady === true); await sleep(1500);
+      eq(s.env.ingestCalls, 0, 'ingest requests');
+      eq(await gh(s), { status: 'browser-signal', keys: [] }, 'status and storage');
+      eq(s.env.pageErrors, [], 'page errors');
+      await s.ctx.close();
+    });
+  }
+  await check('opt-out: identifiers left from earlier visits are deleted when a browser signal is present', async () => {
+    const s = await open({ gpc: true, preset: { gh_a_vid: '{"id":"0a000000-0000-4000-8000-000000000001","exp":9999999999999}', gh_a_s: '{"id":"x"}' } });
+    await sleep(800);
+    eq((await gh(s)).keys, [], 'old ids removed'); eq(s.env.ingestCalls, 0, 'ingest requests');
+    await s.ctx.close();
+  });
+  await check('opt-out switch: Privacy page control turns analytics off at once, deletes ids, persists over reloads and navigation; accessible', async () => {
+    const s = await open({});
+    await s.flush(); ok(s.env.ingestCalls > 0, 'analytics was on before the choice');
+    await toPrivacy(s); const b = box(s);
+    eq(await b.getAttribute('data-state'), 'allowed', 'shows on');
+    eq([await b.locator('[data-gh-analytics-status]').getAttribute('role'), await b.locator('[data-gh-analytics-status]').getAttribute('aria-live')], ['status', 'polite'], 'status is announced');
+    const btn = b.locator('button[data-gh-analytics-toggle]');
+    eq(await btn.textContent(), 'Turn analytics off for this browser', 'clear button text');
+    await btn.focus(); await s.frame().page().keyboard.press('Enter');                      // keyboard operable
+    eq(await b.getAttribute('data-state'), 'opted-out', 'now off');
+    ok(/Analytics is off for this browser/.test(await b.locator('[data-gh-analytics-status]').textContent()), 'status text');
+    const calls = s.env.ingestCalls;
+    eq(await gh(s), { status: 'opted-out', keys: ['gh_a_optout'] }, 'running script stopped; only the choice itself is stored');
+    await navTo(s.frame(), FREE); await typeInto(s.frame(), '77'); await sleep(2600);
+    await s.page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+    await s.page.reload(); await s.page.waitForFunction(() => document.getElementById('app').__ghReady === true); await sleep(1500);
+    await s.page.goto(BASE + '?calc=' + FREE2); await s.page.waitForFunction(() => document.getElementById('app').__ghReady === true); await sleep(1500);
+    eq(s.env.ingestCalls, calls, 'nothing sent after opting out (navigation, typing, leaving, reload, new page)');
+    eq(await gh(s), { status: 'opted-out', keys: ['gh_a_optout'] }, 'still off; no identifier created');
+    eq(s.env.pageErrors, [], 'page errors');
+    await s.ctx.close();
+  });
+  await check('opt-out switch: reversible — "turn back on" says it resumes on the next page load; a NEW identifier is created then', async () => {
+    const s = await open({ preset: { gh_a_optout: '1' } });
+    await sleep(800); eq(s.env.ingestCalls, 0, 'off at load: nothing sent before the choice was read');
+    await toPrivacy(s); const b = box(s);
+    eq(await b.getAttribute('data-state'), 'opted-out', 'shows off');
+    await b.locator('button[data-gh-analytics-toggle]').click();
+    eq(await b.getAttribute('data-state'), 'allowed', 'on again');
+    ok(/resumes from your next page load/.test(await b.locator('[data-gh-analytics-status]').textContent()), 'says when it takes effect');
+    eq(s.env.ingestCalls, 0, 'not resumed mid-page');
+    await s.page.reload(); await s.page.waitForFunction(() => document.getElementById('app').__ghReady === true); await s.flush();
+    ok(s.env.ingestCalls > 0, 'measured again after reload');
+    ok((await gh(s)).keys.includes('gh_a_vid'), 'fresh identifier');
+    await s.ctx.close();
+  });
+  await check('opt-out: turning it off in one tab stops another open tab of the site immediately', async () => {
+    const a = await open({ url: '?calc=' + FREE }); await a.flush(); ok(a.env.ingestCalls > 0, 'tab A measured');
+    const b = await open({ ctx: a.ctx }); await toPrivacy(b);
+    await box(b).locator('button[data-gh-analytics-toggle]').click(); await sleep(500);
+    const before = a.env.ingestCalls;
+    await typeInto(a.frame(), '55'); await sleep(2600); await a.flush();
+    await a.page.evaluate(() => window.dispatchEvent(new Event('pagehide'))); await sleep(300);
+    eq(a.env.ingestCalls, before, 'tab A sent nothing more');
+    eq(await a.page.evaluate(() => window.GH_ANALYTICS.status), 'opted-out', 'tab A stopped');
+    await a.ctx.close();
+  });
+  await check('opt-out across tabs: the OTHER tab stops at once and deletes ITS OWN session identifiers and unsent queue; a later opt-in starts new ids; GPC still wins', async () => {
+    // tab A: measured, with unsent events (endpoint down) and a checkout-return marker in its own sessionStorage
+    const a = await open({ url: '?calc=' + FREE + '&checkout=success', down: true });
+    await typeInto(a.frame(), '61'); await sleep(2600); await a.flush();
+    const idsA = await a.page.evaluate(() => ({ vid: JSON.parse(localStorage.getItem('gh_a_vid')).id, sid: JSON.parse(localStorage.getItem('gh_a_s')).id,
+      q: (JSON.parse(sessionStorage.getItem('gh_a_q')) || []).length, cr: sessionStorage.getItem('gh_a_cr') }));
+    ok(idsA.q > 0 && idsA.cr, 'precondition: tab A holds unsent events and a checkout marker in its sessionStorage');
+    // tab C in the same browser sends Global Privacy Control
+    const c = await open({ ctx: a.ctx, gpc: true });
+    // tab B opts out on the Privacy page
+    const b = await open({ ctx: a.ctx }); await toPrivacy(b);
+    await box(b).locator('button[data-gh-analytics-toggle]').click(); await sleep(500);
+    const callsA = a.env.ingestCalls;
+    eq(await gh(a), { status: 'opted-out', keys: ['gh_a_optout'] }, 'tab A: stopped; its sessionStorage queue + marker and the shared ids are gone');
+    eq(await a.page.evaluate(() => window.GH_ANALYTICS._queue ? window.GH_ANALYTICS._queue().length : 0), 0, 'tab A: in-memory queue emptied');
+    eq(await gh(b), { status: 'opted-out', keys: ['gh_a_optout'] }, 'tab B: only the choice is stored');
+    // tab A keeps being used (typing, activity for > 15 s, navigation, leaving): it must not write identifiers back or send
+    await a.page.bringToFront();
+    await typeInto(a.frame(), '62'); await a.page.mouse.move(10, 10); await sleep(16000); await a.page.mouse.move(20, 20); await sleep(500);
+    await navTo(a.frame(), FREE2); await a.page.evaluate(() => window.dispatchEvent(new Event('pagehide'))); await sleep(500);
+    eq(await gh(a), { status: 'opted-out', keys: ['gh_a_optout'] }, 'tab A: nothing written back');
+    eq(a.env.ingestCalls, callsA, 'tab A: nothing sent');
+    // opt back in (tab B): the stopped tab A stays stopped until it reloads; then NEW identifiers, never the old ones
+    await b.page.bringToFront(); await toPrivacy(b);            // re-open the Privacy page (the frame was showing its home view again by now)
+    await box(b).locator('button[data-gh-analytics-toggle]').click(); await sleep(300);
+    eq(await box(b).getAttribute('data-state'), 'allowed', 'back on');
+    eq(await a.page.evaluate(() => window.GH_ANALYTICS.status), 'opted-out', 'tab A not resumed mid-page');
+    await a.page.reload(); await a.page.waitForFunction(() => document.getElementById('app').__ghReady === true); await sleep(800);
+    const idsA2 = await a.page.evaluate(() => ({ vid: JSON.parse(localStorage.getItem('gh_a_vid')).id, sid: JSON.parse(localStorage.getItem('gh_a_s')).id }));
+    ok(idsA2.vid !== idsA.vid && idsA2.sid !== idsA.sid, 'tab A after reload: new visitor and session ids (old ones never reused)');
+    // the GPC tab never measured and still does not, whatever the page switch says
+    eq(c.env.ingestCalls, 0, 'GPC tab: nothing sent'); eq((await gh(c)).status, 'browser-signal', 'GPC tab still off');
+    await c.page.reload(); await c.page.waitForFunction(() => document.getElementById('app').__ghReady === true); await sleep(800);
+    eq([(await gh(c)).status, c.env.ingestCalls], ['browser-signal', 0], 'GPC wins over the page switch after reload too');
+    eq([a.env.pageErrors, b.env.pageErrors, c.env.pageErrors], [[], [], []], 'page errors');
+    await a.ctx.close();
+  });
+  await check('opt-out across tabs: storage unavailable in a tab = analytics never runs there (fails closed)', async () => {
+    const s = await open({ url: '?calc=' + FREE });
+    await s.page.close();
+    const ctx = s.ctx; const page = await ctx.newPage(); const calls = [];
+    await page.addInitScript(() => { const deny = () => { throw new DOMException('denied', 'SecurityError'); };
+      Object.defineProperty(window, 'localStorage', { get: deny }); Object.defineProperty(window, 'sessionStorage', { get: deny }); });
+    await page.route('https://cdn.jsdelivr.net/**', r => r.abort());
+    await page.route(u => u.pathname.startsWith('/analytics-config.js'), r => r.fulfill({ status: 200, headers: { 'content-type': 'text/javascript' }, body: `window.GH_ANALYTICS_CONFIG = { enabled: true, endpoint: '${EP}', env: 'test' };` }));
+    await page.route(EP, r => { calls.push(1); r.fulfill({ status: 204 }); });
+    await page.goto(BASE + '?calc=' + FREE); await page.waitForFunction(() => document.getElementById('app').__ghReady === true, null, { timeout: 30000 }); await sleep(1500);
+    eq([await page.evaluate(() => window.GH_ANALYTICS.status), calls.length], ['no-storage', 0], 'no storage -> off, nothing sent');
+    await ctx.close();
+  });
+  await check('opt-out: the control works while analytics is switched off site-wide, and a missing choice module means analytics never runs', async () => {
+    const s = await open({ enabled: false });
+    await toPrivacy(s); const b = box(s);
+    await b.locator('button[data-gh-analytics-toggle]').click();
+    eq(await b.getAttribute('data-state'), 'opted-out', 'choice recorded'); eq(s.env.ingestCalls, 0, 'nothing sent');
+    await s.ctx.close();
+    const m = await open({ noChoice: true, url: '?calc=' + FREE }); await sleep(1500);
+    eq(await gh(m), { status: 'no-choice-module', keys: [] }, 'fails safe'); eq(m.env.ingestCalls, 0, 'nothing sent');
+    await m.ctx.close();
+  });
+  await check('opt-out: a browser signal shows an explanation and no button (the browser setting decides)', async () => {
+    const s = await open({ gpc: true });
+    await toPrivacy(s); const b = box(s);
+    eq(await b.getAttribute('data-state'), 'browser-signal', 'state');
+    ok(/Global Privacy Control or Do Not Track/.test(await b.locator('[data-gh-analytics-status]').textContent()), 'explained');
+    eq(await b.locator('button[data-gh-analytics-toggle]').isHidden(), true, 'no button');
     await s.ctx.close();
   });
 
@@ -268,7 +411,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     const env = { batches: [], pageErrors: [] };
     page.on('pageerror', e => env.pageErrors.push(e.message));
     const top = `<!doctype html><meta charset="utf-8"><script>window.GH_ANALYTICS_CONFIG={enabled:true,endpoint:'${EP}',env:'test'}</script>
-      <script src="/analytics.js"></script><iframe id="app" src="/fx/frame.html?calc=fixture_calc&mode=${mode}" style="width:800px;height:400px"></iframe>`;
+      <script src="/analytics-choice.js"></script><script src="/analytics.js"></script><iframe id="app" src="/fx/frame.html?calc=fixture_calc&mode=${mode}" style="width:800px;height:400px"></iframe>`;
     const frame = `<!doctype html><meta charset="utf-8"><div id="calc-container"><input id="a" class="field-input" type="text" value="10">
       <input id="b" class="field-input" type="text" value="1"><div id="out"></div></div><script>
       const mode = new URLSearchParams(location.search).get('mode'), out = document.getElementById('out');

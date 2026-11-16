@@ -56,7 +56,12 @@
   },
   {
     "group": "retention",
-    "name": "purge deletes raw events older than 90 days (rolling them up first) and keeps the daily rollup",
+    "name": "purge deletes raw events older than 30 days (rolling them up first) and keeps the daily rollup",
+    "pass": true
+  },
+  {
+    "group": "retention",
+    "name": "30-day boundary: a 29-day-old raw event is kept, a 31-day-old one is deleted (after its day is rolled up)",
     "pass": true
   },
   {
@@ -71,7 +76,67 @@
   },
   {
     "group": "limits",
-    "name": "database rate limits: per network per 10 min, IPv6 by /64, per network per day, per environment per hour; addresses never stored",
+    "name": "per-network limits: 600 per 10 min and 5,000 per day per address; IPv6 grouped by /56; addresses never stored",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "unknown address: missing, malformed, ranges and junk all share ONE small allowance (300 per 10 min, 2,000 per day)",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "project ceilings: 2,000 per hour and 10,000 per day for ALL environments together, checked first; refused batches create no rows",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "storage budget: when analytics tables exceed storage_mb nothing more is accepted and no counter changes (Premium space protected)",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "one network over ITS limit gives the reservation back: it cannot use up the environment budget",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "storage gate counts the batch: accepted only if size + batch reserve + events x event reserve fits under the ingest threshold",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "a batch refused before the lock takes no lock and writes no counter; the refusal writes at most its Data health row",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "refusal counting is bounded: exact up to 2,000 per day and reason, then at most one update a minute (a lower bound)",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "rollups are gated by the storage budget too: no rollup that could pass it; purge still deletes on time",
+    "pass": true
+  },
+  {
+    "group": "health",
+    "name": "Data health reports storage used, the ingest stop point, the budget and how refusals are counted",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "sender address: the left-most X-Forwarded-For entry is NEVER trusted; the source is a deployment setting (default none)",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "sender address parsing: exact IPv4 / IPv6 only; malformed values are \"unknown\"; IPv6 normalised; IPv4-mapped reduced",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "end to end: forged first entries from one real network map to ONE counter; repeated requests share it; default setting uses the unknown allowance",
     "pass": true
   },
   {

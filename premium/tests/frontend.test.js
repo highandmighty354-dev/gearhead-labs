@@ -475,7 +475,7 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
     const srcs = scripts.map(a => (a.match(/\bsrc="([^"]+)"/) || [])[1]);
     eq(srcs.map(s => s.replace(/\?v=[^"]*$/, '')), ['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js', 'supabase-config.js', 'supabase-boot.js',
       'premium/models.js', 'premium/adapters/foundation.js', 'premium/config.js', 'premium/adapters/dev-local.js', 'premium/services.js', 'premium/engineering-bridge.js',
-      'premium/shell.js', 'app-shell.js', 'final-ui-fix.js', 'analytics-config.js', 'analytics.js'], 'script order');   // analytics: 0501, shipped OFF
+      'premium/shell.js', 'app-shell.js', 'final-ui-fix.js', 'analytics-choice.js', 'analytics-config.js', 'analytics.js'], 'script order');   // analytics: 0501; choice first; shipped OFF
     const cdn = scripts[0];
     assert(/\bintegrity="sha384-Rj26LVGvoeRVR6\+mwQmFfcR3QOBEwT\+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok"/.test(cdn) && /\bcrossorigin="anonymous"/.test(cdn), 'SRI + crossorigin on the library');
     eq(srcs.filter(s => /^https?:/.test(s)).length, 1, 'exactly one external script');

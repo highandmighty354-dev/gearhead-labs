@@ -154,7 +154,9 @@
     var perDay = {}; (h.by_day || []).forEach(function (x) { if (x.outcome === 'accepted') perDay[x.day] = (perDay[x.day] || 0) + +x.n; });
     out += card('health', 'Data health', 'Ingestion for the selected environment and period.',
       '<div class="oa-kpis">' + kpi('Accepted events', tot.accepted || 0) + kpi('Rejected', tot.rejected || 0) + kpi('Duplicates', tot.duplicate || 0) + kpi('Over session cap', tot.capped || 0) +
-      kpi('Bot events', tot.bot || 0) + kpi('Client tracking errors', tot.client_error || 0) + kpi('Dropped in browser', tot.client_dropped || 0) + kpi('Bot sessions excluded', h.bot_sessions || 0) + '</div>' +
+      kpi('Bot events', tot.bot || 0) + kpi('Client tracking errors', tot.client_error || 0) + kpi('Dropped in browser', tot.client_dropped || 0) + kpi('Bot sessions excluded', h.bot_sessions || 0) + kpi('Refused by limits', tot.rate_limited || 0) + '</div>' +
+      (h.storage ? '<p class="oa-note" data-health="storage">Analytics storage: <b>' + esc((h.storage.used_bytes / 1048576).toFixed(1)) + ' MB</b> used · new events stop at ' + esc((h.storage.ingest_stops_at_bytes / 1048576).toFixed(0)) + ' MB · budget ' + esc((h.storage.budget_bytes / 1048576).toFixed(0)) + ' MB.' +
+        (h.refusal_counting ? ' Refusals are counted exactly up to ' + esc(num(h.refusal_counting.exact_up_to_events)) + ' per day and reason, then at most once a minute (a minimum).' : '') + '</p>' : '') +
       '<p class="oa-note">Last event received: <b>' + esc(h.last_event_at ? new Date(h.last_event_at).toLocaleString() : 'never') + '</b> · Last rollup: <b>' + esc(h.last_rollup_at ? new Date(h.last_rollup_at).toLocaleString() : 'never') + '</b> · Raw events kept ' + esc(h.raw_retention_days) + ' days.</p>' +
       '<div class="oa-grid2"><div><h3>Accepted events per day</h3>' + lineChart(r.trend.map(function (t) { return { day: t.day, n: perDay[t.day] || 0 }; }), 'n', 'Events') + '</div>' +
       '<div><h3>Rejections by reason</h3>' + table(['Reason', 'Events'], Object.keys(rej).sort(function (a, b) { return rej[b] - rej[a]; }).map(function (x) { return [x, num(rej[x])]; }), 'No rejected events.') + '</div></div>');

@@ -81,7 +81,7 @@ check('security', 'function privileges: ingest = service_role only; dashboard/re
   eq([await x('service_role', 'analytics_ingest(jsonb, jsonb)'), await x('authenticated', 'analytics_ingest(jsonb, jsonb)'), await x('anon', 'analytics_ingest(jsonb, jsonb)')], [true, false, false], 'ingest');
   eq([await x('authenticated', 'analytics_dashboard(date, date, text)'), await x('anon', 'analytics_dashboard(date, date, text)'), await x('service_role', 'analytics_dashboard(date, date, text)')], [true, false, false], 'dashboard');
   for (const f of ['analytics_rollup(date)', 'analytics_rollup_pending()', 'analytics_purge()', 'analytics_event_problem(jsonb)', 'analytics_count(text, text, text, bigint)',
-                   'analytics_rate_check(text, text, integer)'])
+                   'analytics_rate_check(text, text, integer)', 'analytics_count_refusal(text, text, bigint)', 'analytics_storage_bytes()'])
     for (const r of ['anon', 'authenticated', 'service_role']) eq(await x(r, f), false, `${r} ${f}`);
   await as(c, 'anon'); await expectErr(c, `SELECT public.analytics_ingest('[]', '{"env":"test"}')`, [], DENIED);
   await as(c, 'owner'); await expectErr(c, `SELECT public.analytics_ingest('[]', '{"env":"test"}')`, [], DENIED);
@@ -294,7 +294,7 @@ check('dashboard', 'empty range returns zeros, not errors; refresh is owner-only
   const e = await one(c, `SELECT public.analytics_dashboard('2020-01-01', '2020-01-31', 'test')`);
   eq([e.kpis.sessions, e.kpis.visitors, e.pages.length, e.calculators.length], [0, 0, 0, 0], 'empty');
 });
-check('retention', 'purge deletes raw events older than 90 days (rolling them up first) and keeps the daily rollup', async (c) => {
+check('retention', 'purge deletes raw events older than 30 days (rolling them up first) and keeps the daily rollup', async (c) => {
   await as(c, 'postgres');
   const old = await one(c, `SELECT ((now() AT TIME ZONE 'America/New_York')::date - 120)::text`);
   await seedDay(c, old, 'test', 600);
@@ -305,6 +305,15 @@ check('retention', 'purge deletes raw events older than 90 days (rolling them up
   eq(+(await one(c, `SELECT value FROM analytics_daily WHERE metric = 'pv' AND dim = 'home' AND day = $1`, [old])), 1, 'rollup kept');
   await put(c, new Date().toISOString(), ev('page_view'));
   await expectErr(c, `DELETE FROM analytics_events`, [], DENIED);   // the purge flag does not leak out of the function
+});
+check('retention', '30-day boundary: a 29-day-old raw event is kept, a 31-day-old one is deleted (after its day is rolled up)', async (c) => {
+  await as(c, 'postgres');
+  const day = (n) => one(c, `SELECT ((now() AT TIME ZONE 'America/New_York')::date - ${n})::text`);
+  await put(c, NY(await day(29), '12:00'), ev('page_view', { sid: uuid(3, 9500), pv_id: uuid(4, 9500) }));
+  await put(c, NY(await day(31), '12:00'), ev('page_view', { sid: uuid(3, 9501), pv_id: uuid(4, 9501) }));
+  await c.query(`SELECT public.analytics_purge()`);
+  eq(+(await one(c, `SELECT count(*) FROM analytics_events`)), 1, 'only the 29-day-old event remains');
+  eq(+(await one(c, `SELECT value FROM analytics_daily WHERE metric = 'pv' AND dim = 'home' AND day = $1`, [await day(31)])), 1, 'the deleted day was rolled up first');
 });
 check('billing', 'Stripe figures: pending with no data, still pending with TEST-mode data only, live figures from billing tables only', async (c) => {
   await as(c, 'owner');
@@ -347,12 +356,13 @@ async function handlerFor(c, opts = {}) {
   const h = await import(require('url').pathToFileURL(HANDLER).href);
   const logs = [];
   const handle = h.makeAnalyticsIngestHandler({ enabled: opts.enabled !== false, log: (m) => logs.push(m), allow: opts.allow,
-    config: { env: opts.env === undefined ? 'live' : opts.env, allowedOrigins: [SITE, 'http://localhost:8080'] },
+    config: { env: opts.env === undefined ? 'live' : opts.env, allowedOrigins: [SITE, 'http://localhost:8080'], addressSource: opts.source },
     rpc: async (fn, args) => { if (opts.dbDown) return { error: { code: '08006' } };
+      if (opts.seen) opts.seen.push(args.p_meta.net);
       await as(c, 'service'); try { await c.query(`SELECT public.${fn}($1::jsonb, $2::jsonb)`, [JSON.stringify(args.p_batch), JSON.stringify(args.p_meta)]); return { error: null }; }
       finally { await as(c, 'postgres'); } } });
-  const post = (body, { origin = SITE, ua = CHROME, method = 'POST', raw, ip = '198.51.100.7' } = {}) => handle(new Request('https://x.supabase.co/functions/v1/analytics-ingest',
-    { method, headers: { origin, 'user-agent': ua, 'content-type': 'text/plain;charset=UTF-8', 'x-forwarded-for': ip + ', 10.0.0.1' },
+  const post = (body, { origin = SITE, ua = CHROME, method = 'POST', raw, ip = '198.51.100.7', headers = {} } = {}) => handle(new Request('https://x.supabase.co/functions/v1/analytics-ingest',
+    { method, headers: { origin, 'user-agent': ua, 'content-type': 'text/plain;charset=UTF-8', 'x-forwarded-for': ip + ', 10.0.0.1', ...headers },
       body: method === 'POST' ? (raw !== undefined ? raw : JSON.stringify(body)) : undefined }));
   return { h, post, logs };
 }
@@ -388,7 +398,7 @@ check('environment', 'the environment is fixed by the deployment: a forged produ
   eq((await rows(c)).length, 2, 'no ANALYTICS_ENV -> dropped');
 });
 
-check('limits', 'database rate limits: per network per 10 min, IPv6 by /64, per network per day, per environment per hour; addresses never stored', async (c) => {
+check('limits', 'per-network limits: 600 per 10 min and 5,000 per day per address; IPv6 grouped by /56; addresses never stored', async (c) => {
   await as(c, 'service');
   const batch = (k) => Array.from({ length: 20 }, (_, i) => ev('page_view', { sid: uuid(3, 1000 + k * 20 + i) }));
   const send = (k, net) => ingest(c, batch(k), { ...META, net });
@@ -397,20 +407,15 @@ check('limits', 'database rate limits: per network per 10 min, IPv6 by /64, per 
   eq((await send(31, '198.51.100.8')).accepted, 20, 'another address is unaffected');
   for (let k = 0; k < 30; k++) await send(100 + k, '2001:db8:1:2::1');
   eq((await send(140, '2001:db8:1:2:ffff:ffff:ffff:fffe')).reason, 'net_10min', 'same IPv6 /64 shares the limit');
-  eq((await send(141, '2001:db8:1:3::1')).accepted, 20, 'next /64 is unaffected');
+  eq((await send(141, '2001:db8:1:7f::1')).reason, 'net_10min', 'another /64 in the same /56 shares it too (rotating /64s gains nothing)');
+  eq((await send(142, '2001:db8:1:100::1')).accepted, 20, 'the next /56 is unaffected');
   await as(c, 'postgres');
   await c.query(`UPDATE analytics_rate SET n = 5000 WHERE kind = 'net_day'`);                                   // a day's worth already used
   await c.query(`DELETE FROM analytics_rate WHERE kind = 'net_10min'`);
   await as(c, 'service');
   eq((await send(150, '198.51.100.8')).reason, 'net_day', 'daily limit');
   await as(c, 'postgres');
-  await c.query(`DELETE FROM analytics_rate WHERE kind <> 'global_hour'`); await c.query(`UPDATE analytics_rate SET n = 60000 WHERE kind = 'global_hour'`);
-  await as(c, 'service');
-  eq((await send(151, '203.0.113.50')).reason, 'global_hour', 'environment-wide hourly ceiling, whatever the network');
-  eq((await ingest(c, batch(152), { env: 'dev', client_env: 'dev', net: '203.0.113.50' })).accepted, 20, 'ceiling is per environment');
-  await as(c, 'postgres');
-  eq(await stat(c, 'rate_limited'), ['test:global_hour=20', 'test:net_10min=40', 'test:net_day=20'], 'counted in Data health');
-  // no table holds an address, in any form other than the salted hash
+  eq(await stat(c, 'rate_limited'), ['test:net_10min=60', 'test:net_day=20'], 'counted in Data health');
   for (const t of ['analytics_events', 'analytics_ingest_stats', 'analytics_rate', 'analytics_rate_salt', 'analytics_sessions', 'analytics_daily', 'analytics_visitors'])
     eq(+(await one(c, `SELECT count(*) FROM public.${t} x WHERE x::text ~ '198\\.51|2001:db8|203\\.0\\.113|\\\\x[0-9a-f]*c63364'`)), 0, 'address in ' + t);
   eq(+(await one(c, `SELECT count(DISTINCT octet_length(key)) FROM analytics_rate`)), 1, 'keys are fixed-length hashes');
@@ -419,6 +424,161 @@ check('limits', 'database rate limits: per network per 10 min, IPv6 by /64, per 
   await c.query(`INSERT INTO analytics_rate (kind, key, win_start, n) VALUES ('net_day', '\\x00', now() - interval '3 days', 1)`);
   await c.query(`SELECT public.analytics_purge()`);
   eq([+(await one(c, `SELECT count(*) FROM analytics_rate_salt WHERE day < current_date - 1`)), +(await one(c, `SELECT count(*) FROM analytics_rate WHERE win_start < now() - interval '2 days'`))], [0, 0], 'old salts and counters purged');
+});
+check('limits', 'unknown address: missing, malformed, ranges and junk all share ONE small allowance (300 per 10 min, 2,000 per day)', async (c) => {
+  await as(c, 'service');
+  const batch = (k, n = 20) => Array.from({ length: n }, (_, i) => ev('page_view', { sid: uuid(3, 3000 + k * 20 + i) }));
+  const odd = [undefined, '', 'unknown', 'not-an-ip', '10.0.0.0/8', '2001:db8::/32', '1.2.3', '01.2.3.4', '1.2.3.4:443', 'fe80::1%eth0', '999.1.1.1'];
+  for (let k = 0; k < 15; k++) eq((await ingest(c, batch(k), { ...META, net: odd[k % odd.length] })).accepted, 20, 'shared allowance ' + k);   // 300
+  eq((await ingest(c, batch(15), { ...META, net: '1.2.3.4:443' })).reason, 'unknown_10min', 'a "new" malformed value is the same identity');
+  await as(c, 'postgres');
+  eq(+(await one(c, `SELECT count(DISTINCT key) FROM analytics_rate WHERE kind = 'net_10min'`)), 1, 'eleven different junk values -> one counter');
+  await c.query(`DELETE FROM analytics_rate WHERE kind = 'net_10min'`); await c.query(`UPDATE analytics_rate SET n = 2000 WHERE kind = 'net_day'`);
+  await as(c, 'service');
+  eq((await ingest(c, batch(16), { ...META, net: 'junk' })).reason, 'unknown_day', 'daily unknown allowance');
+  eq((await ingest(c, batch(17), { ...META, net: '198.51.100.20' })).accepted, 20, 'a real address is not affected by the unknown allowance');
+});
+check('limits', 'project ceilings: 2,000 per hour and 10,000 per day for ALL environments together, checked first; refused batches create no rows', async (c) => {
+  await as(c, 'postgres');
+  eq(await one(c, `SELECT public.analytics_limits()`), { storage_mb: 150, rollup_headroom_mb: 32, batch_reserve_bytes: 262144, event_reserve_bytes: 2048,
+    global_day: 10000, global_hour: 2000, net_10min: 600, net_day: 5000, unknown_10min: 300, unknown_day: 2000, refusal_exact_events: 2000, refusal_sample_seconds: 60 }, 'limits');
+  await as(c, 'service');
+  const batch = (k) => Array.from({ length: 20 }, (_, i) => ev('page_view', { sid: uuid(3, 5000 + k * 20 + i) }));
+  // 100 batches of 20 from 100 DIFFERENT addresses (rotation) = 2,000: exactly the hourly ceiling
+  for (let k = 0; k < 100; k++) eq((await ingest(c, batch(k), { ...META, net: '203.0.113.' + (k + 1) })).accepted, 20, 'within hour ' + k);
+  await as(c, 'postgres');
+  const before = +(await one(c, `SELECT count(*) FROM analytics_rate`));
+  await as(c, 'service');
+  for (let k = 100; k < 140; k++) eq((await ingest(c, batch(k), { ...META, net: '192.0.2.' + (k - 99) })).reason, 'global_hour', 'rotation cannot pass the hourly ceiling ' + k);
+  await as(c, 'postgres');
+  eq(+(await one(c, `SELECT count(*) FROM analytics_rate`)), before, '40 refused batches from 40 new addresses created no counter rows');
+  eq(+(await one(c, `SELECT n FROM analytics_rate WHERE kind = 'global_hour'`)), 2000, 'hour counter not inflated by refused batches');
+  eq(+(await one(c, `SELECT count(*) FROM analytics_events WHERE env = 'test'`)), 2000, 'stored = ceiling');
+  // daily ceiling enforced on its own: a fresh hour, but the day is used up
+  await c.query(`UPDATE analytics_rate SET n = 0 WHERE kind = 'global_hour'`); await c.query(`UPDATE analytics_rate SET n = 9990 WHERE kind = 'global_day'`);
+  await as(c, 'service');
+  eq((await ingest(c, batch(150), { ...META, net: '198.51.100.99' })).reason, 'global_day', 'daily ceiling (9,990 + 20 > 10,000)');
+  await as(c, 'postgres');
+  eq([+(await one(c, `SELECT n FROM analytics_rate WHERE kind = 'global_day'`)), +(await one(c, `SELECT n FROM analytics_rate WHERE kind = 'global_hour'`))], [9990, 0], 'nothing reserved by the refused batch');
+  eq(+(await one(c, `SELECT count(*) FROM analytics_rate WHERE kind LIKE 'net_%'`)), 200, 'no per-network row for it either (100 addresses x 2 windows, unchanged)');
+  await as(c, 'service');
+  eq((await ingest(c, batch(151).slice(0, 10), { ...META, net: '198.51.100.99' })).accepted, 10, 'exactly up to the ceiling');
+  eq((await ingest(c, batch(152), { env: 'dev', client_env: 'dev', net: '198.51.100.99' })).reason, 'global_day', 'another environment shares the project ceiling (a day can never hold more than 10,000 events)');
+  await as(c, 'postgres');
+  eq(await stat(c, 'rate_limited'), ['dev:global_day=20', 'test:global_day=20', 'test:global_hour=800'], 'counted in Data health');
+});
+check('limits', 'storage budget: when analytics tables exceed storage_mb nothing more is accepted and no counter changes (Premium space protected)', async (c) => {
+  await as(c, 'postgres');
+  eq((await one(c, `SELECT public.analytics_limits()`)).storage_mb, 150, 'default budget 150 MB');
+  const lim = await one(c, `SELECT pg_get_functiondef('public.analytics_limits()'::regprocedure)`);
+  await c.query(lim.replace('"storage_mb": 150', '"storage_mb": 0'));                 // inside this rolled-back test only
+  await as(c, 'service');
+  eq((await ingest(c, [ev('page_view', { sid: uuid(3, 9700) })], { ...META, net: '198.51.100.70' })).reason, 'storage_cap', 'refused');
+  await as(c, 'postgres');
+  eq([+(await one(c, `SELECT count(*) FROM analytics_events`)), +(await one(c, `SELECT count(*) FROM analytics_rate`))], [0, 0], 'nothing stored, no counter created');
+  eq(await stat(c, 'rate_limited'), ['test:storage_cap=1'], 'visible in Data health');
+});
+check('limits', 'one network over ITS limit gives the reservation back: it cannot use up the environment budget', async (c) => {
+  await as(c, 'service');
+  const batch = (k) => Array.from({ length: 20 }, (_, i) => ev('page_view', { sid: uuid(3, 8000 + k * 20 + i) }));
+  for (let k = 0; k < 30; k++) await ingest(c, batch(k), { ...META, net: '198.51.100.50' });                 // 600: its 10-minute limit
+  for (let k = 30; k < 80; k++) eq((await ingest(c, batch(k), { ...META, net: '198.51.100.50' })).reason, 'net_10min', 'refused ' + k);
+  await as(c, 'postgres');
+  eq([+(await one(c, `SELECT n FROM analytics_rate WHERE kind = 'global_hour'`)), +(await one(c, `SELECT n FROM analytics_rate WHERE kind = 'global_day'`))], [600, 600], '1,000 refused events did not consume the global budget');
+});
+
+check('limits', 'storage gate counts the batch: accepted only if size + batch reserve + events x event reserve fits under the ingest threshold', async (c) => {
+  await as(c, 'postgres');
+  const B = +(await one(c, `SELECT public.analytics_storage_bytes()`)); const MB = 1048576;
+  const storage = Math.ceil(B / MB) + 1, room = storage * MB - B;            // room under the threshold: between 1 and 2 MB
+  const lim = await one(c, `SELECT pg_get_functiondef('public.analytics_limits()'::regprocedure)`);
+  await c.query(lim.replace('"storage_mb": 150, "rollup_headroom_mb": 32, "batch_reserve_bytes": 262144, "event_reserve_bytes": 2048',
+    `"storage_mb": ${storage}, "rollup_headroom_mb": 0, "batch_reserve_bytes": ${room - 10000}, "event_reserve_bytes": 1000`));   // rolled back
+  await as(c, 'service');
+  eq((await ingest(c, Array.from({ length: 20 }, (_, i) => ev('page_view', { sid: uuid(3, 9800 + i) })), { ...META, net: '198.51.100.71' })).reason, 'storage_cap', '20 events need reserve + 20,000 bytes > room: refused');
+  eq((await ingest(c, [ev('page_view', { sid: uuid(3, 9830) })], { ...META, net: '198.51.100.71' })).accepted, 1, '1 event needs reserve + 1,000 bytes <= room: accepted');
+  await as(c, 'postgres');
+  ok(+(await one(c, `SELECT count(*) FROM pg_locks WHERE locktype = 'advisory' AND pid = pg_backend_pid() AND granted`)) === 1, 'an accepted batch holds the analytics write lock until its transaction ends');
+});
+check('limits', 'a batch refused before the lock takes no lock and writes no counter; the refusal writes at most its Data health row', async (c) => {
+  await as(c, 'postgres'); await c.query(`INSERT INTO analytics_rate (kind, key, win_start, n) VALUES ('global_hour', sha256(convert_to('global|project', 'UTF8')), date_trunc('hour', now()), 2000)`);
+  await as(c, 'service');
+  eq((await ingest(c, [ev('page_view', { sid: uuid(3, 9840) })], { ...META, net: '198.51.100.72' })).reason, 'global_hour', 'refused');
+  await as(c, 'postgres');
+  eq(+(await one(c, `SELECT count(*) FROM pg_locks WHERE locktype = 'advisory' AND pid = pg_backend_pid()`)), 0, 'no lock taken');
+  eq([+(await one(c, `SELECT count(*) FROM analytics_rate`)), +(await one(c, `SELECT count(*) FROM analytics_rate_salt`))], [1, 0], 'no counter, no salt created');
+});
+check('limits', 'refusal counting is bounded: exact up to 2,000 per day and reason, then at most one update a minute (a lower bound)', async (c) => {
+  await as(c, 'postgres'); await c.query(`INSERT INTO analytics_rate (kind, key, win_start, n) VALUES ('global_hour', sha256(convert_to('global|project', 'UTF8')), date_trunc('hour', now()), 2000)`);
+  await as(c, 'service');
+  for (let k = 0; k < 105; k++) await ingest(c, Array.from({ length: 20 }, (_, i) => ev('page_view', { sid: uuid(3, 20000 + k * 20 + i) })), { ...META, net: '198.51.100.73' });   // 2,100 refused events
+  await as(c, 'postgres');
+  eq(await stat(c, 'rate_limited'), ['test:global_hour=2000'], 'exact to 2,000, then not written within the minute');
+  const xmin = await one(c, `SELECT xmin::text FROM analytics_ingest_stats WHERE outcome = 'rate_limited'`);
+  await as(c, 'service'); await ingest(c, [ev('page_view', { sid: uuid(3, 22200) })], { ...META, net: '198.51.100.73' });
+  await as(c, 'postgres');
+  eq(await one(c, `SELECT xmin::text FROM analytics_ingest_stats WHERE outcome = 'rate_limited'`), xmin, 'quiet period: the row was not rewritten');
+  await c.query(`UPDATE analytics_ingest_stats SET last_at = now() - interval '61 seconds' WHERE outcome = 'rate_limited'`);
+  await as(c, 'service'); await ingest(c, [ev('page_view', { sid: uuid(3, 22201) })], { ...META, net: '198.51.100.73' });
+  await as(c, 'postgres');
+  eq(await stat(c, 'rate_limited'), ['test:global_hour=2001'], 'after a minute the next refusal is recorded');
+});
+check('limits', 'rollups are gated by the storage budget too: no rollup that could pass it; purge still deletes on time', async (c) => {
+  await as(c, 'postgres');
+  await put(c, NY('2026-11-03', '12:00'), ev('page_view', { sid: uuid(3, 9850) }));
+  const lim = await one(c, `SELECT pg_get_functiondef('public.analytics_limits()'::regprocedure)`);
+  await c.query(lim.replace('"storage_mb": 150', '"storage_mb": 0'));                 // rolled back
+  eq(+(await one(c, `SELECT public.analytics_rollup_pending()`)), -1, 'stopped at the gate');
+  eq([+(await one(c, `SELECT count(*) FROM analytics_sessions`)), +(await one(c, `SELECT count(*) FROM analytics_daily`)), +(await one(c, `SELECT count(*) FROM analytics_rollup_runs`))], [0, 0, 0], 'nothing written');
+  const old = ev('page_view', { sid: uuid(3, 9851) }); await put(c, new Date(Date.now() - 40 * 86400000).toISOString(), old);
+  const r = await one(c, `SELECT public.analytics_purge()`);
+  eq([r.events >= 1, r.days_purged_without_rollup >= 1], [true, true], 'raw rows deleted on time; the un-rolled day is reported');
+  eq(+(await one(c, `SELECT count(*) FROM analytics_events WHERE event_id = $1`, [old.event_id])), 0, '40-day-old event gone');
+});
+check('health', 'Data health reports storage used, the ingest stop point, the budget and how refusals are counted', async (c) => {
+  await as(c, 'owner');
+  const h = (await one(c, `SELECT public.analytics_dashboard('2026-11-01', '2026-11-07', 'test')`)).health;
+  ok(h.storage.used_bytes > 0, 'used');
+  eq([h.storage.budget_bytes, h.storage.ingest_stops_at_bytes], [150 * 1048576, 118 * 1048576], 'budget and stop point');
+  eq(h.refusal_counting, { exact_up_to_events: 2000, then_at_most_one_update_per_seconds: 60 }, 'refusal counting');
+});
+
+check('edge', 'sender address: the left-most X-Forwarded-For entry is NEVER trusted; the source is a deployment setting (default none)', async (c) => {
+  const h = await import(require('url').pathToFileURL(HANDLER).href);
+  const R = (hd) => new Request('https://x.supabase.co/functions/v1/analytics-ingest', { method: 'POST', headers: hd });
+  const forged = { 'x-forwarded-for': '6.6.6.6, 198.51.100.7', 'cf-connecting-ip': '198.51.100.7', 'x-real-ip': '6.6.6.6' };
+  eq(h.senderNetwork(R(forged)), '', 'default (none): nothing trusted');
+  eq(h.senderNetwork(R(forged), 'none'), '', 'none');
+  eq(h.senderNetwork(R(forged), 'cf-connecting-ip'), '198.51.100.7', 'cf-connecting-ip: the platform value, not the forged first entry');
+  eq(h.senderNetwork(R(forged), 'xff-right-1'), '198.51.100.7', 'xff-right-1: the hop the platform appended');
+  eq(h.senderNetwork(R({ 'x-forwarded-for': '6.6.6.6, 7.7.7.7, 198.51.100.7, 10.1.2.3' }), 'xff-right-2'), '198.51.100.7', 'xff-right-2: one platform proxy after it');
+  eq(h.senderNetwork(R({ 'x-forwarded-for': '198.51.100.7' }), 'xff-right-2'), '', 'chain shorter than the setting: unknown, not the first entry');
+  eq(h.senderNetwork(R({}), 'cf-connecting-ip'), '', 'missing header: unknown');
+  eq(h.senderNetwork(R({}), 'xff-right-1'), '', 'missing chain: unknown');
+  eq(h.senderNetwork(R({ 'cf-connecting-ip': '198.51.100.7, 6.6.6.6' }), 'cf-connecting-ip'), '', 'a list where one address is expected: unknown');
+  eq(h.senderNetwork(R({ 'x-forwarded-for': '6.6.6.6,' }), 'xff-right-1'), '', 'empty right-most hop: unknown');
+  eq(h.senderNetwork(R(forged), 'something-else'), '', 'unrecognised setting falls back to nothing trusted');
+});
+check('edge', 'sender address parsing: exact IPv4 / IPv6 only; malformed values are "unknown"; IPv6 normalised; IPv4-mapped reduced', async (c) => {
+  const h = await import(require('url').pathToFileURL(HANDLER).href);
+  const cases = [['198.51.100.7', '198.51.100.7'], [' 203.0.113.9 ', '203.0.113.9'], ['0.0.0.0', '0.0.0.0'], ['255.255.255.255', '255.255.255.255'],
+    ['256.1.1.1', ''], ['1.2.3', ''], ['01.2.3.4', ''], ['1.2.3.4.5', ''], ['1.2.3.4:443', ''], ['1.2.3.4/24', ''], ['example.com', ''], ['', ''], ['unknown', ''],
+    ['2001:DB8::1', '2001:db8::1'], ['2001:0db8:0000:0000:0000:0000:0000:0001', '2001:db8::1'], ['::1', '::1'], ['::ffff:198.51.100.7', '198.51.100.7'],
+    ['::ffff:c633:6407', '198.51.100.7'], ['fe80::1%eth0', ''], ['[2001:db8::1]', ''], ['2001:db8::1::2', ''], ['2001:db8:::1', ''], ['x'.repeat(60), ''], [null, ''], ['1.2.3.4 5.6.7.8', '']];
+  for (const [i, o] of cases) eq(h.parseAddress(i), o, 'parse ' + JSON.stringify(i));
+});
+check('edge', 'end to end: forged first entries from one real network map to ONE counter; repeated requests share it; default setting uses the unknown allowance', async (c) => {
+  await as(c, 'postgres');
+  const seen = [];
+  const { post } = await handlerFor(c, { source: 'xff-right-1', seen });
+  for (let i = 0; i < 25; i++) await post({ env: 'live', events: [ev('page_view', { sid: uuid(3, 9000 + i) })] }, { ip: `6.6.${i}.${i}`, headers: { 'x-forwarded-for': `6.6.${i}.${i}, 198.51.100.7` } });
+  eq([...new Set(seen)], ['198.51.100.7'], '25 rotating forged first entries -> the one platform-appended address');
+  eq(+(await one(c, `SELECT count(DISTINCT key) FROM analytics_rate WHERE kind = 'net_10min'`)), 1, 'one network counter');
+  eq(+(await one(c, `SELECT n FROM analytics_rate WHERE kind = 'net_10min'`)), 25, 'repeated requests accumulate on it');
+  const seen2 = [];
+  const d = await handlerFor(c, { seen: seen2 });                                                     // no setting: none
+  await d.post({ env: 'live', events: [ev('page_view', { sid: uuid(3, 9100) })] }, { headers: { 'cf-connecting-ip': '198.51.100.9' } });
+  eq(seen2, [''], 'nothing trusted by default');
 });
 
 check('edge', 'handler: UA reduced to a family; network passed for hashing only; always 204; CORS only for allowed origins', async (c) => {

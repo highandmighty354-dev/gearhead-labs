@@ -8,6 +8,9 @@
  * surface in the visitor's page. Deployed WITHOUT JWT verification so navigator.sendBeacon works (it cannot set headers).
  * Controls: kill switch, environment fixed by the deployment, origin allow-list (CORS, not authentication), size / count
  * caps, a per-instance in-memory limiter, the bot flag, and the database's validation and shared rate limits.
+ * Kill switch (ANALYTICS_INGEST_ENABLED not "true"): every request is answered 204 before the body is read or the database is
+ * touched, so a flood writes nothing; each request is still one Edge Function invocation (counted against the plan's quota).
+ * Database failure: 204, nothing retried, only the error code logged.
  * Never stored or logged: the IP address (an in-memory key here; hashed with a daily salt in the database), the full user
  * agent, the body. */
 
@@ -28,12 +31,44 @@ export function uaFamily(ua) {
 }
 export const isBotUa = (ua) => !ua || BOT_UA.test(String(ua));
 
-/* The sender's network for the database's rate limits: an IPv4 address or an IPv6 address (the database reduces IPv6 to
-   its /64). Passed to analytics_ingest() only to be hashed with a daily random salt; it is never stored or logged.
-   x-forwarded-for is set by the Supabase edge in front of the function; its first entry is the connecting client. */
-export function senderNetwork(req) {
-  const first = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || (req.headers.get('x-real-ip') || '').trim();
-  return /^[0-9a-fA-F:.]{2,45}$/.test(first) ? first : '';
+/* ---------------------------------------------------------------- sender address: TRUST MODEL
+   The address is used for one thing only: the database's per-network rate limits. It is hashed there with a random value
+   that changes daily and is never stored or logged. It is NEVER read from a place the caller controls:
+     - The first (left-most) X-Forwarded-For entry is whatever the caller typed: it is never used.
+     - Which header is trustworthy depends on the hosting platform and is a DEPLOYMENT SETTING (ANALYTICS_ADDRESS_SOURCE),
+       chosen only after it has been demonstrated on the separate TEST project:
+         none               (default) no address is trusted; every request counts against the small shared "unknown" limit
+         cf-connecting-ip   the single address the platform's edge sets in CF-Connecting-IP
+         xff-right-1..3     the Nth entry from the RIGHT of X-Forwarded-For (the hop appended by the platform's own proxy)
+     - Anything that is not one exact, valid IPv4 or IPv6 address (a list, a port, a zone id, a host name, shorthand IPv4
+       such as "1.2.3", leading zeros, junk) is treated as missing, so malformed values cannot create new identities.
+     - IPv4-mapped IPv6 (::ffff:a.b.c.d) is reduced to the IPv4 address; the database groups IPv6 by /56. */
+export const ADDRESS_SOURCES = ['none', 'cf-connecting-ip', 'xff-right-1', 'xff-right-2', 'xff-right-3'];
+const V4 = /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
+export function parseAddress(value) {
+  const v = String(value == null ? '' : value).trim();
+  if (!v || v.length > 45) return '';
+  if (V4.test(v)) return v;
+  if (!/^[0-9a-fA-F:.]+$/.test(v) || v.indexOf(':') < 0) return '';
+  let h;
+  try { h = new URL('http://[' + v + ']/').hostname; } catch (e) { return ''; }
+  h = h.replace(/^\[|\]$/g, '').toLowerCase();
+  const m = /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/.exec(h);
+  if (m) { const a = parseInt(m[1], 16), b = parseInt(m[2], 16); return [a >> 8, a & 255, b >> 8, b & 255].join('.'); }
+  return h;
+}
+export function senderNetwork(req, source = 'none') {
+  if (source === 'cf-connecting-ip') {
+    const v = req.headers.get('cf-connecting-ip') || '';
+    return v.indexOf(',') < 0 ? parseAddress(v) : '';
+  }
+  const m = /^xff-right-([1-3])$/.exec(source);
+  if (m) {
+    const parts = (req.headers.get('x-forwarded-for') || '').split(',').map((x) => x.trim());
+    const n = +m[1];
+    return parts.length >= n && parts.join('') !== '' ? parseAddress(parts[parts.length - n]) : '';
+  }
+  return '';
 }
 
 export function createRateLimiter({ perMinute = 120, now = () => Date.now(), maxKeys = 10000 } = {}) {
@@ -50,7 +85,7 @@ export function createRateLimiter({ perMinute = 120, now = () => Date.now(), max
 
 const intOr0 = (v) => (Number.isInteger(v) && v >= 0 ? Math.min(v, 1000) : 0);
 
-/* deps: { enabled: bool, rpc(fn, args) -> Promise<{error}>, config: {env: 'live'|'test'|'dev', allowedOrigins[]},
+/* deps: { enabled: bool, rpc(fn, args) -> Promise<{error}>, config: {env: 'live'|'test'|'dev', allowedOrigins[], addressSource},
  *         allow(key) -> bool, log(msg) }
  *
  * WHAT THE CHECKS HERE DO AND DO NOT MEAN
@@ -65,6 +100,7 @@ const intOr0 = (v) => (Number.isInteger(v) && v >= 0 ? Math.min(v, 1000) : 0);
 export function makeAnalyticsIngestHandler(deps) {
   const allowed = deps.config.allowedOrigins || [];
   const ENV = ['live', 'test', 'dev'].includes(deps.config.env) ? deps.config.env : null;
+  const SOURCE = ADDRESS_SOURCES.includes(deps.config.addressSource) ? deps.config.addressSource : 'none';   // unknown setting -> trust nothing
   const allow = deps.allow || createRateLimiter();
   const log = deps.log || (() => {});
   return async (req) => {
@@ -83,7 +119,7 @@ export function makeAnalyticsIngestHandler(deps) {
       if (!deps.enabled || !ENV) return done('analytics-ingest: disabled');
       if (req.method !== 'POST') return done('analytics-ingest: method');
       if (!okOrigin) return done('analytics-ingest: origin refused');
-      const net = senderNetwork(req);
+      const net = senderNetwork(req, SOURCE);
       if (!allow(net || 'unknown')) return done('analytics-ingest: rate limited (this instance)');
       const len = +(req.headers.get('content-length') || 0);
       if (len > MAX_BYTES) return done('analytics-ingest: too large');

@@ -2,7 +2,7 @@
 --
 -- Tables (all server-only: RLS enabled and forced, no policies, no client privileges):
 --   analytics_owners        the owner allow-list (rows only by an explicit, reviewed SQL statement; none here)
---   analytics_events        raw events, append-only, 90-day retention; written only by analytics_ingest()
+--   analytics_events        raw events, append-only, 30-day retention; written only by analytics_ingest()
 --   analytics_ingest_stats  per-day ingestion counters (accepted / duplicate / rejected+reason / capped / bot / client errors)
 --   analytics_sessions      one row per session (sessionised server-side), 13-month retention
 --   analytics_daily         daily rollup (day, env, metric, dim) -> value, kept indefinitely
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS public.analytics_events (
   sid        uuid NOT NULL,
   pv_id      uuid,
   seq        integer NOT NULL CHECK (seq BETWEEN 0 AND 100000),
-  page       text NOT NULL CHECK (char_length(page) BETWEEN 1 AND 120 AND page ~ '^[a-z0-9:_./-]+$'),
+  page       text NOT NULL CHECK (char_length(page) >= 1 AND char_length(page) <= 120 AND page ~ '^[a-z0-9:_./-]+$'),   -- flat form: survives dump/restore unchanged
   props      jsonb NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(props) = 'object' AND pg_column_size(props) <= 1024),
   ua_family  text CHECK (ua_family IS NULL OR (char_length(ua_family) <= 40 AND ua_family ~ '^[A-Za-z0-9 ._-]+$')),
   viewport   char(1) CHECK (viewport IS NULL OR viewport IN ('s', 'm', 'l')),
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS public.analytics_visitors (
 CREATE INDEX IF NOT EXISTS analytics_visitors_first ON public.analytics_visitors (env, first_day);
 
 CREATE TABLE IF NOT EXISTS public.analytics_rate (
-  kind      text NOT NULL CHECK (kind IN ('net_10min', 'net_day', 'global_hour')),
+  kind      text NOT NULL CHECK (kind IN ('net_10min', 'net_day', 'global_hour', 'global_day')),
   key       bytea NOT NULL,                         -- sha256(daily salt | network) or sha256('global' | env); never an address
   win_start timestamptz NOT NULL,
   n         integer NOT NULL,
@@ -238,38 +238,119 @@ LANGUAGE sql SECURITY DEFINER SET search_path = '' AS $$
   ON CONFLICT (day, env, outcome, reason) DO UPDATE SET n = public.analytics_ingest_stats.n + EXCLUDED.n, last_at = now()
 $$;
 
--- ---------------------------------------------------------------- abuse limits (best-effort; see docs/ANALYTICS-IMPLEMENTATION.md)
--- Events per sender network (IPv4 address, or IPv6 /64) per 10 minutes and per day, and per environment per hour (a ceiling
--- that bounds database growth however many networks send). Generous for a real visitor; a flood is cut off.
+-- ---------------------------------------------------------------- abuse limits and the storage budget (see docs/ANALYTICS-IMPLEMENTATION.md)
+-- Every write path that can grow analytics is gated, and refusals do not write (or write a bounded, small amount):
+--  * Ingest is SERIALISED by one transaction-scoped advisory lock (held until the ingest transaction commits), so the size
+--    check always sees every earlier accepted batch. A batch is accepted only if
+--        current analytics size + batch_reserve + events x event_reserve  <=  storage_mb - rollup_headroom_mb
+--    where the reserves are measured upper bounds of what one batch can add (docs: "Storage budget"). Requests that are
+--    already over a limit are refused by a read-only check BEFORE taking the lock, so a flood never queues on it.
+--  * Rollups are gated too (analytics_rollup_pending, and the purge's last rollups): a day is rolled up only if
+--    size + rollup_headroom_mb <= storage_mb, and they take the same lock, so ingest and rollups never grow concurrently.
+--  * The day and hour ceilings cover the WHOLE PROJECT (every environment together), so no day can hold more than
+--    global_day events: that is what bounds one day's rollup (measured worst case: 22.4 MB for 10,000 events).
+--  * Limits are checked read-only first (storage, then the project ceilings per day and per hour, then the sender network
+--    per 10 minutes and per day). Only a batch that passes everything reserves its counters; a refused batch changes no
+--    counter and creates no row. A known address (IPv4, or IPv6 grouped by /56) has generous per-network limits; a missing,
+--    untrusted or malformed address shares ONE small "unknown" allowance.
+--  * Refusals are counted for Data Health with bounded writes (analytics_count_refusal): exact up to
+--    refusal_exact_events per day/environment/reason, then at most one update per refusal_sample_seconds (a lower bound).
+--  * Disk space is not returned by the 30-day purge (PostgreSQL reuses it internally; the files do not shrink). Once the
+--    budget is reached, ingest stays stopped until an owner-approved compaction (VACUUM FULL of the analytics tables) or
+--    a reviewed budget change. This fails closed: Premium's space is never used.
+-- These are starting values sized for the Supabase Free plan (500 MB database shared with Premium), not capacity guarantees.
 CREATE OR REPLACE FUNCTION public.analytics_limits() RETURNS jsonb LANGUAGE sql IMMUTABLE SET search_path = '' AS $$
-  SELECT '{"net_10min": 600, "net_day": 5000, "global_hour": 60000}'::jsonb
+  SELECT '{"storage_mb": 150, "rollup_headroom_mb": 32, "batch_reserve_bytes": 262144, "event_reserve_bytes": 2048,
+           "global_day": 10000, "global_hour": 2000, "net_10min": 600, "net_day": 5000, "unknown_10min": 300, "unknown_day": 2000,
+           "refusal_exact_events": 2000, "refusal_sample_seconds": 60}'::jsonb
 $$;
 
--- Counts p_n attempted events against the three limits and returns the first limit exceeded (NULL when within limits).
--- p_net is the sender network as text; it is hashed with today's random salt immediately and never stored.
+-- Total on-disk size of everything analytics keeps (tables with their indexes, TOAST and free-space/visibility maps).
+CREATE OR REPLACE FUNCTION public.analytics_storage_bytes() RETURNS bigint
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
+  SELECT coalesce(sum(pg_catalog.pg_total_relation_size(c.oid)), 0)::bigint FROM pg_catalog.pg_class c
+  WHERE c.relnamespace = 'public'::regnamespace AND c.relkind = 'r' AND c.relname LIKE 'analytics\_%'
+$$;
+
+-- Refusal counter for Data Health with bounded writes: exact while today's count for (env, reason) is below
+-- refusal_exact_events, then at most one update per refusal_sample_seconds (the count becomes a lower bound).
+-- A refusal that is not recorded writes nothing at all. New rows: at most one per day, environment and reason (tiny).
+CREATE OR REPLACE FUNCTION public.analytics_count_refusal(p_env text, p_reason text, p_n bigint) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE lim jsonb := public.analytics_limits(); today date := (now() AT TIME ZONE public.analytics_tz())::date;
+BEGIN
+  IF coalesce(p_n, 0) <= 0 THEN RETURN; END IF;
+  UPDATE public.analytics_ingest_stats s SET n = s.n + p_n, last_at = now()
+   WHERE s.day = today AND s.env = p_env AND s.outcome = 'rate_limited' AND s.reason = coalesce(p_reason, '')
+     AND (s.n < (lim->>'refusal_exact_events')::bigint
+          OR s.last_at <= now() - make_interval(secs => (lim->>'refusal_sample_seconds')::int));
+  IF NOT FOUND THEN
+    INSERT INTO public.analytics_ingest_stats (day, env, outcome, reason, n, last_at)
+    VALUES (today, p_env, 'rate_limited', coalesce(p_reason, ''), p_n, now())
+    ON CONFLICT (day, env, outcome, reason) DO NOTHING;      -- the row exists and is in its quiet period: no write
+  END IF;
+END $$;
+
+-- Counts p_n attempted events against the limits and returns the first limit exceeded (NULL when within limits, in which
+-- case the counters have been reserved and the ingest lock is held until the calling transaction ends).
+-- p_net is the sender network as text (exact IPv4 / IPv6 only; anything else is "unknown"); it is hashed with today's
+-- random salt immediately and never stored.
 CREATE OR REPLACE FUNCTION public.analytics_rate_check(p_env text, p_net text, p_n int) RETURNS text
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
   lim jsonb := public.analytics_limits(); tz text := public.analytics_tz(); today date := (now() AT TIME ZONE tz)::date;
-  v_inet inet; v_net text; v_salt uuid; v_key bytea; v_global bytea; n10 int; nday int; nglob int;
+  w_day timestamptz := (today::timestamp AT TIME ZONE tz); w_hour timestamptz := date_trunc('hour', now());
+  w_10 timestamptz := date_bin('10 minutes', now(), timestamptz '2000-01-01');
+  v_global bytea := sha256(convert_to('global|project', 'UTF8'));   -- one ceiling for the whole project, every environment together
+  v_accept bigint := ((lim->>'storage_mb')::bigint - (lim->>'rollup_headroom_mb')::bigint) * 1048576;
+  v_need bigint; v_inet inet; v_net text; v_salt uuid; v_key bytea; cap10 int; capday int; pass int; v_lt text;
 BEGIN
+  p_n := least(greatest(coalesce(p_n, 1), 1), 1000);
+  v_need := (lim->>'batch_reserve_bytes')::bigint + p_n::bigint * (lim->>'event_reserve_bytes')::bigint;
+  -- sender network: one exact address in canonical form only (a range, leading zeros, a port or anything else is "unknown")
   BEGIN v_inet := p_net::inet; EXCEPTION WHEN others THEN v_inet := NULL; END;
+  IF v_inet IS NOT NULL AND (masklen(v_inet) <> (CASE family(v_inet) WHEN 4 THEN 32 ELSE 128 END) OR host(v_inet) <> p_net) THEN v_inet := NULL; END IF;
   v_net := CASE WHEN v_inet IS NULL THEN 'unknown'
-                WHEN family(v_inet) = 6 THEN host(network(set_masklen(v_inet, 64))) || '/64'
+                WHEN family(v_inet) = 6 THEN host(network(set_masklen(v_inet, 56))) || '/56'
                 ELSE host(v_inet) END;
-  INSERT INTO public.analytics_rate_salt (day) VALUES (today) ON CONFLICT (day) DO NOTHING;
-  SELECT salt INTO v_salt FROM public.analytics_rate_salt WHERE day = today;
-  v_key := sha256(convert_to(v_salt::text || '|' || v_net, 'UTF8'));
-  v_global := sha256(convert_to('global|' || p_env, 'UTF8'));
-  INSERT INTO public.analytics_rate AS r (kind, key, win_start, n) VALUES ('net_10min', v_key, date_bin('10 minutes', now(), timestamptz '2000-01-01'), p_n)
-    ON CONFLICT (kind, key, win_start) DO UPDATE SET n = r.n + EXCLUDED.n RETURNING n INTO n10;
-  INSERT INTO public.analytics_rate AS r (kind, key, win_start, n) VALUES ('net_day', v_key, (today::timestamp AT TIME ZONE tz), p_n)
-    ON CONFLICT (kind, key, win_start) DO UPDATE SET n = r.n + EXCLUDED.n RETURNING n INTO nday;
-  INSERT INTO public.analytics_rate AS r (kind, key, win_start, n) VALUES ('global_hour', v_global, date_trunc('hour', now()), p_n)
-    ON CONFLICT (kind, key, win_start) DO UPDATE SET n = r.n + EXCLUDED.n RETURNING n INTO nglob;
-  IF n10 > (lim->>'net_10min')::int THEN RETURN 'net_10min'; END IF;
-  IF nday > (lim->>'net_day')::int THEN RETURN 'net_day'; END IF;
-  IF nglob > (lim->>'global_hour')::int THEN RETURN 'global_hour'; END IF;
+  cap10  := CASE WHEN v_net = 'unknown' THEN (lim->>'unknown_10min')::int ELSE (lim->>'net_10min')::int END;
+  capday := CASE WHEN v_net = 'unknown' THEN (lim->>'unknown_day')::int ELSE (lim->>'net_day')::int END;
+  -- pass 1: read-only, no lock (a flood that is already over a limit never waits and never writes)
+  -- pass 2: the same checks again while holding the ingest lock, so nothing can change between check and reservation
+  FOR pass IN 1..2 LOOP
+    IF pass = 2 THEN
+      v_lt := current_setting('lock_timeout');
+      PERFORM set_config('lock_timeout', '3s', true);       -- wait at most 3 s for a rollup or another batch
+      BEGIN
+        PERFORM pg_advisory_xact_lock(7104202611130501);   -- the analytics write lock (constant key), held until commit
+      EXCEPTION WHEN lock_not_available THEN PERFORM set_config('lock_timeout', v_lt, true); RETURN 'busy';
+      END;
+      PERFORM set_config('lock_timeout', v_lt, true);
+      INSERT INTO public.analytics_rate_salt (day) VALUES (today) ON CONFLICT (day) DO NOTHING;
+    END IF;
+    IF public.analytics_storage_bytes() + v_need > v_accept THEN RETURN 'storage_cap'; END IF;
+    IF coalesce((SELECT n FROM public.analytics_rate WHERE kind = 'global_day' AND key = v_global AND win_start = w_day), 0) + p_n
+       > (lim->>'global_day')::int THEN RETURN 'global_day'; END IF;
+    IF coalesce((SELECT n FROM public.analytics_rate WHERE kind = 'global_hour' AND key = v_global AND win_start = w_hour), 0) + p_n
+       > (lim->>'global_hour')::int THEN RETURN 'global_hour'; END IF;
+    v_salt := NULL; SELECT salt INTO v_salt FROM public.analytics_rate_salt WHERE day = today;
+    IF v_salt IS NOT NULL THEN
+      v_key := sha256(convert_to(v_salt::text || '|' || v_net, 'UTF8'));
+      IF coalesce((SELECT n FROM public.analytics_rate WHERE kind = 'net_10min' AND key = v_key AND win_start = w_10), 0) + p_n > cap10 THEN
+        RETURN CASE WHEN v_net = 'unknown' THEN 'unknown_10min' ELSE 'net_10min' END; END IF;
+      IF coalesce((SELECT n FROM public.analytics_rate WHERE kind = 'net_day' AND key = v_key AND win_start = w_day), 0) + p_n > capday THEN
+        RETURN CASE WHEN v_net = 'unknown' THEN 'unknown_day' ELSE 'net_day' END; END IF;
+    END IF;
+  END LOOP;
+  -- reserve (under the lock every check above still holds, so these cannot exceed a cap)
+  INSERT INTO public.analytics_rate AS r (kind, key, win_start, n) VALUES ('global_day', v_global, w_day, p_n)
+    ON CONFLICT (kind, key, win_start) DO UPDATE SET n = r.n + EXCLUDED.n;
+  INSERT INTO public.analytics_rate AS r (kind, key, win_start, n) VALUES ('global_hour', v_global, w_hour, p_n)
+    ON CONFLICT (kind, key, win_start) DO UPDATE SET n = r.n + EXCLUDED.n;
+  INSERT INTO public.analytics_rate AS r (kind, key, win_start, n) VALUES ('net_10min', v_key, w_10, p_n)
+    ON CONFLICT (kind, key, win_start) DO UPDATE SET n = r.n + EXCLUDED.n;
+  INSERT INTO public.analytics_rate AS r (kind, key, win_start, n) VALUES ('net_day', v_key, w_day, p_n)
+    ON CONFLICT (kind, key, win_start) DO UPDATE SET n = r.n + EXCLUDED.n;
   RETURN NULL;
 END $$;
 
@@ -292,13 +373,13 @@ DECLARE
   reasons jsonb := '{}'::jsonb; r text; v_n int; v_limit text;
 BEGIN
   IF v_env NOT IN ('live', 'test', 'dev') THEN
-    PERFORM public.analytics_count('unknown', 'rejected', 'bad_env', greatest(1, coalesce(jsonb_array_length(CASE WHEN jsonb_typeof(p_batch) = 'array' THEN p_batch END), 1)));
+    PERFORM public.analytics_count_refusal('unknown', 'bad_env', greatest(1, coalesce(jsonb_array_length(CASE WHEN jsonb_typeof(p_batch) = 'array' THEN p_batch END), 1)));
     RETURN jsonb_build_object('accepted', 0, 'rejected', 1, 'reason', 'bad_env');
   END IF;
   v_n := CASE WHEN jsonb_typeof(p_batch) = 'array' THEN greatest(jsonb_array_length(p_batch), 1) ELSE 1 END;
   v_limit := public.analytics_rate_check(v_env, p_meta->>'net', least(v_n, 1000));
   IF v_limit IS NOT NULL THEN
-    PERFORM public.analytics_count(v_env, 'rate_limited', v_limit, least(v_n, 1000));
+    PERFORM public.analytics_count_refusal(v_env, v_limit, least(v_n, 1000));
     RETURN jsonb_build_object('accepted', 0, 'rejected', 0, 'rate_limited', v_n, 'reason', v_limit);
   END IF;
   PERFORM public.analytics_count(v_env, 'client_error', '', least(v_cerr, 1000));
@@ -435,15 +516,22 @@ BEGIN
   ON CONFLICT (day, env) DO UPDATE SET ran_at = now();
 END $$;
 
--- Retention: raw events 90 days, sessions and ingestion counters 13 months, daily rollups kept.
+-- Retention: raw events 30 days, sessions and ingestion counters 13 months, daily rollups kept.
 -- Each day is rolled up once more before its raw events are deleted.
 CREATE OR REPLACE FUNCTION public.analytics_purge() RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
-DECLARE cutoff date := (now() AT TIME ZONE public.analytics_tz())::date - 90; d date; n_ev bigint; n_s bigint; n_st bigint;
+DECLARE cutoff date := (now() AT TIME ZONE public.analytics_tz())::date - 30; d date; n_ev bigint; n_s bigint; n_st bigint; n_unrolled int := 0;
+  lim_budget bigint := (public.analytics_limits()->>'storage_mb')::bigint * 1048576;
+  lim_headroom bigint := (public.analytics_limits()->>'rollup_headroom_mb')::bigint * 1048576;
 BEGIN
-  FOR d IN SELECT DISTINCT (ts_server AT TIME ZONE public.analytics_tz())::date FROM public.analytics_events
-           WHERE ts_server < (cutoff::timestamp AT TIME ZONE public.analytics_tz()) LOOP
-    PERFORM public.analytics_rollup(d);
+  PERFORM pg_advisory_xact_lock(7104202611130501);   -- the analytics write lock (see analytics_rate_check): growth is serialised
+  -- roll up (once more) only the expiring days whose raw events arrived after their last rollup; already rolled-up days
+  -- are not rewritten (a rewrite would only create dead rows). Retention is never delayed: the raw rows go regardless.
+  FOR d IN SELECT x.day FROM (SELECT (ts_server AT TIME ZONE public.analytics_tz())::date AS day, max(ts_server) AS last_ev FROM public.analytics_events
+                              WHERE ts_server < (cutoff::timestamp AT TIME ZONE public.analytics_tz()) GROUP BY 1) x
+           WHERE NOT EXISTS (SELECT 1 FROM public.analytics_rollup_runs r WHERE r.day = x.day AND r.ran_at >= x.last_ev) LOOP
+    IF public.analytics_storage_bytes() + lim_headroom > lim_budget THEN n_unrolled := n_unrolled + 1;   -- storage gate: the day's
+    ELSE PERFORM public.analytics_rollup(d); END IF;                                                   -- aggregates are lost, retention is kept
   END LOOP;
   PERFORM set_config('analytics.purge', 'on', true);
   DELETE FROM public.analytics_events WHERE ts_server < (cutoff::timestamp AT TIME ZONE public.analytics_tz());
@@ -458,21 +546,28 @@ BEGIN
   -- rate-limit counters and their salts last two days at most
   DELETE FROM public.analytics_rate WHERE win_start < now() - interval '2 days';
   DELETE FROM public.analytics_rate_salt WHERE day < (now() AT TIME ZONE public.analytics_tz())::date - 1;
-  RETURN jsonb_build_object('events', n_ev, 'sessions', n_s, 'stats', n_st);
+  RETURN jsonb_build_object('events', n_ev, 'sessions', n_s, 'stats', n_st, 'days_purged_without_rollup', n_unrolled);
 END $$;
 
 -- Rolls up every day whose raw events arrived after its last rollup (or that was never rolled up), plus today.
+-- Returns the number of days rolled up, or -1 when it stopped at the storage gate.
 -- Needed so first-visit days (new vs returning) and daily totals never miss a day when pg_cron is not running.
 CREATE OR REPLACE FUNCTION public.analytics_rollup_pending() RETURNS integer
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE tz text := public.analytics_tz(); d date; n int := 0;
+  lim_budget bigint := (public.analytics_limits()->>'storage_mb')::bigint * 1048576;
+  lim_headroom bigint := (public.analytics_limits()->>'rollup_headroom_mb')::bigint * 1048576;
 BEGIN
+  PERFORM pg_advisory_xact_lock(7104202611130501);   -- the analytics write lock: ingest waits (at most 3 s, then 'busy')
   FOR d IN
     SELECT x.day FROM (SELECT (ts_server AT TIME ZONE tz)::date AS day, max(ts_server) AS last_ev FROM public.analytics_events GROUP BY 1) x
     WHERE NOT EXISTS (SELECT 1 FROM public.analytics_rollup_runs r WHERE r.day = x.day AND r.ran_at >= x.last_ev)
     UNION SELECT (now() AT TIME ZONE tz)::date
     ORDER BY 1
   LOOP
+    -- storage gate: one day's rollup can add at most rollup_headroom_mb; stop (and leave the dashboard stale) rather than
+    -- grow past the budget. Raw events are unaffected and the purge still deletes them on time.
+    IF public.analytics_storage_bytes() + lim_headroom > lim_budget THEN RETURN -1; END IF;
     PERFORM public.analytics_rollup(d); n := n + 1;
   END LOOP;
   RETURN n;
@@ -600,7 +695,12 @@ BEGIN
         'last_event_at', (SELECT max(ts_server) FROM public.analytics_events WHERE env = p_env),
         'last_rollup_at', (SELECT max(ran_at) FROM public.analytics_rollup_runs WHERE env = p_env),
         'bot_sessions', coalesce((SELECT v FROM d WHERE metric = 'bot_sessions'), 0),
-        'raw_retention_days', 90),
+        'raw_retention_days', 30,
+        'storage', jsonb_build_object('used_bytes', public.analytics_storage_bytes(),
+                     'budget_bytes', (public.analytics_limits()->>'storage_mb')::bigint * 1048576,
+                     'ingest_stops_at_bytes', ((public.analytics_limits()->>'storage_mb')::bigint - (public.analytics_limits()->>'rollup_headroom_mb')::bigint) * 1048576),
+        'refusal_counting', jsonb_build_object('exact_up_to_events', (public.analytics_limits()->>'refusal_exact_events')::int,
+                     'then_at_most_one_update_per_seconds', (public.analytics_limits()->>'refusal_sample_seconds')::int)),
     'billing', public.analytics_billing_metrics(p_from, p_to)
   ) INTO r;
   RETURN r;
@@ -611,7 +711,7 @@ DO $$ DECLARE f text;
 BEGIN
   FOREACH f IN ARRAY ARRAY['analytics_events_guard()', 'analytics_is_owner()', 'analytics_require_owner()', 'analytics_prop_spec(text)',
       'analytics_event_problem(jsonb)', 'analytics_count(text, text, text, bigint)', 'analytics_ingest(jsonb, jsonb)', 'analytics_channel(text, text, text)',
-      'analytics_rollup(date)', 'analytics_rollup_pending()', 'analytics_purge()', 'analytics_limits()', 'analytics_rate_check(text, text, integer)', 'analytics_refresh()', 'analytics_billing_metrics(date, date)', 'analytics_dashboard(date, date, text)', 'analytics_tz()'] LOOP
+      'analytics_rollup(date)', 'analytics_rollup_pending()', 'analytics_purge()', 'analytics_limits()', 'analytics_rate_check(text, text, integer)', 'analytics_storage_bytes()', 'analytics_count_refusal(text, text, bigint)', 'analytics_refresh()', 'analytics_billing_metrics(date, date)', 'analytics_dashboard(date, date, text)', 'analytics_tz()'] LOOP
     EXECUTE format('REVOKE ALL ON FUNCTION public.%s FROM PUBLIC, anon, authenticated, service_role', f);
   END LOOP;
 END $$;
@@ -651,7 +751,13 @@ BEGIN
      OR has_function_privilege('authenticated', 'public.analytics_rollup(date)', 'EXECUTE') OR has_function_privilege('authenticated', 'public.analytics_purge()', 'EXECUTE')
      OR has_function_privilege('service_role', 'public.analytics_rate_check(text, text, integer)', 'EXECUTE')
      OR has_function_privilege('authenticated', 'public.analytics_rate_check(text, text, integer)', 'EXECUTE')
-     OR has_function_privilege('anon', 'public.analytics_rate_check(text, text, integer)', 'EXECUTE') THEN
+     OR has_function_privilege('anon', 'public.analytics_rate_check(text, text, integer)', 'EXECUTE')
+     OR has_function_privilege('service_role', 'public.analytics_count_refusal(text, text, bigint)', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.analytics_count_refusal(text, text, bigint)', 'EXECUTE')
+     OR has_function_privilege('anon', 'public.analytics_count_refusal(text, text, bigint)', 'EXECUTE')
+     OR has_function_privilege('service_role', 'public.analytics_storage_bytes()', 'EXECUTE')
+     OR has_function_privilege('authenticated', 'public.analytics_storage_bytes()', 'EXECUTE')
+     OR has_function_privilege('anon', 'public.analytics_storage_bytes()', 'EXECUTE') THEN
     RAISE EXCEPTION 'ANALYTICS_0501_POSTCONDITION: function privileges too broad'; END IF;
   IF has_sequence_privilege('anon', 'public.analytics_events_id_seq', 'USAGE') OR has_sequence_privilege('authenticated', 'public.analytics_events_id_seq', 'USAGE') THEN
     RAISE EXCEPTION 'ANALYTICS_0501_POSTCONDITION: a client role can use the events sequence'; END IF;

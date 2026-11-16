@@ -8,8 +8,12 @@
    and every handler is wrapped so an exception here can never reach the page (exceptions are only counted). Sending is
    asynchronous (sendBeacon / fetch keepalive, no-cors, no cookies), batched, and capped.
 
-   Collected per event: a random event id, the event name, a random visitor id (13 months in localStorage; session-only
-   when the browser sends Global Privacy Control or Do Not Track), a random session id, a page key such as
+   NOTHING runs, and no identifier is created, unless analytics-choice.js (loaded first) reports 'allowed': a browser that
+   sends Global Privacy Control or Do Not Track, a visitor who turned analytics off on the Privacy page, or a browser that
+   blocks storage is never measured. Turning analytics off on the Privacy page stops this script at once.
+
+   Collected per event: a random event id, the event name, a random visitor id (13 months in localStorage), a random
+   session id, a page key such as
    "calc:hp_from_et" (never the full URL), a viewport size class (s/m/l) and a few allow-listed properties. Never
    collected: calculator inputs or results, search text, email, account id, IP address, full user agent, full URL. */
 (function () {
@@ -20,18 +24,22 @@
     window.GH_ANALYTICS = { status: 'off' };
     return;
   }
+  /* The visitor's choice is evaluated before anything else (analytics-choice.js). Missing module = not allowed. */
+  var CHOICE = window.GH_ANALYTICS_CHOICE, choice = 'no-choice-module';
+  try { if (CHOICE && typeof CHOICE.state === 'function') choice = CHOICE.state(); } catch (e) { choice = 'no-choice-module'; }
+  if (choice !== 'allowed') { window.GH_ANALYTICS = { status: choice }; return; }
   var ENV = CFG.env === 'test' || CFG.env === 'dev' ? CFG.env : 'live';
   var SESSION_IDLE = 30 * 60 * 1000, ACTIVE_WINDOW = 30000, PING_EVERY = 5 * 60 * 1000, PAGE_CAP = 30 * 60 * 1000;
   var COMPLETE_AFTER = 2000, SEARCH_IDLE = 1500, SEARCH_HOLD = 20000, NAV_WINDOW = 3000, REDIRECT_WINDOW = 15000;
   var MAX_QUEUE = 50, MAX_BATCH = 20, MAX_BODY = 7800;
 
-  var errors = 0, dropped = 0;
+  var errors = 0, dropped = 0, stopped = false, timer = null;
   function safe(fn) { return function () { try { return fn.apply(this, arguments); } catch (e) { errors++; } }; }
   var now = function () { return Date.now(); };
 
   /* ---------- storage (every access guarded: private windows and blocked storage just mean less continuity) ---------- */
   function sget(store, k) { try { return JSON.parse(window[store].getItem(k)); } catch (e) { return null; } }
-  function sset(store, k, v) { try { window[store].setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } }
+  function sset(store, k, v) { if (stopped) return; try { window[store].setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } }
   function uuid() {
     try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (e) { /* fall through */ }
     var b = new Uint8Array(16); crypto.getRandomValues(b); b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
@@ -40,8 +48,7 @@
   }
 
   /* ---------- visitor and session ---------- */
-  var PRIVATE = navigator.globalPrivacyControl === true || navigator.doNotTrack === '1' || window.doNotTrack === '1';
-  var VSTORE = PRIVATE ? 'sessionStorage' : 'localStorage';
+  var VSTORE = 'localStorage';
   var visitor = sget(VSTORE, 'gh_a_vid'), newVisitor = false;
   if (!visitor || typeof visitor.id !== 'string' || !(visitor.exp > now())) {
     visitor = { id: uuid(), exp: now() + 396 * 864e5 }; newVisitor = true; sset(VSTORE, 'gh_a_vid', visitor);
@@ -91,6 +98,7 @@
   var cur = { page: null, pv: null, start: 0, unreported: 0, reported: 0, lastPing: 0, calc: null, gate: false, offer: false };
 
   function emit(name, props, page, pv) {
+    if (stopped) return;
     var e = { event_id: uuid(), name: name, ts_client: new Date().toISOString(), vid: visitor.id, sid: S.id, seq: seq++,
       page: page || cur.page || 'home', pv_id: pv || cur.pv || null, viewport: vp(), props: props || {} };
     Q.push(e);
@@ -114,7 +122,7 @@
     save();
   }
   function flush(onHide) {
-    if (!Q.length) return;
+    if (stopped || !Q.length) return;
     if (onHide) {                       // page is going away: hand everything to the browser, no waiting
       for (var guard = 0; Q.length && guard < 5; guard++) {
         var p = take(); if (!p) continue;
@@ -180,7 +188,7 @@
     var props = {};
     if (started) {
       props.is_session_start = true;
-      if (!PRIVATE) props.is_new_visitor = newVisitor;
+      props.is_new_visitor = newVisitor;
       if (firstView) { if (refHost) props.ref_host = refHost; for (var k in utm) props[k] = utm[k]; }
     }
     firstView = false; newVisitor = false;
@@ -387,6 +395,7 @@
 
   /* ---------- main loop ---------- */
   var poll = safe(function () {
+    if (stopped) return;
     attachFrame();
     watchSignin();
     var k = pageKey();
@@ -404,6 +413,15 @@
     document.addEventListener('submit', safe(onSubmit), opts);
     document.addEventListener('input', safe(onInput), opts);
     window.addEventListener('gh:frameready', function () { poll(); });      // app-shell: the calculator frame is ready
+    /* Opt-out while the page is open (this tab, or another tab of the site): stop at once, send nothing more, write
+       nothing more, and delete this tab's identifiers and unsent queue (sessionStorage is per tab). */
+    var stop = function () {
+      stopped = true; Q = []; S = null; if (timer) clearInterval(timer);       // nothing in memory can be sent or written back
+      try { if (CHOICE && typeof CHOICE.forget === 'function') CHOICE.forget(); } catch (e) { /* ignore */ }   // this tab's storage
+      window.GH_ANALYTICS.status = 'opted-out';
+    };
+    window.addEventListener('gh:analytics-optout', stop);
+    window.addEventListener('storage', function (e) { if (e.key === 'gh_a_optout' && e.newValue === '1') stop(); });
     document.addEventListener('visibilitychange', safe(function () { if (document.visibilityState === 'hidden') { ping(); flush(true); } }));
     window.addEventListener('pagehide', safe(function () {
       leave();
@@ -417,7 +435,7 @@
         sset('sessionStorage', 'gh_a_cr', S.id + c);
         emit('checkout_return', { outcome: c });
       }
-      setInterval(poll, 500);
+      timer = setInterval(poll, 500);
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', safe(start)); else start();
   })();

@@ -147,10 +147,19 @@
     "health": {
       "by_day": [],
       "totals": {},
+      "storage": {
+        "used_bytes": 638976,
+        "budget_bytes": 157286400,
+        "ingest_stops_at_bytes": 123731968
+      },
       "bot_sessions": 1,
       "last_event_at": "2026-11-09T17:32:00+00:00",
-      "last_rollup_at": "2026-11-09T13:05:29.719544+00:00",
-      "raw_retention_days": 90
+      "last_rollup_at": "2026-11-13T14:43:59.595488+00:00",
+      "refusal_counting": {
+        "exact_up_to_events": 2000,
+        "then_at_most_one_update_per_seconds": 60
+      },
+      "raw_retention_days": 30
     },
     "search": {
       "searches": 0,

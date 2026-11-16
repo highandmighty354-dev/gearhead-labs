@@ -1,6 +1,12 @@
+-- !!! TEST PROJECT / DISPOSABLE DATABASES ONLY — NEVER RUN AGAINST PRODUCTION !!!
+-- Production follows the forward-only migration policy (supabase/PROVISIONING.md, "Forward-only policy"): removing
+-- analytics there is a numbered NNNN_analytics_retire migration applied through the approved workflow, so migration history
+-- always matches the database. This script does NOT remove the 0501 row from supabase_migrations.schema_migrations: after it,
+-- the database would claim 0501 is applied while none of it exists, and the provisioning workflow would refuse to proceed.
+--
 -- Rollback of 0501 (first-party analytics). Removes every analytics object, INCLUDING all collected analytics data
 -- (raw events, sessions, daily rollups, ingestion counters) and the owner list. Touches nothing outside analytics.
--- Run only with owner approval.
+-- pg_cron, if 0501 installed it, stays installed (with no analytics jobs).
 BEGIN;
 DO $$
 BEGIN
@@ -17,6 +23,8 @@ DROP FUNCTION IF EXISTS public.analytics_rollup(date);
 DROP FUNCTION IF EXISTS public.analytics_channel(text, text, text);
 DROP FUNCTION IF EXISTS public.analytics_ingest(jsonb, jsonb);
 DROP FUNCTION IF EXISTS public.analytics_rate_check(text, text, integer);
+DROP FUNCTION IF EXISTS public.analytics_count_refusal(text, text, bigint);
+DROP FUNCTION IF EXISTS public.analytics_storage_bytes();
 DROP FUNCTION IF EXISTS public.analytics_limits();
 DROP FUNCTION IF EXISTS public.analytics_count(text, text, text, bigint);
 DROP FUNCTION IF EXISTS public.analytics_event_problem(jsonb);
