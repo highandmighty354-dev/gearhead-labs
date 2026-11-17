@@ -1,0 +1,177 @@
+[
+  {
+    "group": "security",
+    "name": "no client role can read or write any analytics table; RLS enabled and forced; no policies",
+    "pass": true
+  },
+  {
+    "group": "security",
+    "name": "function privileges: ingest = service_role only; dashboard/refresh = signed-in only; rollup/purge = nobody",
+    "pass": true
+  },
+  {
+    "group": "owner",
+    "name": "owner gets the report; a signed-in non-owner, a token without a user, anon and service_role are refused",
+    "pass": true
+  },
+  {
+    "group": "validation",
+    "name": "only catalogued events with allow-listed, well-typed properties are stored; each rejection is counted by reason",
+    "pass": true
+  },
+  {
+    "group": "validation",
+    "name": "bad envelopes: unknown env, empty, oversize (>20) and non-array batches are refused without storing anything",
+    "pass": true
+  },
+  {
+    "group": "duplicates",
+    "name": "a replayed event id is stored once and counted as a duplicate (sendBeacon + retry)",
+    "pass": true
+  },
+  {
+    "group": "abuse",
+    "name": "per-session cap (500 / 24 h), bot flag, skewed client clock, client error counters",
+    "pass": true
+  },
+  {
+    "group": "sessions",
+    "name": "sessionisation: 30-minute gap splits a session; landing/exit pages; channels; engaged flag; time cap; bots flagged",
+    "pass": true
+  },
+  {
+    "group": "aggregation",
+    "name": "daily rollup matches the hand-computed answers; re-running it changes nothing (idempotent)",
+    "pass": true
+  },
+  {
+    "group": "dashboard",
+    "name": "owner report: KPIs, previous-period comparison, date filter boundaries, environment separation, funnel, health",
+    "pass": true
+  },
+  {
+    "group": "dashboard",
+    "name": "empty range returns zeros, not errors; refresh is owner-only and rolls up today",
+    "pass": true
+  },
+  {
+    "group": "retention",
+    "name": "purge deletes raw events older than 30 days (rolling them up first) and keeps the daily rollup",
+    "pass": true
+  },
+  {
+    "group": "retention",
+    "name": "30-day boundary: a 29-day-old raw event is kept, a 31-day-old one is deleted (after its day is rolled up)",
+    "pass": true
+  },
+  {
+    "group": "billing",
+    "name": "Stripe figures: pending with no data, still pending with TEST-mode data only, live figures from billing tables only",
+    "pass": true
+  },
+  {
+    "group": "environment",
+    "name": "the environment is fixed by the deployment: a forged production Origin or a page-supplied env cannot make events live",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "per-network limits: 600 per 10 min and 5,000 per day per address; IPv6 grouped by /56; addresses never stored",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "unknown address: missing, malformed, ranges and junk all share ONE small allowance (300 per 10 min, 2,000 per day)",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "project ceilings: 2,000 per hour and 10,000 per day for ALL environments together, checked first; refused batches create no rows",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "storage budget: when analytics tables exceed storage_mb nothing more is accepted and no counter changes (Premium space protected)",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "one network over ITS limit gives the reservation back: it cannot use up the environment budget",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "storage gate counts the batch: accepted only if size + batch reserve + events x event reserve fits under the ingest threshold",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "a batch refused before the lock takes no lock and writes no counter; the refusal writes at most its Data health row",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "refusal counting is bounded: exact up to 2,000 per day and reason, then at most one update a minute (a lower bound)",
+    "pass": true
+  },
+  {
+    "group": "limits",
+    "name": "rollups are gated by the storage budget too: no rollup that could pass it; purge still deletes on time",
+    "pass": true
+  },
+  {
+    "group": "health",
+    "name": "Data health reports storage used, the ingest stop point, the budget and how refusals are counted",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "sender address: the left-most X-Forwarded-For entry is NEVER trusted; the source is a deployment setting (default none)",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "sender address parsing: exact IPv4 / IPv6 only; malformed values are \"unknown\"; IPv6 normalised; IPv4-mapped reduced",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "end to end: forged first entries from one real network map to ONE counter; repeated requests share it; default setting uses the unknown allowance",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "handler: UA reduced to a family; network passed for hashing only; always 204; CORS only for allowed origins",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "LIMITATION made explicit: a script that copies a browser's headers is accepted like a visitor (only limits and bot rules bound it)",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "handler: refuses foreign origins, GET, oversize bodies, >20 events, junk JSON and the kill switch; never errors",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "in-memory limiter is PER INSTANCE (documented as not global): two instances each allow their own quota; window resets",
+    "pass": true
+  },
+  {
+    "group": "edge",
+    "name": "handler: database down -> still 204, nothing thrown (the page never sees a failure)",
+    "pass": true
+  },
+  {
+    "group": "sessions",
+    "name": "campaigns: each session the page starts for a new campaign is its own session with that campaign; navigation inside a session keeps it; one visitor",
+    "pass": true
+  },
+  {
+    "group": "visitors",
+    "name": "new vs returning are mutually exclusive and come from each id's first recorded day, not the page's flag",
+    "pass": true
+  }
+]
