@@ -14,7 +14,7 @@ built (§10 lists the differences).
 | Real-world validation | **None** — no real visitor traffic has ever reached this system |
 | Hosted verification | **None** — nothing has run on hosted Supabase or production (§9a lists what must be verified) |
 | Release blocker | Migration 0501 is outside the locked migration package (§9) |
-| Open blueprint requirement | Script size "8 KB or less" is **not met** and awaits an owner decision on how it is measured (§10) |
+| Script size | Blueprint target "8 KB or less" **waived by the owner on 2026-11-17** (§10; §11, decision 11). The script is unchanged |
 
 Labels used below: **Implemented** (in the code), **Tested** (a test in §8 exercises it), **Untested** (built, not
 exercised), **Proposed** (not built), **Awaiting owner decision** (§11).
@@ -447,12 +447,12 @@ Everything in §8 ran locally on synthetic data. None of the following has been 
 | Report functions | Several separate functions | One owner-checked report function plus refresh and billing functions |
 | Rollup schedule | Nightly | Every 15 minutes, with catch-up |
 | Session on a new campaign | New session when a new UTM campaign arrives | As specified, applied by the page; server re-checks gaps and midnight only (as the blueprint says) |
-| Script size | "8 KB or less" (checklist §11); "`analytics.js`, about 6 KB" (§6.4); **no measurement method stated** | **Not met; awaiting owner decision (2026-11-17).** `analytics.js`: 24,590 B raw; 8,624 B gzip (level 6, about what the host sends); 12,271 B minified; 5,254 B minified + gzip; 6,174 B gzip with comments stripped. Raw 8 KB is reachable only by removing required features. The ways to meet it (count minified + gzip, or gzip with comments stripped) need a build step for the served file. Nothing has been changed or waived |
+| Script size | "8 KB or less" (checklist §11); "`analytics.js`, about 6 KB" (§6.4); **no measurement method stated** | **Waived by the owner on 2026-11-17** (§11, decision 11): keep the existing functionality, remove no features to reduce size, add no minification or compression build step. Not met as measured: `analytics.js`: 24,590 B raw; 8,624 B gzip (level 6, about what the host sends); 12,271 B minified; 5,254 B minified + gzip; 6,174 B gzip with comments stripped. Raw 8 KB is reachable only by removing required features. The script is unchanged |
 | Opt-out control | Not in the blueprint (consent was an owner decision) | Built (§3.10): GPC / DNT honoured, Privacy-page switch, states the site's on/off state |
 
 ---
 
-## 11. Outstanding owner decisions (none made)
+## 11. Outstanding owner decisions (none made, except decision 11)
 
 | # | Decision | Notes |
 |---|---|---|
@@ -466,6 +466,7 @@ Everything in §8 ran locally on synthetic data. None of the following has been 
 | 8 | Visitor authenticity | (a) accept best-effort figures and cross-check against Google Search Console and Stripe; (b) add a free human-check service such as Cloudflare Turnstile — a third party, a Privacy-page mention and a site change; (c) count only signed-in visitors — conflicts with the no-account-linking rule. **Current recommendation: (a). This is a recommendation, not an approval.** Only (a) is in place |
 | 9 | Rate limits | Starting values: 10,000 / day and 2,000 / hour for the **whole project** (all environments together); 600 / 10 min and 5,000 / day per sender network (an IPv4 address or an IPv6 /56); 300 / 10 min and 2,000 / day shared by all unknown senders; raise them (or move to a paid plan) if Data health shows real visitors being dropped. *(Corrected 2026-11-17: this row said "per environment"; the code has counted the whole project since Chapter 1D.)* Note that with the default `ANALYTICS_ADDRESS_SOURCE=none` every visitor counts as "unknown", so the whole site shares 300 / 10 min and 2,000 / day |
 | 10 | Address source | `ANALYTICS_ADDRESS_SOURCE`: `none` until the TEST-project probe shows which header the platform sets and a caller cannot forge |
+| 11 | Script size target | **Decided by the owner on 2026-11-17: the blueprint's "8 KB or less" target is waived.** Keep the existing analytics functionality; do not remove features to reduce size; do not add minification or compression build steps; no further size-reduction work. Measurements are in §10 |
 
 Draft Privacy page (decision 2, not approved, pending legal review). **History:** until 2026-11-16 the full proposed text was
 the `privacy` page body in `F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html`, marked DRAFT, with
