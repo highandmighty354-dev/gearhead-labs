@@ -13,13 +13,18 @@ const EP = 'https://ingest.example.test/functions/v1/analytics-ingest';
 const FREE = 'bmep', FREE2 = 'afr_lambda', PREMIUM = 'advanced_et';
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png' };
 
+/* When > 0, the calculator frame's HTML is sent as its first line (the doctype) and the rest SLOW_FRAME_MS later: the frame's
+   document then exists, still without a root element, when the parent page finishes parsing (a slow connection). */
+let SLOW_FRAME_MS = 0;
 function serve() {
   return new Promise(res => {
     const srv = http.createServer((req, rsp) => {
       let p = decodeURIComponent(new URL(req.url, 'http://x').pathname); if (p === '/') p = '/index.html';
       const f = path.join(REPO, p);
       if (!f.startsWith(REPO) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { rsp.writeHead(404); return rsp.end(); }
-      rsp.writeHead(200, { 'content-type': TYPES[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(rsp);
+      rsp.writeHead(200, { 'content-type': TYPES[path.extname(f)] || 'application/octet-stream' });
+      if (SLOW_FRAME_MS && /F1_12_4/.test(p)) { const b = fs.readFileSync(f), nl = b.indexOf(10) + 1; rsp.write(b.slice(0, nl)); setTimeout(() => rsp.end(b.slice(nl)), SLOW_FRAME_MS); return; }
+      fs.createReadStream(f).pipe(rsp);
     }).listen(0, '127.0.0.1', () => res(srv));
   });
 }
@@ -333,6 +338,23 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     eq([(await gh(c)).status, c.env.ingestCalls], ['browser-signal', 0], 'GPC wins over the page switch after reload too');
     eq([a.env.pageErrors, b.env.pageErrors, c.env.pageErrors], [[], [], []], 'page errors');
     await a.ctx.close();
+  });
+  await check('opt-out control works when the frame\'s HTML arrives after the parent page has finished parsing (slow connection)', async () => {
+    SLOW_FRAME_MS = 1500;
+    let s;
+    try {
+      s = await open();
+      const early = await s.page.evaluate(() => { const d = document.getElementById('app').contentWindow.document; return d.readyState; });
+      eq(early, 'complete', 'frame loaded');
+    } finally { SLOW_FRAME_MS = 0; }
+    await toPrivacy(s);
+    eq(await box(s).getAttribute('data-state'), 'allowed', 'control painted');
+    await box(s).locator('button[data-gh-analytics-toggle]').click({ timeout: 5000 });
+    eq(await box(s).getAttribute('data-state'), 'opted-out', 'turned off');
+    eq(await s.frame().evaluate(() => localStorage.getItem('gh_a_optout')), '1', 'choice stored');
+    await box(s).locator('button[data-gh-analytics-toggle]').click({ timeout: 5000 });
+    eq(await box(s).getAttribute('data-state'), 'allowed', 'turned back on');
+    await s.ctx.close();
   });
   await check('opt-out across tabs: storage unavailable in a tab = analytics never runs there (fails closed)', async () => {
     const s = await open({ url: '?calc=' + FREE });

@@ -8845,6 +8845,9 @@ buildNav = ghBuildNav;
 /* Query-string landing support for search-engine-friendly calculator URLs. */
 function ghRoute(){
   const params=new URLSearchParams(location.search);
+  /* Static pages (?page=about|methodology|privacy|terms|contact) belong to window.ghCertRoute() (defined further down). Without this,
+     Back/Forward onto one drew the dashboard here, and the dashboard's delayed home-page paint then replaced the static page. */
+  if(params.get('page')&&typeof window.ghCertRoute==='function'&&window.ghCertRoute()) return;
   const calc=params.get('calc');
   const lab=params.get('lab');
   const calcResolved = calc && (GH_CALC_ALIASES[calc]||calc);
@@ -10247,6 +10250,9 @@ function ghE110StaticPage(kind){
 }
 
 function ghE110RenderStatic(kind){
+  /* GH-DEF-035 applies to static pages too: drawing one is a newer render, so a follow-up still queued by an earlier ghRender()
+     (the dashboard's home-page swap) must not run over it. */
+  GH_RENDER_SEQ++;
   const p=ghE110StaticPage(kind);
   const box=document.getElementById("calc-container");
   if(!box) return;

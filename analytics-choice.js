@@ -83,6 +83,10 @@
   }
   function bind(doc) {
     if (!doc || doc.__ghChoice) return;
+    /* Only a document with a root element can be watched. The frame's document can already exist, still unparsed, when this
+       page finishes parsing (start() below); marking it bound then left it without a watcher for good, so every Privacy control
+       drawn in that tab stayed on "Loading…" with its button hidden. Leave it unmarked: the frame's load / gh:frameready bind it. */
+    if (typeof MutationObserver === 'function' && !doc.documentElement) return;
     doc.__ghChoice = true;
     doc.addEventListener('click', onClick, true);
     if (typeof MutationObserver === 'function' && doc.documentElement) {

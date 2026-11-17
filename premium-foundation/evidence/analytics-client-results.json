@@ -61,6 +61,10 @@
       "pass": true
     },
     {
+      "name": "opt-out control works when the frame's HTML arrives after the parent page has finished parsing (slow connection)",
+      "pass": true
+    },
+    {
       "name": "opt-out across tabs: storage unavailable in a tab = analytics never runs there (fails closed)",
       "pass": true
     },
@@ -147,23 +151,23 @@
   ],
   "performance": {
     "off": [
-      453.90000000037253,
-      280.70000000018626,
-      231.3999999994412,
-      265.09999999962747,
-      306.70000000018626,
-      337.29999999981374
+      409.6000000005588,
+      465.8999999994412,
+      354.20000000018626,
+      554,
+      482.09999999962747,
+      428.90000000037253
     ],
     "on": [
-      329.29999999981374,
-      497.3999999994412,
-      430.20000000018626,
-      281,
-      359.8999999994412,
-      367
+      550,
+      509.5,
+      393.8999999994412,
+      457.8999999994412,
+      272.70000000018626,
+      402.8999999994412
     ],
-    "median_off_ms": 306.70000000018626,
-    "median_on_ms": 367
+    "median_off_ms": 465.8999999994412,
+    "median_on_ms": 457.8999999994412
   },
   "catalogue_sweep": {
     "catalogue": 757,

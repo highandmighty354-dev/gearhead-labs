@@ -4,6 +4,8 @@
    Each sync used to call the frame's ghRoute(), which does not know the static pages (?page=about|methodology|privacy|
    terms|contact), so a visitor who opened one of them in that window was put back on the dashboard; after a deep link
    (?calc= / ?lab=) the late re-syncs also re-applied that link, undoing any page the visitor had moved on to.
+   Engine bug fixed (F1_12_4 page): on Back/Forward onto a static page the engine's own popstate ghRoute() drew the
+   dashboard, whose delayed home-page paint (ghRender, GH-DEF-035 sequence) then replaced the static page. Section 2b.
    Every check opens a fresh browser context. A MutationObserver inside the frame records any moment a static page is
    replaced, so a bounce that is redrawn back a moment later is still caught. The analytics endpoint is a fake answered
    in the browser; nothing leaves the machine and no database is involved.
@@ -72,6 +74,14 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       if (!c.querySelector(':scope>.gh-e110-static')) window.__ghLost++; }).observe(c, { childList: true });
   });
   const watched = (f) => f.evaluate(() => ({ lost: window.__ghLost, redraws: window.__ghRedraws }));
+  /* Installed BEFORE a Back/Forward: once a static page has appeared, count every moment it is gone again (a flash counts). */
+  const watchArrival = (f) => f.evaluate(() => {
+    const c = document.getElementById('calc-container'); window.__ghSeen = false; window.__ghGone = 0;
+    const look = () => { if (c.querySelector(':scope>.gh-e110-static')) window.__ghSeen = true; else if (window.__ghSeen) window.__ghGone++; };
+    new MutationObserver(look).observe(c, { childList: true });
+  });
+  const gone = (f) => f.evaluate(() => ({ seen: window.__ghSeen, gone: window.__ghGone }));
+  const back = (f) => f.evaluate(() => history.back()), fwd = (f) => f.evaluate(() => history.forward());
   /* The visitor's click on the footer link (the site's own handler: pushState + render). */
   const clickFooter = (f, label) => f.locator('.gh-e110-footer a', { hasText: new RegExp('^' + label + '$') }).click();
   /* The site's own navigation link to a calculator (the sidebar entry; its handler routes in place). */
@@ -109,9 +119,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await check('Privacy opened after both re-syncs stays open', () => staticStays('Privacy', 'privacy', 1500));
 
   // ---- 2. The shell's own sync(): it runs on Back/Forward (popstate) and when the Engineering Lab loads (engineering-bridge.js).
-  //      It must not draw the dashboard over an open static page. NOT covered here: the frame's own Back/Forward router
-  //      (ghRoute() in the F1_12_4 page) still draws the dashboard on Back to a static page; that is in the engine page, not
-  //      the shell, and is reported separately.
+  //      It must not draw the dashboard over an open static page.
   await check('the shell sync (Back/Forward, Engineering Lab load) keeps an open Privacy page', async () => {
     const s = await open(); const f = s.frame(); await settle(s);
     await clickFooter(f, 'Privacy'); await watchStatic(f);
@@ -129,6 +137,54 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     eq(s.errors, [], 'page errors'); await s.ctx.close();
     return `opened ${at} ms after ready`;
   });
+  // ---- 2b. Browser Back / Forward onto static pages (the engine's own popstate router)
+  await check('Back from a calculator to Privacy shows Privacy and it stays; Forward returns to the calculator; Back again', async () => {
+    const s = await open(); const f = s.frame(); await settle(s);
+    await clickFooter(f, 'Privacy'); await clickNav(f, 'bmep'); await sleep(300);
+    eq((await view(f)).calc, 'bmep', 'calculator opened from Privacy');
+    await watchArrival(f); await back(f); await sleep(700);
+    let v = await view(f); eq([v.page, v.isStatic], ['privacy', true], 'Back shows Privacy');
+    eq(await gone(f), { seen: true, gone: 0 }, 'Privacy never replaced after Back');
+    await fwd(f); await sleep(700);
+    v = await view(f); eq([v.page, v.isStatic, v.calc], [null, false, 'bmep'], 'Forward shows the calculator');
+    await watchArrival(f); await back(f); await sleep(700);
+    v = await view(f); eq([v.page, v.isStatic, v.sameFrame], ['privacy', true, true], 'Back again shows Privacy');
+    eq(await gone(f), { seen: true, gone: 0 }, 'Privacy never replaced after the second Back');
+    eq(s.errors, [], 'page errors'); await s.ctx.close();
+  });
+  await check('Back from Terms to Privacy immediately after load stays on Privacy through the re-syncs', async () => {
+    const s = await open(); const f = s.frame();
+    await clickFooter(f, 'Privacy'); await clickFooter(f, 'Terms');
+    await watchArrival(f); const at = s.since(); await back(f); await settle(s); await sleep(200);
+    const v = await view(f); eq([v.page, v.isStatic, v.sameFrame], ['privacy', true, true], 'Privacy after Back');
+    eq(await gone(f), { seen: true, gone: 0 }, 'Privacy never replaced');
+    ok(at < 1000, `precondition: Back pressed before the 1 s re-sync (${at} ms)`);
+    eq(s.errors, [], 'page errors'); await s.ctx.close();
+    return `Back pressed ${at} ms after ready`;
+  });
+  await check('Forward onto a static page: Terms from the dashboard, Back to the dashboard, Forward shows Terms and it stays', async () => {
+    const s = await open(); const f = s.frame(); await settle(s);
+    await clickFooter(f, 'Terms');
+    await back(f); await sleep(700);
+    let v = await view(f); eq([v.calc, v.isStatic, v.page], ['dashboard', false, null], 'Back: dashboard');
+    await watchArrival(f); await fwd(f); await sleep(700);
+    v = await view(f); eq([v.page, v.isStatic, v.sameFrame], ['terms', true, true], 'Forward: Terms');
+    eq(await gone(f), { seen: true, gone: 0 }, 'Terms never replaced');
+    eq(s.errors, [], 'page errors'); await s.ctx.close();
+  });
+  await check('Back from a lab to About shows About and it stays; Forward returns to the lab', async () => {
+    const s = await open(); const f = s.frame(); await settle(s);
+    await clickFooter(f, 'About');
+    await f.evaluate(() => ghShowLab('diesel')); await sleep(300);          // as the site's lab links do (it pushes ?lab= itself)
+    eq((await view(f)).lab, true, 'lab opened');
+    await watchArrival(f); await back(f); await sleep(700);
+    let v = await view(f); eq([v.page, v.isStatic], ['about', true], 'Back: About');
+    eq(await gone(f), { seen: true, gone: 0 }, 'About never replaced');
+    await fwd(f); await sleep(700);
+    v = await view(f); eq([v.search, v.lab, v.isStatic, v.sameFrame], ['?lab=diesel', true, false, true], 'Forward: the lab');
+    eq(s.errors, [], 'page errors'); await s.ctx.close();
+  });
+
   // ---- 3. Deep links: the late re-syncs must not undo where the visitor went
   await check('after a ?calc= deep link, Privacy opened immediately stays open (not sent back to the calculator)', async () => {
     const s = await open('?calc=bmep'); const f = s.frame();
