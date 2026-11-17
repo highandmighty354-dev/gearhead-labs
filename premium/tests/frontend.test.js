@@ -674,6 +674,23 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
     eq([S.auth.user, authEvents], [null, [null]], 'signed out locally');
   });
 
+  /* PR #29: the published Privacy Policy is kept word for word until the owner approves new wording. The only addition is the
+     analytics control (its text comes from analytics-choice.js). The unapproved draft and its placeholders must not be in
+     any file the site serves. Update PUBLISHED_PRIVACY only together with an owner-approved policy. */
+  await test('privacy: the published Privacy Policy is unchanged (only the analytics control is added) and no draft or placeholder is served', async () => {
+    const PUBLISHED_PRIVACY = '<h1>Privacy Policy</h1><p>Gearhead Labs calculators run in your browser. This policy covers what data we collect and how it is used.</p><h2>Advertising</h2><p>This site may display advertising. Ad providers may use cookies, web beacons, IP addresses and related technologies as required by applicable publisher policies.</p><h2>Contact</h2><p>For privacy questions, use the contact method on our Contact page.</p>';
+    const CONTROL = '<div class="gh-analytics-choice" data-gh-analytics-choice><p data-gh-analytics-status role="status" aria-live="polite">Loading your analytics setting…</p><button type="button" data-gh-analytics-toggle hidden></button></div>';
+    const engine = read('F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html');
+    const m = /privacy:\{[^`]*?body:`([\s\S]*?)`/.exec(engine);
+    assert(m, 'privacy page body found');
+    eq(m[1], PUBLISHED_PRIVACY + CONTROL, 'privacy body = published policy + the analytics control');
+    const served = execFileSync('git', ['ls-files', '*.html', '*.js', '*.md'], { cwd: REPO, encoding: 'utf8' }).split('\n')
+      .filter(f => f && !/^(premium\/tests|premium-foundation\/tests|supabase\/|catalog\/|node_modules\/)/.test(f));
+    const bad = [];
+    for (const f of served) { const t = read(f); if (/DRAFT pending legal review|\[CONTACT EMAIL\]|Effective \[DATE\]|\[Legal review\.\]|\[Advertising: describe only if enabled\.\]/.test(t)) bad.push(f); }
+    eq(bad, [], 'files the site serves that contain the draft policy or its placeholders');
+  });
+
   const failed = results.filter(r => !r.pass);
   for (const r of results) console.log(`${r.pass ? 'PASS' : 'FAIL'}  ${r.name}${r.pass ? '' : '\n      -> ' + r.error}`);
   console.log(`\nfrontend adapter tests: ${results.length - failed.length}/${results.length} passed (${FILES.length} frontend files scanned)`);

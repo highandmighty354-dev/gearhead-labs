@@ -14,7 +14,9 @@
    always wins and is changed in the browser.
 
    The Privacy page shows the control wherever it contains <div data-gh-analytics-choice></div> (in this document or in
-   the calculator frame), with a status line read out by screen readers and a plain button. */
+   the calculator frame), with a status line read out by screen readers and a plain button. The status line first says
+   whether analytics is switched on for the site at all (data-site="on|off"); while it is off it says so and never
+   implies that anything is collected. */
 (function () {
   'use strict';
   var OPT_KEY = 'gh_a_optout';
@@ -53,6 +55,17 @@
   }
 
   /* ---------- the control on the Privacy page ---------- */
+  /* Is analytics switched on for this site? Only analytics.js knows: it reports status 'off' when the site switch
+     (analytics-config.js) is off or its endpoint is invalid. If analytics.js is missing or did not run, nothing can be
+     collected either, so that also counts as off. The control never says analytics is on unless it is. */
+  function siteOn() { try { var g = window.GH_ANALYTICS; return !!(g && typeof g.status === 'string' && g.status !== 'off'); } catch (e) { return false; } }
+  var OFF = 'Analytics is switched off on this site, so nothing is collected.';
+  var TEXT_SITE_OFF = {
+    'allowed': [OFF + ' You can still turn it off for this browser now; the choice is kept in this browser.', 'Turn analytics off for this browser'],
+    'opted-out': [OFF + ' Analytics is also turned off for this browser.', 'Turn analytics back on for this browser'],
+    'browser-signal': [OFF + ' Your browser also sends Global Privacy Control or Do Not Track, which keeps analytics off for this browser. To change that, change the setting in your browser.', null],
+    'no-storage': [OFF + ' Your browser also blocks site storage, which keeps analytics off for this browser.', null]
+  };
   var TEXT = {
     'allowed': ['Analytics is on for this browser. It records which pages and calculators are used, never what you type.', 'Turn analytics off for this browser'],
     'opted-out': ['Analytics is off for this browser. Nothing is collected and no analytics identifier is kept.', 'Turn analytics back on for this browser'],
@@ -60,11 +73,13 @@
     'no-storage': ['Your browser blocks site storage, so analytics is off and nothing is collected.', null]
   };
   function paint(box, resumed) {
-    var st = state(), t = TEXT[st], doc = box.ownerDocument;
+    var on = siteOn(), st = state(), t = (on ? TEXT : TEXT_SITE_OFF)[st], doc = box.ownerDocument;
+    if (!on) resumed = false;                              // nothing resumes while analytics is switched off
     var p = box.querySelector('[data-gh-analytics-status]'), b = box.querySelector('[data-gh-analytics-toggle]');
     if (!p) { p = doc.createElement('p'); p.setAttribute('data-gh-analytics-status', ''); p.setAttribute('role', 'status'); p.setAttribute('aria-live', 'polite'); box.appendChild(p); }
     if (!b) { b = doc.createElement('button'); b.type = 'button'; b.setAttribute('data-gh-analytics-toggle', ''); box.appendChild(b); }
     p.textContent = t[0] + (resumed && st === 'allowed' ? ' Measurement resumes from your next page load.' : '');
+    box.setAttribute('data-site', on ? 'on' : 'off');
     box.setAttribute('data-state', st);
     if (t[1]) { b.hidden = false; b.textContent = t[1]; b.setAttribute('data-next', st === 'allowed' ? 'off' : 'on'); }
     else { b.hidden = true; b.removeAttribute('data-next'); }

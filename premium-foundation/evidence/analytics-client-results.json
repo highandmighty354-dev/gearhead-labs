@@ -73,6 +73,30 @@
       "pass": true
     },
     {
+      "name": "sessions: a new campaign starts a new session; the same campaign, direct visits and navigation do not; a change back starts another",
+      "pass": true
+    },
+    {
+      "name": "privacy control, site switched OFF (as shipped): says off, never implies collection; opt-out, reload and re-enable all stay accurate",
+      "pass": true
+    },
+    {
+      "name": "privacy control, site switched ON: says on; opt-out says off and stops; re-enable says it resumes on the next page load",
+      "pass": true
+    },
+    {
+      "name": "privacy control with GPC: correct for the site switched off and on; no button either way",
+      "pass": true
+    },
+    {
+      "name": "privacy control with Do Not Track: correct for the site switched off and on; no button either way",
+      "pass": true
+    },
+    {
+      "name": "privacy control when analytics.js did not load: reports the site as off (nothing can be collected)",
+      "pass": true
+    },
+    {
       "name": "opt-out: a browser signal shows an explanation and no button (the browser setting decides)",
       "pass": true
     },
@@ -151,23 +175,23 @@
   ],
   "performance": {
     "off": [
-      409.6000000005588,
-      465.8999999994412,
-      354.20000000018626,
-      554,
-      482.09999999962747,
-      428.90000000037253
+      385.9000000000233,
+      338.0999999999767,
+      451.5,
+      451.5,
+      464.4000000000233,
+      500.0999999999767
     ],
     "on": [
-      550,
-      509.5,
-      393.8999999994412,
-      457.8999999994412,
-      272.70000000018626,
-      402.8999999994412
+      501.0999999999767,
+      518.1999999999534,
+      447.4000000000233,
+      628.1999999999534,
+      260.39999999990687,
+      329
     ],
-    "median_off_ms": 465.8999999994412,
-    "median_on_ms": 457.8999999994412
+    "median_off_ms": 451.5,
+    "median_on_ms": 501.0999999999767
   },
   "catalogue_sweep": {
     "catalogue": 757,

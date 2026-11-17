@@ -165,6 +165,11 @@
     "pass": true
   },
   {
+    "group": "sessions",
+    "name": "campaigns: each session the page starts for a new campaign is its own session with that campaign; navigation inside a session keeps it; one visitor",
+    "pass": true
+  },
+  {
     "group": "visitors",
     "name": "new vs returning are mutually exclusive and come from each id's first recorded day, not the page's flag",
     "pass": true

@@ -650,6 +650,23 @@ check('edge', 'handler: database down -> still 204, nothing thrown (the page nev
  *   G first 11-09 (after P)                   -> not in P
  *   H first 11-01 (last day of previous), again 11-02 (first day of P) -> P returning; previous: new
  * P: visitors 7 = new 4 (A B E F) + returning 3 (C D H). Previous: visitors 2 = new 2 (D H) + returning 0. */
+check('sessions', 'campaigns: each session the page starts for a new campaign is its own session with that campaign; navigation inside a session keeps it; one visitor', async (c) => {
+  await as(c, 'postgres');
+  const d = '2026-11-03', V = uuid(2, 900), SA = uuid(3, 901), SB = uuid(3, 902), SC = uuid(3, 903);
+  const A = { utm_source: 'newsletter', utm_medium: 'email', utm_campaign: 'spring' }, B = { utm_source: 'moparcenter', utm_medium: 'banner', utm_campaign: 'fall' };
+  // campaign A arrives (session A), the visitor navigates, then campaign B arrives 5 minutes later (session B), then a direct visit
+  await put(c, NY(d, '09:00'), ev('page_view', { vid: V, sid: SA, page: 'home', pv_id: uuid(4, 901), props: { is_session_start: true, ...A } }));
+  await put(c, NY(d, '09:01'), ev('page_view', { vid: V, sid: SA, page: 'calc:bmep', pv_id: uuid(4, 902) }));
+  await put(c, NY(d, '09:06'), ev('page_view', { vid: V, sid: SB, page: 'home', pv_id: uuid(4, 903), props: { is_session_start: true, ...B } }));
+  await put(c, NY(d, '09:12'), ev('page_view', { vid: V, sid: SC, page: 'lab:diesel', pv_id: uuid(4, 904), props: { is_session_start: true } }));
+  await c.query(`SELECT public.analytics_rollup('${d}')`);
+  const s = await q(c, `SELECT sid::text sid, page_views pv, channel ch, utm_source src, utm_medium med, utm_campaign camp FROM analytics_sessions WHERE vid = $1 ORDER BY started_at`, [V]);
+  eq(s, [
+    { sid: SA, pv: 2, ch: 'campaign', src: 'newsletter', med: 'email', camp: 'spring' },
+    { sid: SB, pv: 1, ch: 'campaign', src: 'moparcenter', med: 'banner', camp: 'fall' },
+    { sid: SC, pv: 1, ch: 'direct', src: null, med: null, camp: null }], 'three sessions, each attributed to the campaign that started it');
+  eq(+(await one(c, `SELECT count(*) FROM analytics_visitors WHERE vid = $1`, [V])), 1, 'one visitor');
+});
 check('visitors', 'new vs returning are mutually exclusive and come from each id\'s first recorded day, not the page\'s flag', async (c) => {
   await as(c, 'postgres');
   const V = { A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8, X: 9 };

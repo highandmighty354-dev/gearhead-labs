@@ -44,7 +44,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   /* A page with analytics either as shipped (enabled:false) or switched on by answering analytics-config.js differently.
      All requests are recorded; the ingest endpoint is answered with 204 (or aborted when down). */
-  async function open({ enabled = true, down = false, url = '', gpc = false, dnt = false, preset = null, noChoice = false, viewport, ctx: shared } = {}) {
+  async function open({ enabled = true, down = false, url = '', gpc = false, dnt = false, preset = null, noChoice = false, noScript = false, viewport, ctx: shared } = {}) {
     const ctx = shared || await browser.newContext(viewport ? { viewport } : {});
     const page = await ctx.newPage();
     const env = { requests: [], batches: [], pageErrors: [], ingestCalls: 0 };
@@ -57,6 +57,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       for (const k in kv) localStorage.setItem(k, kv[k]);
     }, preset);
     if (noChoice) await page.route(u => u.pathname.startsWith('/analytics-choice.js'), r => r.fulfill({ status: 404, body: '' }));
+    if (noScript) await page.route(u => u.pathname.startsWith('/analytics.js'), r => r.fulfill({ status: 404, body: '' }));   // analytics.js failed to load
     await page.route('https://cdn.jsdelivr.net/**', r => r.abort());
     if (enabled) await page.route(u => u.pathname.startsWith('/analytics-config.js'), r => r.fulfill({ status: 200, headers: { 'content-type': 'text/javascript' },
       body: `window.GH_ANALYTICS_CONFIG = { enabled: true, endpoint: '${EP}', env: 'test' };` }));
@@ -378,6 +379,95 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     const m = await open({ noChoice: true, url: '?calc=' + FREE }); await sleep(1500);
     eq(await gh(m), { status: 'no-choice-module', keys: [] }, 'fails safe'); eq(m.env.ingestCalls, 0, 'nothing sent');
     await m.ctx.close();
+  });
+  /* Blueprint 4.1: a new session starts after 30 minutes without activity, at local midnight, or when a NEW UTM campaign
+     arrives (campaign = utm_source | utm_medium | utm_campaign). Ordinary navigation, direct visits and the same campaign
+     again keep the session. The campaign tags go out only on the first page view of a session. */
+  await check('sessions: a new campaign starts a new session; the same campaign, direct visits and navigation do not; a change back starts another', async () => {
+    const s = await open();
+    const sid = () => s.page.evaluate(() => JSON.parse(localStorage.getItem('gh_a_s')).id);
+    const load = async (q) => { await s.flush(); await s.page.goto(BASE + q); await s.page.waitForFunction(() => document.getElementById('app').__ghReady === true); await sleep(800); await s.flush(); };
+    const views = () => s.events().filter(e => e.name === 'page_view');
+    const A = '?utm_source=newsletter&utm_medium=email&utm_campaign=spring', B = '?utm_source=moparcenter&utm_medium=banner&utm_campaign=fall';
+    await load(A); const s1 = await sid();
+    let v = views().filter(e => e.sid === s1);
+    eq([v.length > 0, v[0].props.is_session_start, v[0].props.utm_source, v[0].props.utm_campaign], [true, true, 'newsletter', 'spring'], 'campaign A opens a session with its tags');
+    await s.frame().evaluate(() => { history.pushState(null, '', '?page=about'); window.ghCertRoute(); }); await sleep(400); await s.flush();
+    eq(await sid(), s1, 'navigation inside the site keeps the session');
+    await load(A); eq(await sid(), s1, 'the same campaign again (repeat visit within 30 min) keeps the session');
+    await load('?calc=' + FREE); eq(await sid(), s1, 'a direct visit (no campaign) keeps the session');
+    await load(B); const s2 = await sid();
+    ok(s2 !== s1, 'a different campaign starts a new session');
+    v = views().filter(e => e.sid === s2);
+    eq([v[0].props.is_session_start, v[0].props.utm_source, v[0].props.utm_medium, v[0].props.utm_campaign], [true, 'moparcenter', 'banner', 'fall'], 'new session carries the new campaign tags');
+    await load(A); const s3 = await sid();
+    ok(s3 !== s2 && s3 !== s1, 'changing back to campaign A starts another session');
+    eq(views().filter(e => e.sid === s3)[0].props.utm_campaign, 'spring', 'tags of the campaign that arrived');
+    // only the first page view of each session carries campaign tags; later views in the same session carry none
+    const tagged = views().filter(e => e.props.utm_source);
+    eq(tagged.every(e => e.props.is_session_start === true), true, 'tags only on session starts');
+    eq(new Set(views().map(e => e.vid)).size, 1, 'one visitor throughout');
+    // the 30-minute rule still applies without a campaign
+    await s.page.evaluate(() => { const x = JSON.parse(localStorage.getItem('gh_a_s')); x.last -= 31 * 60 * 1000; localStorage.setItem('gh_a_s', JSON.stringify(x)); });
+    await load('?calc=' + FREE); const s4 = await sid(); ok(s4 !== s3, '31 minutes idle starts a new session');
+    eq(views().filter(e => e.sid === s4)[0].props.utm_source, undefined, 'a session started by the idle rule has no campaign tags');
+    const keys = new Set(views().flatMap(e => Object.keys(e.props)));
+    eq([...keys].filter(k => !['is_session_start', 'is_new_visitor', 'ref_host', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].includes(k)), [], 'no new properties sent');
+    await s.ctx.close();
+  });
+  /* The control must say whether analytics is switched on for the SITE (data-site) as well as this browser's choice
+     (data-state), and while the site switch is off it must never imply that anything is collected. */
+  const ON_TEXT = /Analytics is on for this browser|records which pages|resumes from your next page load/;
+  const OFF_TEXT = /^Analytics is switched off on this site, so nothing is collected\./;
+  const look = async (s) => { const b = box(s); return { site: await b.getAttribute('data-site'), state: await b.getAttribute('data-state'),
+    text: (await b.locator('[data-gh-analytics-status]').textContent()).trim(), button: await b.locator('button[data-gh-analytics-toggle]').isVisible(),
+    stored: await s.frame().evaluate(() => localStorage.getItem('gh_a_optout')), status: await s.page.evaluate(() => window.GH_ANALYTICS && window.GH_ANALYTICS.status) }; };
+  await check('privacy control, site switched OFF (as shipped): says off, never implies collection; opt-out, reload and re-enable all stay accurate', async () => {
+    const s = await open({ enabled: false });
+    await toPrivacy(s); let v = await look(s);
+    eq([v.site, v.state, v.status, v.button, v.stored], ['off', 'allowed', 'off', true, null], 'initial');
+    ok(OFF_TEXT.test(v.text) && !ON_TEXT.test(v.text), 'initial text: ' + v.text);
+    await box(s).locator('button[data-gh-analytics-toggle]').click(); v = await look(s);
+    eq([v.site, v.state, v.stored], ['off', 'opted-out', '1'], 'after turning off');
+    ok(OFF_TEXT.test(v.text) && /also turned off for this browser/.test(v.text) && !ON_TEXT.test(v.text), 'opted-out text: ' + v.text);
+    await s.page.reload(); await s.page.waitForFunction(() => document.getElementById('app').__ghReady === true); await toPrivacy(s); v = await look(s);
+    eq([v.site, v.state, v.stored], ['off', 'opted-out', '1'], 'stored choice shown after reload');
+    await box(s).locator('button[data-gh-analytics-toggle]').click(); v = await look(s);
+    eq([v.site, v.state, v.stored], ['off', 'allowed', null], 'after turning back on');
+    ok(OFF_TEXT.test(v.text) && !ON_TEXT.test(v.text), 'no "resumes" while the site is off: ' + v.text);
+    eq(s.env.ingestCalls, 0, 'nothing sent'); eq(await gh(s), { status: 'off', keys: [] }, 'no identifiers');
+    await s.ctx.close();
+  });
+  await check('privacy control, site switched ON: says on; opt-out says off and stops; re-enable says it resumes on the next page load', async () => {
+    const s = await open();
+    await toPrivacy(s); let v = await look(s);
+    eq([v.site, v.state, v.status, v.button], ['on', 'allowed', 'on', true], 'initial');
+    ok(/^Analytics is on for this browser/.test(v.text), 'on text: ' + v.text);
+    await box(s).locator('button[data-gh-analytics-toggle]').click(); v = await look(s);
+    eq([v.site, v.state, v.stored], ['on', 'opted-out', '1'], 'after turning off');
+    ok(/^Analytics is off for this browser/.test(v.text), 'opted-out text: ' + v.text);
+    await box(s).locator('button[data-gh-analytics-toggle]').click(); v = await look(s);
+    eq([v.site, v.state, v.stored], ['on', 'allowed', null], 'after turning back on');
+    ok(/resumes from your next page load/.test(v.text), 'resume text: ' + v.text);
+    await s.ctx.close();
+  });
+  for (const [label, o] of [['GPC', { gpc: true }], ['Do Not Track', { dnt: true }]]) {
+    await check(`privacy control with ${label}: correct for the site switched off and on; no button either way`, async () => {
+      for (const enabled of [false, true]) {
+        const s = await open({ ...o, enabled });
+        await toPrivacy(s); const v = await look(s);
+        eq([v.site, v.state, v.button, v.status], [enabled ? 'on' : 'off', 'browser-signal', false, enabled ? 'browser-signal' : 'off'], `site ${enabled ? 'on' : 'off'}`);
+        ok(/Global Privacy Control or Do Not Track/.test(v.text) && !ON_TEXT.test(v.text), 'text: ' + v.text);
+        ok(enabled ? !OFF_TEXT.test(v.text) : OFF_TEXT.test(v.text), 'site state stated correctly: ' + v.text);
+        eq(s.env.ingestCalls, 0, 'nothing sent'); await s.ctx.close();
+      }
+    });
+  }
+  await check('privacy control when analytics.js did not load: reports the site as off (nothing can be collected)', async () => {
+    const s = await open({ noScript: true });
+    await toPrivacy(s); const v = await look(s);
+    eq([v.site, v.state, v.status], ['off', 'allowed', null], 'state'); ok(OFF_TEXT.test(v.text), 'text: ' + v.text);
+    eq(s.env.ingestCalls, 0, 'nothing sent'); await s.ctx.close();
   });
   await check('opt-out: a browser signal shows an explanation and no button (the browser setting decides)', async () => {
     const s = await open({ gpc: true });

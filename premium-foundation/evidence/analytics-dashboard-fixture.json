@@ -154,7 +154,7 @@
       },
       "bot_sessions": 1,
       "last_event_at": "2026-11-09T17:32:00+00:00",
-      "last_rollup_at": "2026-11-13T14:43:59.595488+00:00",
+      "last_rollup_at": "2026-11-17T05:49:56.159877+00:00",
       "refusal_counting": {
         "exact_up_to_events": 2000,
         "then_at_most_one_update_per_seconds": 60

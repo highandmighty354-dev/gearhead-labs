@@ -4,14 +4,17 @@
 `docs/ANALYTICS-BLUEPRINT.md` is the original plan; where the two differ, this document describes what was actually
 built (§10 lists the differences).
 
-| | Status (2026-11-09) |
+| | Status (updated 2026-11-17, Chapter 1D.2; first written 2026-11-09) |
 |---|---|
 | Code, database migration, tests | Implemented and tested on a throwaway local database and in a real browser, using **synthetic traffic only** |
 | PR #29 | **Draft, unmerged** |
 | Deployment | **Nothing deployed.** Migration 0501 not applied to any hosted database |
 | Website tracking | **Disabled** (`analytics-config.js`: `enabled: false`) |
+| Privacy page | The **published** Privacy Policy is unchanged, word for word; only the analytics control is added beneath it, and it says analytics is switched off. The draft policy is **not** in any file the site serves (§11, decision 2) |
 | Real-world validation | **None** — no real visitor traffic has ever reached this system |
+| Hosted verification | **None** — nothing has run on hosted Supabase or production (§9a lists what must be verified) |
 | Release blocker | Migration 0501 is outside the locked migration package (§9) |
+| Open blueprint requirement | Script size "8 KB or less" is **not met** and awaits an owner decision on how it is measured (§10) |
 
 Labels used below: **Implemented** (in the code), **Tested** (a test in §8 exercises it), **Untested** (built, not
 exercised), **Proposed** (not built), **Awaiting owner decision** (§11).
@@ -24,9 +27,10 @@ exercised), **Proposed** (not built), **Awaiting owner decision** (§11).
 |---|---|
 | Database | `supabase/migrations/0501_analytics.sql`; rollback `supabase/rollback/0501_analytics.rollback.sql` (removes all analytics objects **and all analytics data**) |
 | Receiver (Supabase Edge Function) | `supabase/functions/analytics-ingest/index.ts` (reads settings) + `supabase/functions/_shared/analytics-ingest.js` (the logic) |
-| Website tracking | `analytics-choice.js` (the visitor's choice, read first), `analytics.js`, `analytics-config.js`, three script tags in `index.html`; the opt-out control on the Privacy page (`F1_12_4…html`, `privacy` page) |
+| Website tracking | `analytics-choice.js` (the visitor's choice, read first), `analytics.js`, `analytics-config.js`, three script tags in `index.html`; the opt-out control beneath the published policy on the Privacy page (`F1_12_4…html`, `privacy` page) |
+| Navigation fixes made in this PR (Chapter 1D.1) | `app-shell.js` (start-up re-syncs and Back/Forward no longer leave static pages); `F1_12_4…html` (`ghRoute()` hands `?page=` to `ghCertRoute()`; static pages take a GH-DEF-035 render number); test `premium/tests/shell-static-routes.test.js` |
 | Owner dashboard | `owner/analytics.html`, `owner/analytics.js`, `owner/analytics.css` |
-| Tests | `premium-foundation/tests/analytics.test.js`, `premium/tests/analytics-client.test.js`, `premium/tests/analytics-dashboard.test.js`; results in `premium-foundation/evidence/analytics-*.json` |
+| Tests | `premium-foundation/tests/analytics.test.js`, `premium/tests/analytics-client.test.js`, `premium/tests/analytics-dashboard.test.js`, `premium/tests/shell-static-routes.test.js`, and the Privacy-page guard in `premium/tests/frontend.test.js`; results in `premium-foundation/evidence/analytics-*.json` |
 
 ---
 
@@ -218,6 +222,15 @@ the network when the visitor opts out cannot be recalled. This is an **opt-out**
 their browser signals otherwise. Whether visitors in the EU/UK must instead be asked first is an open legal question
 (§11, decision 1).
 
+**What the control says (Chapter 1D.2, Implemented, Tested).** The control states two things: whether analytics is switched
+on for the **site** (`data-site="on|off"`) and this browser's choice (`data-state`). The site counts as on only when
+`analytics.js` loaded and did not report `off` (switched off in `analytics-config.js`, or no valid endpoint); if `analytics.js`
+is missing, nothing can be collected, so that is "off" too. While the site is off the status line begins "Analytics is switched
+off on this site, so nothing is collected." and never says anything is being recorded or will resume; the visitor can still
+record an opt-out in advance, and it is kept. With the site on, the wording is as before. Tested for: site off and on, opt-out,
+reload, turning back on, GPC, Do Not Track, and `analytics.js` failing to load. Until 1D.2 the control said "Analytics is on for
+this browser" even while the site switch was off (found in the 2026-11-16 audit).
+
 ---
 
 ## 4. Calculator tracking
@@ -293,7 +306,13 @@ recorded day" and the daily totals are only correct if no day was skipped: if th
 next run fills the gap instead of leaving holes. It can only rebuild days whose raw events are still kept (30 days).
 
 ### 5.3 Other definitions (Implemented, Tested)
-Session: ends after 30 minutes without events or at New York midnight. Engaged time: counted only while the tab is
+Session: ends after 30 minutes without events or at New York midnight, and a **new UTM campaign** starts a new session (blueprint
+§4.1). Campaign = `utm_source` | `utm_medium` | `utm_campaign`. The page applies the campaign rule when it starts a session
+(`ensureSession()` in `analytics.js`): arriving with a campaign different from the current session's starts a new session id,
+whose first page view carries the campaign tags. The same campaign again, a visit with no campaign, and navigation inside the
+site keep the session. The rollup re-checks the 30-minute gap and midnight on the server, as the blueprint specifies; it does
+not re-check campaigns. *(Implemented since the first revision; tested from Chapter 1D.2 in the browser and in the rollup. The
+2026-11-16 audit wrongly listed it as not built.)* Engaged time: counted only while the tab is
 visible, focused and used within the last 30 seconds; at most 30 minutes per page view. Engaged session: ≥ 10 s engaged,
 ≥ 2 page views, or a key event. Channel: campaign (UTM tags), direct, organic search, social, AI assistant or referral,
 from the referring site's host name only. The Premium funnel counts each step per session independently, not as a strict
@@ -339,20 +358,29 @@ tests drive a real Chromium browser against the real site files, with the receiv
 test uses a fake Supabase service whose report is the real output of the database function on made-up data. None of
 these figures describe real visitors.
 
+**Current results (2026-11-17, Chapter 1D.2):**
+
 | Suite | Result | What it runs on |
 |---|---|---|
-| Analytics database (`analytics.test.js`) | **34/34** | Real database permissions and row-level security; the receiver's logic end to end against the database |
-| Website tracking (`analytics-client.test.js`) | **36/36** | Real browser, real calculators, fake receiver; includes the calculator-completion cases and the 585-calculator check |
+| Analytics database (`analytics.test.js`) | **35/35** | Real database permissions and row-level security; the receiver's logic end to end against the database; campaign sessions in the rollup |
+| Website tracking (`analytics-client.test.js`) | **43/43** | Real browser, real calculators, fake receiver; calculator completion and the 585-calculator check; the Privacy-page control in every site and visitor state; campaign sessions; slow frame HTML |
 | Dashboard (`analytics-dashboard.test.js`) | **12/12** | Real browser, real sign-in library, fake Supabase service |
-| Frontend checks (`frontend.test.js`) | **55/55** | Static checks of site files |
+| Frontend checks (`frontend.test.js`) | **56/56** | Static checks of site files, including the published-Privacy-Policy guard |
+| Shell navigation (`shell-static-routes.test.js`) | **23/23** | Real browser: static pages through the shell's start-up re-syncs and Back/Forward |
 | Existing database suite (`pf.test.js`, run with `TZ=UTC`) | **48/48** (0409 counts corrected in Chapter 1D) | Real database |
+| Full browser regression (`run-browser-tests.sh`) | see the PR description for the latest run | Real browser, every calculator suite |
+
+**Earlier recorded results (kept as history, not current):** revision 2 (`2233403`): database 21/21, website 26/26. Rewrite
+`f3ad9cd` and Chapter 1D/1D.1 (`ffee3f5`): database 34/34, website 36/36, frontend 55/55. Chapter 1D.1 navigation fixes
+(`9278493`, `b7389326`): website 37/37, shell navigation 23/23, full browser regression 52/52 suites.
 
 **The two former existing-suite failures** were expected counts written before 0409 (it adds one formula version: 582
 instead of 581). Chapter 1D corrected those expectations in `pf.test.js` (test-only); the suite now passes 48/48 with
 `TZ=UTC`. Without `TZ=UTC` a time-zone-only failure appears on any branch.
 
-**Not re-run:** the site smoke test (`browser-smoke.js`) was not re-run after the corrections because the site's script
-list did not change (it passed 19/19 before them).
+**Not re-run (as of 2026-11-09):** the site smoke test (`browser-smoke.js`) was not re-run after the corrections because the
+site's script list did not change (it passed 19/19 before them). *It has since been re-run in every full browser regression
+(19/19 on 2026-11-16 and later).*
 
 **Not tested:**
 - hosted Supabase integration (the Edge Function under Supabase's runtime, the database call through Supabase's API,
@@ -362,8 +390,14 @@ list did not change (it passed 19/19 before them).
 - real-world traffic;
 - Premium calculators in the completion check.
 
-Performance: 40 real keystrokes in a calculator took a median 422 ms with tracking off and 458 ms with it on, within the
-run-to-run spread. No slowdown was detectable beyond that noise.
+Performance (2026-11-09): 40 real keystrokes in a calculator took a median 422 ms with tracking off and 458 ms with it on, within
+the run-to-run spread. No slowdown was detectable beyond that noise.
+
+**Performance test reliability (2026-11-16/17).** The check compares the median of six alternating runs (on vs off) and fails if
+"on" exceeds 1.25 x "off" + 20 ms. On the 2-core test machine single runs vary by about 40 %, and the check failed once in about a
+dozen runs on 2026-11-16 (514 vs 380 ms) and then passed six times in a row; passing runs had near-equal medians (466 vs 458 ms).
+So a single failure is not evidence of a slowdown, and a pass only rules out large ones. It has not been changed; making it
+statistically sound (more samples) is a recorded follow-up (§12).
 
 ---
 
@@ -380,6 +414,23 @@ run-to-run spread. No slowdown was detectable beyond that noise.
   `ANALYTICS_INGEST_ENABLED` **unset** (disabled); add the owner to `analytics_owners`; publish the legally reviewed
   Privacy page; and only on the owner's explicit LIVE decision set `ANALYTICS_INGEST_ENABLED=true` and `enabled: true`.
 - The rollback script is for the TEST project and disposable databases only.
+- **Merging is itself a site release.** Per the project record the site is published from `main` by GitHub Pages (the Pages
+  settings themselves were not readable from the review environment), so merging PR #29 publishes the
+  changed site files (engine, shell, analytics scripts with tracking off, the Privacy-page control, `owner/` pages). It does
+  not apply 0501: the provisioning workflow deploys only its pinned 19-file package.
+
+## 9a. Hosted-environment verification still required (none done)
+
+Everything in §8 ran locally on synthetic data. None of the following has been verified on hosted Supabase or production:
+1. 0501 applied through the gated workflow on a TEST project; `pg_cron` available there and both jobs (`analytics-rollup-recent`,
+   `analytics-purge`) scheduled and running.
+2. The Edge Function under Supabase's Deno runtime, deployed without JWT checking; the database call through Supabase's API.
+3. Which address header the platform sets and a caller cannot forge (decides `ANALYTICS_ADDRESS_SOURCE`).
+4. CORS from the real site origin, and page-close delivery (`sendBeacon`) to the hosted function.
+5. The storage reserves (§3.4) re-measured on hosted PostgreSQL 17.
+6. Real magic-link sign-in for the owner dashboard, and the owner allow-list on the hosted project.
+7. Forced row-level security with no policies working for the functions' owner on the hosted project (production's `postgres`
+   role bypasses RLS per the 2026-10-13 record; this migration has not run there).
 
 ---
 
@@ -388,13 +439,16 @@ run-to-run spread. No slowdown was detectable beyond that noise.
 | Topic | Blueprint (plan) | As built |
 |---|---|---|
 | Environment | Not specified; Origin allow-list only | Fixed by the receiver's `ANALYTICS_ENV`; page value only cross-checked; Origin is CORS only |
-| Rate limits | In-memory per address, plus per-session cap | Shared database limits (per network, per day, per environment) plus the per-session cap; in-memory limiter kept as a per-copy first line |
+| Rate limits | In-memory per address, plus per-session cap | Shared database limits (per sender network per 10 min and per day; project-wide per hour and per day, all environments together) plus the per-session cap; in-memory limiter kept as a per-copy first line |
 | New vs returning | Flag sent by the browser | First recorded day kept in the database |
 | Completion | `.result-value` with a finite number after 2 s | Also `.mini-result .value`; requires a recalculation after the input; rejects NaN / Infinity / error; late results re-checked |
 | Search words | Recommended to store, filtered | Not stored (open decision 6) |
 | Account linking for the funnel | Recommended at trial click | **Not built**; no visitor activity is linked to accounts |
 | Report functions | Several separate functions | One owner-checked report function plus refresh and billing functions |
 | Rollup schedule | Nightly | Every 15 minutes, with catch-up |
+| Session on a new campaign | New session when a new UTM campaign arrives | As specified, applied by the page; server re-checks gaps and midnight only (as the blueprint says) |
+| Script size | "8 KB or less" (checklist §11); "`analytics.js`, about 6 KB" (§6.4); **no measurement method stated** | **Not met; awaiting owner decision (2026-11-17).** `analytics.js`: 24,590 B raw; 8,624 B gzip (level 6, about what the host sends); 12,271 B minified; 5,254 B minified + gzip; 6,174 B gzip with comments stripped. Raw 8 KB is reachable only by removing required features. The ways to meet it (count minified + gzip, or gzip with comments stripped) need a build step for the served file. Nothing has been changed or waived |
+| Opt-out control | Not in the blueprint (consent was an owner decision) | Built (§3.10): GPC / DNT honoured, Privacy-page switch, states the site's on/off state |
 
 ---
 
@@ -410,16 +464,20 @@ run-to-run spread. No slowdown was detectable beyond that noise.
 | 6 | Collect search words? | Not collected now |
 | 7 | Reporting time zone | America/New_York is built in |
 | 8 | Visitor authenticity | (a) accept best-effort figures and cross-check against Google Search Console and Stripe; (b) add a free human-check service such as Cloudflare Turnstile — a third party, a Privacy-page mention and a site change; (c) count only signed-in visitors — conflicts with the no-account-linking rule. **Current recommendation: (a). This is a recommendation, not an approval.** Only (a) is in place |
-| 9 | Rate limits | Starting values: 10,000 / day and 2,000 / hour overall per environment; 600 / 10 min and 5,000 / day per sender; 300 / 10 min and 2,000 / day for unknown senders; raise them (or move to a paid plan) if Data health shows real visitors being dropped |
+| 9 | Rate limits | Starting values: 10,000 / day and 2,000 / hour for the **whole project** (all environments together); 600 / 10 min and 5,000 / day per sender network (an IPv4 address or an IPv6 /56); 300 / 10 min and 2,000 / day shared by all unknown senders; raise them (or move to a paid plan) if Data health shows real visitors being dropped. *(Corrected 2026-11-17: this row said "per environment"; the code has counted the whole project since Chapter 1D.)* Note that with the default `ANALYTICS_ADDRESS_SOURCE=none` every visitor counts as "unknown", so the whole site shares 300 / 10 min and 2,000 / day |
 | 10 | Address source | `ANALYTICS_ADDRESS_SOURCE`: `none` until the TEST-project probe shows which header the platform sets and a caller cannot forge |
 
-Draft Privacy page (decision 2, not approved, pending legal review): the full proposed text is the `privacy` page body in
-`F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html`, marked DRAFT, with bracketed items for the
-owner and for legal review. It includes the opt-out control.
+Draft Privacy page (decision 2, not approved, pending legal review). **History:** until 2026-11-16 the full proposed text was
+the `privacy` page body in `F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html`, marked DRAFT, with
+bracketed items for the owner and for legal review; merging would have published it. **Since Chapter 1D.2 (2026-11-17)** the
+site keeps the published policy word for word, with only the analytics control added beneath it, and the draft is in no file
+the site serves (a test in `frontend.test.js` enforces both). The draft text is kept in git history for review: the `privacy`
+body of that file at commit `b7389326ce6a4fa67b38d883c4da5f04780b053e`. It is not kept in `docs/`, because the site also
+publishes Markdown files as pages. Publishing a new policy needs the owner's approval of its final wording.
 
 ---
 
-## 12. Implementation points found while writing this record (not changed)
+## 12. Implementation points (found while writing this record, and in later reviews; each says whether it was changed)
 
 These are reported for the next engineering pass; no code was changed in this documentation update.
 
@@ -434,3 +492,23 @@ These are reported for the next engineering pass; no code was changed in this do
 4. **The in-memory limiter counts requests, not events**, and resets entirely when it is tracking more than 10,000
    addresses.
 5. **Error messages outside the result boxes are not checked** by the completion detector (§4.2).
+
+Added from the 2026-11-16 audit (not changed unless stated):
+
+6. **The shared ceilings can be used up on purpose.** A few sender networks can exhaust the project-wide 10,000 / day or
+   2,000 / hour, and with the default address setting one script can exhaust the shared "unknown" allowance; real visitors'
+   events are then dropped for that window. Analytics only: the site and Premium are unaffected (fails closed).
+7. **Unknown property names reach Data health.** A rejected event's reason keeps the first 30 characters of an unknown property
+   name, so each new name adds a Data health row (bounded by the event quota, counted in the 150 MB budget). The dashboard
+   escapes it.
+8. **Campaign tags can carry personal data** if someone puts it into a link's UTM values; they are cleaned (lower case, letters,
+   digits, `-_.`) and kept with sessions for 13 months.
+9. **The migration's post-condition checks a subset of the functions' privileges**; the test suite checks all of them.
+10. **Not tested:** the 13-month deletions, `pg_cron` scheduling, Premium calculator completion, a slow or failing receiver
+    beyond "down", and main-thread / layout-shift budgets.
+11. **The performance check is noisy** (§8); it needs more samples to be decisive.
+12. **Fixed in Chapter 1D.1:** a Privacy control could stay unpainted when the calculator page's HTML arrived after the shell had
+    finished parsing (a slow connection); the frame was marked as bound before it could be watched. Fixed in `analytics-choice.js`
+    and tested.
+13. **Fixed in Chapter 1D.2:** the control's wording while analytics is switched off (§3.10); the published Privacy Policy
+    restored (§11, decision 2).
