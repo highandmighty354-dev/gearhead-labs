@@ -31,8 +31,7 @@ const CHROMIUM = process.env.GH_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chr
    independent physics and fail until the calculator is repaired. Each is listed with its OPEN register entry; register-check.js traces these ids. Remove an entry in
    the same change that fixes its defect (the runner fails on a listed entry that passes). */
 const KNOWN_BASELINE_IDS = {
-  'formula:ackermann_angle': 'GH-DEF-052',
-  'formula:diesel_smoke_limit': 'GH-DEF-046'
+  'formula:ackermann_angle': 'GH-DEF-052'
 };
 const KNOWN_BASELINE = Object.keys(KNOWN_BASELINE_IDS);
 

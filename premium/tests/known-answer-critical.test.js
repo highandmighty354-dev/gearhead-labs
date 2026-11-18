@@ -88,11 +88,12 @@ const CASES = [
   { id: 'KA-01', reg: 'GH-DEF-045', calc: 'diesel_power_from_fuel', edit: { dpf_fuel: 25, dpf_bsfc: 0.40 }, row: 'Estimated Brake Power', want: 25 / 0.40, tol: 0.6, why: 'HP = 25 lb/hr / 0.40 lb/hp-hr = 62.5' },
   { id: 'KA-02', reg: 'GH-DEF-045', calc: 'diesel_power_from_fuel', edit: { dpf_fuel: 100, dpf_bsfc: 0.38 }, row: 'Estimated Brake Power', want: 100 / 0.38, tol: 0.6, why: 'HP = 100 / 0.38 = 263.2' },
   { id: 'KA-45', reg: 'GH-DEF-045', kind: 'api', calc: 'diesel_power_from_fuel', inputs: { fuel: 25, bsfc: 0.40 }, out: 'estimated_brake_power', want: 25 / 0.40, tol: 1e-9, why: 'registry: HP = 25 / 0.40 = 62.5 exactly' },
-  // RC-02 / GH-DEF-046 diesel_smoke_limit — fuel = air / (lambda x stoich AFR). Reference value: diesel stoichiometric AFR 14.5 (the documented convention).
+  // RC-02 / GH-DEF-046 diesel_smoke_limit — fuel = air / (lambda x stoich AFR). Reference value: diesel stoichiometric AFR 14.5 (the documented convention; approved by the owner 2026-11-18).
   // The tolerance is a TOLERANCE, not a second reference: +/-1 % of the 14.5-based value, for display rounding. It happens to admit a stoichiometric AFR of
   // roughly 14.36-14.65, but the expected value is computed with 14.5 only. The shipped engine (air / lambda, no AFR) is about 14.5x too high and fails either way.
   { id: 'KA-03', reg: 'GH-DEF-046', calc: 'diesel_smoke_limit', edit: { dsl_a: 500, dsl_l: 1.15 }, row: 'Smoke-Limited Fuel', want: 500 / (1.15 * 14.5), tol: 0.30, why: '500 / (1.15 x 14.5) = 29.99 lb/min (tolerance +/-1 %)' },
   { id: 'KA-04', reg: 'GH-DEF-046', calc: 'diesel_smoke_limit', edit: { dsl_a: 60, dsl_l: 1.3 }, row: 'Smoke-Limited Fuel', want: 60 / (1.3 * 14.5), tol: 0.032, why: '60 / (1.3 x 14.5) = 3.183 lb/min (tolerance +/-1 %)' },
+  { id: 'KA-53', reg: 'GH-DEF-046', kind: 'api', calc: 'diesel_smoke_limit', inputs: { a: 500, l: 1.15 }, out: 'smoke_limited_fuel_index', want: 500 / (1.15 * 14.5), tol: 1e-9, why: 'registry: 500 / (1.15 x 14.5) = 29.985 (stoich AFR 14.5, owner decision 2026-11-18)' },
   // RC-03 / GH-DEF-047 piston_position — slider-crank
   { id: 'KA-05', reg: 'GH-DEF-047', calc: 'piston_position', edit: { str6: 3.75, rl2: 6.76, ang: 90 }, row: 'Piston Position', want: pistonX(3.75, 6.76, 90), tol: 0.001, why: 'x(90 deg) = 2.1402 in' },
   { id: 'KA-06', reg: 'GH-DEF-047', calc: 'piston_position', edit: { str6: 3.75, rl2: 6.76, ang: 0 }, row: 'Piston Position', want: 0, tol: 0.001, why: 'at TDC the piston is 0 in from TDC' },

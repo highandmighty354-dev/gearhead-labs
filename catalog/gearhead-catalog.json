@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "63b57526a9788890876758abe0b4254a152fdc904fb4b5264a5c8f39d3614be7"
+      "sha256": "2d3cad7bd9eff2fecf80e1663b19e84eda3468f76ab374b0958e34bd6fea147d"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -28,7 +28,7 @@
     },
     "formula_versions_0410": {
       "file": "supabase/migrations/0410_formula_versions_stage2_calculator_repairs.sql",
-      "sha256": "15db02aaec51dcd05b278d76c2f604d9715aa604c5d750f69a6fda7dafe2ad48"
+      "sha256": "1c5d8d538e493636b29bdddbb013193c04f1fa1663886fb34fd145d8febb47d1"
     }
   },
   "counts": {
@@ -1093,7 +1093,7 @@
     {"id":"diesel_regen_cost","name":"DPF Regeneration Fuel Cost","category":"DIESEL AFTERTREATMENT","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-8b7a68a1","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"diesel_regen_interval","name":"DPF Regeneration Interval","category":"DIESEL / AFTERTREATMENT","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-8fe11da5","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"diesel_scr_efficiency","name":"SCR Efficiency","category":"DIESEL / AFTERTREATMENT","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-c92d3dd9","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
-    {"id":"diesel_smoke_limit","name":"Smoke-Limited Fuel","category":"DIESEL / INJECTION & COMBUSTION","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-e12aa323","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
+    {"id":"diesel_smoke_limit","name":"Smoke-Limited Fuel","category":"DIESEL / INJECTION & COMBUSTION","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-64771dd0","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"diesel_torque_from_power","name":"Diesel Torque from Power","category":"DIESEL PERFORMANCE & EFFICIENCY","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-0c603767","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"diesel_turbine_pr","name":"Diesel Turbine Pressure Ratio","category":"DIESEL / TURBO & THERMAL","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-2ffd2264","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"diesel_turbo_efficiency","name":"Diesel Turbo Efficiency","category":"DIESEL / TURBO & THERMAL","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-115e068b","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},

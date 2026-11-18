@@ -4,7 +4,7 @@
  "generated_from": {
   "catalog": {
    "file": "catalog/gearhead-catalog.json",
-   "sha256": "1116cce6c3031a1fc16ce87e3ab26be4f7148e97eb4d93ca747708c2eac4fb72"
+   "sha256": "771620e264c0859416b7e0d0b4ecf01addf9d9e599f6d4ec228dc764fccdf680"
   },
   "enrichment": {
    "file": "catalog/encyclopedia-enrichment.json",
@@ -12,7 +12,7 @@
   },
   "page": {
    "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-   "sha256": "63b57526a9788890876758abe0b4254a152fdc904fb4b5264a5c8f39d3614be7"
+   "sha256": "2d3cad7bd9eff2fecf80e1663b19e84eda3468f76ab374b0958e34bd6fea147d"
   },
   "models": {
    "file": "premium/models.js",
@@ -28257,7 +28257,7 @@
     }
    ],
    "former_ids": [],
-   "description": "Smoke-Limited Fuel = Airflow ÷ Minimum Allowable Lambda. The maximum fuel a diesel can be fed at a given airflow before dropping below the minimum lambda where visible smoke and excess particulate emissions begin — a hard ceiling on fueling that airflow alone doesn’t reveal.",
+   "description": "Smoke-Limited Fuel = Airflow ÷ (Minimum Allowable Lambda × 14.5, the stoichiometric air/fuel ratio of diesel). The maximum fuel a diesel can be fed at a given airflow before dropping below the minimum lambda where visible smoke and excess particulate emissions begin — a hard ceiling on fueling that airflow alone doesn’t reveal.",
    "formula": {
     "inputs": [
      "Airflow",
