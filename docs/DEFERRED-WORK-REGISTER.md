@@ -68,24 +68,24 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-042](#gh-def-042--the-airflow-vs-rpm-graph-draws-a-curve-for-inputs-engine-airflow-estimation-rejects) | The "Airflow vs RPM" graph draws a curve for inputs Engine Airflow Estimation rejects | VERIFIED CLOSED | Low | P2 |
 | [GH-DEF-043](#gh-def-043--three-engine-build-calculators-still-return-a-number-for-negative-inputs) | Three Engine Build calculators still return a number for negative inputs | OPEN | Low | P3 |
 | [GH-DEF-044](#gh-def-044--pull-ivc-from-cam-card-on-dynamic-compression-does-not-change-the-ivc-box) | "↓ Pull IVC from Cam Card" on Dynamic Compression does not change the IVC box | FIXED — UNVERIFIED | Medium | P2 |
-| [GH-DEF-045](#gh-def-045--diesel-power-from-fuel-flow-treats-lbhr-as-lbmin-60-too-high) | Diesel Power from Fuel Flow treats lb/hr as lb/min (60× too high) | OPEN | Critical | P1 |
-| [GH-DEF-046](#gh-def-046--smoke-limited-fuel-divides-airflow-by-lambda-only-145-too-high) | Smoke-Limited Fuel divides airflow by lambda only (14.5× too high) | OPEN | Critical | P1 |
-| [GH-DEF-047](#gh-def-047--piston-position-returns-r--x-instead-of-the-distance-below-tdc) | Piston Position returns r − x instead of the distance below TDC | OPEN | Critical | P1 |
-| [GH-DEF-048](#gh-def-048--cranking-compression-measures-ivc-from-tdc-and-inverts-the-trapped-stroke) | Cranking Compression measures IVC from TDC and inverts the trapped stroke | OPEN | Critical | P1 |
+| [GH-DEF-045](#gh-def-045--diesel-power-from-fuel-flow-treats-lbhr-as-lbmin-60-too-high) | Diesel Power from Fuel Flow treats lb/hr as lb/min (60× too high) | FIXED — UNVERIFIED | Critical | P1 |
+| [GH-DEF-046](#gh-def-046--smoke-limited-fuel-divides-airflow-by-lambda-only-145-too-high) | Smoke-Limited Fuel divides airflow by lambda only (14.5× too high) | FIXED — UNVERIFIED | Critical | P1 |
+| [GH-DEF-047](#gh-def-047--piston-position-returns-r--x-instead-of-the-distance-below-tdc) | Piston Position returns r − x instead of the distance below TDC | FIXED — UNVERIFIED | Critical | P1 |
+| [GH-DEF-048](#gh-def-048--cranking-compression-measures-ivc-from-tdc-and-inverts-the-trapped-stroke) | Cranking Compression measures IVC from TDC and inverts the trapped stroke | FIXED — UNVERIFIED | Critical | P1 |
 | [GH-DEF-049](#gh-def-049--sway-bar-roll-stiffness-uses-arm-length-for-track-misses-raddeg-track-width-has-no-effect) | Sway Bar roll stiffness uses arm length for track, misses rad→deg; Track Width has no effect | OPEN | Critical | P1 |
-| [GH-DEF-050](#gh-def-050--wet-bulb-evaluates-stull-2011-with-f-where-the-formula-needs-c) | Wet Bulb evaluates Stull (2011) with °F where the formula needs °C | OPEN | Critical | P1 |
+| [GH-DEF-050](#gh-def-050--wet-bulb-evaluates-stull-2011-with-f-where-the-formula-needs-c) | Wet Bulb evaluates Stull (2011) with °F where the formula needs °C | FIXED — UNVERIFIED | Critical | P1 |
 | [GH-DEF-051](#gh-def-051--bolt-pattern-4-lug-8-lug-and-fallback-branches-contradict-the-pages-own-measuring-rule) | Bolt Pattern: 4-lug, 8-lug and fallback branches contradict the page's own measuring rule | OPEN | High | P1 |
 | [GH-DEF-052](#gh-def-052--ackermann-angle-uses-wheelbase--2-in-place-of-track-width-and-has-no-track-input) | Ackermann Angle uses wheelbase ÷ 2 in place of track width and has no track input | OPEN | Critical | P2 |
-| [GH-DEF-053](#gh-def-053--fuel-line-pressure-loss-divides-roughness-in-inches-by-diameter-in-metres) | Fuel Line Pressure Loss divides roughness in inches by diameter in metres | OPEN | Critical | P1 |
-| [GH-DEF-054](#gh-def-054--simulators-air-density-holds-a-slugft-value-labelled-lbft-and-is-divided-by-32174-again) | Simulators: air density holds a slug/ft³ value labelled lb/ft³ and is divided by 32.174 again | OPEN | Critical | P1 |
-| [GH-DEF-055](#gh-def-055--exhaust-valve-events-use-a-hidden-4-cam-advance-that-the-page-does-not-show) | Exhaust valve events use a hidden 4° cam advance that the page does not show | OPEN | Critical | P2 |
+| [GH-DEF-053](#gh-def-053--fuel-line-pressure-loss-divides-roughness-in-inches-by-diameter-in-metres) | Fuel Line Pressure Loss divides roughness in inches by diameter in metres | FIXED — UNVERIFIED | Critical | P1 |
+| [GH-DEF-054](#gh-def-054--simulators-air-density-holds-a-slugft-value-labelled-lbft-and-is-divided-by-32174-again) | Simulators: air density holds a slug/ft³ value labelled lb/ft³ and is divided by 32.174 again | FIXED — UNVERIFIED | Critical | P1 |
+| [GH-DEF-055](#gh-def-055--exhaust-valve-events-use-a-hidden-4-cam-advance-that-the-page-does-not-show) | Exhaust valve events use a hidden 4° cam advance that the page does not show | FIXED — UNVERIFIED | Critical | P2 |
 | [GH-DEF-056](#gh-def-056--e85-blend-removereplace-volume-is-wrong-add-branch-can-exceed-the-tank-with-no-warning) | E85 Blend remove/replace volume is wrong; add branch can exceed the tank with no warning | OPEN | High | P2 |
-| [GH-DEF-057](#gh-def-057--road-course-fuel-stint-shows-29-laps-for-exactly-30-laps-of-fuel) | Road-course fuel stint shows 29 laps for exactly 30 laps of fuel | OPEN | Critical | P2 |
+| [GH-DEF-057](#gh-def-057--road-course-fuel-stint-shows-29-laps-for-exactly-30-laps-of-fuel) | Road-course fuel stint shows 29 laps for exactly 30 laps of fuel | FIXED — UNVERIFIED | Critical | P2 |
 | [GH-DEF-058](#gh-def-058--empty-or-non-numeric-required-inputs-silently-fall-back-to-the-coded-default) | Empty or non-numeric required inputs silently fall back to the coded default | OPEN | High | P1 |
 | [GH-DEF-059](#gh-def-059--no-physical-plausibility-limits-results-of-10-and-more-are-shown-with-no-warning) | No physical plausibility limits: results of 10¹² and more are shown with no warning | OPEN | High | P1 |
 | [GH-DEF-060](#gh-def-060--engine-self-test-asserted-three-defective-formulas-so-it-passed-a-wrong-engine) | Engine self-test asserted three defective formulas, so it passed a wrong engine | FIXED — UNVERIFIED | High | P0 |
 | [GH-DEF-061](#gh-def-061--no-automated-test-gate-regression-suites-never-ran-on-pull-requests) | No automated test gate: regression suites never ran on pull requests | FIXED — UNVERIFIED | High | P0 |
-| [GH-DEF-062](#gh-def-062--top-speed-simulator-drag--rolling-shows-the-drag-at-the-last-speed-tested-not-at-the-reported-top-speed) | Top Speed simulator: "Drag + Rolling" shows the drag at the last speed tested, not at the reported top speed | OPEN | Medium | P2 |
+| [GH-DEF-062](#gh-def-062--top-speed-simulator-drag--rolling-shows-the-drag-at-the-last-speed-tested-not-at-the-reported-top-speed) | Top Speed simulator: "Drag + Rolling" shows the drag at the last speed tested, not at the reported top speed | FIXED — UNVERIFIED | Medium | P2 |
 | [GH-DEF-063](#gh-def-063--simulator-engine-power-box-has-no-effect-on-any-simulator) | Simulator "Engine Power" box has no effect on any simulator | OPEN | Medium | P2 |
 | [GH-DEF-064](#gh-def-064--ev-power-boxes-are-labelled-hp-but-hold-and-read-kw) | EV power boxes are labelled HP but hold and read kW | OPEN | Medium | P2 |
 | [GH-DEF-065](#gh-def-065--inputs-that-are-read-but-have-no-effect-dead-inputs) | Inputs that are read but have no effect (dead inputs) | OPEN | Medium | P2 |
@@ -1496,76 +1496,84 @@ This is the **single authoritative register** of known defects, deferred improve
   2026-11-10 — status corrected from OPEN: the fix was merged in PR #21 (`d65a914`) but this entry was never updated (register drift found in the Phase 0 baseline). Not VERIFIED CLOSED: Verification item 7 (button checked on the live site) has no recorded evidence.
 
 ### GH-DEF-045 — Diesel Power from Fuel Flow treats lb/hr as lb/min (60× too high)
-- **Status:** OPEN
+- **Status:** FIXED — UNVERIFIED
 - **Severity:** Critical (wrong in the shipped default: 3,750 HP for 25 lb/hr at 0.40 BSFC; correct 62.5 HP)
 - **Priority:** P1
 - **Description:** `diesel_power_from_fuel` computes HP = fuel × 60 / BSFC with fuel labelled lb/hr and BSFC in lb/hp·hr. The ×60 belongs to a lb/min input.
 - **Evidence:** **Evidence class: Independently reproduced (engine executed + independent mathematics, 2026-11-09/10).** engine `F1_12_4_…batch9_1.html` at `main` `d25afa2` (unchanged since `f949cab`, 2026-11-01; live build `v=20261101-0100`). Defaults 25 / 0.40: shows 3,750 HP, independent 62.5. 100 / 0.38: 15,789 vs 263.2. Source L8007.
 - **Affected:** `diesel_power_from_fuel` only.
 - **Impact:** Any diesel power estimate from fuel flow is 60× too high.
-- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then.
+- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Repaired 2026-11-18 (Stage 2, owner authorization of 2026-11-18): renderer and `GH_LEGACY_FORMULAS` row now fuel / BSFC (×60 removed); worked example and the FAQ that explained away 3,750 HP corrected.
 - **Dependencies:** None.
-- **Revisit:** Stage 2 (calculator repairs), on owner authorisation.
-- **Commits:** None (test only: 3b4268a).
-- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-01, KA-02 (failing, in the known-open ledger `premium/tests/data/known-answer-open.json`).
-- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline.
+- **Revisit:** After an authorized release: verification on the live site. Production `formula_versions` row: migration 0410 (prepared, not applied) must be applied before or with the release, as 0409 was.
+- **Commits:** `23298d9` on `fix/stage-2-calculator-repairs` (not merged). Formula version fv1-0ab8e5a1 → fv1-b16d2d94: row in `supabase/migrations/0410_formula_versions_stage2_calculator_repairs.sql` (PREPARED, NOT APPLIED; proof `premium/tests/fv0410-throwaway-db.sh`). Earlier: test only, 3b4268a.
+- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-01, KA-02 (page) and KA-45 (new: registry path, `GH_ENGINE.calculate`): pass (the cases that were in the known-open ledger are removed from it); `premium/tests/formula-fingerprints.test.js` (VERSIONED).
+- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline; `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
 - **Verification:** 1. Defaults give 62.5 HP; 100 lb/hr at 0.38 gives 263.2 HP (both systems).
   The listed known-answer cases pass and are removed from the ledger in the same change; full browser regression passes.
+  After release: the calculator checked on the live site.
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
+  2026-11-18 — repaired in Stage 2 (23298d9). Defaults 25 lb/hr / 0.40: 3,750 → 62.5 HP; 100 / 0.38: 15,789 → 263.2 HP (Imperial and Metric: Metric shows the same 62.5 HP, the fuel box in kg/hr is converted to lb/hr before the formula). Red/green: the listed cases fail on `main` `b58e1f0` (the engine the live site serves, deployment `d25afa2`) and pass on 23298d9; isolation: going from the previous commit to 23298d9 changes only these cases. Regression on the branch head (ceeb32c): all 51 suites of `run-browser-tests.sh` pass (the 2-hour run was stopped by its time limit inside validation-units-imp018 after its 68,776 checks passed; that suite was re-run on its own, mutants included, exit 0; encyclopedia and known-answer were run separately, exit 0), `run-tests.sh` passes (schema contract 26/26), whole-engine before/after diff of 749 calculators in both unit systems shows only the repaired pages changed. Not VERIFIED CLOSED: not merged or released; live verification outstanding.
 
 ### GH-DEF-046 — Smoke-Limited Fuel divides airflow by lambda only (14.5× too high)
-- **Status:** OPEN
+- **Status:** FIXED — UNVERIFIED
 - **Severity:** Critical (default 434.8 lb/min; correct 30.0)
 - **Priority:** P1
 - **Description:** `diesel_smoke_limit` returns airflow ÷ λ. Fuel at a given λ is airflow ÷ (λ × stoichiometric AFR), ≈14.5 for diesel. The registry row `GH_E1_FORMULAS.diesel_smoke_limit` (`a/l`) and the engine self-test row asserted the same wrong formula; the self-test row was corrected in Stage 1 and is in the self-test baseline.
 - **Evidence:** **Evidence class: Independently reproduced (engine executed + independent mathematics, 2026-11-09/10).** engine `F1_12_4_…batch9_1.html` at `main` `d25afa2` (unchanged since `f949cab`, 2026-11-01; live build `v=20261101-0100`). 500 lb/min, λ 1.15: shows 434.8, independent 30.0. 60 / 1.3: 46.2 vs 3.18. Renderer L11253 (a later `RENDERS` override); page header states the wrong formula.
 - **Affected:** `diesel_smoke_limit` renderer and registry row; engine self-test row `formula:diesel_smoke_limit`.
 - **Impact:** A fueling ceiling 14.5× too high.
-- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Convention still to be approved: stoichiometric AFR value (14.5 recommended).
+- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Convention still to be approved: stoichiometric AFR value (14.5 recommended). Repaired 2026-11-18 (Stage 2, owner authorization of 2026-11-18): renderer, its header formula text and the `GH_E1_FORMULAS` row now airflow / (lambda × 14.5); worked example corrected. Owner decision 2026-11-18: stoichiometric AFR 14.5, fixed.
 - **Dependencies:** None.
-- **Revisit:** Stage 2 (calculator repairs), on owner authorisation.
-- **Commits:** None (test only: 3b4268a).
-- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-03, KA-04 (failing, in the known-open ledger `premium/tests/data/known-answer-open.json`).
-- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline.
+- **Revisit:** After an authorized release: verification on the live site. Production `formula_versions` row: migration 0410 (prepared, not applied) must be applied before or with the release, as 0409 was.
+- **Commits:** `1f043dd` on `fix/stage-2-calculator-repairs` (not merged). Formula version fv1-e12aa323 → fv1-64771dd0: row in `supabase/migrations/0410_formula_versions_stage2_calculator_repairs.sql` (PREPARED, NOT APPLIED; proof `premium/tests/fv0410-throwaway-db.sh`). Earlier: test only, 3b4268a.
+- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-03, KA-04 (page) and KA-53 (new: registry path): pass (the cases that were in the known-open ledger are removed from it); engine self-test row `formula:diesel_smoke_limit` passes and is removed from `KNOWN_BASELINE_IDS`; `premium/tests/formula-fingerprints.test.js` (VERSIONED).
+- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline; `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
 - **Verification:** 1. 500 / 1.15 gives 29.99 lb/min with the reference stoichiometric AFR 14.5 (known-answer tolerance ±1 % for display rounding; a tolerance, not a second reference value). 2. Self-test row `formula:diesel_smoke_limit` passes and is removed from `KNOWN_BASELINE_IDS`. 3. A registry formula change follows the formula-version path (owner decision D9).
   The listed known-answer cases pass and are removed from the ledger in the same change; full browser regression passes.
+  After release: the calculator checked on the live site.
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
+  2026-11-18 — repaired in Stage 2 (1f043dd). 500 lb/min, λ 1.15: 434.8 → 30.0 lb/min (29.985); 60 / 1.3: 46.2 → 3.2 lb/min (3.183; the page shows 1 decimal). Red/green: the listed cases fail on `main` `b58e1f0` (the engine the live site serves, deployment `d25afa2`) and pass on 1f043dd; isolation: going from the previous commit to 1f043dd changes only these cases. Regression on the branch head (ceeb32c): all 51 suites of `run-browser-tests.sh` pass (the 2-hour run was stopped by its time limit inside validation-units-imp018 after its 68,776 checks passed; that suite was re-run on its own, mutants included, exit 0; encyclopedia and known-answer were run separately, exit 0), `run-tests.sh` passes (schema contract 26/26), whole-engine before/after diff of 749 calculators in both unit systems shows only the repaired pages changed. Not VERIFIED CLOSED: not merged or released; live verification outstanding.
 
 ### GH-DEF-047 — Piston Position returns r − x instead of the distance below TDC
-- **Status:** OPEN
+- **Status:** FIXED — UNVERIFIED
 - **Severity:** Critical (default 90°: −0.2652 in; correct 2.1402 in)
 - **Priority:** P1
 - **Description:** `piston_position` computes r·cosθ + √(L²−r²sin²θ) − L, which equals r − x. At TDC it shows 1.875 in instead of 0. The engine self-test row asserted the same expression; corrected in Stage 1 and in the self-test baseline.
 - **Evidence:** **Evidence class: Independently reproduced (engine executed + independent mathematics, 2026-11-09/10).** engine `F1_12_4_…batch9_1.html` at `main` `d25afa2` (unchanged since `f949cab`, 2026-11-01; live build `v=20261101-0100`). 3.75 / 6.76 / 90°: −0.2652 vs 2.1402; 0°: 1.875 vs 0; 180°: −1.875 vs 3.75; 4.0 / 6.0 / 60°: 0.7446 vs 1.2554. Source L2183.
 - **Affected:** `piston_position`; self-test row `renderer:piston_position 90deg`.
 - **Impact:** Every position is wrong, including sign.
-- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then.
+- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Repaired 2026-11-18 (Stage 2, owner authorization of 2026-11-18): renderer and `GH_LEGACY_FORMULAS` row now x = r(1 − cos θ) + L − √(L² − r² sin² θ); worked example corrected.
 - **Dependencies:** None.
-- **Revisit:** Stage 2 (calculator repairs), on owner authorisation.
-- **Commits:** None (test only: 3b4268a).
-- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-05, KA-06, KA-07, KA-08 (failing, in the known-open ledger `premium/tests/data/known-answer-open.json`).
-- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline.
+- **Revisit:** After an authorized release: verification on the live site. Production `formula_versions` row: migration 0410 (prepared, not applied) must be applied before or with the release, as 0409 was.
+- **Commits:** `b7aa687` on `fix/stage-2-calculator-repairs` (not merged). Formula version fv1-908de781 → fv1-09188b84: row in `supabase/migrations/0410_formula_versions_stage2_calculator_repairs.sql` (PREPARED, NOT APPLIED; proof `premium/tests/fv0410-throwaway-db.sh`). Earlier: test only, 3b4268a.
+- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-05..KA-08 (page) and KA-46, KA-47 (new: registry path): pass (the cases that were in the known-open ledger are removed from it); engine self-test row `renderer:piston_position 90deg` passes and is removed from `KNOWN_BASELINE_IDS`; `premium/tests/formula-fingerprints.test.js` (VERSIONED).
+- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline; `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
 - **Verification:** 1. Independent slider-crank values at 0°, 60°, 90°, 180°. 2. Self-test row passes and is removed from the baseline.
   The listed known-answer cases pass and are removed from the ledger in the same change; full browser regression passes.
+  After release: the calculator checked on the live site.
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
+  2026-11-18 — repaired in Stage 2 (b7aa687). 3.75 / 6.76: 0° 1.875 → 0; 90° −0.2652 → 2.1402 in; 180° −1.875 → 3.75 in; 4.0 / 6.0 / 60°: 0.7446 → 1.2554 in (Metric: 54.3611 mm = 2.1402 in). Red/green: the listed cases fail on `main` `b58e1f0` (the engine the live site serves, deployment `d25afa2`) and pass on b7aa687; isolation: going from the previous commit to b7aa687 changes only these cases. Regression on the branch head (ceeb32c): all 51 suites of `run-browser-tests.sh` pass (the 2-hour run was stopped by its time limit inside validation-units-imp018 after its 68,776 checks passed; that suite was re-run on its own, mutants included, exit 0; encyclopedia and known-answer were run separately, exit 0), `run-tests.sh` passes (schema contract 26/26), whole-engine before/after diff of 749 calculators in both unit systems shows only the repaired pages changed. Not VERIFIED CLOSED: not merged or released; live verification outstanding.
 
 ### GH-DEF-048 — Cranking Compression measures IVC from TDC and inverts the trapped stroke
-- **Status:** OPEN
+- **Status:** FIXED — UNVERIFIED
 - **Severity:** Critical (default 9.079 :1 / 270 psi; correct 9.699 :1 / 295 psi)
 - **Priority:** P1
 - **Description:** `cranking_compression` evaluates the piston position at θ = IVC (from TDC) and uses stroke − x as the trapped stroke. IVC is quoted ABDC, so θ = 180° + IVC and the trapped stroke is x. The two errors partly cancel; the residual grows with IVC.
 - **Evidence:** **Evidence class: Independently reproduced (engine executed + independent mathematics, 2026-11-09/10).** engine `F1_12_4_…batch9_1.html` at `main` `d25afa2` (unchanged since `f949cab`, 2026-11-01; live build `v=20261101-0100`). Defaults 10.5 / 6.0 / 3.75 / 40°, γ 1.32: 9.079 / 270 vs 9.699 / 295.0. 9.5 / 6.5 / 4.0 / 60°: 6.876 / 187 vs 7.874 / 224.0. Source L3849–3858.
 - **Affected:** `cranking_compression`.
 - **Impact:** Dynamic CR and cranking pressure low by 6–17 %.
-- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then.
+- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Repaired 2026-11-18 (Stage 2, owner authorization of 2026-11-18): renderer and both `GH_LEGACY_FORMULAS` outputs: crank angle 180° + IVC from TDC, trapped stroke x; worked example corrected.
 - **Dependencies:** None.
-- **Revisit:** Stage 2 (calculator repairs), on owner authorisation.
-- **Commits:** None (test only: 3b4268a).
-- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-09, KA-10, KA-11, KA-12 (failing, in the known-open ledger `premium/tests/data/known-answer-open.json`).
-- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline.
+- **Revisit:** After an authorized release: verification on the live site. Production `formula_versions` row: migration 0410 (prepared, not applied) must be applied before or with the release, as 0409 was.
+- **Commits:** `850331c` on `fix/stage-2-calculator-repairs` (not merged). Formula version fv1-95fbced0 → fv1-ef403b86: row in `supabase/migrations/0410_formula_versions_stage2_calculator_repairs.sql` (PREPARED, NOT APPLIED; proof `premium/tests/fv0410-throwaway-db.sh`). Earlier: test only, 3b4268a.
+- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-09..KA-12 (page) and KA-48, KA-49 (new: registry path): pass (the cases that were in the known-open ledger are removed from it); `premium/tests/formula-fingerprints.test.js` (VERSIONED).
+- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline; `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
 - **Verification:** 1. Both independent cases within 0.006 (ratio) and 1 psi.
   The listed known-answer cases pass and are removed from the ledger in the same change; full browser regression passes.
+  After release: the calculator checked on the live site.
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
+  2026-11-18 — repaired in Stage 2 (850331c). 10.5 / 6.0 / 3.75 / 40°, γ 1.32: 9.079 / 270 → 9.699 :1 / 295 psi; 9.5 / 6.5 / 4.0 / 60°: 6.876 / 187 → 7.874 / 224 psi. Red/green: the listed cases fail on `main` `b58e1f0` (the engine the live site serves, deployment `d25afa2`) and pass on 850331c; isolation: going from the previous commit to 850331c changes only these cases. Regression on the branch head (ceeb32c): all 51 suites of `run-browser-tests.sh` pass (the 2-hour run was stopped by its time limit inside validation-units-imp018 after its 68,776 checks passed; that suite was re-run on its own, mutants included, exit 0; encyclopedia and known-answer were run separately, exit 0), `run-tests.sh` passes (schema contract 26/26), whole-engine before/after diff of 749 calculators in both unit systems shows only the repaired pages changed. Not VERIFIED CLOSED: not merged or released; live verification outstanding.
 
 ### GH-DEF-049 — Sway Bar roll stiffness uses arm length for track, misses rad→deg; Track Width has no effect
 - **Status:** OPEN
@@ -1586,22 +1594,24 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
 
 ### GH-DEF-050 — Wet Bulb evaluates Stull (2011) with °F where the formula needs °C
-- **Status:** OPEN
+- **Status:** FIXED — UNVERIFIED
 - **Severity:** Critical (default 69.6 °F; correct 71.3 °F; up to 9.9 °F low in hot, dry air)
 - **Priority:** P1
 - **Description:** `wet_bulb` feeds °F into Stull's empirical formula, which is fitted in °C, and labels the result °F.
 - **Evidence:** **Evidence class: Independently reproduced (engine executed + independent mathematics, 2026-11-09/10).** engine `F1_12_4_…batch9_1.html` at `main` `d25afa2` (unchanged since `f949cab`, 2026-11-01; live build `v=20261101-0100`). 85 °F / 50 %: 69.6 vs 71.27. 110 / 10 %: 58.9 vs 68.78. 60 / 30 %: 41.0 vs 45.43. Source L4156–4158.
 - **Affected:** `wet_bulb`.
 - **Impact:** Wet bulb too low; error grows as humidity falls and temperature rises.
-- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then.
+- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Repaired 2026-11-18 (Stage 2, owner authorization of 2026-11-18): renderer and `GH_LEGACY_FORMULAS` row evaluate Stull (2011) in °C and convert back; worked example and the dry/wet-bulb gap in the help text corrected.
 - **Dependencies:** None.
-- **Revisit:** Stage 2 (calculator repairs), on owner authorisation.
-- **Commits:** None (test only: 3b4268a).
-- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-15, KA-16, KA-17 (failing, in the known-open ledger `premium/tests/data/known-answer-open.json`).
-- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline.
+- **Revisit:** After an authorized release: verification on the live site. Production `formula_versions` row: migration 0410 (prepared, not applied) must be applied before or with the release, as 0409 was.
+- **Commits:** `7635946` on `fix/stage-2-calculator-repairs` (not merged). Formula version fv1-a2a279c6 → fv1-782fda42: row in `supabase/migrations/0410_formula_versions_stage2_calculator_repairs.sql` (PREPARED, NOT APPLIED; proof `premium/tests/fv0410-throwaway-db.sh`). Earlier: test only, 3b4268a.
+- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-15..KA-17 (page) and KA-50 (new: registry path): pass (the cases that were in the known-open ledger are removed from it); `premium/tests/formula-fingerprints.test.js` (VERSIONED).
+- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline; `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
 - **Verification:** 1. The three cases within 0.15 °F of Stull (2011) evaluated in °C.
   The listed known-answer cases pass and are removed from the ledger in the same change; full browser regression passes.
+  After release: the calculator checked on the live site.
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
+  2026-11-18 — repaired in Stage 2 (7635946). 85 °F / 50 %: 69.6 → 71.3 °F; 110 / 10 %: 58.9 → 68.8 °F; 60 / 30 %: 41.0 → 45.4 °F (Metric: 20.89 → 21.83 °C). Red/green: the listed cases fail on `main` `b58e1f0` (the engine the live site serves, deployment `d25afa2`) and pass on 7635946; isolation: going from the previous commit to 7635946 changes only these cases. Regression on the branch head (ceeb32c): all 51 suites of `run-browser-tests.sh` pass (the 2-hour run was stopped by its time limit inside validation-units-imp018 after its 68,776 checks passed; that suite was re-run on its own, mutants included, exit 0; encyclopedia and known-answer were run separately, exit 0), `run-tests.sh` passes (schema contract 26/26), whole-engine before/after diff of 749 calculators in both unit systems shows only the repaired pages changed. Not VERIFIED CLOSED: not merged or released; live verification outstanding.
 
 ### GH-DEF-051 — Bolt Pattern: 4-lug, 8-lug and fallback branches contradict the page's own measuring rule
 - **Status:** OPEN
@@ -1640,58 +1650,64 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
 
 ### GH-DEF-053 — Fuel Line Pressure Loss divides roughness in inches by diameter in metres
-- **Status:** OPEN
+- **Status:** FIXED — UNVERIFIED
 - **Severity:** Critical (default 0.38 psi; correct 0.30 psi)
 - **Priority:** P1
 - **Description:** `fuel_line_loss` sets relative roughness = rough (in) / D (m), 39.4× too large, before Swamee–Jain.
 - **Evidence:** **Evidence class: Independently reproduced (engine executed + independent mathematics, 2026-11-09/10).** engine `F1_12_4_…batch9_1.html` at `main` `d25afa2` (unchanged since `f949cab`, 2026-11-01; live build `v=20261101-0100`). 50 GPH / 10 ft / 0.375 in: f 0.0408 vs 0.0325, 0.38 vs 0.304 psi (+25 %). 300 GPH / 20 ft / 0.5 in: 5.2 vs 3.58 psi (+45 %). Source L4120.
 - **Affected:** `fuel_line_loss`.
 - **Impact:** Over-predicts loss; error grows with flow and roughness.
-- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then.
+- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Repaired 2026-11-18 (Stage 2, owner authorization of 2026-11-18): renderer only: relative roughness = roughness / inside diameter, both in inches; the registry row holds only velocity and Reynolds number (unaffected, formula version unchanged).
 - **Dependencies:** None.
-- **Revisit:** Stage 2 (calculator repairs), on owner authorisation.
-- **Commits:** None (test only: 3b4268a).
-- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-22, KA-23 (failing, in the known-open ledger `premium/tests/data/known-answer-open.json`).
-- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline.
+- **Revisit:** After an authorized release: verification on the live site.
+- **Commits:** `2022778` on `fix/stage-2-calculator-repairs` (not merged). Earlier: test only, 3b4268a.
+- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-22, KA-23 and KA-51 (new: pressure drop at the defaults): pass (the cases that were in the known-open ledger are removed from it).
+- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline; `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
 - **Verification:** 1. Friction factor and pressure drop of both cases match Darcy–Weisbach with Swamee–Jain.
   The listed known-answer cases pass and are removed from the ledger in the same change; full browser regression passes.
+  After release: the calculator checked on the live site.
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
+  2026-11-18 — repaired in Stage 2 (2022778). 50 GPH / 10 ft / 0.375 in: f 0.0408 → 0.0325, 0.38 → 0.30 psi; 300 GPH / 20 ft / 0.5 in: 5.2 → 3.57 psi; Swamee–Jain within 0.6 % of Colebrook at both points. Red/green: the listed cases fail on `main` `b58e1f0` (the engine the live site serves, deployment `d25afa2`) and pass on 2022778; isolation: going from the previous commit to 2022778 changes only these cases. Regression on the branch head (ceeb32c): all 51 suites of `run-browser-tests.sh` pass (the 2-hour run was stopped by its time limit inside validation-units-imp018 after its 68,776 checks passed; that suite was re-run on its own, mutants included, exit 0; encyclopedia and known-answer were run separately, exit 0), `run-tests.sh` passes (schema contract 26/26), whole-engine before/after diff of 749 calculators in both unit systems shows only the repaired pages changed. Not VERIFIED CLOSED: not merged or released; live verification outstanding.
 
 ### GH-DEF-054 — Simulators: air density holds a slug/ft³ value labelled lb/ft³ and is divided by 32.174 again
-- **Status:** OPEN
+- **Status:** FIXED — UNVERIFIED
 - **Severity:** Critical (Premium defaults: top speed 218.5 mph; physics allows at most ~174 mph)
 - **Priority:** P1
 - **Description:** The shared vehicle input `sim_rho` defaults to 0.0023769 (sea-level density in slug/ft³) but is labelled lb/ft³, and `simAeroDrag` (L7140) and an inline copy in `sim_cornering` (L6961) divide it by 32.174, so aerodynamic forces are 32× too small. Four simulators use it; `sim_braking` does not (Fred's audit said five — corrected). First noted in GH-IMP-022's revisit notes, never registered on its own.
 - **Evidence:** **Evidence class: Independently reproduced (engine executed + independent mathematics, 2026-11-09/10); also repo-known (GH-IMP-022 Revisit note).** engine `F1_12_4_…batch9_1.html` at `main` `d25afa2` (unchanged since `f949cab`, 2026-11-01; live build `v=20261101-0100`). Top speed 218.5 mph (168.5 with density fixed; ~173 best gear); dragstrip 12.690 s / 117.0 mph vs 12.940 / 110.7; 0–130 mph 15.20 s vs 18.43; cornering downforce 8 vs 243 lbf. Convention-free bounds: a power-limited vehicle cannot exceed ~174.3 mph or 115.7 mph trap, nor do 0–130 in under ~15.27 s.
 - **Affected:** `simAeroDrag`, `simulateCurveAcceleration` (shared), inline density in `sim_cornering`; `sim_top_speed`, `sim_acceleration`, `sim_dragstrip`, `sim_cornering` (all Premium). Not `sim_braking`.
 - **Impact:** Optimistic speeds and times; downforce almost zero.
-- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Convention still to be approved: relabel to slug/ft³ or keep lb/ft³ with 0.0765 (either passes the tests).
+- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Convention still to be approved: relabel to slug/ft³ or keep lb/ft³ with 0.0765 (either passes the tests). Repaired 2026-11-18 (Stage 2, owner authorization of 2026-11-18): `simAeroDrag` and the `sim_cornering` copy no longer divide by 32.174; the shared Air Density box is labelled slug/ft³ (same text in both unit systems, like Dynamic Pressure); `acceleration-target` goldens re-recorded and the `curve-persistence` typed curve adjusted (both were premised on the defective drag). Owner decision 2026-11-18: relabel the box slug/ft³ and drop the extra division.
 - **Dependencies:** None.
-- **Revisit:** Stage 2 (calculator repairs), on owner authorisation.
-- **Commits:** None (test only: 3b4268a).
-- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-24, KA-25, KA-26, KA-27 (failing, in the known-open ledger `premium/tests/data/known-answer-open.json`).
-- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline.
+- **Revisit:** After an authorized release: verification on the live site.
+- **Commits:** `b9ec416` on `fix/stage-2-calculator-repairs` (not merged). Earlier: test only, 3b4268a.
+- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-24..KA-27: pass (the cases that were in the known-open ledger are removed from it); `acceleration-target`, `curve-persistence`, `simulator-first-draw`.
+- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline; `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
 - **Verification:** 1. The four bounds/values hold. 2. `simulator-first-draw`, `acceleration-target`, `curve-persistence` pass. 3. One fix covers both code paths.
   The listed known-answer cases pass and are removed from the ledger in the same change; full browser regression passes.
+  After release: the calculator checked on the live site.
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
+  2026-11-18 — repaired in Stage 2 (b9ec416). Defaults: top speed 218.5 → 168.5 mph; trap 117.0 → 110.7 mph, ET 12.690 → 12.940 s; 0–60 4.270 → 4.320 s; cornering downforce 8 → 243 lbf. Red/green: the listed cases fail on `main` `b58e1f0` (the engine the live site serves, deployment `d25afa2`) and pass on b9ec416; isolation: going from the previous commit to b9ec416 changes only these cases. Regression on the branch head (ceeb32c): all 51 suites of `run-browser-tests.sh` pass (the 2-hour run was stopped by its time limit inside validation-units-imp018 after its 68,776 checks passed; that suite was re-run on its own, mutants included, exit 0; encyclopedia and known-answer were run separately, exit 0), `run-tests.sh` passes (schema contract 26/26), whole-engine before/after diff of 749 calculators in both unit systems shows only the repaired pages changed. Not VERIFIED CLOSED: not merged or released; live verification outstanding.
 
 ### GH-DEF-055 — Exhaust valve events use a hidden 4° cam advance that the page does not show
-- **Status:** OPEN
+- **Status:** FIXED — UNVERIFIED
 - **Severity:** Critical (default page shows ICL 110°, LSA 110° and ECL 114°, which are inconsistent: LSA = (ICL + ECL)/2)
 - **Priority:** P2
 - **Description:** `cam()` subtracts the shared `ADEF.cam.advance` (4°) from the entered intake centreline. `camshaft_exhaust_events` does not show an advance box, so its outputs depend on a value set elsewhere.
 - **Evidence:** **Evidence class: Independently reproduced 2026-11-10 (Fred's audit reported it; engine executed + independent cam-event arithmetic).** engine `F1_12_4_…batch9_1.html` at `main` `d25afa2` (unchanged since `f949cab`, 2026-11-01; live build `v=20261101-0100`). 230° / LSA 110 / ICL 110: ECL 114 (expected 110), EVO 49 (45), EVC 1 (5). Source L7690 (`cam`), L7736.
 - **Affected:** `cam()` and `ADEF.cam` (shared), `camshaft_exhaust_events`; `cam_card` reported by Fred (not re-run).
 - **Impact:** Exhaust events 4° off with no visible cause.
-- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Convention still to be approved: whether the page's ICL is installed or ground.
+- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Convention still to be approved: whether the page's ICL is installed or ground. Repaired 2026-11-18 (Stage 2, owner authorization of 2026-11-18): `camshaft_exhaust_events` calls `cam()` with advance 0, and its help text says the Intake Centerline is the installed centerline; worked example corrected. The other cam pages are unchanged, as decided. Owner decision 2026-11-18: the ICL typed on this page is the INSTALLED centerline (no hidden advance on this page only).
 - **Dependencies:** None.
-- **Revisit:** Stage 2 (calculator repairs), on owner authorisation.
-- **Commits:** None (test only: 3b4268a).
-- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-28, KA-29 (failing, in the known-open ledger `premium/tests/data/known-answer-open.json`).
-- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline.
+- **Revisit:** After an authorized release: verification on the live site.
+- **Commits:** `ceeb32c` on `fix/stage-2-calculator-repairs` (not merged). Earlier: test only, 3b4268a.
+- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-28, KA-29 and KA-55 (new: EVO for a second cam): pass (the cases that were in the known-open ledger are removed from it).
+- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline; `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
 - **Verification:** 1. The page's ECL equals 2·LSA − ICL for the ICL shown (or the advance is shown and used visibly).
   The listed known-answer cases pass and are removed from the ledger in the same change; full browser regression passes.
+  After release: the calculator checked on the live site.
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
+  2026-11-18 — repaired in Stage 2 (ceeb32c). 230° / LSA 110 / ICL 110: ECL 114 → 110, EVO 49 → 45, EVC 1 → 5; 236° / 112 / 106: EVO 60 → 56. Red/green: the listed cases fail on `main` `b58e1f0` (the engine the live site serves, deployment `d25afa2`) and pass on ceeb32c; isolation: going from the previous commit to ceeb32c changes only these cases. Regression on the branch head (ceeb32c): all 51 suites of `run-browser-tests.sh` pass (the 2-hour run was stopped by its time limit inside validation-units-imp018 after its 68,776 checks passed; that suite was re-run on its own, mutants included, exit 0; encyclopedia and known-answer were run separately, exit 0), `run-tests.sh` passes (schema contract 26/26), whole-engine before/after diff of 749 calculators in both unit systems shows only the repaired pages changed. Not VERIFIED CLOSED: not merged or released; live verification outstanding.
 
 ### GH-DEF-056 — E85 Blend remove/replace volume is wrong; add branch can exceed the tank with no warning
 - **Status:** OPEN
@@ -1712,22 +1728,24 @@ This is the **single authoritative register** of known defects, deferred improve
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
 
 ### GH-DEF-057 — Road-course fuel stint shows 29 laps for exactly 30 laps of fuel
-- **Status:** OPEN
+- **Status:** FIXED — UNVERIFIED
 - **Severity:** Critical (default path: 29 shown, 30 correct)
 - **Priority:** P2
 - **Description:** `rc_fuel_stint` floors (3.6 − 0.5 + 0.5) / 0.12 = 29.999999… to 29.
 - **Evidence:** **Evidence class: Independently reproduced 2026-11-10.** engine `F1_12_4_…batch9_1.html` at `main` `d25afa2` (unchanged since `f949cab`, 2026-11-01; live build `v=20261101-0100`). Defaults 30 laps × 0.12 gal + 0.5: Max Green Laps 29. Source L5403–5408.
 - **Affected:** `rc_fuel_stint`.
 - **Impact:** Off by one lap at exact multiples.
-- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then.
+- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Repaired 2026-11-18 (Stage 2, owner authorization of 2026-11-18): renderer and the `GH_LEGACY_FORMULAS` Max Green Laps output round the quotient to 9 decimals before the floor; worked example corrected.
 - **Dependencies:** None.
-- **Revisit:** Stage 2 (calculator repairs), on owner authorisation.
-- **Commits:** None (test only: 3b4268a).
-- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-31 (failing, in the known-open ledger `premium/tests/data/known-answer-open.json`).
-- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline.
+- **Revisit:** After an authorized release: verification on the live site. Production `formula_versions` row: migration 0410 (prepared, not applied) must be applied before or with the release, as 0409 was.
+- **Commits:** `375a0fb` on `fix/stage-2-calculator-repairs` (not merged). Formula version fv1-072e823c → fv1-523c3d67: row in `supabase/migrations/0410_formula_versions_stage2_calculator_repairs.sql` (PREPARED, NOT APPLIED; proof `premium/tests/fv0410-throwaway-db.sh`). Earlier: test only, 3b4268a.
+- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-31 and KA-52 (new: registry path): pass (the cases that were in the known-open ledger are removed from it); `premium/tests/formula-fingerprints.test.js` (VERSIONED).
+- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline; `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
 - **Verification:** 1. Defaults give 30 laps; floor is applied after removing floating-point noise.
   The listed known-answer cases pass and are removed from the ledger in the same change; full browser regression passes.
+  After release: the calculator checked on the live site.
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
+  2026-11-18 — repaired in Stage 2 (375a0fb). 30 laps × 0.12 gal + 0.5: Max Green Laps 29 → 30 (Imperial and Metric). Red/green: the listed cases fail on `main` `b58e1f0` (the engine the live site serves, deployment `d25afa2`) and pass on 375a0fb; isolation: going from the previous commit to 375a0fb changes only these cases. Regression on the branch head (ceeb32c): all 51 suites of `run-browser-tests.sh` pass (the 2-hour run was stopped by its time limit inside validation-units-imp018 after its 68,776 checks passed; that suite was re-run on its own, mutants included, exit 0; encyclopedia and known-answer were run separately, exit 0), `run-tests.sh` passes (schema contract 26/26), whole-engine before/after diff of 749 calculators in both unit systems shows only the repaired pages changed. Not VERIFIED CLOSED: not merged or released; live verification outstanding.
 
 ### GH-DEF-058 — Empty or non-numeric required inputs silently fall back to the coded default
 - **Status:** OPEN
@@ -1801,22 +1819,24 @@ This is the **single authoritative register** of known defects, deferred improve
   2026-11-10 — first run on pull request #30: workflow run 42772112085, "Fast gate" job green on every step (register, catalog, self-test baseline, known-answer ledger, unit factors, legacy fixes, numeric guard). Ledger tamper check run locally: removing KA-01 and listing the passing control KA-C1 gives 1 unexpected failure and 1 stale entry (run fails). Remaining: owner makes the check required.
 
 ### GH-DEF-062 — Top Speed simulator: "Drag + Rolling" shows the drag at the last speed tested, not at the reported top speed
-- **Status:** OPEN
+- **Status:** FIXED — UNVERIFIED
 - **Severity:** Medium (misleading tile; Premium)
 - **Priority:** P2
 - **Description:** The tile reports the loop variable after the search, i.e. the drag at the highest speed below redline.
 - **Evidence:** **Evidence class: Independently reproduced (engine executed + independent mathematics, 2026-11-09/10); also repo-known (GH-IMP-022 Revisit note).** With density corrected: top speed 168.5 mph, tile 898 lbf, actual drag + rolling at 168.5 mph 549 lbf. At today's defaults the two coincide (218.5 mph).
 - **Affected:** `sim_top_speed`.
 - **Impact:** Wrong supporting number.
-- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then.
+- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Repaired 2026-11-18 (Stage 2, owner authorization of 2026-11-18): `sim_top_speed` records the drag + rolling resistance together with the top speed; `acceleration-target` 7,500 lb golden re-recorded (949 → 583 lbf, independent 582.96). Fixed with the Stage 2 repairs on the owner's instruction of 2026-11-18 (outside the nine authorized defects; exposed by the GH-DEF-054 correction).
 - **Dependencies:** GH-DEF-054.
-- **Revisit:** Stage 2 (calculator repairs), on owner authorisation.
-- **Commits:** None (test only: 3b4268a).
-- **Tests:** None.
-- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline.
+- **Revisit:** After an authorized release: verification on the live site.
+- **Commits:** `14625f1` on `fix/stage-2-calculator-repairs` (not merged). Earlier: test only, 3b4268a.
+- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-54 (new): pass (the cases that were in the known-open ledger are removed from it); `acceleration-target`, `curve-persistence`, `simulator-first-draw`.
+- **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline; `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
 - **Verification:** 1. The tile equals drag + rolling at the reported speed.
   The listed known-answer cases pass and are removed from the ledger in the same change; full browser regression passes.
+  After release: the calculator checked on the live site.
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
+  2026-11-18 — repaired in Stage 2 (14625f1). Defaults: tile 898 lbf (after GH-DEF-054, the last speed tested) → 549 lbf at 168.5 mph (independent ½ρCdAv² + Crr·W = 549.4). Red/green: the listed cases fail on `main` `b58e1f0` (the engine the live site serves, deployment `d25afa2`) and pass on 14625f1; isolation: going from the previous commit to 14625f1 changes only these cases. Regression on the branch head (ceeb32c): all 51 suites of `run-browser-tests.sh` pass (the 2-hour run was stopped by its time limit inside validation-units-imp018 after its 68,776 checks passed; that suite was re-run on its own, mutants included, exit 0; encyclopedia and known-answer were run separately, exit 0), `run-tests.sh` passes (schema contract 26/26), whole-engine before/after diff of 749 calculators in both unit systems shows only the repaired pages changed. Not VERIFIED CLOSED: not merged or released; live verification outstanding.
 
 ### GH-DEF-063 — Simulator "Engine Power" box has no effect on any simulator
 - **Status:** OPEN

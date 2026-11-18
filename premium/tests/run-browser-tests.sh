@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Gearhead Labs browser-side regression tests (real Chromium via Playwright; no network, no database).
-#   engine-selftest.js         the engine's own ghSelfTest; its failures must equal the known baseline exactly (3 rows since 2026-11-10, each tied to an open register entry: GH-DEF-046, GH-DEF-047, GH-DEF-052; the former baseline of 8 was resolved under GH-DEF-008)
+#   engine-selftest.js         the engine's own ghSelfTest; its failures must equal the known baseline exactly (1 row since 2026-11-18, tied to an open register entry: GH-DEF-052; from 2026-11-10 until the Stage 2 repairs 3 rows: GH-DEF-046, GH-DEF-047, GH-DEF-052; the former baseline of 8 was resolved under GH-DEF-008)
 #   browser-smoke.js           the integrated app shell (19 checks)
 #   unit-system.test.js        Metric/Imperial toggle + re-entry against independent physics (aero, brake energy, head flow curve)
 #   temperature-units.test.js  temperature readings vs temperature differences, the Temperature Converter, catalogue label guard
