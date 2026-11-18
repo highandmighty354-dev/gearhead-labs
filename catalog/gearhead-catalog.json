@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "f04a87ac4a17485f8a6dd08cf09194443257f8a919f36932afb2744332ace04e"
+      "sha256": "382c728712e1dc98158cf2a18371397c9e40d1122668f27f42dc8c957084eced"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -28,7 +28,7 @@
     },
     "formula_versions_0410": {
       "file": "supabase/migrations/0410_formula_versions_stage2_calculator_repairs.sql",
-      "sha256": "7cbe0933e42ca5eed22184823cc4128b58870a497dff7029653a1ab37993ccd3"
+      "sha256": "e9faaea08d9afe6952ff1a67f0532ba269da489dcb297b71845b22312a7ef0a1"
     }
   },
   "counts": {
@@ -1496,7 +1496,7 @@
     {"id":"weight_transfer","name":"Weight Transfer","category":"SUSPENSION, TIRES & GEOMETRY","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-fbb13bbb","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"weight_transfer_accel","name":"Acceleration Weight Transfer","category":"UNIVERSAL / VEHICLE DYNAMICS","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-78215ba5","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"weight_transfer_braking","name":"Braking Weight Transfer","category":"UNIVERSAL / VEHICLE DYNAMICS","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-011fb61a","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
-    {"id":"wet_bulb","name":"Wet Bulb Temperature","category":"ENVIRONMENT & DYNO","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-a2a279c6","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
+    {"id":"wet_bulb","name":"Wet Bulb Temperature","category":"ENVIRONMENT & DYNO","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-782fda42","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"wheel_motion","name":"Wheel Motion (Wheel Rate)","category":"SUSPENSION, TIRES & GEOMETRY","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-5be1b784","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"wheel_offset","name":"Wheel Offset / Backspace","category":"SUSPENSION, TIRES & GEOMETRY","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-ad481af0","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"wheel_rate","name":"Wheel Rate","category":"UNIVERSAL / VEHICLE DYNAMICS","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-3c49ad75","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},

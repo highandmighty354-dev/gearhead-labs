@@ -114,6 +114,7 @@ const CASES = [
   { id: 'KA-15', reg: 'GH-DEF-050', calc: 'wet_bulb', edit: { temp_wb: 85, rh_wb: 50 }, row: 'Wet Bulb', want: wetBulbF(85, 50), tol: 0.15, why: 'Tw = 71.3 F' },
   { id: 'KA-16', reg: 'GH-DEF-050', calc: 'wet_bulb', edit: { temp_wb: 110, rh_wb: 10 }, row: 'Wet Bulb', want: wetBulbF(110, 10), tol: 0.15, why: 'Tw = 68.8 F (the defect gives 58.9 F)' },
   { id: 'KA-17', reg: 'GH-DEF-050', calc: 'wet_bulb', edit: { temp_wb: 60, rh_wb: 30 }, row: 'Wet Bulb', want: wetBulbF(60, 30), tol: 0.15, why: 'Tw at 60 F / 30 %' },
+  { id: 'KA-50', reg: 'GH-DEF-050', kind: 'api', calc: 'wet_bulb', inputs: { temp_wb: 110, rh_wb: 10 }, out: 'wet_bulb_temperature', want: wetBulbF(110, 10), tol: 1e-9, why: 'registry: Tw = 68.78 F (Stull 2011 in degC, converted)' },
   // RC-07 / GH-DEF-051 bolt_pattern — the page's own rule: even lug counts measured across opposite studs (PCD = measurement), odd counts adjacent
   { id: 'KA-18', reg: 'GH-DEF-051', calc: 'bolt_pattern', edit: { lugs: 4, meas: 4.5 }, row: 'Bolt Circle', want: 4.5, tol: 0.002, why: '4-lug opposite studs: PCD = 4.500 in' },
   { id: 'KA-19', reg: 'GH-DEF-051', calc: 'bolt_pattern', edit: { lugs: 8, meas: 6.5 }, row: 'Bolt Circle', want: 6.5, tol: 0.002, why: '8-lug opposite studs: PCD = 6.500 in' },
