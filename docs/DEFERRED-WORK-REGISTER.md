@@ -91,6 +91,8 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-065](#gh-def-065--inputs-that-are-read-but-have-no-effect-dead-inputs) | Inputs that are read but have no effect (dead inputs) | OPEN | Medium | P2 |
 | [GH-DEF-066](#gh-def-066--density-altitude-about-19-ft-high-at-standard-conditions) | Density Altitude about 19 ft high at standard conditions | OPEN | Low | P3 |
 | [GH-DEF-067](#gh-def-067--piston-acceleration-presents-a-two-term-series-approximation-as-the-exact-crank-slider-model) | Piston Acceleration presents a two-term series approximation as the exact crank-slider model | OPEN | Medium | P3 |
+| [GH-DEF-068](#gh-def-068--intake-centerline-apply-centerline-to-cam-card-throws-an-error-and-if-it-ran-would-overwrite-the-recommended-icl) | Intake Centerline "Apply Centerline to Cam Card" throws an error and, if it ran, would overwrite the recommended ICL | FIXED — UNVERIFIED | High | P2 |
+| [GH-DEF-069](#gh-def-069--a-cam-page-reached-via-another-page-shows-stale-remembered-boxes-and-writes-them-back-over-the-shared-cam) | A cam page reached via another page shows stale remembered boxes and writes them back over the shared cam | FIXED — UNVERIFIED | High | P2 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
 | [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
@@ -1695,19 +1697,20 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Priority:** P2
 - **Description:** `cam()` subtracts the shared `ADEF.cam.advance` (4°) from the entered intake centreline. `camshaft_exhaust_events` does not show an advance box, so its outputs depend on a value set elsewhere.
 - **Evidence:** **Evidence class: Independently reproduced 2026-11-10 (Fred's audit reported it; engine executed + independent cam-event arithmetic).** engine `F1_12_4_…batch9_1.html` at `main` `d25afa2` (unchanged since `f949cab`, 2026-11-01; live build `v=20261101-0100`). 230° / LSA 110 / ICL 110: ECL 114 (expected 110), EVO 49 (45), EVC 1 (5). Source L7690 (`cam`), L7736.
-- **Affected:** `cam()` and `ADEF.cam` (shared), `camshaft_exhaust_events`; `cam_card` reported by Fred (not re-run).
+- **Affected:** `cam()` and `ADEF.cam` (shared), `camshaft_exhaust_events`; `cam_card` reported by Fred (not re-run). Since 2026-11-18 (cam centerline convention): `cam_card`, `camshaft_ivc`, `camshaft_exhaust_events`, the Dynamic Compression IVC pull.
 - **Impact:** Exhaust events 4° off with no visible cause.
-- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Convention still to be approved: whether the page's ICL is installed or ground. Repaired 2026-11-18 (Stage 2, owner authorization of 2026-11-18): `camshaft_exhaust_events` calls `cam()` with advance 0, and its help text says the Intake Centerline is the installed centerline; worked example corrected. The other cam pages are unchanged, as decided. Owner decision 2026-11-18: the ICL typed on this page is the INSTALLED centerline (no hidden advance on this page only).
+- **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Convention still to be approved: whether the page's ICL is installed or ground. Repaired 2026-11-18 (Stage 2, owner authorization of 2026-11-18): `camshaft_exhaust_events` calls `cam()` with advance 0, and its help text says the Intake Centerline is the installed centerline; worked example corrected. The other cam pages are unchanged, as decided. Owner decision 2026-11-18: the ICL typed on this page is the INSTALLED centerline (no hidden advance on this page only). Superseded 2026-11-18 by the owner's cam centerline convention (assignment "Camshaft centerline standardization"): the cam card's RECOMMENDED intake centerline is kept as entered and never overwritten; the user's advance (+) / retard (−) is a visible box on Cam Card, IVC and Exhaust Valve Events; ACTUAL installed ICL = recommended − advance, used by every cam page and the Dynamic Compression IVC pull; default advance 0 (installed as recommended; owner decision); no hidden correction anywhere.
 - **Dependencies:** None.
 - **Revisit:** After an authorized release: verification on the live site.
-- **Commits:** `ceeb32c` on `fix/stage-2-calculator-repairs` (not merged). Earlier: test only, 3b4268a.
-- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-28, KA-29 and KA-55 (new: EVO for a second cam): pass (the cases that were in the known-open ledger are removed from it).
+- **Commits:** `ceeb32c`, then the cam centerline convention (this branch, commit after `2913c14`) on `fix/stage-2-calculator-repairs` (not merged). Earlier: test only, 3b4268a.
+- **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-28, KA-29 and KA-55 (new: EVO for a second cam): pass (the cases that were in the known-open ledger are removed from it). Cam centerline convention: KA-28, KA-29, KA-55 now set the advance (0) explicitly; new KA-56..KA-62 (exhaust events at +4 / −4; IVC page at 0 / +4 / −4; Cam Card tiles at +4; one cam across Cam Card, IVC, Exhaust Events and the Dynamic Compression pull in Imperial and in Metric; a fresh visitor sees advance 0 and installed = recommended everywhere); `premium/tests/ivc-handoff-def044.test.js` sets its reference cam's 4° advance explicitly.
 - **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline; `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
 - **Verification:** 1. The page's ECL equals 2·LSA − ICL for the ICL shown (or the advance is shown and used visibly).
   The listed known-answer cases pass and are removed from the ledger in the same change; full browser regression passes.
   After release: the calculator checked on the live site.
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
   2026-11-18 — repaired in Stage 2 (ceeb32c). 230° / LSA 110 / ICL 110: ECL 114 → 110, EVO 49 → 45, EVC 1 → 5; 236° / 112 / 106: EVO 60 → 56. Red/green: the listed cases fail on `main` `b58e1f0` (the engine the live site serves, deployment `d25afa2`) and pass on ceeb32c; isolation: going from the previous commit to ceeb32c changes only these cases. Regression on the branch head (ceeb32c): all 51 suites of `run-browser-tests.sh` pass (the 2-hour run was stopped by its time limit inside validation-units-imp018 after its 68,776 checks passed; that suite was re-run on its own, mutants included, exit 0; encyclopedia and known-answer were run separately, exit 0), `run-tests.sh` passes (schema contract 26/26), whole-engine before/after diff of 749 calculators in both unit systems shows only the repaired pages changed. Not VERIFIED CLOSED: not merged or released; live verification outstanding.
+  2026-11-18 — cam centerline convention (owner instruction of 2026-11-18, replacing the earlier decision that this page's ICL is installed): recommended ICL kept, advance shown and used on Cam Card, IVC and Exhaust Valve Events, installed = recommended − advance, default advance 0. Defaults 224 / 230 / LSA 110 / ICL 110: installed 110, IVC 42 (was 38 with the hidden 4°), ECL 110, EVO 45, EVC 5 on every page. With 4° advance: installed 106, IVC 38, ECL 114, EVO 49, EVC 1; with 4° retard: installed 114, IVC 46, ECL 106, EVO 41, EVC 9. Red: KA-56..KA-62 fail on `2913c14`; green on the new commit. Not VERIFIED CLOSED: not merged or released.
 
 ### GH-DEF-056 — E85 Blend remove/replace volume is wrong; add branch can exceed the tank with no warning
 - **Status:** OPEN
@@ -1927,6 +1930,42 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Verification:** 1. Either the exact expression (independent cases at 45°, 90°, 135°) or the page states the approximation and its error.
   The listed known-answer cases pass and are removed from the ledger in the same change; full browser regression passes.
 - **History:** 2026-11-10 — recorded from the Phase 0 baseline (owner-accepted 2026-11-10) and the independent verification of the Nov 9 calculator audit ("Fred" register); known-answer cases added (red on today's engine; green against a temporary corrected copy, `premium/tests/proof/red-green.js`).
+
+### GH-DEF-068 — Intake Centerline "Apply Centerline to Cam Card" throws an error and, if it ran, would overwrite the recommended ICL
+- **Status:** FIXED — UNVERIFIED
+- **Severity:** High (the button does nothing but raise a page error; its intended effect would apply the advance twice)
+- **Priority:** P2
+- **Description:** The button's onclick text named the renderer's local variables (`GHM_APPLY_CAM_ICL(icl,l)`), which do not exist when it is clicked. `GHM_APPLY_CAM_ICL` itself wrote its installed centerline into the shared recommended ICL, so with any advance set the advance would have been applied a second time.
+- **Evidence:** **Evidence class: Independently reproduced 2026-11-18.** On `2913c14` (and `main` `b58e1f0`): clicking the button raises `ReferenceError: icl is not defined`; the cam state is unchanged.
+- **Affected:** `camshaft_intake_centerline` (button) and `GHM_APPLY_CAM_ICL` (shared cam state).
+- **Impact:** The page cannot send its result to the cam calculators.
+- **Decision:** Fixed 2026-11-18 on the owner's instruction (cam centerline assignment, "fix it in this pass"): the onclick carries the numbers; the function keeps the recommended ICL and sets the advance so that installed ICL = the calculated centerline (advance = recommended − calculated), and sets the LSA as before.
+- **Dependencies:** GH-DEF-055 (cam centerline convention).
+- **Revisit:** After an authorized release: verification on the live site.
+- **Commits:** this branch (`fix/stage-2-calculator-repairs`), commit after `2913c14` (not merged).
+- **Tests:** `premium/tests/known-answer-critical.test.js` KA-63 (LSA 114, advance 4 → calculated 110, applied to recommended 108: no page error, recommended stays 108, advance −2, installed 110, LSA 114): red with either half of the fix removed, green with both.
+- **Docs:** `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
+- **Verification:** 1. Clicking the button raises no error, leaves the recommended ICL unchanged and makes the installed ICL equal the calculated centerline.
+  After release: checked on the live site.
+- **History:** 2026-11-18 — found while standardizing the cam centerline convention; repaired in the same change.
+
+### GH-DEF-069 — A cam page reached via another page shows stale remembered boxes and writes them back over the shared cam
+- **Status:** FIXED — UNVERIFIED
+- **Severity:** High (silent loss of the cam the user set on another cam page)
+- **Priority:** P2
+- **Description:** Each page remembers its own box text (`renderCalc` snapshot). A cam page opened from a page without the cam boxes was filled from that memory instead of the shared cam state, computed with it, and the next keystroke copied the stale text into the shared state.
+- **Evidence:** **Evidence class: Independently reproduced 2026-11-18.** On `main` `b58e1f0` and `2913c14`: IVC page ICL 112 → Cam Card ICL 106 → any other page → IVC page shows 112 and IVC 40 (main; shared state 106); a keystroke there sets the shared ICL to 112 and the Cam Card then shows 112.
+- **Affected:** `camshaft_duration`, `camshaft_ivc`, `camshaft_exhaust_events`, `cam_card` (shared `ast().cam`). The head-flow pages (shared `ast().flow`) work the same way; not examined or changed here.
+- **Impact:** The cam pages could silently disagree and overwrite each other.
+- **Decision:** Fixed 2026-11-18 on the owner's instruction (cam centerline assignment, "fix it in this pass"): `camBoxesFromState` fills a cam box from the shared state when that box is not already on screen; boxes on screen (live typing, or arriving from another cam page) are left alone, as before.
+- **Dependencies:** GH-DEF-055 (cam centerline convention).
+- **Revisit:** After an authorized release: verification on the live site.
+- **Commits:** this branch (`fix/stage-2-calculator-repairs`), commit after `2913c14` (not merged).
+- **Tests:** `premium/tests/known-answer-critical.test.js` KA-64 (the sequence above, with advance): red with the fix removed, green with it; KA-63 also depends on it.
+- **Docs:** `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
+- **Verification:** 1. After setting the cam on one cam page and visiting any other page, every cam page shows and uses the shared cam; a keystroke does not change the other values.
+  After release: checked on the live site.
+- **History:** 2026-11-18 — found while standardizing the cam centerline convention (the Apply fix failed because of it); repaired in the same change, owner approved.
 
 ## B. Deferred improvements
 

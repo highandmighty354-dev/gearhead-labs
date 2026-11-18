@@ -4,7 +4,7 @@
  "generated_from": {
   "catalog": {
    "file": "catalog/gearhead-catalog.json",
-   "sha256": "d92ff96aedde75eef92c65a520fc0b9b10fe4fbd81264f6ab67e8b6ebb0456a9"
+   "sha256": "1beec8463515f857a45f06228c85e525b71511339e645e431cc1b3890e33020c"
   },
   "enrichment": {
    "file": "catalog/encyclopedia-enrichment.json",
@@ -12,7 +12,7 @@
   },
   "page": {
    "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-   "sha256": "bd85fd8050b408278919bbf7fbc0cc95f6ae730caca0bcc169046f8bcbca4e65"
+   "sha256": "702c06220b9c537d30ef327f24e74f0de431fb3b069ab342e360f0ea8ea10074"
   },
   "models": {
    "file": "premium/models.js",
@@ -5179,7 +5179,7 @@
     }
    ],
    "former_ids": [],
-   "description": "Consolidates the four valve events, centerlines, LSA, duration and overlap at one measurement lift.",
+   "description": "Consolidates the four valve events, centerlines, LSA, duration and overlap at one measurement lift. The recommended (cam card) intake centerline is kept as entered; the events use the installed centerline = recommended − advance.",
    "formula": null,
    "concepts": [
     "term.intake-valve-closing"
@@ -5314,7 +5314,7 @@
     }
    ],
    "former_ids": [],
-   "description": "EVO and EVC are derived from exhaust duration and exhaust centerline using the same lift reference. Intake Centerline is the installed centerline (as degreed in the engine); no cam advance is applied on this page, so Exhaust Centerline = 2 × LSA − Intake Centerline.",
+   "description": "EVO and EVC are derived from exhaust duration and exhaust centerline using the same lift reference. Installed Intake Centerline = recommended (cam card) ICL − advance, and Exhaust Centerline = 2 × LSA − installed Intake Centerline.",
    "formula": null,
    "concepts": [],
    "provenance": {
@@ -5396,7 +5396,7 @@
     }
    ],
    "former_ids": [],
-   "description": "IVC at a stated lift reference is derived from intake duration and intake centerline. Earlier IVC generally increases effective compression, all else equal.",
+   "description": "IVC at a stated lift reference is derived from intake duration and the installed intake centerline (recommended cam-card ICL − advance). Earlier IVC generally increases effective compression, all else equal.",
    "formula": null,
    "concepts": [
     "term.intake-valve-closing"

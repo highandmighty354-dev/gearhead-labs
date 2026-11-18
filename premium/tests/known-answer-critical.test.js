@@ -46,6 +46,11 @@ const MPH = 5280 / 3600;               // ft/s per mph
 const pistonX = (stroke, rod, deg) => { const r = stroke / 2, a = deg * D2R; return r * (1 - Math.cos(a)) + rod - Math.sqrt(rod * rod - Math.pow(r * Math.sin(a), 2)); };
 /* dynamic (effective) compression: the trapped stroke starts at IVC, which is IVC degrees ABDC = 180 + IVC degrees from TDC */
 const dynCR = (cr, rod, stroke, ivc) => 1 + (pistonX(stroke, rod, 180 + ivc) / stroke) * (cr - 1);
+/* cam centerline convention (owner decision 2026-11-18): installed ICL = recommended (cam card) ICL - advance (+ advance, - retard); then the standard
+   .050-inch event relations: ECL = 2 LSA - ICL, IVO = dur_i/2 - ICL (BTDC), IVC = dur_i/2 + ICL - 180 (ABDC), EVO = ECL + dur_e/2 - 180 (BBDC), EVC = dur_e/2 - ECL (ATDC) */
+const camRef = (durI, durE, rec, lsa, adv) => { const inst = rec - adv, ecl = 2 * lsa - inst, ivo = durI / 2 - inst, evc = durE / 2 - ecl;
+  return { 'Installed Intake Centerline': inst, 'Installed Intake CL': inst, 'Exhaust Centerline': ecl, 'Exhaust CL': ecl, IVO: ivo, IVC: durI / 2 + inst - 180, EVO: ecl + durE / 2 - 180, EVC: evc, Overlap: ivo + evc }; };
+const camDiff = (got, want, tol) => Object.keys(got).map(k => mismatch(got[k], want[k], tol) ? `${k} ${got[k]} (independent ${want[k]})` : null).filter(Boolean);
 /* Stull (2011), J. Appl. Meteor. Climatol. 50, 2267-2269: Tw in degC from T in degC and RH in % */
 const stullC = (tc, rh) => tc * Math.atan(0.151977 * Math.sqrt(rh + 8.313659)) + Math.atan(tc + rh) - Math.atan(rh - 1.676331) + 0.00391838 * Math.pow(rh, 1.5) * Math.atan(0.023101 * rh) - 4.686035;
 const wetBulbF = (tf, rh) => stullC((tf - 32) * 5 / 9, rh) * 9 / 5 + 32;
@@ -148,9 +153,60 @@ const CASES = [
     const want = 0.5 * RHO_SL * SIM.cd * SIM.A * Math.pow(s * MPH, 2) + SIM.crr * SIM.W, m = mismatch(d, want, 1);
     return m ? `shows ${d} lbf at ${s} mph, independent value ${want.toFixed(1)} (${m})` : null; } },
   // RC-14 / GH-DEF-055 hidden cam advance — what the page shows must be self-consistent: LSA = (ICL + ECL) / 2 with the ICL on the page
-  { id: 'KA-28', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 230, cam_lsa: 110, cam_icl: 110 }, row: 'Exhaust Centerline', want: 2 * 110 - 110, tol: 0.5, why: 'ECL = 2 x LSA - ICL = 110 deg BTDC with the values shown on the page' },
-  { id: 'KA-29', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 230, cam_lsa: 110, cam_icl: 110 }, row: 'EVC', want: 230 / 2 - 110, tol: 0.5, why: 'EVC = dur/2 - ECL = 5 deg ATDC' },
-  { id: 'KA-55', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 236, cam_lsa: 112, cam_icl: 106 }, row: 'EVO', want: (2 * 112 - 106) + 236 / 2 - 180, tol: 0.5, why: 'installed ICL 106, LSA 112: ECL = 118, EVO = ECL + dur/2 - 180 = 56 deg BBDC (owner decision 2026-11-18: the ICL on this page is installed)' },
+  { id: 'KA-28', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 230, cam_lsa: 110, cam_icl: 110, cam_adv: 0 }, row: 'Exhaust Centerline', want: 2 * 110 - 110, tol: 0.5, why: 'ECL = 2 x LSA - ICL = 110 deg BTDC with the values shown on the page' },
+  { id: 'KA-29', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 230, cam_lsa: 110, cam_icl: 110, cam_adv: 0 }, row: 'EVC', want: 230 / 2 - 110, tol: 0.5, why: 'EVC = dur/2 - ECL = 5 deg ATDC' },
+  { id: 'KA-55', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 236, cam_lsa: 112, cam_icl: 106, cam_adv: 0 }, row: 'EVO', want: (2 * 112 - 106) + 236 / 2 - 180, tol: 0.5, why: 'recommended ICL 106, advance 0 (installed 106), LSA 112: ECL = 118, EVO = ECL + dur/2 - 180 = 56 deg BBDC' },
+  // cam centerline convention (owner decision 2026-11-18): every cam page shows recommended ICL, advance and installed ICL, and uses installed = recommended - advance
+  ...[['KA-56', 4, '4 deg advance'], ['KA-57', -4, '4 deg retard']].map(([id, adv, what]) => ({ id, reg: 'GH-DEF-055', kind: 'prop', calc: 'camshaft_exhaust_events', why: `Exhaust Valve Events, 230 / LSA 110 / recommended ICL 110, ${what}: installed ${110 - adv}, ECL ${110 + adv}, EVO ${45 + adv}, EVC ${5 - adv}`, fn: async (h) => {
+    await h.reset('camshaft_exhaust_events'); await h.type({ cam_d050_e: 230, cam_lsa: 110, cam_icl: 110, cam_adv: adv });
+    const g = await h.read(['Installed Intake Centerline', 'Exhaust Centerline', 'EVO', 'EVC']), d = camDiff(g, camRef(224, 230, 110, 110, adv), 0.01), rec = await h.box('cam_icl');
+    return d.length ? d.join('; ') : rec !== 110 ? `recommended ICL box changed to ${rec}` : null; } })),
+  { id: 'KA-58', reg: 'GH-DEF-055', kind: 'prop', calc: 'camshaft_ivc', why: 'IVC page, 224 / LSA 110 / recommended ICL 110: advance 0, +4, -4 give installed 110 / 106 / 114 and IVC 42 / 38 / 46 deg ABDC (advancing lowers the installed ICL number, retarding raises it)', fn: async (h) => {
+    await h.reset('camshaft_ivc'); const bad = [];
+    for (const adv of [0, 4, -4]) { await h.type({ cam_d050_i: 224, cam_lsa: 110, cam_icl: 110, cam_adv: adv }); const g = await h.read(['Installed Intake Centerline', 'IVO', 'IVC']);
+      bad.push(...camDiff(g, camRef(224, 230, 110, 110, adv), 0.01).map(s => `advance ${adv}: ${s}`)); if (await h.box('cam_icl') !== 110) bad.push(`advance ${adv}: recommended ICL box changed`); }
+    return bad.length ? bad.join('; ') : null; } },
+  { id: 'KA-59', reg: 'GH-DEF-055', kind: 'prop', calc: 'cam_card', why: 'Complete Cam Card, 224 / 230 / LSA 110 / recommended ICL 110, 4 deg advance: the Recommended tile stays 110, installed 106, IVO 6, IVC 38, ECL 114, EVO 49, EVC 1, overlap 7', fn: async (h) => {
+    await h.reset('cam_card'); await h.type({ cam_d050_i: 224, cam_d050_e: 230, cam_lsa: 110, cam_icl: 110, cam_adv: 4 });
+    const g = await h.read(['Installed Intake CL', 'Exhaust CL', 'IVO', 'IVC', 'EVO', 'EVC', 'Overlap']), r = await h.read(['Recommended Intake CL', 'Advance']);
+    const d = camDiff(g, camRef(224, 230, 110, 110, 4), 0.01); if (r['Recommended Intake CL'] !== 110) d.push(`Recommended Intake CL tile ${r['Recommended Intake CL']}`); if (r.Advance !== 4) d.push(`Advance tile ${r.Advance}`);
+    return d.length ? d.join('; ') : null; } },
+  ...[['KA-60', 'imperial'], ['KA-61', 'metric']].map(([id, unit]) => ({ id, reg: 'GH-DEF-055', kind: 'prop', calc: 'cam_card', why: `one cam across every page (${unit}): set 236 / 242 / LSA 112 / recommended ICL 108, 3 deg retard on the Cam Card; Cam Card, IVC and Exhaust Events show the same recommended 108, installed 111, IVC 49, ECL 113; Dynamic Compression's pull gives IVC 49 and DCR = slider-crank reference`, fn: async (h) => {
+    const want = camRef(236, 242, 108, 112, -3), bad = [];
+    await h.reset('cam_card', unit); await h.type({ cam_d050_i: 236, cam_d050_e: 242, cam_lsa: 112, cam_icl: 108, cam_adv: -3 });
+    for (const [pg, labels] of [['cam_card', ['Installed Intake CL', 'IVC', 'Exhaust CL', 'EVO', 'EVC']], ['camshaft_ivc', ['Installed Intake Centerline', 'IVO', 'IVC']], ['camshaft_exhaust_events', ['Installed Intake Centerline', 'Exhaust Centerline', 'EVO', 'EVC']]]) {
+      await h.open(pg); bad.push(...camDiff(await h.read(labels), want, 0.01).map(s => `${pg}: ${s}`));
+      if (await h.box('cam_icl') !== 108) bad.push(`${pg}: recommended ICL box ${await h.box('cam_icl')}`); if (await h.box('cam_adv') !== -3) bad.push(`${pg}: advance box ${await h.box('cam_adv')}`); }
+    await h.open('dynamic_compression'); await h.click('Pull IVC from Cam Card');
+    const ica = await h.box('ica'), dcr = (await h.read(['Dynamic Compression']))['Dynamic Compression'];
+    if (mismatch(ica, want.IVC, 0.005)) bad.push(`Dynamic Compression IVC box ${ica} (independent ${want.IVC})`);
+    if (unit === 'imperial' && mismatch(dcr, dynCR(10.5, 6.76, 3.75, want.IVC), 0.002)) bad.push(`DCR ${dcr} (independent ${dynCR(10.5, 6.76, 3.75, want.IVC).toFixed(4)})`);
+    if (unit === 'metric' && mismatch(dcr, dynCR(10.5, 6.76, 3.75, want.IVC), 0.002)) bad.push(`DCR (metric) ${dcr} (independent ${dynCR(10.5, 6.76, 3.75, want.IVC).toFixed(4)})`);
+    return bad.length ? bad.join('; ') : null; } })),
+  { id: 'KA-62', reg: 'GH-DEF-055', kind: 'prop', calc: 'cam_card', why: 'no hidden correction: a fresh visitor sees advance 0 and installed ICL = recommended ICL 110 on every cam page (IVC 42, ECL 110, EVO 45, EVC 5)', fn: async (h) => {
+    const want = camRef(224, 230, 110, 110, 0), bad = [];
+    await h.reset('cam_card');
+    for (const [pg, labels] of [['cam_card', ['Installed Intake CL', 'IVC', 'Exhaust CL', 'EVO', 'EVC']], ['camshaft_ivc', ['Installed Intake Centerline', 'IVC']], ['camshaft_exhaust_events', ['Installed Intake Centerline', 'Exhaust Centerline', 'EVO', 'EVC']]]) {
+      await h.open(pg); bad.push(...camDiff(await h.read(labels), want, 0.01).map(s => `${pg}: ${s}`)); if (await h.box('cam_adv') !== 0) bad.push(`${pg}: default advance ${await h.box('cam_adv')}`); }
+    return bad.length ? bad.join('; ') : null; } },
+  { id: 'KA-64', reg: 'GH-DEF-069', kind: 'prop', calc: 'camshaft_ivc', why: 'stale remembered boxes: IVC page typed with recommended ICL 112; then Cam Card set to recommended 106 with 2 deg advance; then another page; then the IVC page and Exhaust Events show 106 / 2 / installed 104 (IVC 36, ECL 116), and a keystroke there does not write 112 back', fn: async (h) => {
+    const want = camRef(224, 230, 106, 110, 2), bad = [];
+    await h.reset('camshaft_ivc'); await h.type({ cam_d050_i: 224, cam_lsa: 110, cam_icl: 112, cam_adv: 0 });
+    await h.open('cam_card'); await h.type({ cam_d050_e: 230, cam_icl: 106, cam_adv: 2 });
+    for (const [pg, labels] of [['camshaft_ivc', ['Installed Intake Centerline', 'IVC']], ['camshaft_exhaust_events', ['Installed Intake Centerline', 'Exhaust Centerline', 'EVO', 'EVC']]]) {
+      await h.open('hp_quarter_mile'); await h.open(pg);
+      if (await h.box('cam_icl') !== 106 || await h.box('cam_adv') !== 2) bad.push(`${pg}: boxes show ICL ${await h.box('cam_icl')} / advance ${await h.box('cam_adv')} (shared 106 / 2)`);
+      bad.push(...camDiff(await h.read(labels), want, 0.01).map(s => `${pg}: ${s}`)); }
+    await h.type({ cam_lsa: 110 }); await h.open('cam_card');
+    if (await h.box('cam_icl') !== 106 || await h.box('cam_adv') !== 2) bad.push(`after a keystroke: Cam Card ICL ${await h.box('cam_icl')} / advance ${await h.box('cam_adv')}`);
+    return bad.length ? bad.join('; ') : null; } },
+  { id: 'KA-63', reg: 'GH-DEF-068', kind: 'prop', calc: 'camshaft_intake_centerline', why: 'Intake Centerline page, LSA 114 and 4 deg advance (calculated installed ICL 110), applied to a cam whose recommended ICL is 108: no page error; the Cam Card keeps recommended 108, sets advance -2, installed 110, LSA 114', fn: async (h) => {
+    await h.reset('cam_card'); await h.type({ cam_icl: 108, cam_adv: 0 }); const errs0 = h.errors().length;
+    await h.open('camshaft_intake_centerline'); await h.type({ af_ic_lsa: 114, af_ic_adv: 4 }); await h.click('Apply Centerline to Cam Card');
+    const bad = [], e = h.errors().slice(errs0); if (e.length) bad.push('page error: ' + e.join(' | '));
+    const rec = await h.box('cam_icl'), adv = await h.box('cam_adv'), lsa = await h.box('cam_lsa'), inst = (await h.read(['Installed Intake CL']))['Installed Intake CL'];
+    if (rec !== 108) bad.push(`recommended ICL ${rec}`); if (adv !== -2) bad.push(`advance ${adv}`); if (lsa !== 114) bad.push(`LSA ${lsa}`); if (inst !== 110) bad.push(`installed ICL ${inst}`);
+    return bad.length ? bad.join('; ') : null; } },
   // RC-17 / GH-DEF-056 e85_blend remove/replace — volume of fuel to drain and replace with ethanol-free gasoline (provisional: replacement fuel E0)
   { id: 'KA-30', reg: 'GH-DEF-056', calc: 'e85_blend', edit: { tank_gal: 16, cur_e: 60, target_e: 30, e85_pct: 75 }, row: 'Fuel to Remove', want: 16 * (60 - 30) / 60, tol: 0.02, conv: 'replacement fuel is E0 gasoline', why: 'drain 16 x (60 - 30)/60 = 8.00 gal, refill with E0' },
   // RC-19 / GH-DEF-057 rc_fuel_stint — 3.6 gal at 0.12 gal/lap is 30 laps
@@ -193,13 +249,22 @@ if (process.env.KA_LIST) { process.stdout.write(JSON.stringify({ ids: CASES.map(
     document.querySelectorAll('#calc-container .result-box').forEach(b => { const v = b.querySelector('.result-value'); if (v) out.push({ label: t(b.querySelector('.result-label')), val: own(v) || t(v) }); });
     document.querySelectorAll('#calc-container .mini-result').forEach(b => { const v = b.querySelector('.value'); if (v) out.push({ label: t(b.querySelector('.label')), val: own(v) || t(v) }); });
     document.querySelectorAll('#calc-container .sim-stat').forEach(s => { if (s.children[0] && s.children[1]) out.push({ label: t(s.children[0]), val: t(s.children[1]) }); });
+    document.querySelectorAll('#calc-container .cam-events-grid > div').forEach(d => { const l = d.querySelector('span'), v = d.querySelector('strong'); if (l && v) out.push({ label: t(l), val: t(v) }); });   // Complete Cam Card tiles
     return out;
   });
   const warnings = () => page.evaluate(() => document.querySelectorAll('#calc-container .field-warning-text, #calc-container .gh-invalid-result').length);
   const pick = (rs, label) => rs.find(r => r.label.toLowerCase().includes(label.toLowerCase()));
   const valueOf = s => parseShown(String(s).replace(/[^0-9eE+\-.,~−–]/g, ' ').trim().split(/\s+/)[0]);
   const h = {
-    rowAt: async (calc, edit, label) => { await fresh(calc); for (const [k, v] of Object.entries(edit)) await type(k, v); const r = pick(await rows(), label); return r ? valueOf(r.val) : NaN; }
+    rowAt: async (calc, edit, label) => { await fresh(calc); for (const [k, v] of Object.entries(edit)) await type(k, v); const r = pick(await rows(), label); return r ? valueOf(r.val) : NaN; },
+    // cam centerline cases (several pages in one session): reset clears remembered state; open renders a page without reloading; read returns the rows by label
+    reset: async (calc, unit) => { await page.goto(ENGINE, { waitUntil: 'load', timeout: 60000 }); await page.evaluate(([i, u]) => { try { localStorage.clear(); } catch (e) {} setUnit(u || 'imperial'); renderCalc(i, false); }, [calc, unit]); await page.waitForTimeout(120); },
+    open: async (calc) => { await page.evaluate(i => renderCalc(i, false), calc); await page.waitForTimeout(120); },
+    type: async (edit) => { for (const [k, v] of Object.entries(edit)) await type(k, v); },
+    read: async (labels) => { const rs = await rows(), o = {}; for (const l of labels) { const r = rs.find(x => x.label.toLowerCase() === l.toLowerCase()) || pick(rs, l); o[l] = r ? valueOf(r.val) : NaN; } return o; },
+    box: (id) => page.evaluate(i => { const e = document.getElementById(i); return e ? parseFloat(e.value) : NaN; }, id),
+    click: async (text) => { await page.click(`#calc-container button:has-text("${text}")`); await page.waitForTimeout(200); },
+    errors: () => pageErrors.slice()
   };
 
   const results = [];

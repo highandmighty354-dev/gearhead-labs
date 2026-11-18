@@ -9,7 +9,7 @@
 
    INDEPENDENT REFERENCES (nothing taken from the engine):
      IVC (crank degrees ABDC) = intake duration @ .050 / 2 + (intake centreline - advance) - 180
-       default cam 224 / 110 / 4 -> 38;  changed cam 236 / 108 / 0 -> 46
+       default cam 224 / 110 / 4 -> 38 (4 deg advance set by the test: the shared default advance is 0 since 2026-11-18);  changed cam 236 / 108 / 0 -> 46
      DCR (slider-crank trapped volume): r = stroke / 2, theta = 180° + IVC, x = r(1 - cos theta) + rod - sqrt(rod² - (r sin theta)²),
        clearance = (pi bore² / 4) stroke / (SCR - 1), DCR = (area x + clearance) / clearance
        defaults bore 4.250, stroke 3.750, rod 6.760 in, SCR 10.5: IVC 35 -> 9.859, IVC 38 -> 9.745 (the values recorded in GH-DEF-044)
@@ -66,6 +66,10 @@ async function suite(browser, enginePath, quiet) {
     await page.evaluate(() => { try { localStorage.clear(); } catch (e) { } });
     await page.reload({ waitUntil: 'load' }); await page.waitForTimeout(300);
     await page.evaluate(s => { if (UNIT.system !== s) setUnit(s); renderCalc('dashboard', false); }, sys); await page.waitForTimeout(60);
+    /* 'default cam' here is the former shared default, 224 / 110 / 4 deg advance (IVC 38). Since 2026-11-18 (cam centerline convention, GH-DEF-055) the shared
+       default advance is 0 and the advance is shown on every cam page, so the test sets its 4 deg explicitly, as a user would on the IVC page. */
+    await page.evaluate(() => renderCalc('camshaft_ivc', false)); await page.fill('#cam_adv', '4'); await page.waitForTimeout(40);
+    await page.evaluate(() => renderCalc('dashboard', false)); await page.waitForTimeout(60);
     return { ctx, page, errors };
   };
   const open = async (page, id) => { await page.evaluate(i => renderCalc(i, false), id); await page.waitForTimeout(80); };

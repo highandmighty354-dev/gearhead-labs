@@ -154,6 +154,32 @@ Every expected value below is computed **independently of the engine**. The sour
   - This page only. The help text now says the ICL is installed.
   - The worked example is corrected.
 
+**Superseded 2026-11-18: cam centerline convention (owner instruction).** The "installed ICL on this page only" convention above was replaced by one convention for every cam page.
+- **Convention:**
+  - The cam card's **recommended** intake centerline is kept as entered and is never overwritten.
+  - The user's **advance (+) / retard (−)** is a visible box on Cam Card, IVC and Exhaust Valve Events.
+  - **Actual installed ICL = recommended ICL − advance.** It is computed only in `cam()` and used by every cam page and by the Dynamic Compression IVC pull.
+  - Default advance is 0, meaning installed as recommended (owner decision). No hidden correction anywhere.
+- **Reference:** standard .050-inch event relations on the installed ICL:
+  - ECL = 2·LSA − ICL;
+  - IVO = dur_i/2 − ICL;
+  - IVC = dur_i/2 + ICL − 180;
+  - EVO = ECL + dur_e/2 − 180;
+  - EVC = dur_e/2 − ECL;
+  - DCR by slider-crank at the pulled IVC.
+- **Expected values (224 / 230 / LSA 110 / recommended ICL 110):**
+
+| Setting | Installed ICL | IVO | IVC | ECL | EVO | EVC |
+|---|---|---|---|---|---|---|
+| Advance 0 | 110 | 2 | 42 | 110 | 45 | 5 |
+| 4° advance | 106 | 6 | 38 | 114 | 49 | 1 |
+| 4° retard | 114 | −2 | 46 | 106 | 41 | 9 |
+
+- **Cross-page check:** 236 / 242 / LSA 112 / recommended 108 with 3° retard gives installed 111, IVC 49 and ECL 113 on all three pages. Dynamic Compression's pull gives IVC 49 and DCR 9.246 (10.5:1, 6.76 / 3.75 in). The same values hold in Metric.
+- **Also fixed in that change (owner approved):**
+  - **GH-DEF-068:** the Intake Centerline page's Apply button. It now sets the advance and keeps the recommended ICL.
+  - **GH-DEF-069:** a cam page reached via another page showed stale remembered boxes and wrote them back over the shared cam.
+
 ### GH-DEF-057 — Road-course fuel stint (`375a0fb`)
 
 - **Reference:** max green laps = ⌊usable fuel ÷ fuel per lap⌋. With exact arithmetic, 3.60 ÷ 0.12 = **30**.
@@ -215,14 +241,7 @@ Every expected value below is computed **independently of the engine**. The sour
 
 ## Limitations and open points (not changed here)
 
-1. **Cam pages disagree (055).** Exhaust Valve Events now treats the ICL as installed. Cam Card, Intake Valve Closing and the Dynamic Compression IVC pull still subtract the hidden 4° advance. With the shared default cam:
-
-| Page | EVO | EVC |
-|---|---|---|
-| Exhaust Valve Events | 45° | 5° |
-| Cam Card | 49° | 1° |
-
-   One convention for the whole cam family needs an owner decision.
+1. **Cam pages disagree (055): resolved 2026-11-18** by the cam centerline convention (see GH-DEF-055 above). Every cam page now uses installed = recommended − advance, with the advance visible.
 2. **Metric density label (054).** In Metric the simulator density box now reads slug/ft³ instead of kg/m³, as Dynamic Pressure does. A value remembered in a browser from before the change keeps its number, so a typed lb/ft³ figure (for example 0.0765) would now be read as slug/ft³.
 3. **Gauge or absolute pressure (048).** The cranking pressure is P_atm × CR^γ, an absolute pressure (295 psi). A compression gauge reads gauge pressure, which is about 14.7 psi lower. The formula and its test are unchanged; this is a separate question.
 4. **Rounding feeds the lap count (057).** Max Green Laps is computed from fuel already rounded to 2 decimals. For example, 7 laps × 0.333 gal gives 6 laps. This is a separate rounding issue and is not fixed here.
