@@ -150,6 +150,7 @@ const CASES = [
   // RC-14 / GH-DEF-055 hidden cam advance — what the page shows must be self-consistent: LSA = (ICL + ECL) / 2 with the ICL on the page
   { id: 'KA-28', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 230, cam_lsa: 110, cam_icl: 110 }, row: 'Exhaust Centerline', want: 2 * 110 - 110, tol: 0.5, why: 'ECL = 2 x LSA - ICL = 110 deg BTDC with the values shown on the page' },
   { id: 'KA-29', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 230, cam_lsa: 110, cam_icl: 110 }, row: 'EVC', want: 230 / 2 - 110, tol: 0.5, why: 'EVC = dur/2 - ECL = 5 deg ATDC' },
+  { id: 'KA-55', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 236, cam_lsa: 112, cam_icl: 106 }, row: 'EVO', want: (2 * 112 - 106) + 236 / 2 - 180, tol: 0.5, why: 'installed ICL 106, LSA 112: ECL = 118, EVO = ECL + dur/2 - 180 = 56 deg BBDC (owner decision 2026-11-18: the ICL on this page is installed)' },
   // RC-17 / GH-DEF-056 e85_blend remove/replace — volume of fuel to drain and replace with ethanol-free gasoline (provisional: replacement fuel E0)
   { id: 'KA-30', reg: 'GH-DEF-056', calc: 'e85_blend', edit: { tank_gal: 16, cur_e: 60, target_e: 30, e85_pct: 75 }, row: 'Fuel to Remove', want: 16 * (60 - 30) / 60, tol: 0.02, conv: 'replacement fuel is E0 gasoline', why: 'drain 16 x (60 - 30)/60 = 8.00 gal, refill with E0' },
   // RC-19 / GH-DEF-057 rc_fuel_stint — 3.6 gal at 0.12 gal/lap is 30 laps

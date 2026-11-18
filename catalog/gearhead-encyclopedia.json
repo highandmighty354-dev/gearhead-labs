@@ -4,7 +4,7 @@
  "generated_from": {
   "catalog": {
    "file": "catalog/gearhead-catalog.json",
-   "sha256": "6a0809659c121aea22a75708af120c6f83b67754c985a12589534a6a7c1a7265"
+   "sha256": "d92ff96aedde75eef92c65a520fc0b9b10fe4fbd81264f6ab67e8b6ebb0456a9"
   },
   "enrichment": {
    "file": "catalog/encyclopedia-enrichment.json",
@@ -12,7 +12,7 @@
   },
   "page": {
    "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-   "sha256": "3333f0d77fb037fc8ec438dbc4353bfac0683d76868ec62bf3a4ab6dffae2d9f"
+   "sha256": "bd85fd8050b408278919bbf7fbc0cc95f6ae730caca0bcc169046f8bcbca4e65"
   },
   "models": {
    "file": "premium/models.js",
@@ -5314,7 +5314,7 @@
     }
    ],
    "former_ids": [],
-   "description": "EVO and EVC are derived from exhaust duration and exhaust centerline using the same lift reference.",
+   "description": "EVO and EVC are derived from exhaust duration and exhaust centerline using the same lift reference. Intake Centerline is the installed centerline (as degreed in the engine); no cam advance is applied on this page, so Exhaust Centerline = 2 × LSA − Intake Centerline.",
    "formula": null,
    "concepts": [],
    "provenance": {
