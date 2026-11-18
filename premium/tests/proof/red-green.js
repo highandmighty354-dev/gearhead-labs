@@ -14,7 +14,14 @@
    complete and well-formed (every case id from the suite's own list, a consistent self-test summary). Otherwise the run is reported as NOT a valid proof,
    the report records the child's status, signal, error and output tail, and this script exits 1. Regression tests: premium/tests/proof/red-green-harness.test.js.
 
-   Run: node premium/tests/proof/red-green.js           (about 15-20 minutes: one suite run per probe) */
+   Run: node premium/tests/proof/red-green.js           (about 15-20 minutes: one suite run per probe)
+
+   HISTORICAL (2026-11-18): this is the Stage 1 proof. It was written for, and is only valid at, the Stage 1 state (main b58e1f0); its recorded result is
+   out/red-green.json (valid: true, 2026-11-10). The Stage 2 repairs replaced the code its probes patch, so on later commits it reports NOT a valid proof
+   ("probe text found 0 time(s)"); Stage 2 evidence is docs/evidence/stage2-red-green-isolation.json. Its probes, expected lists and logic are unchanged.
+   Current CI does not run it; red-green-harness.test.js tests its child-process validation with fake suites and RG_ENGINE_SOURCE (below), and checks
+   its Stage 1 self-test list against the recorded evidence and the current baseline. RG_ENGINE_SOURCE = path of the engine text the probes are applied
+   to (default: the repository's engine, as before). */
 'use strict';
 const fs = require('fs'), os = require('os'), path = require('path'), { spawnSync } = require('child_process');
 const REPO = path.resolve(__dirname, '..', '..', '..');
@@ -43,7 +50,7 @@ const PROBES = [
 ];
 
 function makeEngine(regs) {
-  let s = fs.readFileSync(path.join(REPO, F124), 'utf8');
+  let s = fs.readFileSync(process.env.RG_ENGINE_SOURCE || path.join(REPO, F124), 'utf8');
   for (const [reg, , edits] of PROBES) {
     if (!regs.includes(reg)) continue;
     for (const [a, b, n] of edits) {
@@ -138,7 +145,8 @@ function checkPageErrors(label, pe, diag) {
   if (pe.length) throw new HarnessError(`${label}: page errors: ${pe.map(String).join(' | ').slice(0, 500)}`, diag);
 }
 /* the exact self-test outcome each phase must show (PR #30 review). RED, the shipped engine: exactly the three rows corrected in Stage 1, which fail because of
-   their open register entries (the same three as KNOWN_BASELINE_IDS in premium/tests/engine-selftest.js; red-green-harness.test.js checks the two lists agree).
+   their open register entries (the three KNOWN_BASELINE_IDS rows of premium/tests/engine-selftest.js at Stage 1; red-green-harness.test.js checks this list against
+   the recorded evidence and against the current baseline, which has shrunk as Stage 2 repaired GH-DEF-046 and GH-DEF-047).
    GREEN, the temp copy with every probe: no failures at all. Returns a list of discrepancies (empty = as expected). */
 const EXPECTED_RED_SELFTEST_FAILURES = ['formula:ackermann_angle', 'formula:diesel_smoke_limit', 'renderer:piston_position 90deg'];
 function selftestDiscrepancies(phase, s) {
