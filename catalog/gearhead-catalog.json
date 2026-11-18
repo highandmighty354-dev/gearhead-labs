@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "0b3e96109da5891234f92e759fedd2a40beca5fafb868e1bd6efa92eee02554a"
+      "sha256": "f04a87ac4a17485f8a6dd08cf09194443257f8a919f36932afb2744332ace04e"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -28,7 +28,7 @@
     },
     "formula_versions_0410": {
       "file": "supabase/migrations/0410_formula_versions_stage2_calculator_repairs.sql",
-      "sha256": "b2c491f74ab67608f0f40471cb204d5a0a32670598dec641a422498dd573bd03"
+      "sha256": "7cbe0933e42ca5eed22184823cc4128b58870a497dff7029653a1ab37993ccd3"
     }
   },
   "counts": {
@@ -1021,7 +1021,7 @@
     {"id":"cost_per_mile","name":"Cost Per Mile (Ownership)","category":"FINANCE & OWNERSHIP","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-2c5e0852","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"countersink_depth","name":"Countersink Depth","category":"SHOP & MACHINING","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-2f288d9d","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"crank_journal_overlap","name":"Crank Journal Overlap","category":"ENGINE","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-26d35c89","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
-    {"id":"cranking_compression","name":"Cranking Compression Pressure","category":"ENGINE","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-95fbced0","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
+    {"id":"cranking_compression","name":"Cranking Compression Pressure","category":"ENGINE","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-ef403b86","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"crawl_ratio","name":"Crawl Ratio","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-3b9ba962","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"crawl_ratio_tire","name":"Tire-Adjusted Crawl Ratio","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-72639afb","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"cross_weight","name":"Cross Weight / Corner Balance","category":"SUSPENSION, TIRES & GEOMETRY","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-8e341d80","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},

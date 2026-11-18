@@ -30,7 +30,8 @@ const VERSIONED = {
   fuel_pump_sizing: { version: 'fv1-f5c74781', seed: 'fv1-c9780487', register: 'M1 decision D1 (PR #12) / migration 0409' },  // validity rule (HP, BSFC, density > 0; margin >= 1.0) moved into the registry; 0409 prepared, not applied
   // Stage 2 calculator repairs (2026-11-18): the registry row carried the same defect as the page; migration 0410 prepared, not applied
   diesel_power_from_fuel: { version: 'fv1-b16d2d94', seed: 'fv1-0ab8e5a1', register: 'GH-DEF-045 / migration 0410' },  // fuel [lb/hr] / BSFC; the x60 (a lb/min factor) removed
-  piston_position: { version: 'fv1-09188b84', seed: 'fv1-908de781', register: 'GH-DEF-047 / migration 0410' }  // slider-crank distance below TDC (was r - x)
+  piston_position: { version: 'fv1-09188b84', seed: 'fv1-908de781', register: 'GH-DEF-047 / migration 0410' },  // slider-crank distance below TDC (was r - x)
+  cranking_compression: { version: 'fv1-ef403b86', seed: 'fv1-95fbced0', register: 'GH-DEF-048 / migration 0410' }  // IVC is ABDC (crank at 180 + IVC from TDC); trapped stroke = x (was angle IVC and stroke - x)
 };
 
 (async () => {
