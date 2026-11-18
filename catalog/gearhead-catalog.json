@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "307a4d129f628a3e061d0876b88706bc3fd3a52d884ccedf5ce5a3db2f433af5"
+      "sha256": "63b57526a9788890876758abe0b4254a152fdc904fb4b5264a5c8f39d3614be7"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -28,7 +28,7 @@
     },
     "formula_versions_0410": {
       "file": "supabase/migrations/0410_formula_versions_stage2_calculator_repairs.sql",
-      "sha256": "e9faaea08d9afe6952ff1a67f0532ba269da489dcb297b71845b22312a7ef0a1"
+      "sha256": "15db02aaec51dcd05b278d76c2f604d9715aa604c5d750f69a6fda7dafe2ad48"
     }
   },
   "counts": {
@@ -1359,7 +1359,7 @@
     {"id":"rc_camber_gain","name":"Camber Gain vs Roll","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-3c9eface","registry":"GH_LEGACY_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"rc_downforce","name":"Wing Downforce","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-92acc7a7","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"rc_fuel_save","name":"Fuel Saving Target Lap Time","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-92945ca9","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
-    {"id":"rc_fuel_stint","name":"Fuel Load per Stint","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-072e823c","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
+    {"id":"rc_fuel_stint","name":"Fuel Load per Stint","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-523c3d67","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"rc_lap_delta","name":"Lap Time Delta vs Setup Change","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-6ffce3f9","registry":"GH_LEGACY_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"rc_motion_ratio_rc","name":"Motion Ratio (Road Course)","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-ab0daba8","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"rc_pit_strategy","name":"Pit Stop Strategy","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-14e44c57","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},

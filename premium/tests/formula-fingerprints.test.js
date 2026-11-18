@@ -32,7 +32,8 @@ const VERSIONED = {
   diesel_power_from_fuel: { version: 'fv1-b16d2d94', seed: 'fv1-0ab8e5a1', register: 'GH-DEF-045 / migration 0410' },  // fuel [lb/hr] / BSFC; the x60 (a lb/min factor) removed
   piston_position: { version: 'fv1-09188b84', seed: 'fv1-908de781', register: 'GH-DEF-047 / migration 0410' },  // slider-crank distance below TDC (was r - x)
   cranking_compression: { version: 'fv1-ef403b86', seed: 'fv1-95fbced0', register: 'GH-DEF-048 / migration 0410' },  // IVC is ABDC (crank at 180 + IVC from TDC); trapped stroke = x (was angle IVC and stroke - x)
-  wet_bulb: { version: 'fv1-782fda42', seed: 'fv1-a2a279c6', register: 'GH-DEF-050 / migration 0410' }  // Stull (2011) evaluated in degC and converted back to degF (was evaluated in degF)
+  wet_bulb: { version: 'fv1-782fda42', seed: 'fv1-a2a279c6', register: 'GH-DEF-050 / migration 0410' },  // Stull (2011) evaluated in degC and converted back to degF (was evaluated in degF)
+  rc_fuel_stint: { version: 'fv1-523c3d67', seed: 'fv1-072e823c', register: 'GH-DEF-057 / migration 0410' }  // Max Green Laps floored after removing floating-point noise (3.6 / 0.12 gave 29)
 };
 
 (async () => {

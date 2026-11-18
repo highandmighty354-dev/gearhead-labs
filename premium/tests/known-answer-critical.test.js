@@ -147,6 +147,7 @@ const CASES = [
   { id: 'KA-30', reg: 'GH-DEF-056', calc: 'e85_blend', edit: { tank_gal: 16, cur_e: 60, target_e: 30, e85_pct: 75 }, row: 'Fuel to Remove', want: 16 * (60 - 30) / 60, tol: 0.02, conv: 'replacement fuel is E0 gasoline', why: 'drain 16 x (60 - 30)/60 = 8.00 gal, refill with E0' },
   // RC-19 / GH-DEF-057 rc_fuel_stint — 3.6 gal at 0.12 gal/lap is 30 laps
   { id: 'KA-31', reg: 'GH-DEF-057', calc: 'rc_fuel_stint', edit: { laps_rc2: 30, fuel_lap2: 0.12, safety: 0.5 }, row: 'Max Green Laps', want: 30, tol: 0, why: '3.60 gal / 0.12 gal per lap = 30 laps exactly' },
+  { id: 'KA-52', reg: 'GH-DEF-057', kind: 'api', calc: 'rc_fuel_stint', inputs: { laps_rc2: 30, fuel_lap2: 0.12, safety: 0.5 }, out: 'max_green_laps', want: 30, tol: 0, why: 'registry: 3.60 / 0.12 = 30 laps exactly' },
   // SYS-01 / GH-DEF-058 silent fallback — a required box left empty (or holding text) must not produce a number
   ...[['piston_position', 'str6'], ['diesel_power_from_fuel', 'dpf_fuel'], ['ct_sway_bar', 'sb_wire'], ['wet_bulb', 'temp_wb'], ['fuel_line_loss', 'flow_gph'], ['cranking_compression', 'cc_ivc'], ['bolt_pattern', 'meas'], ['hp_trap_speed', 'wt2']]
     .map(([calc, fld], i) => ({ id: 'KA-' + (32 + i), reg: 'GH-DEF-058', kind: 'blank', calc, field: fld, value: '', why: `${calc}: ${fld} left empty must give no number` })),
