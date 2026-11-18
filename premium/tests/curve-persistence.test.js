@@ -125,6 +125,7 @@ async function run(enginePath) {
       await setState(st); await openEditor();
       await fill('curve_y_6', typedTorque(500, st.tq));                        // 500 lb-ft at 4,000 rpm: a clear peak, well above the default 320
       await fill('curve_y_11', typedTorque(10, st.tq));                        // and a weak last point (default 250): Top Speed, which ends at the redline, now depends on the curve
+      await fill('curve_y_10', typedTorque(240, st.tq));                       // GH-DEF-054: with the air density corrected, Top Speed is drag-limited near 6,000 rpm (not at the redline), so the 6,000 rpm point (default 280) is weakened too
       const d = await draws(sim, others, st);
       const tag = `A ${stateName(st)} ${sim.id}`;
       for (const k of ['first', 'retyped', 'afterOther', 'afterOtherCalc'])

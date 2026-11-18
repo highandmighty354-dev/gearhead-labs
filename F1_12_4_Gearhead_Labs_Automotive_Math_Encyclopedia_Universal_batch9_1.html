@@ -6963,7 +6963,7 @@ const RENDERS = {
     const b=simBaseInputs(), speed=Math.max(0,simNum('cor_speed',60)), radius=Math.max(0.1,simNum('cor_radius',200)), mu=Math.max(0,simNum('cor_mu',1.1)), cg=Math.max(0,simNum('cor_cg',20)), track=Math.max(0.1,simNum('cor_track',60)), cl=Math.max(0,simNum('cor_cl',1.2));
     const vfps=speed*5280/3600, g=32.174;
     const lat=vfps*vfps/(radius*g);
-    const rhoSlug=b.rho/32.174;
+    const rhoSlug=b.rho; /* GH-DEF-054: sim_rho is already slug/ft³ (was divided by 32.174 again) */
     const down=0.5*rhoSlug*cl*b.area*vfps*vfps;
     const normal=b.weight+down, gripForce=mu*normal, needed=(b.weight/g)*vfps*vfps/radius;
     const maxLat=gripForce/b.weight;
@@ -7142,8 +7142,8 @@ function simEngineAtRPM(rpm){
   return {torque:y,hp:y*rpm/5252,rpm};
 }
 function simTorqueAtRPM(hp,rpm){ rpm=Math.max(800,rpm); return hp*5252/rpm; }
-function simAeroDrag(vfps,cd,area,rhoLbFt3){
-  const rhoSlugs=rhoLbFt3/32.174;
+function simAeroDrag(vfps,cd,area,rhoSlugs){
+  /* GH-DEF-054: sim_rho is entered in slug/ft³ (owner decision 2026-11-18: box relabelled from lb/ft³); was divided by 32.174 again */
   return 0.5*rhoSlugs*cd*area*vfps*vfps;
 }
 function simWheelRPM(mph,ratio,final,tire){ return mph*ratio*final*336/Math.max(0.1,tire); }
@@ -7203,7 +7203,7 @@ function simInputBlock(title, extra=''){
 }
 function simVehicleFields(){
   const p=simProfile();
-  return `${field('Vehicle Weight','sim_weight',p.weight||3200,'lbs')}${field('Engine Power','sim_hp',p.hp||300,'HP')}${field('Tire Diameter','sim_tire',27,'in')}${field('Final Drive','sim_final',3.73,'')}${field('Drivetrain Efficiency','sim_eff',85,'%')}${field('Tire Grip (μ)','sim_mu',1.0,'')}${field('Cd','sim_cd',0.32,'')}${field('Frontal Area','sim_area',22,'sq ft')}${field('Air Density','sim_rho',0.0023769,'lb/ft³')}${field('Rolling Resistance','sim_crr',0.012,'')}`;
+  return `${field('Vehicle Weight','sim_weight',p.weight||3200,'lbs')}${field('Engine Power','sim_hp',p.hp||300,'HP')}${field('Tire Diameter','sim_tire',27,'in')}${field('Final Drive','sim_final',3.73,'')}${field('Drivetrain Efficiency','sim_eff',85,'%')}${field('Tire Grip (μ)','sim_mu',1.0,'')}${field('Cd','sim_cd',0.32,'')}${field('Frontal Area','sim_area',22,'sq ft')}${field('Air Density','sim_rho',0.0023769,'slug/ft³')}${field('Rolling Resistance','sim_crr',0.012,'')}`;
 }
 function simGearFields(){ return `${field('1st Gear','sim_g1',3.50,'')}${field('2nd Gear','sim_g2',2.10,'')}${field('3rd Gear','sim_g3',1.45,'')}${field('4th Gear','sim_g4',1.00,'')}${field('5th Gear','sim_g5',0.78,'')}${field('6th Gear','sim_g6',0.64,'')}${field('Shift RPM','sim_shift',6000,'RPM')}${field('Redline','sim_redline',6500,'RPM')}`; }
 function simOutputGrid(items){ return `<div class=\"sim-output-grid\">${items.map(x=>`<div class=\"sim-stat\"><div>${x[0]}</div><strong>${x[1]}</strong><span>${x[2]||''}</span></div>`).join('')}</div>`; }
