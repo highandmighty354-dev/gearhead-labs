@@ -80,11 +80,14 @@ const SIM = { W: 3200, cd: 0.32, A: 22, crr: 0.012, hpWheel: 319.88 * 0.85 };
 
 /* ---------- cases ---------- */
 /* kind 'row': open `calc`, type `edit`, read the result row whose label contains `row`, compare with `want` within `tol` (absolute).
-   kind 'sim': the same against a simulator stat tile.  kind 'prop': run `fn` (custom check).  `rc` = Phase 0 root cause, `reg` = register id. */
+   kind 'sim': the same against a simulator stat tile.  kind 'prop': run `fn` (custom check).  `rc` = Phase 0 root cause, `reg` = register id.
+   kind 'api' (Stage 2): the formula registry path, GH_ENGINE.calculate(`calc`, `inputs`) (registry variable names), output `out` (its key), compared with `want`
+   within `tol`. Saved calculations and the page's printed FORMULA block use this path, so a repair must correct it as well as the page. */
 const CASES = [
   // RC-01 / GH-DEF-045 diesel_power_from_fuel — HP = fuel [lb/hr] / BSFC [lb/hp-hr]
   { id: 'KA-01', reg: 'GH-DEF-045', calc: 'diesel_power_from_fuel', edit: { dpf_fuel: 25, dpf_bsfc: 0.40 }, row: 'Estimated Brake Power', want: 25 / 0.40, tol: 0.6, why: 'HP = 25 lb/hr / 0.40 lb/hp-hr = 62.5' },
   { id: 'KA-02', reg: 'GH-DEF-045', calc: 'diesel_power_from_fuel', edit: { dpf_fuel: 100, dpf_bsfc: 0.38 }, row: 'Estimated Brake Power', want: 100 / 0.38, tol: 0.6, why: 'HP = 100 / 0.38 = 263.2' },
+  { id: 'KA-45', reg: 'GH-DEF-045', kind: 'api', calc: 'diesel_power_from_fuel', inputs: { fuel: 25, bsfc: 0.40 }, out: 'estimated_brake_power', want: 25 / 0.40, tol: 1e-9, why: 'registry: HP = 25 / 0.40 = 62.5 exactly' },
   // RC-02 / GH-DEF-046 diesel_smoke_limit — fuel = air / (lambda x stoich AFR). Reference value: diesel stoichiometric AFR 14.5 (the documented convention).
   // The tolerance is a TOLERANCE, not a second reference: +/-1 % of the 14.5-based value, for display rounding. It happens to admit a stoichiometric AFR of
   // roughly 14.36-14.65, but the expected value is computed with 14.5 only. The shipped engine (air / lambda, no AFR) is about 14.5x too high and fails either way.
@@ -189,6 +192,14 @@ if (process.env.KA_LIST) { process.stdout.write(JSON.stringify({ ids: CASES.map(
     let fail = null;
     try {
       if (c.kind === 'prop') fail = await c.fn(h);
+      else if (c.kind === 'api') {
+        await fresh(c.calc);
+        const r = await page.evaluate(([id, inp, key]) => { const x = GH_ENGINE.calculate(id, inp), o = x && x.outputs && x.outputs.find(q => q.key === key);
+          return { state: x && x.state, value: o ? o.value : null, keys: x && x.outputs ? x.outputs.map(q => q.key) : [] }; }, [c.calc, c.inputs, c.out]);
+        if (r.state !== 'VALID') fail = `GH_ENGINE.calculate returned state ${r.state}`;
+        else if (r.value === null || r.value === undefined) fail = `no registry output "${c.out}" (outputs: ${r.keys.join(', ')})`;
+        else { const m = mismatch(r.value, c.want, c.tol); fail = m ? `registry gives ${r.value}, independent value ${+c.want.toFixed(5)} (${m})` : null; }
+      }
       else {
         await fresh(c.calc);
         const needed = c.kind === 'blank' || c.kind === 'huge' ? [c.field] : Object.keys(c.edit || {});

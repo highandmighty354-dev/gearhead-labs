@@ -27,7 +27,9 @@ const VERSIONED = {
   distance_converter: { version: 'fv1-4001b424', seed: 'fv1-36d27af2', register: 'GH-DEF-019 / GH-ENG-014' },  // yards -> km constant 0.000914 corrected to 0.0009144
   bolt_torque_spec: { version: 'fv1-25b1f973', seed: 'fv1-f63ea4c8', register: 'GH-DEF-034 / GH-ENG-014' },      // the thread entered (was 16 or 20 TPI) and proof strength by size; production row deferred
   bolt_stretch: { version: 'fv1-8e827c77', seed: 'fv1-d48e7340', register: 'GH-DEF-036 / GH-ENG-014' },         // stretch -> clamp load through shank and thread in series (was load -> stretch of one uniform bar); production row deferred
-  fuel_pump_sizing: { version: 'fv1-f5c74781', seed: 'fv1-c9780487', register: 'M1 decision D1 (PR #12) / migration 0409' }  // validity rule (HP, BSFC, density > 0; margin >= 1.0) moved into the registry; 0409 prepared, not applied
+  fuel_pump_sizing: { version: 'fv1-f5c74781', seed: 'fv1-c9780487', register: 'M1 decision D1 (PR #12) / migration 0409' },  // validity rule (HP, BSFC, density > 0; margin >= 1.0) moved into the registry; 0409 prepared, not applied
+  // Stage 2 calculator repairs (2026-11-18): the registry row carried the same defect as the page; migration 0410 prepared, not applied
+  diesel_power_from_fuel: { version: 'fv1-b16d2d94', seed: 'fv1-0ab8e5a1', register: 'GH-DEF-045 / migration 0410' }  // fuel [lb/hr] / BSFC; the x60 (a lb/min factor) removed
 };
 
 (async () => {

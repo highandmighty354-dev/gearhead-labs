@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "50ab2b3390cb1d44c831005c1de79f1bd551a0a53534b2e47a1236826648e3bf"
+      "sha256": "ecf880692092ae62d2a5eba96727e7d982ed080b78423d627275e027ac09db97"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -25,6 +25,10 @@
     "formula_versions_0409": {
       "file": "supabase/migrations/0409_formula_versions_fuel_pump_validity.sql",
       "sha256": "29cbdcd08bda08630126e65f89a99f1226766d8568c58330486f3262d61f5534"
+    },
+    "formula_versions_0410": {
+      "file": "supabase/migrations/0410_formula_versions_stage2_calculator_repairs.sql",
+      "sha256": "dc9b65f7c152777fcdf8c6cdfb12bb89edccbd098cab94d63fe2042cb71ef761"
     }
   },
   "counts": {
@@ -1082,7 +1086,7 @@
     {"id":"diesel_load_factor","name":"Diesel Engine Load Factor","category":"DIESEL HEAVY EQUIPMENT","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-5dc226e3","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"diesel_mpg","name":"Diesel Fuel Economy","category":"DIESEL FUEL & ECONOMY","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-216d2965","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"diesel_power_economy","name":"Performance vs Economy","category":"DIESEL PERFORMANCE & EFFICIENCY","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-d8a8e412","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
-    {"id":"diesel_power_from_fuel","name":"Diesel Power from Fuel Flow","category":"DIESEL FUEL & INJECTION","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-0ab8e5a1","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
+    {"id":"diesel_power_from_fuel","name":"Diesel Power from Fuel Flow","category":"DIESEL FUEL & INJECTION","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-b16d2d94","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"diesel_power_to_weight","name":"Diesel Power-to-Weight","category":"DIESEL PERFORMANCE & EFFICIENCY","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-dd8f70a8","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"diesel_production_per_gallon","name":"Production per Gallon","category":"DIESEL HEAVY EQUIPMENT","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-ceac6727","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"diesel_rail_power","name":"Common-Rail Hydraulic Power","category":"DIESEL / INJECTION & COMBUSTION","lab":"diesel","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-daaac5b9","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
