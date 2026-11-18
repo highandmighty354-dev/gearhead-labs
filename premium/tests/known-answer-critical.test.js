@@ -98,6 +98,8 @@ const CASES = [
   { id: 'KA-06', reg: 'GH-DEF-047', calc: 'piston_position', edit: { str6: 3.75, rl2: 6.76, ang: 0 }, row: 'Piston Position', want: 0, tol: 0.001, why: 'at TDC the piston is 0 in from TDC' },
   { id: 'KA-07', reg: 'GH-DEF-047', calc: 'piston_position', edit: { str6: 4.0, rl2: 6.0, ang: 60 }, row: 'Piston Position', want: pistonX(4, 6, 60), tol: 0.001, why: 'x(60 deg) = 1.2554 in' },
   { id: 'KA-08', reg: 'GH-DEF-047', calc: 'piston_position', edit: { str6: 3.75, rl2: 6.76, ang: 180 }, row: 'Piston Position', want: 3.75, tol: 0.001, why: 'at BDC the piston is one full stroke from TDC' },
+  { id: 'KA-46', reg: 'GH-DEF-047', kind: 'api', calc: 'piston_position', inputs: { stroke6: 3.75, rl2: 6.76, angle: 90 }, out: 'piston_position_from_tdc', want: pistonX(3.75, 6.76, 90), tol: 1e-9, why: 'registry: x(90 deg) = 2.1402 in' },
+  { id: 'KA-47', reg: 'GH-DEF-047', kind: 'api', calc: 'piston_position', inputs: { stroke6: 4.0, rl2: 6.0, angle: 60 }, out: 'piston_position_from_tdc', want: pistonX(4, 6, 60), tol: 1e-9, why: 'registry: x(60 deg) = 1.2554 in' },
   // RC-04 / GH-DEF-048 cranking_compression — IVC is degrees ABDC; P = atm x CRe^gamma with the page's gamma
   { id: 'KA-09', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 10.5, cc_rod: 6.0, cc_stroke: 3.75, cc_ivc: 40, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Effective Compression Ratio', want: dynCR(10.5, 6, 3.75, 40), tol: 0.006, why: 'CRe = 9.699' },
   { id: 'KA-10', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 10.5, cc_rod: 6.0, cc_stroke: 3.75, cc_ivc: 40, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Estimated Cranking Pressure', want: 14.7 * Math.pow(dynCR(10.5, 6, 3.75, 40), 1.32), tol: 1.0, why: 'P = 14.7 x 9.699^1.32 = 295 psi' },

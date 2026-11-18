@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "ecf880692092ae62d2a5eba96727e7d982ed080b78423d627275e027ac09db97"
+      "sha256": "0b3e96109da5891234f92e759fedd2a40beca5fafb868e1bd6efa92eee02554a"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -28,7 +28,7 @@
     },
     "formula_versions_0410": {
       "file": "supabase/migrations/0410_formula_versions_stage2_calculator_repairs.sql",
-      "sha256": "dc9b65f7c152777fcdf8c6cdfb12bb89edccbd098cab94d63fe2042cb71ef761"
+      "sha256": "b2c491f74ab67608f0f40471cb204d5a0a32670598dec641a422498dd573bd03"
     }
   },
   "counts": {
@@ -1334,7 +1334,7 @@
     {"id":"perfect_light","name":"Perfect Light / Holeshot","category":"DRAG RACING","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-fd1a2c61","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"pid_proportional","name":"PID Proportional Output","category":"UNIVERSAL / CONTROLS & AUTONOMY","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-3d87cb60","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"pinion_angle_change","name":"Pinion Angle Change (Lift/Lowering)","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-6b25b6f7","registry":"GH_LEGACY_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
-    {"id":"piston_position","name":"Piston Position","category":"ENGINE","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-908de781","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
+    {"id":"piston_position","name":"Piston Position","category":"ENGINE","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-09188b84","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"piston_to_valve_clearance","name":"Piston-to-Valve Clearance","category":"GASOLINE / ENGINE THERMODYNAMICS","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-2b9f3815","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"port_valve_area_ratio","name":"CYLINDER HEAD / FLOW · Port-to-Valve Area Ratio","category":"GASOLINE / ENGINE AIRFLOW & VALVETRAIN","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-46b1be75","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"port_velocity","name":"Cylinder Head Port Velocity","category":"GASOLINE / ENGINE THERMODYNAMICS","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-3e0b0fcd","registry":"GH_E1_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},

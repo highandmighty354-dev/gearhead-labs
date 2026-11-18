@@ -29,7 +29,8 @@ const VERSIONED = {
   bolt_stretch: { version: 'fv1-8e827c77', seed: 'fv1-d48e7340', register: 'GH-DEF-036 / GH-ENG-014' },         // stretch -> clamp load through shank and thread in series (was load -> stretch of one uniform bar); production row deferred
   fuel_pump_sizing: { version: 'fv1-f5c74781', seed: 'fv1-c9780487', register: 'M1 decision D1 (PR #12) / migration 0409' },  // validity rule (HP, BSFC, density > 0; margin >= 1.0) moved into the registry; 0409 prepared, not applied
   // Stage 2 calculator repairs (2026-11-18): the registry row carried the same defect as the page; migration 0410 prepared, not applied
-  diesel_power_from_fuel: { version: 'fv1-b16d2d94', seed: 'fv1-0ab8e5a1', register: 'GH-DEF-045 / migration 0410' }  // fuel [lb/hr] / BSFC; the x60 (a lb/min factor) removed
+  diesel_power_from_fuel: { version: 'fv1-b16d2d94', seed: 'fv1-0ab8e5a1', register: 'GH-DEF-045 / migration 0410' },  // fuel [lb/hr] / BSFC; the x60 (a lb/min factor) removed
+  piston_position: { version: 'fv1-09188b84', seed: 'fv1-908de781', register: 'GH-DEF-047 / migration 0410' }  // slider-crank distance below TDC (was r - x)
 };
 
 (async () => {
