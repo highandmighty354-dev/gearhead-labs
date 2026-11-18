@@ -6978,7 +6978,7 @@ const RENDERS = {
 
   sim_top_speed(){
     const b={...simBaseInputs(),...{}}; const gears=simGears();
-    let best=0,bestRpm=0,wheelPower=0,drag=0,available=0;
+    let best=0,bestRpm=0,wheelPower=0,drag=0,available=0,bestDrag=0;
     for(let mph=1;mph<=350;mph+=0.5){
       const vfps=mph*1.4666667;
       const gearIdx=simGearForSpeed(mph,b,gears); const ratio=gears[gearIdx]||1;
@@ -6987,11 +6987,11 @@ const RENDERS = {
       const curve=simEngineAtRPM(rpm); available=curve.hp*b.eff;
       const driveForce=available*550/Math.max(1,vfps);
       drag=simAeroDrag(vfps,b.cd,b.area,b.rho)+b.crr*b.weight;
-      if(driveForce>=drag){best=mph;bestRpm=rpm;wheelPower=available;}
+      if(driveForce>=drag){best=mph;bestRpm=rpm;wheelPower=available;bestDrag=drag;} /* GH-DEF-062: keep the drag at the reported top speed (the tile showed the last speed tested) */
     }
     return renderSimulatorShell('Simulator — Top Speed','Top-speed power balance using the actual entered engine curve, gearing, tire diameter, aero drag and rolling resistance.',
       simInputBlock('Vehicle',simVehicleFields())+simInputBlock('Gearing',simGearFields())+simInputBlock('Engine Curve',simCurveInputSummary())+
-      simOutputGrid([['Estimated Top Speed',best.toFixed(1),'mph'],['Top Gear RPM',bestRpm.toFixed(0),'RPM'],simPerfCell('Wheel Power',wheelPower,'HP',0),['Drag + Rolling',drag.toFixed(0),'lbf']])+
+      simOutputGrid([['Estimated Top Speed',best.toFixed(1),'mph'],['Top Gear RPM',bestRpm.toFixed(0),'RPM'],simPerfCell('Wheel Power',wheelPower,'HP',0),['Drag + Rolling',bestDrag.toFixed(0),'lbf']])+
       `<div class="sim-note">Top speed is limited by available wheel power, redline and the 350 mph search ceiling.</div>`);
   },
   sim_dragstrip(){

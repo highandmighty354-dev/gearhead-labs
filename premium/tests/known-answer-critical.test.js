@@ -141,6 +141,12 @@ const CASES = [
   { id: 'KA-25', reg: 'GH-DEF-054', kind: 'sim', calc: 'sim_dragstrip', edit: {}, row: 'Trap Speed', max: powerBound({ ...SIM, toFt: 1320 }).mph, why: 'power-limited upper bound on trap speed at 1,320 ft (~115.7 mph)' },
   { id: 'KA-26', reg: 'GH-DEF-054', kind: 'sim', calc: 'sim_acceleration', edit: { sim_target: 130 }, row: 'Target Time', min: powerBound({ ...SIM, toMph: 130 }).t, why: 'power-limited lower bound on 0-130 mph time (~15.27 s)' },
   { id: 'KA-27', reg: 'GH-DEF-054', kind: 'sim', calc: 'sim_cornering', edit: {}, row: 'Aero Downforce', want: 0.5 * RHO_SL * 1.2 * 22 * Math.pow(60 * MPH, 2), tol: 2, why: 'L = 1/2 rho Cl A v^2 = 243 lbf at 60 mph, Cl 1.2, A 22 ft^2' },
+  // GH-DEF-062 (Medium; fixed with the Stage 2 repairs on the owner's instruction of 2026-11-18): the Drag + Rolling tile must be the resistance AT the reported top speed
+  { id: 'KA-54', reg: 'GH-DEF-062', kind: 'prop', calc: 'sim_top_speed', why: 'Drag + Rolling = 1/2 rho Cd A v^2 + Crr W at the shown top speed (default vehicle; ~549 lbf at 168.5 mph)', fn: async (h) => {
+    const s = await h.rowAt('sim_top_speed', {}, 'Estimated Top Speed'), d = await h.rowAt('sim_top_speed', {}, 'Drag + Rolling');
+    if (!Number.isFinite(s) || !Number.isFinite(d)) return `could not read the tiles (top speed ${s}, drag ${d})`;
+    const want = 0.5 * RHO_SL * SIM.cd * SIM.A * Math.pow(s * MPH, 2) + SIM.crr * SIM.W, m = mismatch(d, want, 1);
+    return m ? `shows ${d} lbf at ${s} mph, independent value ${want.toFixed(1)} (${m})` : null; } },
   // RC-14 / GH-DEF-055 hidden cam advance — what the page shows must be self-consistent: LSA = (ICL + ECL) / 2 with the ICL on the page
   { id: 'KA-28', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 230, cam_lsa: 110, cam_icl: 110 }, row: 'Exhaust Centerline', want: 2 * 110 - 110, tol: 0.5, why: 'ECL = 2 x LSA - ICL = 110 deg BTDC with the values shown on the page' },
   { id: 'KA-29', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 230, cam_lsa: 110, cam_icl: 110 }, row: 'EVC', want: 230 / 2 - 110, tol: 0.5, why: 'EVC = dur/2 - ECL = 5 deg ATDC' },

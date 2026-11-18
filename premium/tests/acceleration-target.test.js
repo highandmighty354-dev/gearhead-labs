@@ -131,8 +131,8 @@ async function run(enginePath) {
     // GH-DEF-054 (2026-11-18): re-recorded after the air-density correction (was 18.230 sec / 87.2 mph / 8.750 / 12.440 / 15.600 sec / 3551 lb-ft)
     sim_dragstrip: { '1/4 Mile ET': '18.370 sec', 'Trap Speed': '85.2 mph', '60 ft': '4.150 sec', '330 ft': '8.770 sec', '660 ft': '12.480 sec', '1000 ft': '15.690 sec', '1320 ft': '18.370 sec', 'Peak Wheel Torque': '3550 lb-ft' },
     // GH-DEF-054 (2026-11-18): re-recorded after the air-density correction (was 218.5 mph / 6491 RPM / 263 HP / 117 lbf, with aero drag 32x too small).
-    // Drag + Rolling still shows the drag at the last speed tested (GH-DEF-062, corrected in the next change).
-    sim_top_speed: { 'Estimated Top Speed': '165.5 mph', 'Top Gear RPM': '5992 RPM', 'Wheel Power': '272 HP', 'Drag + Rolling': '949 lbf' }
+    // GH-DEF-062: Drag + Rolling is the resistance at the reported top speed, 1/2 rho Cd A v^2 + Crr W = 583 lbf at 165.5 mph (was 949, the last speed tested).
+    sim_top_speed: { 'Estimated Top Speed': '165.5 mph', 'Top Gear RPM': '5992 RPM', 'Wheel Power': '272 HP', 'Drag + Rolling': '583 lbf' }
   };
   for (const id of Object.keys(golden)) {
     await fresh(); await goTo(id); await fill('sim_weight', GOLDEN_WEIGHT); const r = await read();
