@@ -93,6 +93,7 @@ This is the **single authoritative register** of known defects, deferred improve
 | [GH-DEF-067](#gh-def-067--piston-acceleration-presents-a-two-term-series-approximation-as-the-exact-crank-slider-model) | Piston Acceleration presents a two-term series approximation as the exact crank-slider model | OPEN | Medium | P3 |
 | [GH-DEF-068](#gh-def-068--intake-centerline-apply-centerline-to-cam-card-throws-an-error-and-if-it-ran-would-overwrite-the-recommended-icl) | Intake Centerline "Apply Centerline to Cam Card" throws an error and, if it ran, would overwrite the recommended ICL | FIXED — UNVERIFIED | High | P2 |
 | [GH-DEF-069](#gh-def-069--a-cam-page-reached-via-another-page-shows-stale-remembered-boxes-and-writes-them-back-over-the-shared-cam) | A cam page reached via another page shows stale remembered boxes and writes them back over the shared cam | FIXED — UNVERIFIED | High | P2 |
+| [GH-DEF-070](#gh-def-070--head-flow-curve-a-remembered-flow-value-can-be-shown-and-written-back-over-newer-shared-flow-data) | Head Flow Curve: a remembered flow value can be shown and written back over newer shared flow data | OPEN | Medium | P3 |
 | [GH-IMP-001](#gh-imp-001--energy-in-ft-lb-is-labelled-nm-rather-than-j-in-metric) | Energy in ft-lb is labelled "N·m" rather than "J" in Metric | VERIFIED CLOSED | Low | P3 |
 | [GH-IMP-002](#gh-imp-002--yaw-inertia-and-polar-moment-of-inertia-ignore-the-unit-toggle) | Yaw Inertia and Polar Moment of Inertia ignore the unit toggle | DEFERRED | Low | P3 |
 | [GH-IMP-003](#gh-imp-003--hpfromspecs-could-add-the-torque-output-its-free-sibling-has) | `hp_from_specs` could add the Torque output its Free sibling has | DEFERRED | Low | P3 |
@@ -1966,6 +1967,24 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Verification:** 1. After setting the cam on one cam page and visiting any other page, every cam page shows and uses the shared cam; a keystroke does not change the other values.
   After release: checked on the live site.
 - **History:** 2026-11-18 — found while standardizing the cam centerline convention (the Apply fix failed because of it); repaired in the same change, owner approved.
+
+### GH-DEF-070 — Head Flow Curve: a remembered flow value can be shown and written back over newer shared flow data
+- **Status:** OPEN
+- **Severity:** Medium (the user's own flow-bench data is silently overwritten, but only demonstrated with two tabs of the site open; no single-tab path found in this build)
+- **Priority:** P3
+- **Description:** Head Flow Curve (`head_flow_curve`) edits the shared head-flow data (`ast().flow`: lift, intake and exhaust flow points, stored in browser storage under `ghm_airflow_config_v28`). Like the cam pages before GH-DEF-069, the page is filled from its own remembered box text (`renderCalc` snapshot) when reached from another page, not from the shared data; `syncAirflowStateFromDOM` then copies the on-screen boxes into the shared data on the next keystroke. Expected: on opening, the page shows the current shared flow data, and a keystroke changes only the box typed in. Actual: it shows the value it last remembered, and the next keystroke anywhere on the page writes that value back over newer shared data.
+- **Evidence:** **Evidence class: Independently reproduced 2026-11-18** (normal navigation and typing only, two tabs of the same site in one browser, Chromium), on `main` `b58e1f0` and on `fix/stage-2-calculator-repairs` `572e8c6`: tab A types intake flow point 0 = 99 on Head Flow Curve and opens another page; tab B opens Head Flow Curve and types 123 (shared data 123); tab A returns to Head Flow Curve: the box shows 99; typing in the Query Lift box sets the shared point back to 99. Same sequence on the cam pages at `572e8c6`: tab A shows the newer value (GH-DEF-069 fix), on `main` it does not.
+- **Affected:** `head_flow_curve` (the only page with the flow boxes `flow_lift_i` / `flow_intake_i` / `flow_exhaust_i`); readers of the shared flow data (e.g. Valve Lift Calculator via `pts()`) then use the overwritten values. Shared code: `ast()`, `syncAirflowStateFromDOM`, `renderCalc`'s remembered snapshot.
+- **Impact:** Flow-bench data entered in one tab can be silently replaced by older data from another tab. Local to that browser; the data can be re-entered.
+- **Decision:** Recorded only (owner instruction 2026-11-18: investigate and register, do not fix).
+- **Dependencies:** Related to GH-DEF-069 (same mechanism; its fix, `camBoxesFromState`, covers the cam boxes only).
+- **Revisit:** On owner authorisation.
+- **Commits:** None.
+- **Tests:** None. No existing test covers it (`premium/tests/unit-system.test.js` checks Head Flow Curve unit conversion only; KA-64 covers the cam pages only).
+- **Docs:** None.
+- **Verification:** 1. With two tabs: after tab B changes a flow point, tab A's Head Flow Curve shows tab B's value when reopened, and a keystroke in tab A does not restore the older value.
+  2. Single tab: unchanged behaviour.
+- **History:** 2026-11-18 — found during the Stage 2 updated-branch audit and registered on the owner's instruction. Limitations: no single-tab trigger was found in this build. Only Head Flow Curve writes the flow data; the cam pages write it back unchanged; the vehicle-profile save/restore path cannot run because `GH_VEHICLE_CONTEXT` is `false`. Related behaviour observed but NOT part of this entry: if tab A is still showing Head Flow Curve, or a cam page, when tab B saves, tab A's next keystroke also overwrites the newer data. That reproduces on `main` and `572e8c6`, for the flow and the cam pages; the cause is different (the site does not react to storage changes made by another tab).
 
 ## B. Deferred improvements
 
