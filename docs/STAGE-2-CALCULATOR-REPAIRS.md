@@ -196,6 +196,16 @@ Every expected value below is computed **independently of the engine**. The sour
   - registry path: KA-45 to KA-50, KA-52 and KA-53;
   - page: KA-51 (pressure drop) and KA-55 (EVO, second cam);
   - KA-54: the GH-DEF-062 tile.
+- **Cam centerline convention (`572e8c6`), nine more cases, KA-56 to KA-64:**
+  - KA-56 and KA-57: Exhaust Valve Events at 4° advance and 4° retard;
+  - KA-58: the IVC page at advance 0, +4 and −4;
+  - KA-59: the Cam Card tiles at 4° advance;
+  - KA-60 and KA-61: one cam across Cam Card, IVC, Exhaust Valve Events and the Dynamic Compression pull, in Imperial and in Metric;
+  - KA-62: a fresh visitor sees advance 0 and installed = recommended on every cam page;
+  - KA-63: GH-DEF-068, the Intake Centerline Apply button;
+  - KA-64: GH-DEF-069, stale remembered cam boxes.
+  - KA-28, KA-29 and KA-55 now set the advance (0) explicitly.
+- **Totals at the branch head:** 68 cases; 48 pass and 20 fail. The 20 failures are exactly the known-open ledger.
 - **Ledger:** KA-01 to KA-12, KA-15 to KA-17, KA-22 to KA-29 and KA-31 are removed from the known-open ledger, 24 ids in all.
 - **Still open, 20 ids:** GH-DEF-049, 051, 052, 056, 058 and 059.
 
@@ -205,8 +215,9 @@ Every expected value below is computed **independently of the engine**. The sour
 - **Red:** `KA_STRICT=1 GH_ENGINE=<b58e1f0 engine>`. Every case listed above fails.
 - **Green:** every case listed above passes on the branch head.
 - **Isolation:** for each commit, the known-answer suite was run in strict mode against that commit and against its parent. The only cases that change state are those of the commit's own defect, and every change is fail → pass.
-- **Counts:** 4 of 59 cases pass on `b58e1f0` (the 4 controls). 39 pass at the head; the other 20 belong to defects left open.
-- **Evidence file:** `docs/evidence/stage2-red-green-isolation.json` holds every transition and each original failure message.
+- **Counts (the ten repair commits, suite of 59 cases):** 4 of 59 cases pass on `b58e1f0` (the 4 controls). 39 pass at `ceeb32c`; the other 20 belong to defects left open.
+- **Evidence file:** `docs/evidence/stage2-red-green-isolation.json` holds every transition and each original failure message. It covers the ten repair commits, up to `ceeb32c`.
+- **Cam centerline convention (`572e8c6`):** KA-56 to KA-62 fail on `2913c14` and pass on `572e8c6`. KA-63 and KA-64 fail with their fix removed and pass with it. These results are recorded in the register entries for GH-DEF-055, 068 and 069, not in the evidence file.
 
 **Formula fingerprints.** Six calculators now have new formula versions, recorded in `formula-fingerprints.test.js` (`VERSIONED`):
 
@@ -231,13 +242,32 @@ Every expected value below is computed **independently of the engine**. The sour
   - a client can read the rows but cannot insert.
 - The provisioning workflow is pinned to `c69ec51` (19 files), so it cannot apply 0410 until it is re-pinned under a separate authorization.
 
+**Release dependency: migration 0410 must be applied before migration 0501.**
+- **0410** adds the six `formula_versions` rows that the Stage 2 registry changes require (the table above).
+- **0501** is the analytics migration that belongs to PR #29.
+- **Order:** Supabase migrations must be applied in numerical order, so 0410 comes first. 0501 does not read or change `formula_versions`; the dependency is the apply order alone.
+- **Provisioning:** the workflow is pinned to the existing 19-file package ending at 0409 (`c69ec51`), so it cannot apply 0410 today. Re-pinning it requires separate owner authorization.
+- **Applying either migration** requires separate owner authorization.
+- **Status:** neither 0410 nor 0501 has been applied. Production's migration list ends at 0409 (read-only check, 2026-11-19).
+
 **Whole-engine diff.**
 - Method: all 749 calculators, opened at their defaults in Imperial and in Metric, before and after.
 - The only pages that changed:
   - the eight repaired non-simulator calculators;
   - the four simulators that use air density (Top Speed, Dragstrip, Acceleration, Cornering);
-  - `sim_braking` and `sim_weight_transfer`, where only the shared Air Density label changed.
+  - `sim_braking` and `sim_weight_transfer`, where only the shared Air Density label changed;
+  - after the cam centerline convention (`572e8c6`), three cam pages: `cam_card`, `camshaft_ivc` and `camshaft_exhaust_events` (the last is also one of the eight repaired calculators).
+- In the final audit (2026-11-19, `main` `b58e1f0` against branch `be6ff52`), exactly these 16 distinct calculators changed, with no page errors.
 - The registry's formula versions changed for exactly the six calculators above.
+
+**Final audited results (2026-11-19, fresh clone of `be6ff52`, run locally).**
+- **Fast gate, the nine CI steps:** 9/9 pass.
+- **Engine self-test:** 735/736; the one failure is GH-DEF-052.
+- **Known-answer suite, strict mode:** 68 cases, 48 pass. The 20 failures are exactly the known-open ledger (GH-DEF-049, 051, 052, 056, 058, 059).
+- **Full browser regression:** 51/51. On the first pass `structural-14` hit click timeouts while other checks ran in parallel; run on its own it passed (1,075 checks, 0 failures).
+- **Migration 0410 throwaway-database proof:** 50/50.
+- **Independent reference checks:** the repaired formulas, the cam convention in Imperial and Metric, and the Apply button and stale-box fixes all agree with references written outside the test suite.
+- **GitHub Actions:** never run on this branch (0 check runs). No pull request exists.
 
 ## Limitations and open points (not changed here)
 
@@ -246,4 +276,4 @@ Every expected value below is computed **independently of the engine**. The sour
 3. **Gauge or absolute pressure (048).** The cranking pressure is P_atm × CR^γ, an absolute pressure (295 psi). A compression gauge reads gauge pressure, which is about 14.7 psi lower. The formula and its test are unchanged; this is a separate question.
 4. **Rounding feeds the lap count (057).** Max Green Laps is computed from fuel already rounded to 2 decimals. For example, 7 laps × 0.333 gal gives 6 laps. This is a separate rounding issue and is not fixed here.
 5. **Release order.** Production must have the 0410 rows before a corrected calculation is stored. This is the same order used for 0409: migration first, then code. Saving a calculation through the client is not possible today (frontend test 22), so the site works without 0410.
-6. **The Stage 1 proof harness is now a historical artifact.** `premium/tests/proof/red-green.js` patches the old engine text, so it cannot run on the repaired engine. Its recorded output (`out/red-green.json`) is that historical evidence. It is not re-run or edited.
+6. **The Stage 1 proof harness is now a historical artifact.** `premium/tests/proof/red-green.js` patches the old engine text, so it cannot run on the repaired engine. Its recorded output (`out/red-green.json`) is that historical evidence and is unchanged. Commit `2913c14` edited `red-green.js` only to mark its header as historical and to add the `RG_ENGINE_SOURCE` override, which lets the harness test point it at a supplied engine; its probes and expected lists are unchanged. `red-green-harness.test.js` now checks the recorded output and runs both proof phases.

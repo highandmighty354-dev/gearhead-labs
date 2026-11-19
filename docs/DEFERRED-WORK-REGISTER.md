@@ -1704,7 +1704,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Decision:** Recorded only. No formula may change before Stage 2 is authorised; the repair is designed and reviewed then. Convention still to be approved: whether the page's ICL is installed or ground. Repaired 2026-11-18 (Stage 2, owner authorization of 2026-11-18): `camshaft_exhaust_events` calls `cam()` with advance 0, and its help text says the Intake Centerline is the installed centerline; worked example corrected. The other cam pages are unchanged, as decided. Owner decision 2026-11-18: the ICL typed on this page is the INSTALLED centerline (no hidden advance on this page only). Superseded 2026-11-18 by the owner's cam centerline convention (assignment "Camshaft centerline standardization"): the cam card's RECOMMENDED intake centerline is kept as entered and never overwritten; the user's advance (+) / retard (−) is a visible box on Cam Card, IVC and Exhaust Valve Events; ACTUAL installed ICL = recommended − advance, used by every cam page and the Dynamic Compression IVC pull; default advance 0 (installed as recommended; owner decision); no hidden correction anywhere.
 - **Dependencies:** None.
 - **Revisit:** After an authorized release: verification on the live site.
-- **Commits:** `ceeb32c`, then the cam centerline convention (this branch, commit after `2913c14`) on `fix/stage-2-calculator-repairs` (not merged). Earlier: test only, 3b4268a.
+- **Commits:** `ceeb32c`, then the cam centerline convention `572e8c6` on `fix/stage-2-calculator-repairs` (not merged). Earlier: test only, 3b4268a.
 - **Tests:** `premium/tests/known-answer-critical.test.js` cases KA-28, KA-29 and KA-55 (new: EVO for a second cam): pass (the cases that were in the known-open ledger are removed from it). Cam centerline convention: KA-28, KA-29, KA-55 now set the advance (0) explicitly; new KA-56..KA-62 (exhaust events at +4 / −4; IVC page at 0 / +4 / −4; Cam Card tiles at +4; one cam across Cam Card, IVC, Exhaust Events and the Dynamic Compression pull in Imperial and in Metric; a fresh visitor sees advance 0 and installed = recommended everywhere); `premium/tests/ivc-handoff-def044.test.js` sets its reference cam's 4° advance explicitly.
 - **Docs:** `docs/STAGE-1-TEST-INTEGRITY.md`; Phase 0 baseline; `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
 - **Verification:** 1. The page's ECL equals 2·LSA − ICL for the ICL shown (or the advance is shown and used visibly).
@@ -1944,7 +1944,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Decision:** Fixed 2026-11-18 on the owner's instruction (cam centerline assignment, "fix it in this pass"): the onclick carries the numbers; the function keeps the recommended ICL and sets the advance so that installed ICL = the calculated centerline (advance = recommended − calculated), and sets the LSA as before.
 - **Dependencies:** GH-DEF-055 (cam centerline convention).
 - **Revisit:** After an authorized release: verification on the live site.
-- **Commits:** this branch (`fix/stage-2-calculator-repairs`), commit after `2913c14` (not merged).
+- **Commits:** `572e8c6` on `fix/stage-2-calculator-repairs` (not merged).
 - **Tests:** `premium/tests/known-answer-critical.test.js` KA-63 (LSA 114, advance 4 → calculated 110, applied to recommended 108: no page error, recommended stays 108, advance −2, installed 110, LSA 114): red with either half of the fix removed, green with both.
 - **Docs:** `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
 - **Verification:** 1. Clicking the button raises no error, leaves the recommended ICL unchanged and makes the installed ICL equal the calculated centerline.
@@ -1962,7 +1962,7 @@ This is the **single authoritative register** of known defects, deferred improve
 - **Decision:** Fixed 2026-11-18 on the owner's instruction (cam centerline assignment, "fix it in this pass"): `camBoxesFromState` fills a cam box from the shared state when that box is not already on screen; boxes on screen (live typing, or arriving from another cam page) are left alone, as before.
 - **Dependencies:** GH-DEF-055 (cam centerline convention).
 - **Revisit:** After an authorized release: verification on the live site.
-- **Commits:** this branch (`fix/stage-2-calculator-repairs`), commit after `2913c14` (not merged).
+- **Commits:** `572e8c6` on `fix/stage-2-calculator-repairs` (not merged).
 - **Tests:** `premium/tests/known-answer-critical.test.js` KA-64 (the sequence above, with advance): red with the fix removed, green with it; KA-63 also depends on it.
 - **Docs:** `docs/STAGE-2-CALCULATOR-REPAIRS.md`.
 - **Verification:** 1. After setting the cam on one cam page and visiting any other page, every cam page shows and uses the shared cam; a keystroke does not change the other values.
