@@ -4,19 +4,25 @@
 -- rows the corrected registry formulas need. PREPARED, NOT APPLIED. Applying it to production is a separate authorization, and the
 -- provisioning workflow (pinned to c69ec51, 19 files) cannot apply it until it is re-pinned under that authorization.
 --
+-- Owner decision (2026-11-20): GH-DEF-048 now reports gauge pressure (absolute kept as a second output) and GH-DEF-057 rounds fuel up and
+-- counts laps from the unrounded fuel. Their two rows below were REPLACED in place (fv1-ef403b86 -> fv1-59c91f10, fv1-523c3d67 -> fv1-6d100b74):
+-- 0410 was never applied, so no database row or calculation ever referenced the replaced fingerprints. Still six rows; no 0411.
+--
 --   calculator              new fingerprint  registry            corrected by   original row (kept)
 --   diesel_power_from_fuel  fv1-b16d2d94     GH_LEGACY_FORMULAS  GH-DEF-045     fv1-0ab8e5a1
 --   piston_position         fv1-09188b84     GH_LEGACY_FORMULAS  GH-DEF-047     fv1-908de781
---   cranking_compression    fv1-ef403b86     GH_LEGACY_FORMULAS  GH-DEF-048     fv1-95fbced0
+--   cranking_compression    fv1-59c91f10     GH_LEGACY_FORMULAS  GH-DEF-048     fv1-95fbced0
 --   wet_bulb                fv1-782fda42     GH_LEGACY_FORMULAS  GH-DEF-050     fv1-a2a279c6
---   rc_fuel_stint           fv1-523c3d67     GH_LEGACY_FORMULAS  GH-DEF-057     fv1-072e823c
+--   rc_fuel_stint           fv1-6d100b74     GH_LEGACY_FORMULAS  GH-DEF-057     fv1-072e823c
 --   diesel_smoke_limit      fv1-64771dd0     GH_E1_FORMULAS      GH-DEF-046     fv1-e12aa323
 --
 --   diesel_power_from_fuel: fuel [lb/hr] / BSFC [lb/hp-hr]; the x60 (a lb/min factor) removed
 --   piston_position: slider-crank distance below TDC, r(1 - cos a) + L - sqrt(L^2 - r^2 sin^2 a) (was r - x)
---   cranking_compression: IVC is ABDC (crank at 180 + IVC from TDC); trapped stroke = x (was angle IVC and stroke - x)
+--   cranking_compression: IVC is ABDC (crank at 180 + IVC from TDC); trapped stroke = x (was angle IVC and stroke - x); primary output gauge
+--     pressure atm x (CRe^gamma - 1), absolute atm x CRe^gamma as a second output (2026-11-20)
 --   wet_bulb: Stull (2011) evaluated in degC and converted back to degF (was evaluated in degF)
---   rc_fuel_stint: Max Green Laps floored after removing floating-point noise (3.6 / 0.12 gave 29)
+--   rc_fuel_stint: fuel rounded UP to the next 0.01 gal; Max Green Laps from the unrounded fuel, floored after removing floating-point noise
+--     (3.6 / 0.12 gave 29; 7 x 0.333 gave 6) (2026-11-20)
 --   diesel_smoke_limit: fuel = air / (lambda x 14.5, diesel stoichiometric AFR; owner decision 2026-11-18) (was air / lambda)
 --
 -- Additive only: 6 inserts, no update, no delete. Formula versions are history (df_never_changed / df_no_truncate), so the
@@ -29,9 +35,9 @@ BEGIN;
 INSERT INTO public.formula_versions (calculator_id, formula_version, engine_version, formula_registry, first_release) VALUES
   ('diesel_power_from_fuel', 'fv1-b16d2d94', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4'),
   ('piston_position',        'fv1-09188b84', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4'),
-  ('cranking_compression',   'fv1-ef403b86', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4'),
+  ('cranking_compression',   'fv1-59c91f10', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4'),
   ('wet_bulb',               'fv1-782fda42', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4'),
-  ('rc_fuel_stint',          'fv1-523c3d67', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4'),
+  ('rc_fuel_stint',          'fv1-6d100b74', '1.1.0', 'GH_LEGACY_FORMULAS', 'F1.12.4'),
   ('diesel_smoke_limit',     'fv1-64771dd0', '1.1.0', 'GH_E1_FORMULAS',     'F1.12.4')
 ON CONFLICT (calculator_id, formula_version) DO NOTHING;
 
@@ -39,7 +45,7 @@ DO $$
 DECLARE n int;
 BEGIN
   SELECT count(*) INTO n FROM public.formula_versions f
-    JOIN (VALUES ('diesel_power_from_fuel', 'fv1-b16d2d94', 'GH_LEGACY_FORMULAS'), ('piston_position', 'fv1-09188b84', 'GH_LEGACY_FORMULAS'), ('cranking_compression', 'fv1-ef403b86', 'GH_LEGACY_FORMULAS'), ('wet_bulb', 'fv1-782fda42', 'GH_LEGACY_FORMULAS'), ('rc_fuel_stint', 'fv1-523c3d67', 'GH_LEGACY_FORMULAS'), ('diesel_smoke_limit', 'fv1-64771dd0', 'GH_E1_FORMULAS'))
+    JOIN (VALUES ('diesel_power_from_fuel', 'fv1-b16d2d94', 'GH_LEGACY_FORMULAS'), ('piston_position', 'fv1-09188b84', 'GH_LEGACY_FORMULAS'), ('cranking_compression', 'fv1-59c91f10', 'GH_LEGACY_FORMULAS'), ('wet_bulb', 'fv1-782fda42', 'GH_LEGACY_FORMULAS'), ('rc_fuel_stint', 'fv1-6d100b74', 'GH_LEGACY_FORMULAS'), ('diesel_smoke_limit', 'fv1-64771dd0', 'GH_E1_FORMULAS'))
          AS v (calculator_id, formula_version, formula_registry)
       ON f.calculator_id = v.calculator_id AND f.formula_version = v.formula_version AND f.formula_registry = v.formula_registry
    WHERE f.engine_version = '1.1.0' AND f.first_release = 'F1.12.4';

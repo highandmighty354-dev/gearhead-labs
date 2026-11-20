@@ -106,13 +106,28 @@ const CASES = [
   { id: 'KA-08', reg: 'GH-DEF-047', calc: 'piston_position', edit: { str6: 3.75, rl2: 6.76, ang: 180 }, row: 'Piston Position', want: 3.75, tol: 0.001, why: 'at BDC the piston is one full stroke from TDC' },
   { id: 'KA-46', reg: 'GH-DEF-047', kind: 'api', calc: 'piston_position', inputs: { stroke6: 3.75, rl2: 6.76, angle: 90 }, out: 'piston_position_from_tdc', want: pistonX(3.75, 6.76, 90), tol: 1e-9, why: 'registry: x(90 deg) = 2.1402 in' },
   { id: 'KA-47', reg: 'GH-DEF-047', kind: 'api', calc: 'piston_position', inputs: { stroke6: 4.0, rl2: 6.0, angle: 60 }, out: 'piston_position_from_tdc', want: pistonX(4, 6, 60), tol: 1e-9, why: 'registry: x(60 deg) = 1.2554 in' },
-  // RC-04 / GH-DEF-048 cranking_compression — IVC is degrees ABDC; P = atm x CRe^gamma with the page's gamma
+  // RC-04 / GH-DEF-048 cranking_compression — IVC is degrees ABDC; absolute P = atm x CRe^gamma with the page's gamma; the primary result is gauge
+  // pressure P - atm = atm x (CRe^gamma - 1) (owner decision 2026-11-20), what a compression gauge reads
   { id: 'KA-09', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 10.5, cc_rod: 6.0, cc_stroke: 3.75, cc_ivc: 40, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Effective Compression Ratio', want: dynCR(10.5, 6, 3.75, 40), tol: 0.006, why: 'CRe = 9.699' },
-  { id: 'KA-10', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 10.5, cc_rod: 6.0, cc_stroke: 3.75, cc_ivc: 40, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Estimated Cranking Pressure', want: 14.7 * Math.pow(dynCR(10.5, 6, 3.75, 40), 1.32), tol: 1.0, why: 'P = 14.7 x 9.699^1.32 = 295 psi' },
+  { id: 'KA-10', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 10.5, cc_rod: 6.0, cc_stroke: 3.75, cc_ivc: 40, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Estimated Cranking Pressure (gauge)', want: 14.7 * (Math.pow(dynCR(10.5, 6, 3.75, 40), 1.32) - 1), tol: 1.0, why: 'gauge P = 14.7 x (9.699^1.32 - 1) = 280 psi' },
   { id: 'KA-11', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 9.5, cc_rod: 6.5, cc_stroke: 4.0, cc_ivc: 60, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Effective Compression Ratio', want: dynCR(9.5, 6.5, 4.0, 60), tol: 0.006, why: 'CRe = 7.874' },
-  { id: 'KA-12', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 9.5, cc_rod: 6.5, cc_stroke: 4.0, cc_ivc: 60, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Estimated Cranking Pressure', want: 14.7 * Math.pow(dynCR(9.5, 6.5, 4.0, 60), 1.32), tol: 1.0, why: 'P = 224 psi' },
+  { id: 'KA-12', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 9.5, cc_rod: 6.5, cc_stroke: 4.0, cc_ivc: 60, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Estimated Cranking Pressure (gauge)', want: 14.7 * (Math.pow(dynCR(9.5, 6.5, 4.0, 60), 1.32) - 1), tol: 1.0, why: 'gauge P = 224 - 14.7 = 209 psi' },
   { id: 'KA-48', reg: 'GH-DEF-048', kind: 'api', calc: 'cranking_compression', inputs: { scr3: 10.5, rod: 6.0, stroke: 3.75, ivc: 40, atm: 14.7, gamma: 1.32 }, out: 'effective_compression_ratio', want: dynCR(10.5, 6, 3.75, 40), tol: 1e-9, why: 'registry: CRe = 9.699' },
-  { id: 'KA-49', reg: 'GH-DEF-048', kind: 'api', calc: 'cranking_compression', inputs: { scr3: 9.5, rod: 6.5, stroke: 4.0, ivc: 60, atm: 14.7, gamma: 1.32 }, out: 'estimated_cranking_pressure', want: 14.7 * Math.pow(dynCR(9.5, 6.5, 4.0, 60), 1.32), tol: 0.05, why: 'registry: P = 14.7 x 7.874^1.32 = 224.0 psi (the registry rounds CRe to 3 decimals first, as the page does: within 0.05 psi)' },
+  { id: 'KA-49', reg: 'GH-DEF-048', kind: 'api', calc: 'cranking_compression', inputs: { scr3: 9.5, rod: 6.5, stroke: 4.0, ivc: 60, atm: 14.7, gamma: 1.32 }, out: 'estimated_cranking_pressure', want: 14.7 * (Math.pow(dynCR(9.5, 6.5, 4.0, 60), 1.32) - 1), tol: 0.05, why: 'registry: gauge P = 14.7 x (7.874^1.32 - 1) = 209.3 psi (the registry rounds CRe to 3 decimals first, as the page does: within 0.05 psi)' },
+  { id: 'KA-66', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 10.5, cc_rod: 6.0, cc_stroke: 3.75, cc_ivc: 40, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Absolute Cranking Pressure', want: 14.7 * Math.pow(dynCR(10.5, 6, 3.75, 40), 1.32), tol: 1.0, why: 'absolute P = 14.7 x 9.699^1.32 = 295 psi, kept as a second row' },
+  { id: 'KA-67', reg: 'GH-DEF-048', kind: 'api', calc: 'cranking_compression', inputs: { scr3: 9.5, rod: 6.5, stroke: 4.0, ivc: 60, atm: 14.7, gamma: 1.32 }, out: 'absolute_cranking_pressure', want: 14.7 * Math.pow(dynCR(9.5, 6.5, 4.0, 60), 1.32), tol: 0.05, why: 'registry: absolute P = 14.7 x 7.874^1.32 = 224.0 psi' },
+  { id: 'KA-68', reg: 'GH-DEF-048', kind: 'prop', calc: 'cranking_compression', why: 'altitude and Metric: at 12.2 psi atmospheric (about 5,000 ft) gauge = 12.2 x (9.699^1.32 - 1) = 232.6 psi and absolute 244.8; the same engine typed in Metric (152.4 mm rod, 95.25 mm stroke, 1.01353 bar) shows 19.3 bar gauge and 20.3 bar absolute', fn: async (h) => {
+    const bad = [], k = Math.pow(dynCR(10.5, 6, 3.75, 40), 1.32);
+    await h.reset('cranking_compression'); await h.type({ scr3: 10.5, cc_rod: 6.0, cc_stroke: 3.75, cc_ivc: 40, cc_atm: 12.2, cc_gamma: 1.32 });
+    let r = await h.read(['Estimated Cranking Pressure (gauge)', 'Absolute Cranking Pressure']);
+    if (mismatch(r['Estimated Cranking Pressure (gauge)'], 12.2 * (k - 1), 1.0)) bad.push(`gauge at 12.2 psi: ${r['Estimated Cranking Pressure (gauge)']} (independent ${(12.2 * (k - 1)).toFixed(1)})`);
+    if (mismatch(r['Absolute Cranking Pressure'], 12.2 * k, 1.0)) bad.push(`absolute at 12.2 psi: ${r['Absolute Cranking Pressure']} (independent ${(12.2 * k).toFixed(1)})`);
+    const BAR = 0.0689475729, atmBar = 14.7 * BAR;
+    await h.reset('cranking_compression', 'metric'); await h.type({ scr3: 10.5, cc_rod: 152.4, cc_stroke: 95.25, cc_ivc: 40, cc_atm: +atmBar.toFixed(5), cc_gamma: 1.32 });
+    r = await h.read(['Estimated Cranking Pressure (gauge)', 'Absolute Cranking Pressure']);
+    if (mismatch(r['Estimated Cranking Pressure (gauge)'], atmBar * (k - 1), 0.06)) bad.push(`Metric gauge ${r['Estimated Cranking Pressure (gauge)']} bar (independent ${(atmBar * (k - 1)).toFixed(2)})`);
+    if (mismatch(r['Absolute Cranking Pressure'], atmBar * k, 0.06)) bad.push(`Metric absolute ${r['Absolute Cranking Pressure']} bar (independent ${(atmBar * k).toFixed(2)})`);
+    return bad.length ? bad.join('; ') : null; } },
   // RC-05 / GH-DEF-049 ct_sway_bar — roll stiffness per degree; Track Width must matter
   { id: 'KA-13', reg: 'GH-DEF-049', calc: 'ct_sway_bar', edit: { sb_arm: 6, sb_wire: 0.875, sb_len: 18, tw_sb: 60 }, row: 'Roll Stiffness Added', want: swayRollPerDeg(11.5e6, 0.875, 18, 6, 60), tol: 0.005 * 64170, conv: 'end links at the track width (motion ratio 1)', why: 'K = k_bar T^2 pi/180 = 64,170 lb-in/deg' },
   { id: 'KA-14', reg: 'GH-DEF-049', kind: 'prop', calc: 'ct_sway_bar', why: 'convention-free: roll stiffness must change when Track Width changes (40 in vs 80 in)', fn: async (h) => { const a = await h.rowAt('ct_sway_bar', { tw_sb: 40 }, 'Roll Stiffness Added'); const b = await h.rowAt('ct_sway_bar', { tw_sb: 80 }, 'Roll Stiffness Added'); return (Number.isFinite(a) && Number.isFinite(b) && Math.abs(b - a) > 1) ? null : `track 40 in gives ${a}, track 80 in gives ${b}: Track Width has no effect`; } },
@@ -268,6 +283,27 @@ const CASES = [
   // RC-19 / GH-DEF-057 rc_fuel_stint — 3.6 gal at 0.12 gal/lap is 30 laps
   { id: 'KA-31', reg: 'GH-DEF-057', calc: 'rc_fuel_stint', edit: { laps_rc2: 30, fuel_lap2: 0.12, safety: 0.5 }, row: 'Max Green Laps', want: 30, tol: 0, why: '3.60 gal / 0.12 gal per lap = 30 laps exactly' },
   { id: 'KA-52', reg: 'GH-DEF-057', kind: 'api', calc: 'rc_fuel_stint', inputs: { laps_rc2: 30, fuel_lap2: 0.12, safety: 0.5 }, out: 'max_green_laps', want: 30, tol: 0, why: 'registry: 3.60 / 0.12 = 30 laps exactly' },
+  // GH-DEF-057 follow-up (owner decision 2026-11-20): fuel rounded UP to the next 0.01 gal; Max Green Laps from the true, unrounded fuel. The reference works in
+  // exact integers of 0.0001 gal (every per-lap value below has at most 4 decimals), independent of the engine's 9-decimal floating-point step.
+  ...[['KA-69', 'page'], ['KA-70', 'registry']].map(([id, path]) => ({ id, reg: 'GH-DEF-057', kind: 'prop', calc: 'rc_fuel_stint', why: `${path}: 7 x 0.333 = 2.331 -> 2.34 gal, 7 laps (was 2.33, 6); 1 x 0.001 -> 0.01 gal, 1 lap (was 0, 0); 9 x 0.333 = 2.997 -> 3.00 gal, 9 laps; exact boundaries 30 x 0.12 = 3.60 / 30 laps and 12 x 0.125 = 1.50 / 12 laps; 0 laps -> 0 gal, 0 laps; load and 3 % save target rounded up too`, fn: async (h) => {
+    const T = [[7, 0.333, 0.5], [1, 0.001, 0.5], [9, 0.333, 0.5], [30, 0.12, 0.5], [12, 0.125, 0], [0, 0.12, 0.5], [1, 0.0001, 0]], bad = [];
+    for (const [laps, per, buf] of T) {
+      const q = Math.round(per * 1e4), n = laps * q, b4 = Math.round(buf * 1e4), up = u => Math.ceil(u / 100) / 100;   // u in 0.0001 gal -> next 0.01 gal
+      const want = { 'Fuel Required': up(n), 'Load with Buffer': up(n + b4), 'Max Green Laps': Math.floor(n / q), '3% Save Target': up(n * 97 / 100) };
+      let got;
+      if (path === 'page') { await h.reset('rc_fuel_stint'); await h.type({ laps_rc2: laps, fuel_lap2: per, safety: buf }); got = await h.read(Object.keys(want)); }
+      else got = await h.api('rc_fuel_stint', { laps_rc2: laps, fuel_lap2: per, safety: buf }, { 'Fuel Required': 'fuel_required', 'Load with Buffer': 'load_with_buffer', 'Max Green Laps': 'max_green_laps', '3% Save Target': '3_save_target' });
+      for (const k of Object.keys(want)) if (mismatch(got[k], want[k], 1e-9)) bad.push(`${laps} x ${per} + ${buf}: ${k} ${got[k]} (independent ${want[k]})`);
+      if (got['Max Green Laps'] < laps && Number.isInteger(laps)) bad.push(`${laps} x ${per}: lap count ${got['Max Green Laps']} understates the stint`);
+    }
+    return bad.length ? bad.join('; ') : null; } })),
+  { id: 'KA-71', reg: 'GH-DEF-057', kind: 'prop', calc: 'rc_fuel_stint', why: 'Metric: 7 laps at 1.2605 L/lap (0.333 gal) shows 2.34 gal = 8.8579 L, 7 laps', fn: async (h) => {
+    const G = 3.785411784, bad = [];
+    await h.reset('rc_fuel_stint', 'metric'); await h.type({ laps_rc2: 7, fuel_lap2: +(0.333 * G).toFixed(10), safety: +(0.5 * G).toFixed(10) });
+    const r = await h.read(['Fuel Required', 'Max Green Laps']);
+    if (mismatch(r['Fuel Required'], 2.34 * G, 0.0001)) bad.push(`Fuel Required ${r['Fuel Required']} L (independent ${(2.34 * G).toFixed(4)})`);
+    if (r['Max Green Laps'] !== 7) bad.push(`Max Green Laps ${r['Max Green Laps']}`);
+    return bad.length ? bad.join('; ') : null; } },
   // SYS-01 / GH-DEF-058 silent fallback — a required box left empty (or holding text) must not produce a number
   ...[['piston_position', 'str6'], ['diesel_power_from_fuel', 'dpf_fuel'], ['ct_sway_bar', 'sb_wire'], ['wet_bulb', 'temp_wb'], ['fuel_line_loss', 'flow_gph'], ['cranking_compression', 'cc_ivc'], ['bolt_pattern', 'meas'], ['hp_trap_speed', 'wt2']]
     .map(([calc, fld], i) => ({ id: 'KA-' + (32 + i), reg: 'GH-DEF-058', kind: 'blank', calc, field: fld, value: '', why: `${calc}: ${fld} left empty must give no number` })),

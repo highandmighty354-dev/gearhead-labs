@@ -4,7 +4,7 @@
  "generated_from": {
   "catalog": {
    "file": "catalog/gearhead-catalog.json",
-   "sha256": "5f5daabbffcc9965306e3d1f5b93dbf898e78d7f574b4a91acf9763285801b98"
+   "sha256": "eec0acd697d65ed7da60fdf6e425c20bfeefe3009dc9da4174ade60404e8f08e"
   },
   "enrichment": {
    "file": "catalog/encyclopedia-enrichment.json",
@@ -12,7 +12,7 @@
   },
   "page": {
    "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-   "sha256": "541408c8178fbc6f0cc64482585006c91978b70edbfa8051725c7391c1b84917"
+   "sha256": "e4911ee979c94597c4c44c61a2e1ba2e75762937a45f12251dccb2522c3e8b38"
   },
   "models": {
    "file": "premium/models.js",
@@ -7476,6 +7476,10 @@
      },
      {
       "name": "Estimated Cranking Pressure",
+      "unit": "psi"
+     },
+     {
+      "name": "Absolute Cranking Pressure",
       "unit": "psi"
      }
     ]

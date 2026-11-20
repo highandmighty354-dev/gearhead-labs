@@ -4,7 +4,7 @@
   "generated_from": {
     "page": {
       "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-      "sha256": "541408c8178fbc6f0cc64482585006c91978b70edbfa8051725c7391c1b84917"
+      "sha256": "e4911ee979c94597c4c44c61a2e1ba2e75762937a45f12251dccb2522c3e8b38"
     },
     "seed": {
       "file": "supabase/migrations/0005_reference_seed.sql",
@@ -28,7 +28,7 @@
     },
     "formula_versions_0410": {
       "file": "supabase/migrations/0410_formula_versions_stage2_calculator_repairs.sql",
-      "sha256": "1c5d8d538e493636b29bdddbb013193c04f1fa1663886fb34fd145d8febb47d1"
+      "sha256": "355c0c137a94b9683e9f9b31af381361716f1f4017a0513a6dcae6bbf890905e"
     }
   },
   "counts": {
@@ -1021,7 +1021,7 @@
     {"id":"cost_per_mile","name":"Cost Per Mile (Ownership)","category":"FINANCE & OWNERSHIP","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-2c5e0852","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"countersink_depth","name":"Countersink Depth","category":"SHOP & MACHINING","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-2f288d9d","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"crank_journal_overlap","name":"Crank Journal Overlap","category":"ENGINE","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-26d35c89","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
-    {"id":"cranking_compression","name":"Cranking Compression Pressure","category":"ENGINE","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-ef403b86","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
+    {"id":"cranking_compression","name":"Cranking Compression Pressure","category":"ENGINE","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-59c91f10","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"crawl_ratio","name":"Crawl Ratio","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-3b9ba962","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"crawl_ratio_tire","name":"Tire-Adjusted Crawl Ratio","category":"DRIVETRAIN & GEARING","lab":"gasoline","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-72639afb","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"cross_weight","name":"Cross Weight / Corner Balance","category":"SUSPENSION, TIRES & GEOMETRY","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-8e341d80","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
@@ -1359,7 +1359,7 @@
     {"id":"rc_camber_gain","name":"Camber Gain vs Roll","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-3c9eface","registry":"GH_LEGACY_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"rc_downforce","name":"Wing Downforce","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-92acc7a7","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"rc_fuel_save","name":"Fuel Saving Target Lap Time","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-92945ca9","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
-    {"id":"rc_fuel_stint","name":"Fuel Load per Stint","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-523c3d67","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
+    {"id":"rc_fuel_stint","name":"Fuel Load per Stint","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-6d100b74","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"rc_lap_delta","name":"Lap Time Delta vs Setup Change","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-6ffce3f9","registry":"GH_LEGACY_FORMULAS","engine_proven":false},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"rc_motion_ratio_rc","name":"Motion Ratio (Road Course)","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-ab0daba8","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
     {"id":"rc_pit_strategy","name":"Pit Stop Strategy","category":"ROAD COURSE","lab":"universal","tier":"free","kind":"calculator","save":"eligible","formula":{"version":"fv1-14e44c57","registry":"GH_LEGACY_FORMULAS","engine_proven":true},"vehicle_link":"optional","status":"current","aliases":[]},
