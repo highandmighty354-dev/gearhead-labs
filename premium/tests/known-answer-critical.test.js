@@ -168,8 +168,8 @@ const CASES = [
     return bad.length ? bad.join('; ') : null; } },
   { id: 'KA-59', reg: 'GH-DEF-055', kind: 'prop', calc: 'cam_card', why: 'Complete Cam Card, 224 / 230 / LSA 110 / recommended ICL 110, 4 deg advance: the Recommended tile stays 110, installed 106, IVO 6, IVC 38, ECL 114, EVO 49, EVC 1, overlap 7', fn: async (h) => {
     await h.reset('cam_card'); await h.type({ cam_d050_i: 224, cam_d050_e: 230, cam_lsa: 110, cam_icl: 110, cam_adv: 4 });
-    const g = await h.read(['Installed Intake CL', 'Exhaust CL', 'IVO', 'IVC', 'EVO', 'EVC', 'Overlap']), r = await h.read(['Recommended Intake CL', 'Advance']);
-    const d = camDiff(g, camRef(224, 230, 110, 110, 4), 0.01); if (r['Recommended Intake CL'] !== 110) d.push(`Recommended Intake CL tile ${r['Recommended Intake CL']}`); if (r.Advance !== 4) d.push(`Advance tile ${r.Advance}`);
+    const g = await h.read(['Installed Intake CL', 'Exhaust CL', 'IVO', 'IVC', 'EVO', 'EVC', 'Overlap']), r = await h.read(['Recommended Intake CL', 'Install Adjustment (vs card)']);
+    const d = camDiff(g, camRef(224, 230, 110, 110, 4), 0.01); if (r['Recommended Intake CL'] !== 110) d.push(`Recommended Intake CL tile ${r['Recommended Intake CL']}`); if (r['Install Adjustment (vs card)'] !== 4) d.push(`Install Adjustment tile ${r['Install Adjustment (vs card)']}`);
     return d.length ? d.join('; ') : null; } },
   ...[['KA-60', 'imperial'], ['KA-61', 'metric']].map(([id, unit]) => ({ id, reg: 'GH-DEF-055', kind: 'prop', calc: 'cam_card', why: `one cam across every page (${unit}): set 236 / 242 / LSA 112 / recommended ICL 108, 3 deg retard on the Cam Card; Cam Card, IVC and Exhaust Events show the same recommended 108, installed 111, IVC 49, ECL 113; Dynamic Compression's pull gives IVC 49 and DCR = slider-crank reference`, fn: async (h) => {
     const want = camRef(236, 242, 108, 112, -3), bad = [];
@@ -177,12 +177,25 @@ const CASES = [
     for (const [pg, labels] of [['cam_card', ['Installed Intake CL', 'IVC', 'Exhaust CL', 'EVO', 'EVC']], ['camshaft_ivc', ['Installed Intake Centerline', 'IVO', 'IVC']], ['camshaft_exhaust_events', ['Installed Intake Centerline', 'Exhaust Centerline', 'EVO', 'EVC']]]) {
       await h.open(pg); bad.push(...camDiff(await h.read(labels), want, 0.01).map(s => `${pg}: ${s}`));
       if (await h.box('cam_icl') !== 108) bad.push(`${pg}: recommended ICL box ${await h.box('cam_icl')}`); if (await h.box('cam_adv') !== -3) bad.push(`${pg}: advance box ${await h.box('cam_adv')}`); }
-    await h.open('dynamic_compression'); await h.click('Pull IVC from Cam Card');
+    await h.open('dynamic_compression'); await h.click('Pull Installed IVC from Cam Card');
     const ica = await h.box('ica'), dcr = (await h.read(['Dynamic Compression']))['Dynamic Compression'];
     if (mismatch(ica, want.IVC, 0.005)) bad.push(`Dynamic Compression IVC box ${ica} (independent ${want.IVC})`);
     if (unit === 'imperial' && mismatch(dcr, dynCR(10.5, 6.76, 3.75, want.IVC), 0.002)) bad.push(`DCR ${dcr} (independent ${dynCR(10.5, 6.76, 3.75, want.IVC).toFixed(4)})`);
     if (unit === 'metric' && mismatch(dcr, dynCR(10.5, 6.76, 3.75, want.IVC), 0.002)) bad.push(`DCR (metric) ${dcr} (independent ${dynCR(10.5, 6.76, 3.75, want.IVC).toFixed(4)})`);
     return bad.length ? bad.join('; ') : null; } })),
+  { id: 'KA-65', reg: 'GH-DEF-055', kind: 'prop', calc: 'cam_card', why: 'approved cam wording (owner 2026-11-20): Cam Card / IVC / Exhaust Events advance box "Install Adjustment vs Cam Card: Advance (+) / Retard (−)" with its note; Cam Card tile "Install Adjustment (vs card)"; Intake Centerline "Total Advance vs LSA (+) / Retard (−)", its note, "Advance Needed to Reach Target (+) / Retard (−)" and the Apply note; Dynamic Compression "Pull Installed IVC from Cam Card"; the formula registry keeps its output "Additional Advance (+) / Retard (−)"', fn: async (h) => {
+    const bad = [], txt = () => h.text();
+    for (const pg of ['cam_card', 'camshaft_ivc', 'camshaft_exhaust_events']) { await h.reset(pg); const t = await txt();
+      if (!t.includes('Install Adjustment vs Cam Card: Advance (+) / Retard (−)')) bad.push(`${pg}: advance label`);
+      if (!t.includes('0 = installed as the card specifies. Installed ICL = recommended ICL − this value.')) bad.push(`${pg}: advance note`);
+      if (t.includes('Cam Advance (+) / Retard (−)')) bad.push(`${pg}: old label still shown`); }
+    await h.reset('cam_card'); if (!(await txt()).includes('Install Adjustment (vs card)')) bad.push('cam_card: tile label');
+    await h.reset('camshaft_intake_centerline'); let t = await txt();
+    for (const w of ['Total Advance vs LSA (+) / Retard (−)', 'ICL = LSA − this value. Includes advance ground into the cam.', 'Advance Needed to Reach Target (+) / Retard (−)', 'Sets the cam-card install adjustment so the installed ICL equals this centerline; the recommended ICL is unchanged.']) if (!t.includes(w)) bad.push(`intake centerline: "${w}" missing`);
+    const outs = await h.api('camshaft_intake_centerline', { af_ic_lsa: 114, af_ic_adv: 4, af_ic_target: 110 }, { add: 'additional_advance_retard' });
+    if (outs.add !== 0) bad.push(`registry output additional_advance_retard ${outs.add} (expected 0)`);
+    await h.reset('dynamic_compression'); t = await txt(); if (!t.includes('Pull Installed IVC from Cam Card')) bad.push('dynamic compression: button label');
+    return bad.length ? bad.join('; ') : null; } },
   { id: 'KA-62', reg: 'GH-DEF-055', kind: 'prop', calc: 'cam_card', why: 'no hidden correction: a fresh visitor sees advance 0 and installed ICL = recommended ICL 110 on every cam page (IVC 42, ECL 110, EVO 45, EVC 5)', fn: async (h) => {
     const want = camRef(224, 230, 110, 110, 0), bad = [];
     await h.reset('cam_card');
@@ -264,7 +277,9 @@ if (process.env.KA_LIST) { process.stdout.write(JSON.stringify({ ids: CASES.map(
     read: async (labels) => { const rs = await rows(), o = {}; for (const l of labels) { const r = rs.find(x => x.label.toLowerCase() === l.toLowerCase()) || pick(rs, l); o[l] = r ? valueOf(r.val) : NaN; } return o; },
     box: (id) => page.evaluate(i => { const e = document.getElementById(i); return e ? parseFloat(e.value) : NaN; }, id),
     click: async (text) => { await page.click(`#calc-container button:has-text("${text}")`); await page.waitForTimeout(200); },
-    errors: () => pageErrors.slice()
+    errors: () => pageErrors.slice(),
+    text: () => page.evaluate(() => document.getElementById('calc-container').textContent.replace(/\s+/g, ' ')),
+    api: (calc, inputs, keys) => page.evaluate(([c, i, k]) => { const r = GH_ENGINE.calculate(c, i), o = {}; for (const [l, key] of Object.entries(k)) { const x = r.outputs.find(q => q.key === key); o[l] = x ? x.value : NaN; } return o; }, [calc, inputs, keys])
   };
 
   const results = [];

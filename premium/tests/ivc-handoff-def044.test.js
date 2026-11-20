@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Gearhead Labs — GH-DEF-044: the IVC hand-off from the cam calculators to Dynamic Compression Ratio.
 
-   WHAT WAS WRONG. Dynamic Compression's "↓ Pull IVC from Cam Card" button calls GHM_USE_CAM_IVC() (useIVC), which writes the cam's IVC into
+   WHAT WAS WRONG. Dynamic Compression's "↓ Pull Installed IVC from Cam Card" button (labelled "↓ Pull IVC from Cam Card" before 2026-11-20) calls GHM_USE_CAM_IVC() (useIVC), which writes the cam's IVC into
    CALC_PERSISTENT_STATE.dynamic_compression.ica and re-renders Dynamic Compression. With that page already on screen, renderCalc first copies every box on
    screen into the same remembered state (the capture step kept by GH-DEF-021), overwriting the staged IVC with the box's old text; and the calculator reads
    its boxes on screen (vd), so the result was computed with the old IVC too. The box, the remembered value and the DCR stayed unchanged (35 -> 35,
@@ -16,7 +16,7 @@
      Metric boxes are millimetres (x 25.4); IVC is degrees in both systems; DCR is a ratio in both.
 
    Sections (every case in a fresh browser profile; Imperial and Metric)
-     A  all three buttons ("↓ Pull IVC from Cam Card" on Dynamic Compression, "↓ Use IVC in Dynamic Compression" on Intake Valve Closing — IVC,
+     A  all three buttons ("↓ Pull Installed IVC from Cam Card" on Dynamic Compression, "↓ Use IVC in Dynamic Compression" on Intake Valve Closing — IVC,
         "↓ Send IVC to Dynamic Compression" on Complete Cam Card), default cam and a changed cam (236° / 108° / 0°): Dynamic Compression is on screen,
         the IVC box and the remembered value hold the cam's IVC to two decimals, and the DCR shown equals the reference with that IVC
      B  a typed IVC (42) is replaced by the pull; text typed afterwards (30) is used normally (box, remembered value, DCR)
@@ -49,7 +49,7 @@ const dcrRef = (bore, stroke, rod, scr, ivc) => {
 const DEF = { bore: 4.25, stroke: 3.75, rod: 6.76, scr: 10.5 };
 const CAMS = { default: { set: null, ivc: ivcRef(224, 110, 4) }, changed: { set: { cam_d050_i: 236, cam_icl: 108, cam_adv: 0 }, ivc: ivcRef(236, 108, 0) } };
 const BUTTONS = [
-  { page: 'dynamic_compression', text: 'Pull IVC from Cam Card' },
+  { page: 'dynamic_compression', text: 'Pull Installed IVC from Cam Card' },
   { page: 'camshaft_ivc', text: 'Use IVC in Dynamic Compression' },
   { page: 'cam_card', text: 'Send IVC to Dynamic Compression' }
 ];
@@ -121,7 +121,7 @@ async function suite(browser, enginePath, quiet) {
       await open(page, 'dynamic_compression'); await type(page, 'ica', 42);
       const t1 = await read(page);
       check(`${tag}: typing 42 updates the DCR (control)`, t1.ica === '42' && near(t1.dcr, dcrOf(sys, t1, 42)), JSON.stringify(t1));
-      await click(page, 'Pull IVC from Cam Card');
+      await click(page, 'Pull Installed IVC from Cam Card');
       const p = await read(page);
       check(`${tag}: the pull replaces the typed 42 with 38.00 (box, remembered, DCR)`, p.ica === '38.00' && p.remembered === '38.00' && near(p.dcr, dcrOf(sys, p, 38)), JSON.stringify(p));
       await type(page, 'ica', 30);
@@ -137,7 +137,7 @@ async function suite(browser, enginePath, quiet) {
       const vals = sys === 'metric' ? { dcr_bore: 102.4, str3: 88.4, dcr_rod: 155.5, scr: 9.8 } : { dcr_bore: 4.03, str3: 3.48, dcr_rod: 6.123, scr: 9.8 };
       await open(page, 'dynamic_compression'); for (const [k, v] of Object.entries(vals)) await type(page, k, v);
       const b = await read(page);
-      await click(page, 'Pull IVC from Cam Card');
+      await click(page, 'Pull Installed IVC from Cam Card');
       const a = await read(page);
       check(`${tag}: typed bore / stroke / rod / SCR unchanged by the pull (${Object.values(vals).join(' / ')})`,
         a.bore === String(vals.dcr_bore) && a.stroke === String(vals.str3) && a.rod === String(vals.dcr_rod) && a.scr === String(vals.scr) && ['bore', 'stroke', 'rod', 'scr'].every(k => a[k] === b[k]), JSON.stringify([b, a].map(x => [x.bore, x.stroke, x.rod, x.scr])));
@@ -149,7 +149,7 @@ async function suite(browser, enginePath, quiet) {
     /* ---- D ---- */
     {
       const tag = `D ${sys}`; const { ctx, page, errors } = await fresh(sys);
-      await open(page, 'dynamic_compression'); await click(page, 'Pull IVC from Cam Card');
+      await open(page, 'dynamic_compression'); await click(page, 'Pull Installed IVC from Cam Card');
       const p = await read(page);
       await open(page, 'mean_piston_speed'); await open(page, 'dynamic_compression');
       const back = await read(page);

@@ -180,6 +180,15 @@ Every expected value below is computed **independently of the engine**. The sour
   - **GH-DEF-068:** the Intake Centerline page's Apply button. It now sets the advance and keeps the recommended ICL.
   - **GH-DEF-069:** a cam page reached via another page showed stale remembered boxes and wrote them back over the shared cam.
 
+**Cam advance wording (owner decision 2026-11-20).** Labels and notes only; no calculation, default or stored value changed.
+- **Cam Card, IVC and Exhaust Valve Events:** the advance box is "Install Adjustment vs Cam Card: Advance (+) / Retard (−)", with the note "0 = installed as the card specifies. Installed ICL = recommended ICL − this value." The Cam Card tile is "Install Adjustment (vs card)".
+- **Intake Centerline:** the input is "Total Advance vs LSA (+) / Retard (−)", with the note "ICL = LSA − this value. Includes advance ground into the cam." The result row is "Advance Needed to Reach Target (+) / Retard (−)". The Apply button's note: "Sets the cam-card install adjustment so the installed ICL equals this centerline; the recommended ICL is unchanged."
+- **Formula registry:** the input label is updated to match (labels are not part of the formula fingerprint, so `fv1-b3f2c240` and its migration row are unchanged). The output keeps its name, "Additional Advance (+) / Retard (−)".
+- **Dynamic Compression:** the button reads "Pull Installed IVC from Cam Card".
+- **IVC worked example:** IVO 2° BTDC and IVC 42° ABDC, the page's own defaults (it said 6° / 38°, true only under the old hidden 4° advance).
+- **Encyclopedia:** the four approved descriptions (Cam Card, Exhaust Valve Events, IVC, Smoke-Limited Fuel) are unchanged. Regeneration changed only the source hashes and the Intake Centerline entry's input label.
+- **Tests:** KA-65 checks every new label and note and the unchanged registry output; KA-59, KA-61 and `ivc-handoff-def044.test.js` read the renamed tile and button.
+
 ### GH-DEF-057 — Road-course fuel stint (`375a0fb`)
 
 - **Reference:** max green laps = ⌊usable fuel ÷ fuel per lap⌋. With exact arithmetic, 3.60 ÷ 0.12 = **30**.
@@ -203,9 +212,10 @@ Every expected value below is computed **independently of the engine**. The sour
   - KA-60 and KA-61: one cam across Cam Card, IVC, Exhaust Valve Events and the Dynamic Compression pull, in Imperial and in Metric;
   - KA-62: a fresh visitor sees advance 0 and installed = recommended on every cam page;
   - KA-63: GH-DEF-068, the Intake Centerline Apply button;
-  - KA-64: GH-DEF-069, stale remembered cam boxes.
+  - KA-64: GH-DEF-069, stale remembered cam boxes;
+  - KA-65: the approved cam wording (2026-11-20).
   - KA-28, KA-29 and KA-55 now set the advance (0) explicitly.
-- **Totals at the branch head:** 68 cases; 48 pass and 20 fail. The 20 failures are exactly the known-open ledger.
+- **Totals at the branch head:** 69 cases; 49 pass and 20 fail. The 20 failures are exactly the known-open ledger. (68 / 48 before KA-65 was added on 2026-11-20.)
 - **Ledger:** KA-01 to KA-12, KA-15 to KA-17, KA-22 to KA-29 and KA-31 are removed from the known-open ledger, 24 ids in all.
 - **Still open, 20 ids:** GH-DEF-049, 051, 052, 056, 058 and 059.
 

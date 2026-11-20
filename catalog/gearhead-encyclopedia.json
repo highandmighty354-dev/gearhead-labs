@@ -4,7 +4,7 @@
  "generated_from": {
   "catalog": {
    "file": "catalog/gearhead-catalog.json",
-   "sha256": "1beec8463515f857a45f06228c85e525b71511339e645e431cc1b3890e33020c"
+   "sha256": "16c9e75b10c637b95d93dc709250509370fae3dbb0419f96e769330e5c2cbdc6"
   },
   "enrichment": {
    "file": "catalog/encyclopedia-enrichment.json",
@@ -12,7 +12,7 @@
   },
   "page": {
    "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-   "sha256": "702c06220b9c537d30ef327f24e74f0de431fb3b069ab342e360f0ea8ea10074"
+   "sha256": "4b22ab7d264a3edd030099b4b5ba189e5feb3de12373a6fefef8c5398532bf38"
   },
   "models": {
    "file": "premium/models.js",
@@ -5352,7 +5352,7 @@
    "formula": {
     "inputs": [
      "LSA",
-     "Installed Advance (+) / Retard (−)",
+     "Total Advance vs LSA (+) / Retard (−)",
      "Desired Intake Centerline"
     ],
     "outputs": [
