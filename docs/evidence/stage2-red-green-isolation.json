@@ -1,0 +1,360 @@
+{
+ "about": "Stage 2 calculator repairs: premium/tests/known-answer-critical.test.js (the version at ceeb32c, 59 cases) run in STRICT mode (ledger ignored) against the engine of every commit on fix/stage-2-calculator-repairs, starting at main b58e1f0 (the engine the live site serves). For each commit, the cases whose state changed from its parent. Generated 2026-11-18.",
+ "engines": [
+  "b58e1f0",
+  "23298d9",
+  "b7aa687",
+  "850331c",
+  "7635946",
+  "2022778",
+  "375a0fb",
+  "1f043dd",
+  "b9ec416",
+  "14625f1",
+  "ceeb32c"
+ ],
+ "pass_counts": {
+  "b58e1f0": 4,
+  "23298d9": 7,
+  "b7aa687": 13,
+  "850331c": 19,
+  "7635946": 23,
+  "2022778": 26,
+  "375a0fb": 28,
+  "1f043dd": 31,
+  "b9ec416": 35,
+  "14625f1": 36,
+  "ceeb32c": 39
+ },
+ "transitions": [
+  {
+   "commit": "23298d9",
+   "parent": "b58e1f0",
+   "changed": [
+    {
+     "id": "KA-01",
+     "reg": "GH-DEF-045",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-02",
+     "reg": "GH-DEF-045",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-45",
+     "reg": "GH-DEF-045",
+     "from": "fail",
+     "to": "pass"
+    }
+   ]
+  },
+  {
+   "commit": "b7aa687",
+   "parent": "23298d9",
+   "changed": [
+    {
+     "id": "KA-05",
+     "reg": "GH-DEF-047",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-06",
+     "reg": "GH-DEF-047",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-07",
+     "reg": "GH-DEF-047",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-08",
+     "reg": "GH-DEF-047",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-46",
+     "reg": "GH-DEF-047",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-47",
+     "reg": "GH-DEF-047",
+     "from": "fail",
+     "to": "pass"
+    }
+   ]
+  },
+  {
+   "commit": "850331c",
+   "parent": "b7aa687",
+   "changed": [
+    {
+     "id": "KA-09",
+     "reg": "GH-DEF-048",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-10",
+     "reg": "GH-DEF-048",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-11",
+     "reg": "GH-DEF-048",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-12",
+     "reg": "GH-DEF-048",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-48",
+     "reg": "GH-DEF-048",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-49",
+     "reg": "GH-DEF-048",
+     "from": "fail",
+     "to": "pass"
+    }
+   ]
+  },
+  {
+   "commit": "7635946",
+   "parent": "850331c",
+   "changed": [
+    {
+     "id": "KA-15",
+     "reg": "GH-DEF-050",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-16",
+     "reg": "GH-DEF-050",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-17",
+     "reg": "GH-DEF-050",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-50",
+     "reg": "GH-DEF-050",
+     "from": "fail",
+     "to": "pass"
+    }
+   ]
+  },
+  {
+   "commit": "2022778",
+   "parent": "7635946",
+   "changed": [
+    {
+     "id": "KA-22",
+     "reg": "GH-DEF-053",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-23",
+     "reg": "GH-DEF-053",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-51",
+     "reg": "GH-DEF-053",
+     "from": "fail",
+     "to": "pass"
+    }
+   ]
+  },
+  {
+   "commit": "375a0fb",
+   "parent": "2022778",
+   "changed": [
+    {
+     "id": "KA-31",
+     "reg": "GH-DEF-057",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-52",
+     "reg": "GH-DEF-057",
+     "from": "fail",
+     "to": "pass"
+    }
+   ]
+  },
+  {
+   "commit": "1f043dd",
+   "parent": "375a0fb",
+   "changed": [
+    {
+     "id": "KA-03",
+     "reg": "GH-DEF-046",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-04",
+     "reg": "GH-DEF-046",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-53",
+     "reg": "GH-DEF-046",
+     "from": "fail",
+     "to": "pass"
+    }
+   ]
+  },
+  {
+   "commit": "b9ec416",
+   "parent": "1f043dd",
+   "changed": [
+    {
+     "id": "KA-24",
+     "reg": "GH-DEF-054",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-25",
+     "reg": "GH-DEF-054",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-26",
+     "reg": "GH-DEF-054",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-27",
+     "reg": "GH-DEF-054",
+     "from": "fail",
+     "to": "pass"
+    }
+   ]
+  },
+  {
+   "commit": "14625f1",
+   "parent": "b9ec416",
+   "changed": [
+    {
+     "id": "KA-54",
+     "reg": "GH-DEF-062",
+     "from": "fail",
+     "to": "pass"
+    }
+   ]
+  },
+  {
+   "commit": "ceeb32c",
+   "parent": "14625f1",
+   "changed": [
+    {
+     "id": "KA-28",
+     "reg": "GH-DEF-055",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-29",
+     "reg": "GH-DEF-055",
+     "from": "fail",
+     "to": "pass"
+    },
+    {
+     "id": "KA-55",
+     "reg": "GH-DEF-055",
+     "from": "fail",
+     "to": "pass"
+    }
+   ]
+  }
+ ],
+ "red_on_b58e1f0": {
+  "KA-01": "shows 3,750, independent value 62.5 (|actual - expected| = 3687.5 is more than the tolerance 0.6)",
+  "KA-02": "shows 15,789.4737, independent value 263.15789 (|actual - expected| = 15526.3 is more than the tolerance 0.6)",
+  "KA-45": "registry gives 3750, independent value 62.5 (|actual - expected| = 3687.5 is more than the tolerance 1e-9)",
+  "KA-03": "shows 434.8, independent value 29.98501 (|actual - expected| = 404.815 is more than the tolerance 0.3)",
+  "KA-04": "shows 46.2, independent value 3.18302 (|actual - expected| = 43.017 is more than the tolerance 0.032)",
+  "KA-53": "registry gives 434.7826086956522, independent value 29.98501 (|actual - expected| = 404.798 is more than the tolerance 1e-9)",
+  "KA-05": "shows -0.2652, independent value 2.14023 (|actual - expected| = 2.40543 is more than the tolerance 0.001)",
+  "KA-06": "shows 1.875, independent value 0 (|actual - expected| = 1.875 is more than the tolerance 0.001)",
+  "KA-07": "shows 0.7446, independent value 1.25544 (|actual - expected| = 0.510837 is more than the tolerance 0.001)",
+  "KA-08": "shows -1.875, independent value 3.75 (|actual - expected| = 5.625 is more than the tolerance 0.001)",
+  "KA-46": "registry gives -0.2652348002410436, independent value 2.14023 (|actual - expected| = 2.40547 is more than the tolerance 1e-9)",
+  "KA-47": "registry gives 0.7445626465380286, independent value 1.25544 (|actual - expected| = 0.510875 is more than the tolerance 1e-9)",
+  "KA-09": "shows 9.079, independent value 9.69852 (|actual - expected| = 0.619522 is more than the tolerance 0.006)",
+  "KA-10": "shows 270, independent value 294.96378 (|actual - expected| = 24.9638 is more than the tolerance 1)",
+  "KA-11": "shows 6.876, independent value 7.87441 (|actual - expected| = 0.998413 is more than the tolerance 0.006)",
+  "KA-12": "shows 187, independent value 224.03989 (|actual - expected| = 37.0399 is more than the tolerance 1)",
+  "KA-48": "registry gives 9.078899770654978, independent value 9.69852 (|actual - expected| = 0.619623 is more than the tolerance 1e-9)",
+  "KA-49": "registry gives 187.3271304708627, independent value 224.03989 (|actual - expected| = 36.7128 is more than the tolerance 0.05)",
+  "KA-15": "shows 69.6, independent value 71.27457 (|actual - expected| = 1.67457 is more than the tolerance 0.15)",
+  "KA-16": "shows 58.9, independent value 68.7752 (|actual - expected| = 9.8752 is more than the tolerance 0.15)",
+  "KA-17": "shows 41, independent value 45.42747 (|actual - expected| = 4.42747 is more than the tolerance 0.15)",
+  "KA-50": "registry gives 58.88378073406848, independent value 68.7752 (|actual - expected| = 9.89142 is more than the tolerance 1e-9)",
+  "KA-22": "shows 0.0408, independent value 0.0325 (|actual - expected| = 0.00830055 is more than the tolerance 0.0006)",
+  "KA-23": "shows 5.2, independent value 3.57464 (|actual - expected| = 1.62536 is more than the tolerance 0.0715)",
+  "KA-51": "shows 0.38, independent value 0.30353 (|actual - expected| = 0.0764692 is more than the tolerance 0.006)",
+  "KA-24": "shows 218.5; physics allows at most 174.28",
+  "KA-25": "shows 117.0; physics allows at most 115.73",
+  "KA-26": "shows 15.200; physics needs at least 15.267",
+  "KA-27": "shows 8, independent value 242.96862 (|actual - expected| = 234.969 is more than the tolerance 2)",
+  "KA-54": "shows 65 lbf at 218.5 mph, independent value 897.6 (|actual - expected| = 832.65 is more than the tolerance 1)",
+  "KA-28": "shows 114, independent value 110 (|actual - expected| = 4 is more than the tolerance 0.5)",
+  "KA-29": "shows 1, independent value 5 (|actual - expected| = 4 is more than the tolerance 0.5)",
+  "KA-55": "shows 60, independent value 56 (|actual - expected| = 4 is more than the tolerance 0.5)",
+  "KA-31": "shows 29, independent value 30 (|actual - expected| = 1 is more than the tolerance 0)",
+  "KA-52": "registry gives 29, independent value 30 (|actual - expected| = 1 is more than the tolerance 0)"
+ },
+ "still_failing_at_head": {
+  "KA-13": "GH-DEF-049",
+  "KA-14": "GH-DEF-049",
+  "KA-18": "GH-DEF-051",
+  "KA-19": "GH-DEF-051",
+  "KA-20": "GH-DEF-051",
+  "KA-21": "GH-DEF-052",
+  "KA-30": "GH-DEF-056",
+  "KA-32": "GH-DEF-058",
+  "KA-33": "GH-DEF-058",
+  "KA-34": "GH-DEF-058",
+  "KA-35": "GH-DEF-058",
+  "KA-36": "GH-DEF-058",
+  "KA-37": "GH-DEF-058",
+  "KA-38": "GH-DEF-058",
+  "KA-39": "GH-DEF-058",
+  "KA-40": "GH-DEF-058",
+  "KA-41": "GH-DEF-059",
+  "KA-42": "GH-DEF-059",
+  "KA-43": "GH-DEF-059",
+  "KA-44": "GH-DEF-059"
+ }
+}

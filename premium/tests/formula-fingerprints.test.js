@@ -27,7 +27,14 @@ const VERSIONED = {
   distance_converter: { version: 'fv1-4001b424', seed: 'fv1-36d27af2', register: 'GH-DEF-019 / GH-ENG-014' },  // yards -> km constant 0.000914 corrected to 0.0009144
   bolt_torque_spec: { version: 'fv1-25b1f973', seed: 'fv1-f63ea4c8', register: 'GH-DEF-034 / GH-ENG-014' },      // the thread entered (was 16 or 20 TPI) and proof strength by size; production row deferred
   bolt_stretch: { version: 'fv1-8e827c77', seed: 'fv1-d48e7340', register: 'GH-DEF-036 / GH-ENG-014' },         // stretch -> clamp load through shank and thread in series (was load -> stretch of one uniform bar); production row deferred
-  fuel_pump_sizing: { version: 'fv1-f5c74781', seed: 'fv1-c9780487', register: 'M1 decision D1 (PR #12) / migration 0409' }  // validity rule (HP, BSFC, density > 0; margin >= 1.0) moved into the registry; 0409 prepared, not applied
+  fuel_pump_sizing: { version: 'fv1-f5c74781', seed: 'fv1-c9780487', register: 'M1 decision D1 (PR #12) / migration 0409' },  // validity rule (HP, BSFC, density > 0; margin >= 1.0) moved into the registry; 0409 prepared, not applied
+  // Stage 2 calculator repairs (2026-11-18): the registry row carried the same defect as the page; migration 0410 prepared, not applied
+  diesel_power_from_fuel: { version: 'fv1-b16d2d94', seed: 'fv1-0ab8e5a1', register: 'GH-DEF-045 / migration 0410' },  // fuel [lb/hr] / BSFC; the x60 (a lb/min factor) removed
+  piston_position: { version: 'fv1-09188b84', seed: 'fv1-908de781', register: 'GH-DEF-047 / migration 0410' },  // slider-crank distance below TDC (was r - x)
+  cranking_compression: { version: 'fv1-59c91f10', seed: 'fv1-95fbced0', register: 'GH-DEF-048 / migration 0410' },  // IVC is ABDC (crank at 180 + IVC from TDC); trapped stroke = x (was angle IVC and stroke - x); gauge pressure primary, absolute second (2026-11-20; replaced fv1-ef403b86 in the unapplied 0410)
+  wet_bulb: { version: 'fv1-782fda42', seed: 'fv1-a2a279c6', register: 'GH-DEF-050 / migration 0410' },  // Stull (2011) evaluated in degC and converted back to degF (was evaluated in degF)
+  rc_fuel_stint: { version: 'fv1-6d100b74', seed: 'fv1-072e823c', register: 'GH-DEF-057 / migration 0410' },  // fuel rounded up to 0.01 gal; Max Green Laps from the unrounded fuel, floored after removing floating-point noise (3.6 / 0.12 gave 29) (2026-11-20; replaced fv1-523c3d67 in the unapplied 0410)
+  diesel_smoke_limit: { version: 'fv1-64771dd0', seed: 'fv1-e12aa323', register: 'GH-DEF-046 / migration 0410' }  // fuel = air / (lambda x 14.5, diesel stoichiometric AFR; owner decision 2026-11-18) (was air / lambda)
 };
 
 (async () => {
