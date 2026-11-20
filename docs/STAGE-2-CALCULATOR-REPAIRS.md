@@ -75,6 +75,9 @@ Every expected value below is computed **independently of the engine**. The sour
 - **Change:**
   - Renderer and both registry outputs are corrected.
   - The worked example is corrected.
+- **Follow-up, gauge pressure (owner decision 2026-11-20, `7d5f50e`):** a compression gauge reads relative to the local atmosphere, so the primary result is now **gauge** pressure, P_atm × (CR_eff^γ − 1), labelled "Estimated Cranking Pressure (gauge)". The absolute pressure, P_atm × CR_eff^γ, is kept as a second row, "Absolute Cranking Pressure". The atmospheric box reads "Atmospheric Pressure (absolute)". Results show whole psi in Imperial and 0.1 bar in Metric.
+  - Expected values: 10.5 / 6.0 / 3.75 / 40° → **280 psi gauge, 295 psi absolute**; 9.5 / 6.5 / 4.0 / 60° → **209.3 psi gauge, 224.0 psi absolute**; at 12.2 psi atmospheric (about 5,000 ft) the first engine gives 232.6 psi gauge; in Metric (1.01353 bar) 19.3 bar gauge, 20.3 bar absolute.
+  - Registry: the output "Estimated Cranking Pressure" keeps its name and now holds the gauge value; a new output "Absolute Cranking Pressure" is added. The help text and the worked example (about 280 psi on a gauge, about 295 psi absolute) are corrected. ECR and γ are unchanged.
 
 ### GH-DEF-050 — Wet Bulb (`7635946`)
 
@@ -130,6 +133,10 @@ Every expected value below is computed **independently of the engine**. The sour
 - **Test baselines premised on the defective drag were updated:**
   - **`acceleration-target`:** the goldens for the 7,500 lb vehicle were re-recorded.
   - **`curve-persistence`:** the typed curve also weakens the 6,000 rpm point. With correct drag, Top Speed is drag-limited near 6,000 rpm instead of at the redline. The test passes on both the old and the new engine.
+
+- **Follow-up, Metric and a unit warning (owner decision 2026-11-20, `331bf2e`).** The six simulators (Acceleration, Braking, Cornering, Top Speed, Dragstrip, Weight Transfer) keep slug/ft³ and the 0.0023769 default in Imperial and show **kg/m³** in Metric: 1 slug/ft³ = 14.593902937206364 kg ÷ 0.028316846592 m³ = **515.3788 kg/m³**, so sea level shows 1.225. The Metric / Imperial buttons convert the number once and leave every result unchanged.
+  - **Soft warning, never a rejection or a silent conversion:** below 0.0005 or above 0.005 slug/ft³ (compared in slug/ft³) the box warns that it is slug/ft³ (kg/m³ in Metric), gives the sea-level value, and names the unit the number probably is (0.0765 lb/ft³, 1.2 kg/m³, 0.0024 slug/ft³). The number is used as typed.
+  - **EV Top Speed and Dynamic Pressure are unchanged:** they also use slug/ft³; their boxes are declared plain numbers (and Dynamic Pressure reads its box as typed), so both keep a slug/ft³ box with the same results in both systems, checked before and after for typed values and a Metric / Imperial press.
 
 ### GH-DEF-062 — Top Speed "Drag + Rolling" tile (`14625f1`)
 
@@ -196,6 +203,8 @@ Every expected value below is computed **independently of the engine**. The sour
 - **Change:**
   - The quotient is rounded to 9 decimals before the floor, in the renderer and in the registry output.
   - The worked example is corrected.
+- **Follow-up, upward rounding (owner decision 2026-11-20, `7d5f50e`):** fuel is rounded **up** to the next 0.01 gal (Fuel Required, Load with Buffer and the 3 % save target), and Max Green Laps comes from the true, unrounded fuel. The 9-decimal step is kept before every ceil and floor, so exact boundaries are not pushed over (3.60 stays 3.60).
+  - Expected values: 7 × 0.333 → **2.34 gal, 7 laps** (was 2.33, 6); 1 × 0.001 → **0.01 gal, 1 lap** (was 0, 0); 9 × 0.333 → 3.00 gal, 9 laps; 30 × 0.12 → 3.60 gal, 30 laps, save target 3.50 (was 3.49); 0 laps → 0 gal, 0 laps. A fuel per lap of 0 still shows "—" laps, as before. The buffer and the other planning assumptions are unchanged.
 
 ## Tests and evidence
 
@@ -214,8 +223,12 @@ Every expected value below is computed **independently of the engine**. The sour
   - KA-63: GH-DEF-068, the Intake Centerline Apply button;
   - KA-64: GH-DEF-069, stale remembered cam boxes;
   - KA-65: the approved cam wording (2026-11-20).
+- **Owner decisions of 2026-11-20, nine more cases:**
+  - GH-DEF-048: KA-10, KA-12 and KA-49 now expect gauge pressure; KA-66 (absolute row), KA-67 (absolute registry output), KA-68 (12.2 psi atmospheric, and Metric in bar);
+  - GH-DEF-057: KA-69 (page) and KA-70 (registry) for 7 × 0.333, 1 × 0.001, 9 × 0.333, 30 × 0.12, 12 × 0.125, 0 laps and 1 × 0.0001, against exact integer arithmetic; KA-71 (Metric);
+  - GH-DEF-054: KA-72 (Metric kg/m³, results unchanged, Metric / Imperial buttons), KA-73 (the warning in both systems, numbers used as typed), KA-74 (EV Top Speed and Dynamic Pressure unchanged in both systems).
   - KA-28, KA-29 and KA-55 now set the advance (0) explicitly.
-- **Totals at the branch head:** 69 cases; 49 pass and 20 fail. The 20 failures are exactly the known-open ledger. (68 / 48 before KA-65 was added on 2026-11-20.)
+- **Totals at the branch head:** 78 cases; 58 pass and 20 fail. The 20 failures are exactly the known-open ledger. (68 / 48 before KA-65 to KA-74 were added on 2026-11-20.)
 - **Ledger:** KA-01 to KA-12, KA-15 to KA-17, KA-22 to KA-29 and KA-31 are removed from the known-open ledger, 24 ids in all.
 - **Still open, 20 ids:** GH-DEF-049, 051, 052, 056, 058 and 059.
 
@@ -235,13 +248,14 @@ Every expected value below is computed **independently of the engine**. The sour
 |---|---|---|
 | diesel_power_from_fuel | fv1-0ab8e5a1 | fv1-b16d2d94 |
 | piston_position | fv1-908de781 | fv1-09188b84 |
-| cranking_compression | fv1-95fbced0 | fv1-ef403b86 |
+| cranking_compression | fv1-95fbced0 | fv1-59c91f10 (was fv1-ef403b86 until 2026-11-20) |
 | wet_bulb | fv1-a2a279c6 | fv1-782fda42 |
-| rc_fuel_stint | fv1-072e823c | fv1-523c3d67 |
+| rc_fuel_stint | fv1-072e823c | fv1-6d100b74 (was fv1-523c3d67 until 2026-11-20) |
 | diesel_smoke_limit | fv1-e12aa323 | fv1-64771dd0 |
 
 **Migration 0410 (PREPARED, NOT APPLIED).**
 - It adds those six rows and nothing else.
+- **2026-11-20 (owner decision):** the cranking_compression and rc_fuel_stint rows were replaced in place with the follow-up fingerprints fv1-59c91f10 and fv1-6d100b74. 0410 was never applied, so nothing referenced the replaced versions. It still has six rows; there is no 0411, and the migration reader is unchanged. The proof below was rerun on 2026-11-20 with the new fingerprints: 50 of 50 checks passed.
 - It is proved on a private throwaway PostgreSQL server by `premium/tests/fv0410-throwaway-db.sh`. All 50 checks passed:
   - each old version accepted and each new version refused before 0410;
   - a wrong copy aborts and writes nothing;
@@ -282,8 +296,8 @@ Every expected value below is computed **independently of the engine**. The sour
 ## Limitations and open points (not changed here)
 
 1. **Cam pages disagree (055): resolved 2026-11-18** by the cam centerline convention (see GH-DEF-055 above). Every cam page now uses installed = recommended − advance, with the advance visible.
-2. **Metric density label (054).** In Metric the simulator density box now reads slug/ft³ instead of kg/m³, as Dynamic Pressure does. A value remembered in a browser from before the change keeps its number, so a typed lb/ft³ figure (for example 0.0765) would now be read as slug/ft³.
-3. **Gauge or absolute pressure (048).** The cranking pressure is P_atm × CR^γ, an absolute pressure (295 psi). A compression gauge reads gauge pressure, which is about 14.7 psi lower. The formula and its test are unchanged; this is a separate question.
-4. **Rounding feeds the lap count (057).** Max Green Laps is computed from fuel already rounded to 2 decimals. For example, 7 laps × 0.333 gal gives 6 laps. This is a separate rounding issue and is not fixed here.
+2. **Metric density label (054): resolved 2026-11-20** (see GH-DEF-054 above): the six simulators show kg/m³ in Metric and warn on a number that looks like another unit. Original note: In Metric the simulator density box now reads slug/ft³ instead of kg/m³, as Dynamic Pressure does. A value remembered in a browser from before the change keeps its number, so a typed lb/ft³ figure (for example 0.0765) would now be read as slug/ft³.
+3. **Gauge or absolute pressure (048): resolved 2026-11-20** (see GH-DEF-048 above): gauge is the primary result, absolute the second. Original note: The cranking pressure is P_atm × CR^γ, an absolute pressure (295 psi). A compression gauge reads gauge pressure, which is about 14.7 psi lower. The formula and its test are unchanged; this is a separate question.
+4. **Rounding feeds the lap count (057): resolved 2026-11-20** (see GH-DEF-057 above). Original note: Max Green Laps is computed from fuel already rounded to 2 decimals. For example, 7 laps × 0.333 gal gives 6 laps. This is a separate rounding issue and is not fixed here.
 5. **Release order.** Production must have the 0410 rows before a corrected calculation is stored. This is the same order used for 0409: migration first, then code. Saving a calculation through the client is not possible today (frontend test 22), so the site works without 0410.
 6. **The Stage 1 proof harness is now a historical artifact.** `premium/tests/proof/red-green.js` patches the old engine text, so it cannot run on the repaired engine. Its recorded output (`out/red-green.json`) is that historical evidence and is unchanged. Commit `2913c14` made three edits to `red-green.js`: it marked the header as historical, added the `RG_ENGINE_SOURCE` override, which lets the harness test point it at a supplied engine, and rewrote the comment above the expected self-test list; its probes, expected lists and logic are unchanged. `red-green-harness.test.js` now checks the recorded output and runs both proof phases.
