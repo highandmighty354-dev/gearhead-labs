@@ -146,6 +146,49 @@ const CASES = [
   { id: 'KA-25', reg: 'GH-DEF-054', kind: 'sim', calc: 'sim_dragstrip', edit: {}, row: 'Trap Speed', max: powerBound({ ...SIM, toFt: 1320 }).mph, why: 'power-limited upper bound on trap speed at 1,320 ft (~115.7 mph)' },
   { id: 'KA-26', reg: 'GH-DEF-054', kind: 'sim', calc: 'sim_acceleration', edit: { sim_target: 130 }, row: 'Target Time', min: powerBound({ ...SIM, toMph: 130 }).t, why: 'power-limited lower bound on 0-130 mph time (~15.27 s)' },
   { id: 'KA-27', reg: 'GH-DEF-054', kind: 'sim', calc: 'sim_cornering', edit: {}, row: 'Aero Downforce', want: 0.5 * RHO_SL * 1.2 * 22 * Math.pow(60 * MPH, 2), tol: 2, why: 'L = 1/2 rho Cl A v^2 = 243 lbf at 60 mph, Cl 1.2, A 22 ft^2' },
+  // GH-DEF-054 follow-up (owner decision 2026-11-20): the six simulators' Air Density stays slug/ft³ in Imperial and shows kg/m³ in Metric (1 slug/ft³ = 14.593902937206364 kg /
+  // 0.028316846592 m³ = 515.3788 kg/m³); a soft warning when the number looks like lb/ft³ or kg/m³ (or, in Metric, lb/ft³ or slug/ft³); never a silent conversion.
+  { id: 'KA-72', reg: 'GH-DEF-054', kind: 'prop', calc: 'sim_top_speed', why: 'Metric: the box shows 1.225 kg/m³ for the 0.0023769 slug/ft³ default (no warning) and every tile equals Imperial; the Metric / Imperial buttons convert the typed 0.0020 slug/ft³ to 1.0308 kg/m³ and back without changing a tile', fn: async (h) => {
+    const K = 14.593902937206364 / 0.028316846592, bad = [], tiles = ['Estimated Top Speed', 'Drag + Rolling'];
+    await h.reset('sim_top_speed'); const imp = {}; for (const t of tiles) imp[t] = await h.stat(t);
+    await h.reset('sim_top_speed', 'metric');
+    if (mismatch(await h.box('sim_rho'), 0.0023769 * K, 0.0005)) bad.push(`Metric default box ${await h.box('sim_rho')} (independent ${(0.0023769 * K).toFixed(4)} kg/m³)`);
+    if (await h.warn('sim_rho')) bad.push('Metric default warns: ' + await h.warn('sim_rho'));
+    for (const t of tiles) if (mismatch(await h.stat(t), imp[t], 0)) bad.push(`Metric ${t} ${await h.stat(t)} (Imperial ${imp[t]})`);
+    await h.reset('sim_top_speed'); await h.type({ sim_rho: 0.002 }); const before = {}; for (const t of tiles) before[t] = await h.stat(t);
+    await h.unitBtn('metric'); if (mismatch(await h.box('sim_rho'), 0.002 * K, 0.0005)) bad.push(`after Metric press the box shows ${await h.box('sim_rho')} (independent ${(0.002 * K).toFixed(4)})`);
+    for (const t of tiles) if (mismatch(await h.stat(t), before[t], 0)) bad.push(`after Metric press ${t} ${await h.stat(t)} (was ${before[t]})`);
+    await h.unitBtn('imperial'); if (mismatch(await h.box('sim_rho'), 0.002, 0.000001)) bad.push(`back in Imperial the box shows ${await h.box('sim_rho')}`);
+    for (const t of tiles) if (mismatch(await h.stat(t), before[t], 0)) bad.push(`back in Imperial ${t} ${await h.stat(t)} (was ${before[t]})`);
+    return bad.length ? bad.join('; ') : null; } },
+  { id: 'KA-73', reg: 'GH-DEF-054', kind: 'prop', calc: 'sim_top_speed', why: 'the soft warning: Imperial 0.0765 (lb/ft³) and 1.2 (kg/m³) warn, naming slug/ft³ and sea level 0.00238, and are used as typed (not converted); 0.0029 and 0.0011 do not warn; Metric 0.0765 and 0.0024 warn naming kg/m³ and 1.225; Metric 1.225 does not', fn: async (h) => {
+    const bad = [];
+    for (const [sys, v, warns] of [['imperial', 0.0765, true], ['imperial', 1.2, true], ['imperial', 0.0029, false], ['imperial', 0.0011, false], ['imperial', 0.0023769, false], ['metric', 0.0765, true], ['metric', 0.0024, true], ['metric', 1.225, false], ['metric', 1.5, false]]) {
+      await h.reset('sim_top_speed', sys); await h.type({ sim_rho: v }); const w = await h.warn('sim_rho'), box = await h.box('sim_rho');
+      if (!!w !== warns) bad.push(`${sys} ${v}: warning ${w ? 'shown' : 'absent'}`);
+      if (warns && sys === 'imperial' && !(w.includes('slug/ft³') && w.includes('0.00238') && w.includes('lb/ft³') && w.includes('kg/m³'))) bad.push(`${sys} ${v}: text "${w}"`);
+      if (warns && sys === 'metric' && !(w.includes('kg/m³') && w.includes('1.225') && w.includes('lb/ft³') && w.includes('slug/ft³'))) bad.push(`${sys} ${v}: text "${w}"`);
+      if (box !== v) bad.push(`${sys} ${v}: the box was changed to ${box}`);
+    }
+    await h.reset('sim_cornering'); await h.type({ sim_rho: 0.0765 }); if (!await h.warn('sim_rho')) bad.push('sim_cornering 0.0765: no warning');
+    return bad.length ? bad.join('; ') : null; } },
+  { id: 'KA-74', reg: 'GH-DEF-054', kind: 'prop', calc: 'dynamic_pressure', why: 'unchanged by the follow-up (owner decision 2026-11-20): EV Top Speed and Dynamic Pressure keep a plain slug/ft³ box in BOTH systems (no kg/m³, no warning) and read the number as typed: q = 1/2 rho v^2 at 70 mph and the aero-limited speed (the page model: 0.85 P = 1/2 rho Cd A v^3) for 0.0021 slug/ft³, the same in Imperial and Metric, and through a Metric / Imperial press', fn: async (h) => {
+    const bad = [], FPS = 5280 / 3600;
+    const evMph = rho => Math.cbrt(500 * 550 * 0.85 / (0.5 * rho * 0.28 * 24 * Math.pow(1.467, 3)));   // the page's own model, unchanged here: 85 % of 500 HP, Cd 0.28, 24 sq ft, 1.467 ft/s per mph
+    const label = async (id) => (await h.text()).includes('Air Density') && (await h.text()).includes('slug/ft³') && !(await h.text()).includes('kg/m³');
+    for (const sys of ['imperial', 'metric']) {
+      await h.reset('dynamic_pressure', sys); await h.type({ dp_rho: 0.0021 });
+      if (await h.box('dp_rho') !== 0.0021) bad.push(`${sys} Dynamic Pressure box ${await h.box('dp_rho')}`); if (await h.warn('dp_rho')) bad.push(`${sys} Dynamic Pressure warns`); if (!await label('dp_rho')) bad.push(`${sys} Dynamic Pressure label is not slug/ft³`);
+      const q = (await h.read(['Dynamic Pressure']))['Dynamic Pressure']; if (mismatch(q, 0.5 * 0.0021 * Math.pow(70 * FPS, 2), 0.006)) bad.push(`${sys} q ${q} (independent ${(0.5 * 0.0021 * Math.pow(70 * FPS, 2)).toFixed(3)} lb/sq ft)`);
+      await h.reset('ev_top_speed', sys); await h.type({ ev_rho: 0.0021 });
+      if (await h.box('ev_rho') !== 0.0021) bad.push(`${sys} EV box ${await h.box('ev_rho')}`); if (await h.warn('ev_rho')) bad.push(`${sys} EV warns`); if (!await label('ev_rho')) bad.push(`${sys} EV label is not slug/ft³`);
+      const v = (await h.read(['Estimated Aero-Limited Speed']))['Estimated Aero-Limited Speed'], want = sys === 'metric' ? evMph(0.0021) * 1.609344 : evMph(0.0021);
+      if (mismatch(v, want, want * 0.002)) bad.push(`${sys} EV speed ${v} (independent ${want.toFixed(2)})`);
+    }
+    await h.reset('dynamic_pressure'); await h.type({ dp_rho: 0.0021 }); await h.unitBtn('metric');
+    if (await h.box('dp_rho') !== 0.0021) bad.push(`after Metric press the Dynamic Pressure box shows ${await h.box('dp_rho')}`);
+    const qm = (await h.read(['Dynamic Pressure']))['Dynamic Pressure']; if (mismatch(qm, 0.5 * 0.0021 * Math.pow(70 * FPS, 2), 0.006)) bad.push(`after Metric press q ${qm}`);
+    return bad.length ? bad.join('; ') : null; } },
   // GH-DEF-062 (Medium; fixed with the Stage 2 repairs on the owner's instruction of 2026-11-18): the Drag + Rolling tile must be the resistance AT the reported top speed
   { id: 'KA-54', reg: 'GH-DEF-062', kind: 'prop', calc: 'sim_top_speed', why: 'Drag + Rolling = 1/2 rho Cd A v^2 + Crr W at the shown top speed (default vehicle; ~549 lbf at 168.5 mph)', fn: async (h) => {
     const s = await h.rowAt('sim_top_speed', {}, 'Estimated Top Speed'), d = await h.rowAt('sim_top_speed', {}, 'Drag + Rolling');
@@ -278,6 +321,9 @@ if (process.env.KA_LIST) { process.stdout.write(JSON.stringify({ ids: CASES.map(
     box: (id) => page.evaluate(i => { const e = document.getElementById(i); return e ? parseFloat(e.value) : NaN; }, id),
     click: async (text) => { await page.click(`#calc-container button:has-text("${text}")`); await page.waitForTimeout(200); },
     errors: () => pageErrors.slice(),
+    warn: (id) => page.evaluate(i => { const e = document.getElementById(i), f = e && (e.closest('.field') || e.parentElement), w = f && f.querySelector('.field-warning-text'); return w ? w.textContent.trim() : ''; }, id),
+    stat: (label) => page.evaluate(l => { for (const s of document.querySelectorAll('#calc-container .sim-stat')) if (s.children[0] && s.children[0].textContent.trim() === l) return parseFloat(s.children[1].textContent); return NaN; }, label),
+    unitBtn: async (sys) => { await page.click('#btn-' + sys); await page.waitForTimeout(300); },
     text: () => page.evaluate(() => document.getElementById('calc-container').textContent.replace(/\s+/g, ' ')),
     api: (calc, inputs, keys) => page.evaluate(([c, i, k]) => { const r = GH_ENGINE.calculate(c, i), o = {}; for (const [l, key] of Object.entries(k)) { const x = r.outputs.find(q => q.key === key); o[l] = x ? x.value : NaN; } return o; }, [calc, inputs, keys])
   };

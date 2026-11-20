@@ -671,6 +671,7 @@ const UNIT_ALIASES = {
   'ft/min':'ft/min','m/min':'ft/min','ft/sec':'ft/sec','ft/s':'ft/sec','m/s':'ft/sec','ft of head':'ft of head','m of head':'ft of head',
   'kg/hr':'lb/hr','lb/hr':'lb/hr','lb/hp-hr':'lb/hp-hr','kg/kW-hr':'lb/hp-hr',
   'kg/m³':'lb/ft³','lb/ft³':'lb/ft³',
+  'slug/ft³':'slug/ft³',
   'in-lb':'in-lb',
   'CM':'CM','mm²':'sq in',
   'J':'ft-lb',
@@ -720,6 +721,11 @@ const UNIT_DEFS = {
   'HP/klb':{metric:'kW/tonne',toMetric:v=>v*1.643986807,fromMetric:v=>v/1.643986807},
   'ft-lb':{metric:'J',toMetric:v=>v*1.355817948,fromMetric:v=>v/1.355817948},
   'lb/ft³':{metric:'kg/m³',toMetric:v=>v*16.0184634,fromMetric:v=>v/16.0184634},
+  /* GH-DEF-054 (owner decision 2026-11-20): the six simulators' air density stays slug/ft³ in Imperial and shows kg/m³ in Metric. EV Top Speed and
+     Dynamic Pressure keep their box as a plain slug/ft³ number in both systems (declared native there), exactly as before.
+     1 slug = 1 lbf·s²/ft = 0.45359237 kg x 9.80665 m/s² / 0.3048 m/s² = 14.593902937206364 kg; 1 ft³ = 0.3048³ m³ = 0.028316846592 m³;
+     so 1 slug/ft³ = 14.593902937206364 / 0.028316846592 = 515.3788183931961 kg/m³ (= 32.17404855643 x 16.018463373960138, lb/ft³ x g/g_c) */
+  'slug/ft³':{metric:'kg/m³',toMetric:v=>v*515.3788183931961,fromMetric:v=>v/515.3788183931961},
   'lb/hr':{metric:'kg/hr',toMetric:v=>v*0.45359237,fromMetric:v=>v/0.45359237},
   'lb/hp-hr':{metric:'kg/kW-hr',toMetric:v=>v*0.6082773875,fromMetric:v=>v/0.6082773875},
   'CM':{metric:'mm²',toMetric:v=>v*0.000506707479,fromMetric:v=>v/0.000506707479},
@@ -1716,7 +1722,18 @@ FIELD_RANGE_RULES.forEach(r=>r.boxes.forEach(key=>{ FIELD_RANGE_BY_BOX[key]=r; }
 
 /* GH-IMP-018: unit (optional) is the unit the box is declared with (field()'s conv, a power / torque token included). The range is compared, as before, with the box's
    canonical value; only its text is written in the unit the box shows, through unitLimit (Imperial text unchanged; mm, kg, kW rounded inside and read back). */
+/* GH-DEF-054 (owner decision 2026-11-20): the six simulators' Air Density box is slug/ft³ (kg/m³ in Metric). A soft warning, never a rejection or a
+   silent conversion, when the number (compared in slug/ft³) looks like another unit: below 0.0005 (where the simulators' floor starts) or above
+   0.005 slug/ft³ (about twice the densest ground-level air). 0.0765 typed as lb/ft³ in Imperial, or 0.0765 / 0.0024 typed in Metric, trips it. */
+const SIM_RHO_WARN = { calcs: 'sim_acceleration sim_braking sim_cornering sim_top_speed sim_dragstrip sim_weight_transfer'.split(' '), min: 0.0005, max: 0.005 };
+function simDensityWarning(value){
+  if(isNaN(value) || value===0 || (value >= SIM_RHO_WARN.min && value <= SIM_RHO_WARN.max)) return null;
+  return UNIT.system==='metric'
+    ? 'Unusual air density — this box is kg/m³; sea-level air is about 1.225 kg/m³. A number near 0.0765 is lb/ft³ and near 0.0024 is slug/ft³. The simulators use the number as kg/m³.'
+    : 'Unusual air density — this box is slug/ft³; sea-level air is about 0.00238 slug/ft³. A number near 0.0765 is lb/ft³ (divide by 32.174) and near 1.2 is kg/m³. The simulators use the number as slug/ft³.';
+}
 function checkFieldRange(fieldId, value, calcId, unit){
+  if(fieldId==='sim_rho' && SIM_RHO_WARN.calcs.indexOf(calcId)>=0) return simDensityWarning(value);
   const rule = FIELD_RANGE_BY_BOX[calcId+'.'+fieldId];
   if(!rule || isNaN(value) || value===0) return null;
   if(value < rule.min || value > rule.max) return `Unusual ${rule.label} — typical range is ${unitLimit(null,unit,rule.min+'–'+rule.max)}`;
@@ -6811,7 +6828,7 @@ const RENDERS = {
     const hp=vd('ev_tshp',500), cd=vd('ev_cd',0.28), area=vd('ev_area',24), rho=vd('ev_rho',0.00237);
     const mph=+Math.pow((hp*550*0.85)/(0.5*rho*cd*area*Math.pow(1.467,3)),1/3).toFixed(1);
     return `${headerHTML('EV Top Speed Estimate','Aero-limited top-speed estimate using available power, drag coefficient and frontal area. Rolling resistance and gearing are not included.')}
-    <div class="calc-body">${field('Available Power','ev_tshp',500,'HP')}${field('Drag Coefficient','ev_cd',0.28,'')}${field('Frontal Area','ev_area',24,'sq ft')}${field('Air Density','ev_rho',0.00237,'slug/ft³')}${resultHTML('Estimated Aero-Limited Speed',mph,getU('speed'),true)}</div>${calcFooter('EV Top Speed')}`;
+    <div class="calc-body">${field('Available Power','ev_tshp',500,'HP')}${field('Drag Coefficient','ev_cd',0.28,'')}${field('Frontal Area','ev_area',24,'sq ft')}${field('Air Density','ev_rho',0.00237,'slug/ft³','number','any',true)}${resultHTML('Estimated Aero-Limited Speed',mph,getU('speed'),true)}</div>${calcFooter('EV Top Speed')}`;
   },
   ev_regen_power(){
     const wt=vd('ev_rwt',4200), g=vd('ev_rg',0.30), mph=vd('ev_rmph',60), eff=vd('ev_reff',75);
@@ -11216,7 +11233,7 @@ function ghValidationBox(msg){
   RENDERS.steering_ratio=()=>{const s=certValue('srt_s',300),r=certValue('srt_r',20);const ratio=s===null||r===null||r<=0?NaN:s/r;return `${headerHTML('Steering Ratio','Steering Ratio = Steering Wheel Angle \u00f7 Road Wheel Angle. How much steering wheel rotation it takes to turn the front wheels a given amount \u2014 a lower (numerically smaller) ratio means quicker, more direct steering response.')}<div class="calc-body">${field('Steering Wheel Angle','srt_s',300,'deg')}${field('Road Wheel Angle','srt_r',20,'deg')}${Number.isFinite(ratio)?resultHTML('Steering Ratio',ratio,':1',false,2):certError('Road wheel angle must be a positive number.')}</div>${calcFooter('Steering Ratio')}`;};
   RENDERS.ackermann_angle=()=>{const l=certValue('aa_l',108),r=certValue('aa_r',300);const a=r===null||l===null||(r-l/2)===0?NaN:Math.atan(l/(r-l/2))*180/Math.PI;return `${headerHTML('Ackermann Inside Steering Angle','Inside Angle = arctan[Wheelbase \u00f7 (Turn Radius \u2212 Wheelbase\u00f72)]. Proper Ackermann geometry steers the inside front wheel MORE sharply than the outside wheel in a turn, since the inside wheel follows a tighter-radius arc \u2014 this finds that correct inside-wheel angle for a given turn.')}<div class="calc-body">${field('Wheelbase','aa_l',108,'in')}${field('Turn Radius (to outside wheel path)','aa_r',300,'in')}${Number.isFinite(a)?resultHTML('Inside Steering Angle',a,'deg',false,2):certError('Enter valid numeric values.')}</div>${calcFooter('Ackermann Angle')}`;};
   RENDERS.drag_force=()=>{const cd=certValue('df_cd',0.32),a=certValue('df_a',22,'sq ft'),v=certValue('df_v',70,'mph');const f=[cd,a,v].every(Number.isFinite)?0.5*0.0023769*cd*a*Math.pow(v*1.4666666667,2):NaN;return `${headerHTML('Aerodynamic Drag Force','Drag = \u00bd \u00d7 Air Density \u00d7 Drag Coefficient \u00d7 Frontal Area \u00d7 Speed\u00b2. The real force air resistance exerts on a vehicle \u2014 growing with the SQUARE of speed, which is why aero drag becomes the dominant resistance force at highway speed and above.')}<div class="calc-body">${field('Drag Coefficient','df_cd',0.32,'')}${field('Frontal Area','df_a',22,'sq ft')}${field('Speed','df_v',70,'mph')}${Number.isFinite(f)?resultHTML('Drag Force',f,'lb',false,2):certError('Enter valid numeric values.')}</div>${calcFooter('Drag Force')}`;};
-  RENDERS.dynamic_pressure=()=>{const rho=certValue('dp_rho',0.0023769,'slug/ft\u00b3'),v=certValue('dp_v',70,'mph');const q=[rho,v].every(Number.isFinite)?0.5*rho*Math.pow(v*1.4666666667,2):NaN;return `${headerHTML('Aerodynamic Dynamic Pressure','Dynamic Pressure = \u00bd \u00d7 Air Density \u00d7 Speed\u00b2. The foundational \u201cq\u201d term behind every aerodynamic force calculation \u2014 drag, downforce, and lift all scale directly with this same dynamic pressure, just multiplied by a different shape-specific coefficient and area.')}<div class="calc-body">${field('Air Density','dp_rho',0.0023769,'slug/ft\u00b3')}${field('Speed','dp_v',70,'mph')}${Number.isFinite(q)?resultHTML('Dynamic Pressure',q,'lb/sq ft',false,2):certError('Enter valid numeric values.')}</div>${calcFooter('Dynamic Pressure')}`;};
+  RENDERS.dynamic_pressure=()=>{/* GH-DEF-054 (2026-11-20): read as typed in slug/ft\u00b3 in both systems (box declared native); unchanged behaviour */const rho=certValue('dp_rho',0.0023769,''),v=certValue('dp_v',70,'mph');const q=[rho,v].every(Number.isFinite)?0.5*rho*Math.pow(v*1.4666666667,2):NaN;return `${headerHTML('Aerodynamic Dynamic Pressure','Dynamic Pressure = \u00bd \u00d7 Air Density \u00d7 Speed\u00b2. The foundational \u201cq\u201d term behind every aerodynamic force calculation \u2014 drag, downforce, and lift all scale directly with this same dynamic pressure, just multiplied by a different shape-specific coefficient and area.')}<div class="calc-body">${field('Air Density','dp_rho',0.0023769,'slug/ft\u00b3','number','any',true)}${field('Speed','dp_v',70,'mph')}${Number.isFinite(q)?resultHTML('Dynamic Pressure',q,'lb/sq ft',false,2):certError('Enter valid numeric values.')}</div>${calcFooter('Dynamic Pressure')}`;};
   RENDERS.downforce=()=>{const cl=certValue('dnf_cl',1.2),a=certValue('dnf_a',22,'sq ft'),v=certValue('dnf_v',120,'mph');const df=[cl,a,v].every(Number.isFinite)?0.5*0.0023769*cl*a*Math.pow(v*1.4666666667,2):NaN;return `${headerHTML('Aerodynamic Downforce','Downforce = \u00bd \u00d7 Air Density \u00d7 Downforce Coefficient \u00d7 Frontal Area \u00d7 Speed\u00b2. Real, usable extra vertical tire loading generated purely by airflow \u2014 unlike mechanical grip, downforce costs nothing in ride comfort but only exists at speed.')}<div class="calc-body">${field('Downforce Coefficient','dnf_cl',1.2,'')}${field('Frontal Area','dnf_a',22,'sq ft')}${field('Speed','dnf_v',120,'mph')}${Number.isFinite(df)?resultHTML('Downforce',df,'lb',false,1):certError('Enter valid numeric values.')}</div>${calcFooter('Downforce')}`;};
   RENDERS.lift_force=()=>{const cl=certValue('lf_cl',0.15),a=certValue('lf_a',22,'sq ft'),v=certValue('lf_v',120,'mph');const lift=[cl,a,v].every(Number.isFinite)?0.5*0.0023769*cl*a*Math.pow(v*1.4666666667,2):NaN;return `${headerHTML('Aerodynamic Lift Force','Lift = \u00bd \u00d7 Air Density \u00d7 Lift Coefficient \u00d7 Frontal Area \u00d7 Speed\u00b2. Unwanted upward aerodynamic force that REDUCES effective tire loading at speed \u2014 many production car body shapes generate some lift without dedicated aero aids to counteract it.')}<div class="calc-body">${field('Lift Coefficient','lf_cl',0.15,'')}${field('Frontal Area','lf_a',22,'sq ft')}${field('Speed','lf_v',120,'mph')}${Number.isFinite(lift)?resultHTML('Lift Force',lift,'lb',false,1):certError('Enter valid numeric values.')}</div>${calcFooter('Lift Force')}`;};
   RENDERS.aero_hp=()=>{const f=certValue('ahp_f',88.17,'lb'),v=certValue('ahp_v',70,'mph');const hp=[f,v].every(Number.isFinite)?f*v/375:NaN;return `${headerHTML('Power to Overcome Aero Drag','Aero Power = Drag Force \u00d7 Speed \u00f7 375. The actual horsepower an engine has to dedicate purely to pushing through aerodynamic drag at a given speed \u2014 separate from (and in addition to) power needed for rolling resistance and grade.')}<div class="calc-body">${field('Drag Force','ahp_f',88.17,'lb')}${field('Speed','ahp_v',70,'mph')}${Number.isFinite(hp)?resultHTML('Aerodynamic Power',hp,'HP',false,2):certError('Enter valid numeric values.')}</div>${calcFooter('Aero Power')}`;};

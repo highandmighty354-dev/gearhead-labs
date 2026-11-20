@@ -74,6 +74,7 @@ const EXPECT = {
   'HP/klb':       ['kW/tonne',      HP / KLB,                   1],                                      // per 1000 lb
   'ft-lb':        ['J',             LBF * FT,                   1],
   'lb/ft³':       ['kg/m³',         LB / (FT * FT * FT),        1],
+  'slug/ft³':     ['kg/m³',         LBF / FT / (FT * FT * FT),  1],                                      // GH-DEF-054 (2026-11-20): 1 slug = 1 lbf·s²/ft; per ft³
   'lb/hr':        ['kg/hr',         LB / 3600,                  1 / 3600],
   'lb/hp-hr':     ['kg/kW-hr',      LB / (HP * 3600),           1 / (1000 * 3600)],
   'CM':           ['mm²',           Math.PI / 4 * (IN / 1000) ** 2, 1e-6],                               // circular mil = area of a circle 0.001 in across
