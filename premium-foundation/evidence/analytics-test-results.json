@@ -155,6 +155,86 @@
     "pass": true
   },
   {
+    "group": "edge-bytes",
+    "name": "B2-1 no Content-Length, exactly 8,192 bytes of a valid batch: accepted, stored once, stream read to the end",
+    "pass": true
+  },
+  {
+    "group": "edge-bytes",
+    "name": "B2-2 no Content-Length, 8,193 bytes: refused as bad_batch (reported, as before), nothing stored, reader cancelled, reading bounded",
+    "pass": true
+  },
+  {
+    "group": "edge-bytes",
+    "name": "B2-3 Content-Length: 100 but a 20 KB body: the declared length is not trusted; refused at 8,192 bytes, cancelled",
+    "pass": true
+  },
+  {
+    "group": "edge-bytes",
+    "name": "B2-4 Content-Length: 9000 declared: refused before any byte is read (unchanged), nothing stored or counted",
+    "pass": true
+  },
+  {
+    "group": "edge-bytes",
+    "name": "B2-5 the limit counts BYTES: 3,000 \"€\" (9,000+ bytes, about 3,100 characters) around a valid batch is refused",
+    "pass": true
+  },
+  {
+    "group": "edge-bytes",
+    "name": "B2-6 a typical page-close beacon (text/plain, about 2.5 KB, ten events) is accepted unchanged",
+    "pass": true
+  },
+  {
+    "group": "edge-bytes",
+    "name": "B2-7 invalid UTF-8 and a byte-order mark within the limit: decoded exactly as req.text() did (behaviour unchanged), event stored",
+    "pass": true
+  },
+  {
+    "group": "edge-bytes",
+    "name": "B2-8 one 64 KB chunk: refused without copying any of it; reader cancelled",
+    "pass": true
+  },
+  {
+    "group": "edge-bytes",
+    "name": "B2-9 exactly 8,192 bytes followed by one more non-empty chunk: refused",
+    "pass": true
+  },
+  {
+    "group": "edge-bytes",
+    "name": "B2-10 a 3-byte character crossing the limit (8,191 + 3 bytes, whole or split): refused",
+    "pass": true
+  },
+  {
+    "group": "edge-bytes",
+    "name": "B2-11 a valid multibyte character split across chunks inside a valid batch: decoded correctly and stored",
+    "pass": true
+  },
+  {
+    "group": "edge-bytes",
+    "name": "B2-12 Content-Length missing, empty, non-numeric or negative counts as absent (body read and judged by its bytes); a declared 9000.5 is still refused early",
+    "pass": true
+  },
+  {
+    "group": "edge-bytes",
+    "name": "B2-13 a body that errors mid-read: 204, database never called, nothing stored",
+    "pass": true
+  },
+  {
+    "group": "edge-bytes",
+    "name": "B2-14 an empty body and a POST with no body: 204, reported as bad_batch exactly as before",
+    "pass": true
+  },
+  {
+    "group": "edge-bytes",
+    "name": "B2-15 OPTIONS, a foreign origin and the kill switch never read the body and never call the database",
+    "pass": true
+  },
+  {
+    "group": "edge-bytes",
+    "name": "B2-16 a 1 MB stream in 1 KB chunks: reader cancelled; bytes pulled at most 8,192 + one chunk; 8,192 kept",
+    "pass": true
+  },
+  {
     "group": "edge",
     "name": "in-memory limiter is PER INSTANCE (documented as not global): two instances each allow their own quota; window resets",
     "pass": true
@@ -172,6 +252,56 @@
   {
     "group": "visitors",
     "name": "new vs returning are mutually exclusive and come from each id's first recorded day, not the page's flag",
+    "pass": true
+  },
+  {
+    "group": "rollup-watermark",
+    "name": "C2-1 ingestion waiting behind a rollup's lock: its event (older timestamp, newer id) is rolled up by the next run",
+    "pass": true
+  },
+  {
+    "group": "rollup-watermark",
+    "name": "C2-2 older timestamp with a newer event id on a past day: that day is rolled up again (the time check would not)",
+    "pass": true
+  },
+  {
+    "group": "rollup-watermark",
+    "name": "C2-3 midnight: an event stamped 23:59:59.999 yesterday, stored after yesterday was rolled up, lands in yesterday; today unchanged",
+    "pass": true
+  },
+  {
+    "group": "rollup-watermark",
+    "name": "C2-4 a delayed event 12 days back: only that day is rolled up again; neighbouring days are untouched",
+    "pass": true
+  },
+  {
+    "group": "rollup-watermark",
+    "name": "C2-5 a rollup that fails part-way changes nothing (aggregates, run rows, watermarks); the retry is complete; a further retry has nothing to do",
+    "pass": true
+  },
+  {
+    "group": "rollup-watermark",
+    "name": "C2-6 rollup and purge started together, in both orders, serialise on the lock: purged days keep their aggregates, kept days are complete",
+    "pass": true
+  },
+  {
+    "group": "rollup-watermark",
+    "name": "C2-7 stress: 8 writers (each batch repeats an earlier event id) against a rollup loop and a purge: no loss, no double count, duplicates counted once",
+    "pass": true
+  },
+  {
+    "group": "rollup-watermark",
+    "name": "C2-8 no new events: nothing rewritten, only the heartbeat moves (watermarks kept); at the storage gate: -1 and nothing recorded",
+    "pass": true
+  },
+  {
+    "group": "rollup-watermark",
+    "name": "C2-9 a direct analytics_rollup() now holds the lock: an ingest waits for it, and the event it then stores is rolled up by the next run",
+    "pass": true
+  },
+  {
+    "group": "rollup-watermark",
+    "name": "C2-10 sequence post-condition: the events id sequence has cache 1, increment 1, no cycle; the migration's check refuses cache 10 or CYCLE",
     "pass": true
   }
 ]

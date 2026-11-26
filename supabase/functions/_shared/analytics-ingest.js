@@ -85,6 +85,41 @@ export function createRateLimiter({ perMinute = 120, now = () => Date.now(), max
 
 const intOr0 = (v) => (Number.isInteger(v) && v >= 0 ? Math.min(v, 1000) : 0);
 
+/* The sender's Content-Length as a number, or null (absent). Missing, non-numeric and negative values count as absent; a plain
+   decimal number counts as declared (as the previous `+header` reading did, so a declared 9000.5 is still refused early).
+   It is only ever used to refuse a request EARLY; it never allows a body to be larger than the bytes actually read allow. */
+export function declaredLength(value) {
+  const v = String(value == null ? '' : value).trim();
+  return /^[0-9]{1,15}(\.[0-9]{1,15})?$/.test(v) ? Number(v) : null;
+}
+
+/* Reads the request body while counting BYTES, and accepts at most `max` of them (the acceptance limit).
+   - Each chunk is checked BEFORE it is copied: if it would take the total past `max`, nothing more is copied, the reader is
+     cancelled and { oversize: true } is returned. Only accepted bytes are kept, in one fixed buffer of `max` bytes, so this code
+     never holds an oversize body; the runtime's chunk currently being delivered is the only other data in memory here
+     (its size is the runtime's choice).
+   - The kept bytes are decoded ONCE at the end, so a character split across chunks decodes correctly. The decoder is the same
+     UTF-8 decode Request.text() performs (a leading byte-order mark is removed; invalid byte sequences become U+FFFD), so a
+     body within the limit yields exactly the text the previous req.text() call produced.
+   - A body that errors while being read throws, as req.text() did. */
+export async function readBodyLimited(req, max = MAX_BYTES) {
+  if (!req.body) return { text: '', oversize: false, bytes: 0 };
+  const reader = req.body.getReader();
+  const kept = new Uint8Array(max);
+  let used = 0;
+  const stop = async () => { try { await reader.cancel(); } catch (e) { /* the stream is abandoned either way */ } };
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (!ArrayBuffer.isView(value)) { await stop(); throw new TypeError('request body chunk is not bytes'); }
+    const chunk = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+    if (used + chunk.byteLength > max) { await stop(); return { text: null, oversize: true, bytes: used }; }
+    kept.set(chunk, used);
+    used += chunk.byteLength;
+  }
+  return { text: new TextDecoder('utf-8').decode(kept.subarray(0, used)), oversize: false, bytes: used };
+}
+
 /* deps: { enabled: bool, rpc(fn, args) -> Promise<{error}>, config: {env: 'live'|'test'|'dev', allowedOrigins[], addressSource},
  *         allow(key) -> bool, log(msg) }
  *
@@ -121,12 +156,12 @@ export function makeAnalyticsIngestHandler(deps) {
       if (!okOrigin) return done('analytics-ingest: origin refused');
       const net = senderNetwork(req, SOURCE);
       if (!allow(net || 'unknown')) return done('analytics-ingest: rate limited (this instance)');
-      const len = +(req.headers.get('content-length') || 0);
-      if (len > MAX_BYTES) return done('analytics-ingest: too large');
-      const text = await req.text();
+      const len = declaredLength(req.headers.get('content-length'));
+      if (len !== null && len > MAX_BYTES) return done('analytics-ingest: too large');   // declared too large: refused unread
+      const { text, oversize } = await readBodyLimited(req, MAX_BYTES);                 // the real limit: bytes actually sent
       const ua = req.headers.get('user-agent') || '';
       let body;
-      try { body = text.length > MAX_BYTES ? null : JSON.parse(text); } catch (e) { body = null; }
+      try { body = oversize ? null : JSON.parse(text); } catch (e) { body = null; }
       const events = body && Array.isArray(body.events) && body.events.length <= MAX_EVENTS ? body.events : null;
       const meta = { env: ENV, client_env: body && typeof body.env === 'string' ? body.env.slice(0, 10) : null, net, ua_family: uaFamily(ua), bot: isBotUa(ua) || !!(body && body.wd === true),
         client_errors: intOr0(body && body.client_errors), client_dropped: intOr0(body && body.client_dropped) };

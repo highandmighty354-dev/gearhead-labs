@@ -16,8 +16,7 @@ const OWNER = 'a0000000-0000-4000-8000-0000000000a0', OTHER = 'b0000000-0000-400
 const DENIED = '42501', BAD_ARG = '22023';
 
 async function connect(db, user) { const c = new Client({ host: HOST, port: PORT, user, database: db }); await c.connect(); return c; }
-async function freshDb() {
-  const db = 'analytics_' + process.pid;
+async function freshDb(db = 'analytics_' + process.pid) {
   const a = await connect('postgres', 'supabase_admin'); await a.query(`DROP DATABASE IF EXISTS ${db}`); await a.query(`CREATE DATABASE ${db} TEMPLATE template0`); await a.end();
   const sa = await connect(db, 'supabase_admin'); await sa.query(SHIM);
   await sa.query(`INSERT INTO auth.users (id, email) VALUES ($1, 'owner@example.test'), ($2, 'other@example.test')`, [OWNER, OTHER]); await sa.end();
@@ -357,14 +356,15 @@ async function handlerFor(c, opts = {}) {
   const logs = [];
   const handle = h.makeAnalyticsIngestHandler({ enabled: opts.enabled !== false, log: (m) => logs.push(m), allow: opts.allow,
     config: { env: opts.env === undefined ? 'live' : opts.env, allowedOrigins: [SITE, 'http://localhost:8080'], addressSource: opts.source },
-    rpc: async (fn, args) => { if (opts.dbDown) return { error: { code: '08006' } };
+    rpc: async (fn, args) => { if (opts.calls) opts.calls.push(fn);
+      if (opts.dbDown) return { error: { code: '08006' } };
       if (opts.seen) opts.seen.push(args.p_meta.net);
       await as(c, 'service'); try { await c.query(`SELECT public.${fn}($1::jsonb, $2::jsonb)`, [JSON.stringify(args.p_batch), JSON.stringify(args.p_meta)]); return { error: null }; }
       finally { await as(c, 'postgres'); } } });
   const post = (body, { origin = SITE, ua = CHROME, method = 'POST', raw, ip = '198.51.100.7', headers = {} } = {}) => handle(new Request('https://x.supabase.co/functions/v1/analytics-ingest',
     { method, headers: { origin, 'user-agent': ua, 'content-type': 'text/plain;charset=UTF-8', 'x-forwarded-for': ip + ', 10.0.0.1', ...headers },
       body: method === 'POST' ? (raw !== undefined ? raw : JSON.stringify(body)) : undefined }));
-  return { h, post, logs };
+  return { h, post, logs, handle };
 }
 const rows = async (c) => q(c, `SELECT env, name, ua_family, bot FROM analytics_events ORDER BY id`);
 const stat = async (c, outcome) => (await q(c, `SELECT env, reason, n::int FROM analytics_ingest_stats WHERE outcome = $1 ORDER BY env, reason`, [outcome])).map(r => `${r.env}:${r.reason}=${r.n}`);
@@ -622,6 +622,187 @@ check('edge', 'handler: refuses foreign origins, GET, oversize bodies, >20 event
   eq((await off.post({ env: 'live', events: [ev('page_view')] })).status, 204, 'disabled still 204');
   eq((await rows(c)).length, 3, 'kill switch stores nothing');
 });
+/* ---------------------------------------------------------------- B2: the receiver's byte limit (B1)
+ * The body is read as a stream and at most 8,192 BYTES are accepted, whatever Content-Length says. Bodies are built here as
+ * ReadableStreams with highWaterMark 0, so a chunk is produced only when the receiver asks for it: `st` records how many
+ * chunks / bytes were pulled and whether the receiver cancelled the stream. The existing check above ("refuses foreign origins,
+ * GET, oversize bodies ...") is unchanged and is B2-17. */
+const enc = (s) => new TextEncoder().encode(s);
+function chunked(chunks, { errorAt } = {}) {
+  const st = { pulled: 0, bytes: 0, cancelled: false }; let i = 0;
+  const stream = new ReadableStream({
+    pull(ctrl) {
+      if (errorAt !== undefined && i === errorAt) { st.pulled++; ctrl.error(new TypeError('connection reset')); return; }
+      if (i >= chunks.length) { ctrl.close(); return; }
+      const ch = chunks[i++]; st.pulled++; st.bytes += ch.byteLength; ctrl.enqueue(ch);
+    },
+    cancel() { st.cancelled = true; } }, { highWaterMark: 0 });
+  return { stream, st };
+}
+const splitBytes = (b, size) => { const out = []; for (let o = 0; o < b.length; o += size) out.push(b.slice(o, o + size)); return out; };
+const bodyReq = (body, { method = 'POST', origin = SITE, headers = {} } = {}) => new Request('https://x.supabase.co/functions/v1/analytics-ingest',
+  { method, headers: { origin, 'user-agent': CHROME, 'content-type': 'text/plain;charset=UTF-8', 'x-forwarded-for': '198.51.100.9', ...headers },
+    ...(body === undefined ? {} : { body, duplex: 'half' }) });
+/* A valid one-event batch (env live), optionally with an extra ignored field, padded with spaces (JSON ignores them) to exactly n bytes. */
+function padded(n, pad = '') {
+  const s = JSON.stringify(pad ? { env: 'live', events: [ev('page_view')], pad } : { env: 'live', events: [ev('page_view')] });
+  const b = enc(s); if (b.length > n) throw new Error(`batch is ${b.length} bytes, more than ${n}`);
+  const out = new Uint8Array(n); out.set(b); out.fill(0x20, b.length); return out;
+}
+const bad = async (c) => stat(c, 'rejected');
+
+check('edge-bytes', 'B2-1 no Content-Length, exactly 8,192 bytes of a valid batch: accepted, stored once, stream read to the end', async (c) => {
+  await as(c, 'postgres'); const calls = [];
+  const { handle } = await handlerFor(c, { calls });
+  const b = padded(8192); eq(b.length, 8192, 'body is exactly the limit');
+  const { stream, st } = chunked(splitBytes(b, 1000));
+  eq((await handle(bodyReq(stream))).status, 204, '204');
+  eq([calls.length, (await rows(c)).length, st.cancelled, st.bytes], [1, 1, false, 8192], 'stored once; not cancelled; every byte read');
+});
+check('edge-bytes', 'B2-2 no Content-Length, 8,193 bytes: refused as bad_batch (reported, as before), nothing stored, reader cancelled, reading bounded', async (c) => {
+  await as(c, 'postgres'); const calls = [];
+  const { handle } = await handlerFor(c, { calls });
+  const { stream, st } = chunked(splitBytes(padded(8193), 1024));
+  eq((await handle(bodyReq(stream))).status, 204, '204');
+  eq([(await rows(c)).length, await bad(c), calls.length], [0, ['live:bad_batch=1'], 1], 'not stored; counted as bad_batch');
+  ok(st.cancelled, 'reader cancelled');
+  ok(st.bytes <= 8192 + 1024, `pulled ${st.bytes} bytes: at most the limit plus one chunk`);
+});
+check('edge-bytes', 'B2-3 Content-Length: 100 but a 20 KB body: the declared length is not trusted; refused at 8,192 bytes, cancelled', async (c) => {
+  await as(c, 'postgres');
+  const { handle } = await handlerFor(c);
+  const { stream, st } = chunked(splitBytes(padded(20480), 4096));
+  eq((await handle(bodyReq(stream, { headers: { 'content-length': '100' } }))).status, 204, '204');
+  eq([(await rows(c)).length, await bad(c)], [0, ['live:bad_batch=1']], 'not stored; counted');
+  ok(st.cancelled && st.bytes <= 8192 + 4096, `cancelled after ${st.bytes} bytes`);
+});
+check('edge-bytes', 'B2-4 Content-Length: 9000 declared: refused before any byte is read (unchanged), nothing stored or counted', async (c) => {
+  await as(c, 'postgres'); const calls = [];
+  const { handle, logs } = await handlerFor(c, { calls });
+  const { stream, st } = chunked(splitBytes(padded(9000), 1024));
+  eq((await handle(bodyReq(stream, { headers: { 'content-length': '9000' } }))).status, 204, '204');
+  eq([st.pulled, calls.length, (await rows(c)).length, await bad(c)], [0, 0, 0, []], 'body never read; database never called');
+  ok(logs.includes('analytics-ingest: too large'), 'logged');
+});
+check('edge-bytes', 'B2-5 the limit counts BYTES: 3,000 "€" (9,000+ bytes, about 3,100 characters) around a valid batch is refused', async (c) => {
+  await as(c, 'postgres');
+  const { handle } = await handlerFor(c);
+  const text = JSON.stringify({ env: 'live', events: [ev('page_view')], pad: '€'.repeat(3000) });
+  ok(text.length < 8192 && enc(text).length > 8192, `characters ${text.length} < 8,192 < bytes ${enc(text).length} (the previous character count accepted this)`);
+  const { stream } = chunked(splitBytes(enc(text), 1500));
+  eq((await handle(bodyReq(stream))).status, 204, '204');
+  eq([(await rows(c)).length, await bad(c)], [0, ['live:bad_batch=1']], 'refused, not stored');
+});
+check('edge-bytes', 'B2-6 a typical page-close beacon (text/plain, about 2.5 KB, ten events) is accepted unchanged', async (c) => {
+  await as(c, 'postgres');
+  const { post } = await handlerFor(c);
+  const batch = { env: 'live', events: Array.from({ length: 10 }, (_, i) => ev('page_view', { sid: uuid(3, 7100 + i) })) };
+  const size = enc(JSON.stringify(batch)).length; ok(size > 2000 && size < 7800, `beacon is ${size} bytes`);
+  eq((await post(batch)).status, 204, '204');
+  eq((await rows(c)).length, 10, 'all ten stored');
+});
+check('edge-bytes', 'B2-7 invalid UTF-8 and a byte-order mark within the limit: decoded exactly as req.text() did (behaviour unchanged), event stored', async (c) => {
+  await as(c, 'postgres');
+  const { h, handle } = await handlerFor(c);
+  const samples = [[0xff, 0xfe], [0x80, 0x41], [0xe2, 0x82], [0xc0, 0xaf], [0xed, 0xa0, 0x80]];
+  for (const s of samples) {
+    const bytes = new Uint8Array([...enc('{"a":"'), ...s, ...enc('"}')]);
+    const before = await new Request('https://x/', { method: 'POST', body: bytes }).text();
+    const now = (await h.readBodyLimited(new Request('https://x/', { method: 'POST', body: bytes }))).text;
+    eq(now, before, 'same text as req.text() for bytes ' + s.map(x => x.toString(16)).join(' '));
+  }
+  const bom = new Uint8Array([0xef, 0xbb, 0xbf, ...enc('{}')]);
+  eq((await h.readBodyLimited(new Request('https://x/', { method: 'POST', body: bom }))).text, await new Request('https://x/', { method: 'POST', body: bom }).text(), 'BOM handled as before');
+  const s = JSON.stringify({ env: 'live', events: [ev('page_view')], pad: 'XX' });
+  const i = s.indexOf('XX'); const b = enc(s);
+  const withInvalid = new Uint8Array([...b.slice(0, i), 0xff, 0xfe, ...b.slice(i + 2)]);
+  eq((await handle(bodyReq(new Uint8Array([0xef, 0xbb, 0xbf, ...withInvalid])))).status, 204, '204');
+  eq((await rows(c)).length, 1, 'stored, as before (invalid bytes in an ignored field became U+FFFD)');
+});
+check('edge-bytes', 'B2-8 one 64 KB chunk: refused without copying any of it; reader cancelled', async (c) => {
+  await as(c, 'postgres');
+  const { h, handle } = await handlerFor(c);
+  const big = () => chunked([padded(65536)]);
+  const a = big(); const r = await h.readBodyLimited(bodyReq(a.stream));
+  eq([r.oversize, r.bytes, r.text, a.st.cancelled], [true, 0, null, true], 'oversize; 0 bytes kept; cancelled');
+  const b = big(); eq((await handle(bodyReq(b.stream))).status, 204, '204');
+  eq([(await rows(c)).length, await bad(c)], [0, ['live:bad_batch=1']], 'not stored');
+});
+check('edge-bytes', 'B2-9 exactly 8,192 bytes followed by one more non-empty chunk: refused', async (c) => {
+  await as(c, 'postgres');
+  const { h, handle } = await handlerFor(c);
+  const mk = () => chunked([...splitBytes(padded(8192), 2048), enc(' ')]);
+  const a = mk(); const r = await h.readBodyLimited(bodyReq(a.stream));
+  eq([r.oversize, r.bytes, a.st.cancelled], [true, 8192, true], 'oversize after keeping exactly 8,192 bytes');
+  const b = mk(); eq((await handle(bodyReq(b.stream))).status, 204, '204');
+  eq([(await rows(c)).length, await bad(c)], [0, ['live:bad_batch=1']], 'not stored');
+});
+check('edge-bytes', 'B2-10 a 3-byte character crossing the limit (8,191 + 3 bytes, whole or split): refused', async (c) => {
+  await as(c, 'postgres');
+  const { h } = await handlerFor(c);
+  const base = padded(8191), euro = enc('€');
+  const whole = chunked([base, euro]); const r1 = await h.readBodyLimited(bodyReq(whole.stream));
+  eq([r1.oversize, r1.bytes, whole.st.cancelled], [true, 8191, true], 'whole character: refused, 8,191 kept');
+  const cut = chunked([new Uint8Array([...base, euro[0]]), euro.slice(1)]); const r2 = await h.readBodyLimited(bodyReq(cut.stream));
+  eq([r2.oversize, r2.bytes, cut.st.cancelled], [true, 8192, true], 'split character: refused, 8,192 kept');
+});
+check('edge-bytes', 'B2-11 a valid multibyte character split across chunks inside a valid batch: decoded correctly and stored', async (c) => {
+  await as(c, 'postgres');
+  const { h, handle } = await handlerFor(c);
+  const b = padded(4000, 'ü€𝄞'); const s = new TextDecoder().decode(b);
+  const at = enc(s.slice(0, s.indexOf('€'))).length + 1;                 // cut inside the 3-byte "€"
+  const four = enc(s.slice(0, s.indexOf('𝄞'))).length + 2;                // cut inside the 4-byte "𝄞"
+  const parts = () => [b.slice(0, at), b.slice(at, four), b.slice(four)];
+  const a = chunked(parts()); eq((await h.readBodyLimited(bodyReq(a.stream))).text, s, 'decoded text equals the original');
+  const x = chunked(parts()); eq((await handle(bodyReq(x.stream))).status, 204, '204');
+  eq((await rows(c)).length, 1, 'stored');
+});
+check('edge-bytes', 'B2-12 Content-Length missing, empty, non-numeric or negative counts as absent (body read and judged by its bytes); a declared 9000.5 is still refused early', async (c) => {
+  await as(c, 'postgres');
+  const { handle, h } = await handlerFor(c);
+  eq([h.declaredLength(null), h.declaredLength(''), h.declaredLength('abc'), h.declaredLength('-5'), h.declaredLength('1e4'), h.declaredLength(' 120 '), h.declaredLength('9000.5')],
+    [null, null, null, null, null, 120, 9000.5], 'parsing');
+  for (const v of ['', 'abc', '-5']) eq((await handle(bodyReq(padded(600), { headers: { 'content-length': v } }))).status, 204, 'content-length ' + JSON.stringify(v));
+  eq((await rows(c)).length, 3, 'all three small batches stored');
+  const { stream, st } = chunked([padded(600)]);
+  eq((await handle(bodyReq(stream, { headers: { 'content-length': '9000.5' } }))).status, 204, '204');
+  eq([st.pulled, (await rows(c)).length], [0, 3], '9000.5: refused unread, as the previous reading did');
+});
+check('edge-bytes', 'B2-13 a body that errors mid-read: 204, database never called, nothing stored', async (c) => {
+  await as(c, 'postgres'); const calls = [];
+  const { handle, logs } = await handlerFor(c, { calls });
+  const { stream } = chunked(splitBytes(padded(3000), 1000), { errorAt: 1 });
+  eq((await handle(bodyReq(stream))).status, 204, '204');
+  eq([calls.length, (await rows(c)).length], [0, 0], 'no database call');
+  ok(logs.some(l => l.startsWith('analytics-ingest: unexpected')), 'logged as unexpected (no payload)');
+});
+check('edge-bytes', 'B2-14 an empty body and a POST with no body: 204, reported as bad_batch exactly as before', async (c) => {
+  await as(c, 'postgres');
+  const { handle, h } = await handlerFor(c);
+  eq(await h.readBodyLimited(bodyReq(undefined)), { text: '', oversize: false, bytes: 0 }, 'null body reads as empty');
+  eq((await handle(bodyReq(''))).status, 204, 'empty');
+  eq((await handle(bodyReq(undefined))).status, 204, 'no body');
+  eq([(await rows(c)).length, await bad(c)], [0, ['live:bad_batch=2']], 'both reported, nothing stored');
+});
+check('edge-bytes', 'B2-15 OPTIONS, a foreign origin and the kill switch never read the body and never call the database', async (c) => {
+  await as(c, 'postgres');
+  const calls = [];
+  const on = await handlerFor(c, { calls }), off = await handlerFor(c, { calls, enabled: false });
+  const o = chunked([padded(500)]); const opt = await on.handle(bodyReq(o.stream, { method: 'OPTIONS' }));
+  eq([opt.status, opt.headers.get('access-control-allow-origin')], [204, SITE], 'preflight unchanged');
+  const f = chunked([padded(500)]); eq((await on.handle(bodyReq(f.stream, { origin: 'https://evil.example' }))).status, 204, 'foreign origin');
+  const k = chunked([padded(500)]); eq((await off.handle(bodyReq(k.stream))).status, 204, 'kill switch');
+  eq([o.st.pulled, f.st.pulled, k.st.pulled, calls.length, (await rows(c)).length], [0, 0, 0, 0, 0], 'no body read, no database call');
+});
+check('edge-bytes', 'B2-16 a 1 MB stream in 1 KB chunks: reader cancelled; bytes pulled at most 8,192 + one chunk; 8,192 kept', async (c) => {
+  await as(c, 'postgres');
+  const { h } = await handlerFor(c);
+  const { stream, st } = chunked(Array.from({ length: 1024 }, () => new Uint8Array(1024).fill(0x20)));
+  const r = await h.readBodyLimited(bodyReq(stream));
+  eq([r.oversize, r.bytes, st.cancelled], [true, 8192, true], 'refused at the limit');
+  eq([st.pulled, st.bytes], [9, 9216], 'pulled 9 chunks (9,216 bytes) out of 1,024');
+});
+
 check('edge', 'in-memory limiter is PER INSTANCE (documented as not global): two instances each allow their own quota; window resets', async (c) => {
   const h = await import(require('url').pathToFileURL(HANDLER).href);
   let t = 0; const a = h.createRateLimiter({ perMinute: 3, now: () => t }), b = h.createRateLimiter({ perMinute: 3, now: () => t });
@@ -698,6 +879,255 @@ check('visitors', 'new vs returning are mutually exclusive and come from each id
   eq(+(await one(c, `SELECT count(*) FROM analytics_visitors WHERE vid = $1`, [uuid(2, 799)])), 0, 'bot id not recorded');
 });
 
+/* ---------------------------------------------------------------- C2: rollup watermark (C1), with COMMITTED data and several connections
+ * Each check below gets its own throwaway database (the same migrations, the same synthetic owner), because these checks
+ * need real commits, real lock waits between connections and real transaction failures, which the rolled-back
+ * single-connection checks above cannot show. Ingest goes through analytics_ingest() as service_role, exactly as the Edge
+ * Function calls it. Direct inserts with an exact server time are made as the table owner WHILE HOLDING the analytics lock,
+ * the rule every insert path must follow (analytics_ingest() is the only one in the product). */
+const LOCK = '7104202611130501';
+const ownChecks = [];
+const checkOwn = (name, fn) => ownChecks.push({ group: 'rollup-watermark', name, fn });
+const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+const nyDay = (x, back = 0) => one(x, `SELECT ((now() AT TIME ZONE 'America/New_York')::date - $1::int)::text`, [back]);
+async function svcIngest(x, batch, net = '198.51.100.40') {
+  await x.query('BEGIN'); await x.query('SET LOCAL ROLE service_role');
+  try { const r = await one(x, `SELECT public.analytics_ingest($1::jsonb, $2::jsonb)`, [JSON.stringify(batch), JSON.stringify({ ...META, net })]); await x.query('COMMIT'); return r; }
+  catch (e) { await x.query('ROLLBACK'); throw e; }
+}
+async function putLocked(x, ts, e) {                                    // a direct insert that follows the lock rule
+  await x.query('BEGIN'); await x.query(`SELECT pg_advisory_xact_lock(${LOCK})`); await put(x, ts, e); await x.query('COMMIT');
+  return one(x, `SELECT id FROM analytics_events WHERE event_id = $1`, [e.event_id]);
+}
+const pvDay = async (x, d) => +(await one(x, `SELECT coalesce(sum(value), 0) FROM analytics_daily WHERE env = 'test' AND metric = 'pv' AND day = $1`, [d]));
+const rawDay = async (x, d) => +(await one(x, `SELECT count(*) FROM analytics_events WHERE env = 'test' AND name = 'page_view'
+  AND (ts_server AT TIME ZONE 'America/New_York')::date = $1`, [d]));
+const runRow = (x, d) => q(x, `SELECT ran_at, max_event_id::text wm FROM analytics_rollup_runs WHERE day = $1 AND env = 'test'`, [d]).then(r => r[0]);
+/* No day holds an event its watermark does not cover, and per day the rolled-up page views equal the raw page views. */
+async function consistent(x, what) {
+  eq(+(await one(x, `SELECT count(*) FROM (SELECT (ts_server AT TIME ZONE 'America/New_York')::date d, max(id) m FROM analytics_events GROUP BY 1) e
+     WHERE e.m > coalesce((SELECT max(max_event_id) FROM analytics_rollup_runs r WHERE r.day = e.d), 0)`)), 0, what + ': every day covered by its watermark');
+  const off = await q(x, `SELECT e.d::text, e.n, coalesce(p.v, 0)::int v FROM
+     (SELECT (ts_server AT TIME ZONE 'America/New_York')::date d, count(*)::int n FROM analytics_events WHERE env = 'test' AND name = 'page_view' AND NOT bot GROUP BY 1) e
+     LEFT JOIN (SELECT day, sum(value) v FROM analytics_daily WHERE env = 'test' AND metric = 'pv' GROUP BY day) p ON p.day = e.d WHERE e.n <> coalesce(p.v, 0)`);
+  eq(off, [], what + ': rolled-up page views equal raw page views on every day');
+}
+
+checkOwn('C2-1 ingestion waiting behind a rollup\'s lock: its event (older timestamp, newer id) is rolled up by the next run', async (db) => {
+  const pg = await connect(db, 'postgres'), ing = await connect(db, 'postgres'), rol = await connect(db, 'postgres');
+  try {
+    await svcIngest(ing, [ev('page_view', { sid: uuid(3, 61) })]);
+    await pg.query(`SELECT public.analytics_rollup_pending()`);
+    const today = await nyDay(pg);
+    await ing.query('BEGIN'); await ing.query('SET LOCAL ROLE service_role'); await ing.query('SELECT now()');   // the ingest transaction starts
+    await pause(300);
+    await rol.query('BEGIN'); await rol.query(`SELECT public.analytics_rollup_pending()`);                       // a rollup takes the lock
+    const t0 = Date.now(); const late = ev('page_view', { sid: uuid(3, 62) });
+    const waiting = ing.query(`SELECT public.analytics_ingest($1::jsonb, $2::jsonb)`, [JSON.stringify([late]), JSON.stringify({ ...META, net: '198.51.100.40' })]);
+    await pause(500); await rol.query('COMMIT');
+    await waiting; await ing.query('COMMIT');
+    ok(Date.now() - t0 >= 450, 'the ingest waited for the rollup\'s lock');
+    const lt = await q(pg, `SELECT id::text, ts_server FROM analytics_events WHERE event_id = $1`, [late.event_id]); const run = await runRow(pg, today);
+    ok(lt[0].ts_server < run.ran_at, 'the late event\'s timestamp is EARLIER than that rollup\'s ran_at (the case the time check missed)');
+    ok(BigInt(lt[0].id) > BigInt(run.wm), 'its id is above the day\'s watermark');
+    eq([await pvDay(pg, today), await rawDay(pg, today)], [1, 2], 'before the next run: 1 of 2 rolled up');
+    eq(+(await one(pg, `SELECT public.analytics_rollup_pending()`)), 1, 'the next run re-opens exactly today');
+    eq(await pvDay(pg, today), 2, 'after it: 2 of 2');
+    await consistent(pg, 'C2-1');
+  } finally { await Promise.all([pg.end(), ing.end(), rol.end()]); }
+});
+checkOwn('C2-2 older timestamp with a newer event id on a past day: that day is rolled up again (the time check would not)', async (db) => {
+  const pg = await connect(db, 'postgres');
+  try {
+    const d = await nyDay(pg, 3);
+    await putLocked(pg, NY(d, '12:00'), ev('page_view', { sid: uuid(3, 71) }));
+    eq(+(await one(pg, `SELECT public.analytics_rollup_pending()`)), 1, 'day rolled up');
+    const before = await runRow(pg, d);
+    const lateId = await putLocked(pg, NY(d, '12:30'), ev('page_view', { sid: uuid(3, 72) }));
+    ok(new Date(NY(d, '12:30')) < before.ran_at && BigInt(lateId) > BigInt(before.wm), 'older timestamp than ran_at, newer id than the watermark');
+    eq(await one(pg, `SELECT $1::timestamptz >= max(ts_server) FROM analytics_events WHERE (ts_server AT TIME ZONE 'America/New_York')::date = $2`, [before.ran_at, d]), true,
+      'the previous time-based check would have treated the day as complete');
+    eq(+(await one(pg, `SELECT public.analytics_rollup_pending()`)), 1, 'the watermark check re-opens it');
+    eq([await pvDay(pg, d), (await runRow(pg, d)).wm], [2, String(lateId)], 'both events rolled up; watermark advanced to the late id');
+    await consistent(pg, 'C2-2');
+  } finally { await pg.end(); }
+});
+checkOwn('C2-3 midnight: an event stamped 23:59:59.999 yesterday, stored after yesterday was rolled up, lands in yesterday; today unchanged', async (db) => {
+  const pg = await connect(db, 'postgres');
+  try {
+    const y = await nyDay(pg, 1), t = await nyDay(pg, 0);
+    await putLocked(pg, NY(y, '23:00'), ev('page_view', { sid: uuid(3, 81) }));
+    await putLocked(pg, `${t}T00:00:01-05:00`, ev('page_view', { sid: uuid(3, 82) }));
+    eq(+(await one(pg, `SELECT public.analytics_rollup_pending()`)), 2, 'yesterday and today rolled up');
+    const todayRow = await q(pg, `SELECT xmin::text x FROM analytics_daily WHERE day = $1 ORDER BY metric, dim`, [t]);
+    await putLocked(pg, `${y}T23:59:59.999-05:00`, ev('page_view', { sid: uuid(3, 83) }));
+    eq(+(await one(pg, `SELECT public.analytics_rollup_pending()`)), 1, 'only yesterday re-opened');
+    eq([await pvDay(pg, y), await pvDay(pg, t)], [2, 1], 'the late event is counted on yesterday, not today');
+    eq(await q(pg, `SELECT xmin::text x FROM analytics_daily WHERE day = $1 ORDER BY metric, dim`, [t]), todayRow, 'today\'s rows not rewritten');
+    await consistent(pg, 'C2-3');
+  } finally { await pg.end(); }
+});
+checkOwn('C2-4 a delayed event 12 days back: only that day is rolled up again; neighbouring days are untouched', async (db) => {
+  const pg = await connect(db, 'postgres');
+  try {
+    const d11 = await nyDay(pg, 11), d12 = await nyDay(pg, 12), d13 = await nyDay(pg, 13);
+    for (const [d, k] of [[d11, 1], [d12, 2], [d13, 3]]) await putLocked(pg, NY(d, '10:00'), ev('page_view', { sid: uuid(3, 90 + k) }));
+    eq(+(await one(pg, `SELECT public.analytics_rollup_pending()`)), 3, 'three days rolled up');
+    const snap = async (d) => q(pg, `SELECT xmin::text x, metric, dim FROM analytics_daily WHERE day = $1 ORDER BY metric, dim`, [d]);
+    const [s11, s13] = [await snap(d11), await snap(d13)];
+    await putLocked(pg, NY(d12, '09:00'), ev('page_view', { sid: uuid(3, 99) }));
+    eq(+(await one(pg, `SELECT public.analytics_rollup_pending()`)), 1, 'exactly one day re-opened');
+    eq([await pvDay(pg, d11), await pvDay(pg, d12), await pvDay(pg, d13)], [1, 2, 1], 'counted on its own day');
+    eq([await snap(d11), await snap(d13)], [s11, s13], 'neighbouring days not rewritten');
+    await consistent(pg, 'C2-4');
+  } finally { await pg.end(); }
+});
+checkOwn('C2-5 a rollup that fails part-way changes nothing (aggregates, run rows, watermarks); the retry is complete; a further retry has nothing to do', async (db) => {
+  const pg = await connect(db, 'postgres');
+  try {
+    const d1 = await nyDay(pg, 5), d2 = await nyDay(pg, 4);
+    await putLocked(pg, NY(d1, '10:00'), ev('page_view', { sid: uuid(3, 111) }));
+    await putLocked(pg, NY(d2, '10:00'), ev('page_view', { sid: uuid(3, 112) }));
+    await pg.query(`CREATE FUNCTION public.c2_fail() RETURNS trigger LANGUAGE plpgsql AS $f$ BEGIN
+      IF NEW.day = '${d2}' THEN RAISE EXCEPTION 'C2 injected failure'; END IF; RETURN NEW; END $f$`);
+    await pg.query(`CREATE TRIGGER c2_fail BEFORE INSERT ON public.analytics_daily FOR EACH ROW EXECUTE FUNCTION public.c2_fail()`);
+    await expectErrPlain(pg, `SELECT public.analytics_rollup_pending()`, /C2 injected failure/);
+    eq([+(await one(pg, `SELECT count(*) FROM analytics_daily`)), +(await one(pg, `SELECT count(*) FROM analytics_sessions`)),
+        +(await one(pg, `SELECT count(*) FROM analytics_rollup_runs`))], [0, 0, 0], 'the first day\'s work was rolled back too: no aggregates, no run rows, no watermarks');
+    await pg.query(`DROP TRIGGER c2_fail ON public.analytics_daily`); await pg.query(`DROP FUNCTION public.c2_fail()`);
+    eq(+(await one(pg, `SELECT public.analytics_rollup_pending()`)), 2, 'retry rolls up both days');
+    eq([await pvDay(pg, d1), await pvDay(pg, d2)], [1, 1], 'complete');
+    eq(+(await one(pg, `SELECT public.analytics_rollup_pending()`)), 0, 'a further retry has nothing to do');
+    eq([await pvDay(pg, d1), await pvDay(pg, d2)], [1, 1], 'no double count');
+    await consistent(pg, 'C2-5');
+  } finally { await pg.end(); }
+});
+checkOwn('C2-6 rollup and purge started together, in both orders, serialise on the lock: purged days keep their aggregates, kept days are complete', async (db) => {
+  const a = await connect(db, 'postgres'), b = await connect(db, 'postgres');
+  try {
+    for (const [first, second, tag] of [['purge', 'rollup', 'P'], ['rollup', 'purge', 'R']]) {
+      const old = await nyDay(a, tag === 'P' ? 40 : 41), recent = await nyDay(a, tag === 'P' ? 2 : 3);
+      await putLocked(a, NY(old, '10:00'), ev('page_view', { sid: uuid(3, tag === 'P' ? 121 : 122) }));
+      await putLocked(a, NY(recent, '10:00'), ev('page_view', { sid: uuid(3, tag === 'P' ? 123 : 124) }));
+      const sql = { purge: `SELECT public.analytics_purge()`, rollup: `SELECT public.analytics_rollup_pending()` };
+      await a.query('BEGIN'); await a.query(sql[first]);                         // holds the lock
+      const t0 = Date.now(); const pending = b.query(sql[second]);
+      await pause(400); await a.query('COMMIT'); await pending;
+      ok(Date.now() - t0 >= 350, `${tag}: the second waited for the first`);
+      eq(+(await one(a, `SELECT count(*) FROM analytics_events WHERE (ts_server AT TIME ZONE 'America/New_York')::date = $1`, [old])), 0, `${tag}: old raw events deleted`);
+      eq([await pvDay(a, old), await pvDay(a, recent)], [1, 1], `${tag}: purged day kept its aggregate; recent day complete; nothing counted twice`);
+    }
+    await consistent(a, 'C2-6');
+  } finally { await Promise.all([a.end(), b.end()]); }
+});
+checkOwn('C2-7 stress: 8 writers (each batch repeats an earlier event id) against a rollup loop and a purge: no loss, no double count, duplicates counted once', async (db) => {
+  const pg = await connect(db, 'postgres');
+  let stop = false; const sent = [];
+  async function writer(w) {
+    const x = await connect(db, 'postgres'); let prev = null; let busy = 0;
+    try {
+      for (let k = 0; k < 40; k++) {
+        const fresh = ev('page_view', { sid: uuid(3, 20000 + w * 100 + k), vid: uuid(2, 20000 + w) });
+        const batch = prev ? [fresh, prev] : [fresh];
+        const r = await svcIngest(x, batch, `10.0.${w}.1`);
+        if (r.reason) busy++; else { sent.push(fresh.event_id); prev = fresh; }
+      }
+    } finally { await x.end(); }
+    return busy;
+  }
+  async function roller() { const x = await connect(db, 'postgres'); let n = 0; try { while (!stop) { await x.query(`SELECT public.analytics_rollup_pending()`); n++; await pause(15); } } finally { await x.end(); } return n; }
+  async function purger() { const x = await connect(db, 'postgres'); try { await pause(200); await x.query(`SELECT public.analytics_purge()`); } finally { await x.end(); } }
+  try {
+    const r = roller(); const p = purger();
+    const busy = await Promise.all([...Array(8).keys()].map(writer));
+    stop = true; const runs = await r; await p;
+    await pg.query(`SELECT public.analytics_rollup_pending()`);
+    const accepted = +(await one(pg, `SELECT count(*) FROM analytics_events WHERE env = 'test'`));
+    eq(accepted, sent.length, 'every accepted event stored once (' + sent.length + ')');
+    eq(+(await one(pg, `SELECT count(DISTINCT event_id) FROM analytics_events`)), accepted, 'no duplicate event ids stored');
+    const dups = +(await one(pg, `SELECT coalesce(sum(n), 0) FROM analytics_ingest_stats WHERE env = 'test' AND outcome = 'duplicate'`));
+    ok(dups > 0, `repeated ids counted as duplicates (${dups})`);
+    eq(+(await one(pg, `SELECT coalesce(sum(value), 0) FROM analytics_daily WHERE env = 'test' AND metric = 'pv'`)), accepted, 'rolled-up page views equal stored events');
+    ok(runs > 5, `the rollup loop ran ${runs} times during the writes`);
+    eq(busy.reduce((s, v) => s + v, 0), 0, 'no batch refused');
+    await consistent(pg, 'C2-7');
+  } finally { stop = true; await pg.end(); }
+});
+checkOwn('C2-8 no new events: nothing rewritten, only the heartbeat moves (watermarks kept); at the storage gate: -1 and nothing recorded', async (db) => {
+  const pg = await connect(db, 'postgres');
+  try {
+    const y = await nyDay(pg, 1), t = await nyDay(pg, 0);
+    const yid = await putLocked(pg, NY(y, '10:00'), ev('page_view', { sid: uuid(3, 131) }));
+    eq(+(await one(pg, `SELECT public.analytics_rollup_pending()`)), 1, 'yesterday rolled up');
+    const daily = await q(pg, `SELECT xmin::text x FROM analytics_daily ORDER BY day, metric, dim`);
+    const sess = await q(pg, `SELECT xmin::text x FROM analytics_sessions ORDER BY skey`);
+    const yRow = await runRow(pg, y), t1 = await runRow(pg, t);
+    eq([yRow.wm, t1.wm], [String(yid), '0'], 'watermarks: yesterday = its event id; today (no events) = 0');
+    await pause(50);
+    eq(+(await one(pg, `SELECT public.analytics_rollup_pending()`)), 0, 'nothing to roll up');
+    eq([await q(pg, `SELECT xmin::text x FROM analytics_daily ORDER BY day, metric, dim`), await q(pg, `SELECT xmin::text x FROM analytics_sessions ORDER BY skey`)], [daily, sess], 'no aggregate rewritten');
+    const t2 = await runRow(pg, t), y2 = await runRow(pg, y);
+    ok(t2.ran_at > t1.ran_at && t2.wm === '0', 'heartbeat: today\'s ran_at advanced, its watermark untouched');
+    eq([y2.ran_at.getTime(), y2.wm], [yRow.ran_at.getTime(), String(yid)], 'yesterday\'s run row untouched');
+    const asOwner = async (sql) => { await pg.query('BEGIN'); await as(pg, 'owner'); try { const r = await one(pg, sql, sql.includes('$1') ? [y] : []); await pg.query('COMMIT'); return r; } catch (e) { await pg.query('ROLLBACK'); throw e; } };
+    const before = (await asOwner(`SELECT public.analytics_dashboard($1, $1, 'test')`)).health.last_rollup_at;
+    await pause(50); await asOwner(`SELECT public.analytics_refresh()`);
+    ok(new Date((await asOwner(`SELECT public.analytics_dashboard($1, $1, 'test')`)).health.last_rollup_at) > new Date(before), '"Last rollup" still moves on every successful run (owner Refresh)');
+    // storage gate, with a new pending event
+    await putLocked(pg, NY(y, '11:00'), ev('page_view', { sid: uuid(3, 132) }));
+    const runsBefore = await q(pg, `SELECT day::text, env, ran_at, max_event_id::text FROM analytics_rollup_runs ORDER BY 1, 2`);
+    const lim = await one(pg, `SELECT pg_get_functiondef('public.analytics_limits()'::regprocedure)`);
+    await pg.query(lim.replace('"storage_mb": 150', '"storage_mb": 0'));
+    eq(+(await one(pg, `SELECT public.analytics_rollup_pending()`)), -1, 'stopped at the gate');
+    eq(await q(pg, `SELECT day::text, env, ran_at, max_event_id::text FROM analytics_rollup_runs ORDER BY 1, 2`), runsBefore, 'no heartbeat and no watermark written at the gate');
+    eq(await pvDay(pg, y), 1, 'aggregates unchanged at the gate');
+    await pg.query(lim);                                                     // limits restored
+    eq(+(await one(pg, `SELECT public.analytics_rollup_pending()`)), 1, 'after the gate opens, the day is still pending and is rolled up');
+    await consistent(pg, 'C2-8');
+  } finally { await pg.end(); }
+});
+checkOwn('C2-9 a direct analytics_rollup() now holds the lock: an ingest waits for it, and the event it then stores is rolled up by the next run', async (db) => {
+  const pg = await connect(db, 'postgres'), ing = await connect(db, 'postgres'), rol = await connect(db, 'postgres');
+  try {
+    const today = await nyDay(pg);
+    await svcIngest(ing, [ev('page_view', { sid: uuid(3, 141) })]);
+    await ing.query('BEGIN'); await ing.query('SET LOCAL ROLE service_role'); await ing.query('SELECT now()');
+    await pause(200);
+    await rol.query('BEGIN'); await rol.query(`SELECT public.analytics_rollup($1)`, [today]);
+    eq(+(await one(rol, `SELECT count(*) FROM pg_locks WHERE locktype = 'advisory' AND pid = pg_backend_pid() AND granted`)), 1, 'the direct rollup holds the analytics lock');
+    const t0 = Date.now(); const late = ev('page_view', { sid: uuid(3, 142) });
+    const waiting = ing.query(`SELECT public.analytics_ingest($1::jsonb, $2::jsonb)`, [JSON.stringify([late]), JSON.stringify({ ...META, net: '198.51.100.40' })]);
+    await pause(500); await rol.query('COMMIT'); await waiting; await ing.query('COMMIT');
+    ok(Date.now() - t0 >= 450, 'the ingest waited for the direct rollup');
+    const run = await runRow(pg, today); const id = await one(pg, `SELECT id::text FROM analytics_events WHERE event_id = $1`, [late.event_id]);
+    ok(BigInt(id) > BigInt(run.wm), 'the event stored after it has an id above its watermark');
+    eq(+(await one(pg, `SELECT public.analytics_rollup_pending()`)), 1, 'so the next run re-opens today');
+    eq(await pvDay(pg, today), 2, 'both counted');
+    await consistent(pg, 'C2-9');
+  } finally { await Promise.all([pg.end(), ing.end(), rol.end()]); }
+});
+checkOwn('C2-10 sequence post-condition: the events id sequence has cache 1, increment 1, no cycle; the migration\'s check refuses cache 10 or CYCLE', async (db) => {
+  const pg = await connect(db, 'postgres');
+  try {
+    eq(await q(pg, `SELECT cache_size::int, increment_by::int, cycle FROM pg_sequences WHERE schemaname = 'public' AND sequencename = 'analytics_events_id_seq'`),
+      [{ cache_size: 1, increment_by: 1, cycle: false }], 'as created');
+    eq(await one(pg, `SELECT pg_get_serial_sequence('public.analytics_events', 'id')`), 'public.analytics_events_id_seq', 'identity sequence');
+    const sql = fs.readFileSync(path.join(MIG_DIR, '0501_analytics.sql'), 'utf8');
+    const post = sql.slice(sql.indexOf('-- ---------------------------------------------------------------- post-conditions'), sql.lastIndexOf('COMMIT;'));
+    ok(post.includes('cache_size = 1') && post.includes('NOT s.cycle'), 'the post-condition block contains the sequence check');
+    await pg.query('BEGIN'); await pg.query(post); await pg.query('ROLLBACK');                     // passes as created
+    for (const change of ['CACHE 10', 'CYCLE', 'INCREMENT BY 2']) {
+      await pg.query('BEGIN'); await pg.query(`ALTER SEQUENCE public.analytics_events_id_seq ${change}`);
+      await expectErrPlain(pg, post, /ANALYTICS_0501_POSTCONDITION: the events id sequence/); await pg.query('ROLLBACK');
+    }
+  } finally { await pg.end(); }
+});
+async function expectErrPlain(x, sql, re) {
+  let err = null; try { await x.query(sql); } catch (e) { err = e; }
+  if (!err) throw new Error(`expected an error matching ${re} but the statement succeeded`);
+  if (!re.test(err.message)) throw new Error(`expected an error matching ${re}, got: ${err.message}`);
+}
+
 /* ---------------------------------------------------------------- runner */
 (async () => {
   fs.mkdirSync(path.join(HERE, 'evidence'), { recursive: true });
@@ -710,6 +1140,12 @@ check('visitors', 'new vs returning are mutually exclusive and come from each id
     finally { await c.query('ROLLBACK').catch(() => {}); await c.end(); }
   }
   const a = await connect('postgres', 'supabase_admin'); await a.query(`DROP DATABASE ${db} WITH (FORCE)`); await a.end();
+  for (const [i, k] of ownChecks.entries()) {                          // C2: each in its own committed throwaway database
+    const own = `analytics_c2_${i}_${process.pid}`;
+    try { await freshDb(own); await k.fn(own); results.push({ ...k, pass: true }); }
+    catch (e) { results.push({ ...k, pass: false, error: e.message }); }
+    finally { const x = await connect('postgres', 'supabase_admin'); await x.query(`DROP DATABASE IF EXISTS ${own} WITH (FORCE)`); await x.end(); }
+  }
   for (const r of results) console.log(`${r.pass ? 'PASS' : 'FAIL'}  [analytics/${r.group}] ${r.name}${r.pass ? '' : '\n      -> ' + r.error}`);
   const failed = results.filter(r => !r.pass).length;
   console.log(`\nanalytics: ${results.length} checks, ${results.length - failed} passed, ${failed} failed (synthetic data, throwaway database)`);

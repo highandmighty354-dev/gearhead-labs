@@ -15,6 +15,7 @@ built (§10 lists the differences).
 | Hosted verification | **None** — nothing has run on hosted Supabase or production (§9a lists what must be verified) |
 | Release blocker | Migration 0501 is outside the locked migration package (§9) |
 | Script size | Blueprint target "8 KB or less" **waived by the owner on 2026-11-17** (§10; §11, decision 11). The script is unchanged |
+| Rollup watermark and receiver byte limit (2026-11-26) | Implemented and tested **locally** in the C1/B1 review patch: **unmerged, not released, not deployed** (§3.11, §5.2a, §8). Hosted behaviour not verified (§9a, items 8 and 9) |
 
 Labels used below: **Implemented** (in the code), **Tested** (a test in §8 exercises it), **Untested** (built, not
 exercised), **Proposed** (not built), **Awaiting owner decision** (§11).
@@ -121,7 +122,9 @@ bot-proof, or human verification. Stronger options are an open owner decision (�
   request already over a limit is refused without writing a counter, a salt or a row, and never waits.
 - A request that passes takes the **analytics write lock** (a transaction-scoped advisory lock held until its
   transaction commits), checks everything again and only then reserves its counters. Ingest batches, rollups and the
-  purge all take this lock, so analytics never grows from two places at once.
+  purge all take this lock, so analytics never grows from two places at once. In the C1/B1 review patch (2026-11-26, unmerged)
+  `analytics_rollup()` also takes it itself, so a rollup started by hand is serialised too, and the rollup watermark depends on
+  this lock (§5.2a).
 - The counters live in `analytics_rate`, shared by every running copy of the receiver; purged after two days.
 - A refused batch is counted as `rate_limited` (with the limit's name) in Data health, with **bounded writes**: exact up to
   2,000 refused events per day, environment and reason, then at most one update a minute (the figure becomes a minimum).
@@ -186,7 +189,7 @@ the shared ones.
 | Duplicate suppression by event id | Implemented, Tested |
 | Per-session cap: 500 events per 24 hours | Implemented, Tested |
 | Bot flag: known bot / tool browser names, the browser's automation flag, and in the rollup any session with > 300 events or > 30 page views at > 30 a minute. Bot sessions are left out of every figure and shown in Data health | Implemented, Tested (best-effort: a script can avoid all of these signs) |
-| Size and batch caps: ≤ 20 events, ≤ 8 KB | Implemented, Tested |
+| Size and batch caps: ≤ 20 events, ≤ 8,192 bytes as actually received (§3.11) | Implemented, Tested |
 
 ### 3.8 Owner access and aggregate-only reporting (Implemented, Tested)
 - All nine analytics tables have row-level security on and forced, with no access rules, and no privileges for the
@@ -230,6 +233,26 @@ off on this site, so nothing is collected." and never says anything is being rec
 record an opt-out in advance, and it is kept. With the site on, the wording is as before. Tested for: site off and on, opt-out,
 reload, turning back on, GPC, Do Not Track, and `analytics.js` failing to load. Until 1D.2 the control said "Analytics is on for
 this browser" even while the site switch was off (found in the 2026-11-16 audit).
+
+### 3.11 The receiver's byte limit (C1/B1 review patch, 2026-11-26, unmerged; Implemented, Tested locally; hosted behaviour NOT yet verified)
+The receiver accepts a request body of at most **8,192 bytes**, counted as the body arrives (`readBodyLimited()` in
+`supabase/functions/_shared/analytics-ingest.js`). Before this change it read the whole body first and then compared its length
+in **characters**, so a body without a `Content-Length` header was buffered in full, and multi-byte text up to about 24 KB passed
+as "8 KB".
+- **The real limit is the bytes actually sent.** Each chunk is checked before it is copied: if it would take the total past
+  8,192 bytes, nothing more is copied and the reader is **cancelled**. Accepted bytes are kept in one fixed 8,192-byte buffer.
+- **`Content-Length` is never trusted to allow more.** A declared value above 8,192 is refused before anything is read (as
+  before). A missing, non-numeric or negative value counts as absent, and the body is judged by its bytes.
+- **Outcomes are unchanged:** always `204`; a body that turns out too large, malformed or not JSON is still reported to the
+  database as `rejected: bad_batch`, as before; a body that fails while being read reaches no database call, as before.
+- **Invalid UTF-8 behaviour is unchanged.** The accepted bytes are decoded once, at the end, with the same UTF-8 decoding
+  `Request.text()` used: a leading byte-order mark is removed and invalid byte sequences become U+FFFD. A character split
+  across chunks decodes correctly. Whether to refuse invalid UTF-8 outright instead is an open owner decision; it is not built.
+- **Limitation:** this is an *acceptance* limit, not a memory ceiling. The application never keeps more than 8,192 bytes plus
+  the one chunk being delivered, but the chunk size is chosen by the runtime, and the platform may buffer the request before
+  the function sees it. Both are hosted behaviours still to be measured (§9a, item 9).
+- Legitimate traffic is unaffected: the website's own batches are at most 7,800 characters of ASCII (`analytics.js`), so at most
+  7,800 bytes.
 
 ---
 
@@ -300,10 +323,65 @@ person who uses Global Privacy Control / Do Not Track, blocks storage or opts ou
 seen for 13 months is forgotten and would count as new.
 
 ### 5.2 Daily summary catch-up (Implemented, Tested)
-`analytics_rollup_pending()` rebuilds every day whose events arrived after that day was last summarised, plus today. It
-runs every 15 minutes through `pg_cron`, and whenever the owner presses Refresh. This matters because a visitor's "first
+`analytics_rollup_pending()` rebuilds every day holding an event that day's last summary did not cover (§5.2a); a day with no
+new events, today included, is not rebuilt (before the C1/B1 review patch, today was rebuilt on every run). It runs every 15 minutes through `pg_cron`, and whenever the owner presses Refresh. This matters because a visitor's "first
 recorded day" and the daily totals are only correct if no day was skipped: if the scheduled job stops for a while, the
 next run fills the gap instead of leaving holes. It can only rebuild days whose raw events are still kept (30 days).
+
+### 5.2a The rollup watermark (C1/B1 review patch, 2026-11-26, unmerged; Implemented, Tested locally; hosted behaviour NOT yet verified)
+**Why it was needed.** Before the C1/B1 review patch a day counted as summarised when its last summary ran at or after its latest event's
+server time. An event's server time is the moment its ingest transaction *started*, and an ingest can wait for the analytics
+lock while a rollup holds it. Its event is then stored with a time *earlier* than that rollup's run time, and the day looked
+complete although the event was missing from it. Rebuilding today on every run hid this during the day; around midnight such an
+event could be left out of the previous day's figures for good (the purge's last summary of a day used the same check, so it would
+not have recovered it). Reproduced locally.
+
+**How it works in the review patch.**
+- `analytics_rollup_runs` keeps, per day, `max_event_id`: the highest `analytics_events.id` that day's last summary covered.
+  A day is selected for summarising again when it holds an event with a higher id. The watermark is **per day**, compared per
+  day; there is no global watermark. A day left unsummarised by `analytics_rollup_pending()` at the storage gate stays pending
+  for the next run (the purge's storage-gate exception is under "Assumptions" below).
+- **The ordering, step by step** (all in `0501_analytics.sql`):
+  1. **Ingestion takes the lock before an event id exists.** `analytics_ingest()` calls `analytics_rate_check()`, which takes the
+     shared analytics advisory lock (`pg_advisory_xact_lock`, transaction-scoped: held until the ingest transaction commits or
+     rolls back). Only when that returns without a refusal does `analytics_ingest()` run its `INSERT`, and the event's id comes from
+     the identity sequence during that `INSERT`. A request refused by a limit, or that cannot get the lock within 3 seconds
+     (`busy`), inserts nothing.
+  2. **The rollup takes the same lock before it reads anything.** `analytics_rollup_pending()` and `analytics_purge()` take the lock
+     before they read the stored watermarks to choose days. `analytics_rollup()` takes it as well (re-entrant within one
+     transaction), and only then computes the day's new watermark (the highest id among that day's events) and, after that,
+     reads the events and rebuilds the day.
+  3. **Totals and watermark commit together.** `analytics_rollup()` writes the day's sessions, daily totals, visitor days and its
+     run rows (with the watermark) in the same transaction, so they are kept or discarded together. A run of
+     `analytics_rollup_pending()` is one transaction: if it fails part-way, every day, total and watermark stays as it was and the
+     next run repeats the work; rebuilding a day replaces it, so nothing is counted twice.
+- **What this gives:** an event that a rollup did not include always has a higher id than the watermark that rollup recorded for
+  the event's day, so a later run selects that day again. It depends on all of the following (see "Assumptions"): every event
+  insert goes through `analytics_ingest()`; the id sequence stays the table's own, increasing by 1, with cache 1 (so ids are
+  handed out in the order the lock is granted) and no cycling; and a transaction that acquires the lock sees everything committed
+  by the transaction that released it (standard PostgreSQL behaviour, checked locally only).
+- **Late events and midnight.** An event belongs to the New York day of its server time, which is when its ingest transaction
+  started. Through `analytics_ingest()` an event can be late only by its own request time plus at most the 3-second wait for the
+  lock, so a late event belongs to the previous day only around midnight: one stamped 23:59:59 and stored after midnight re-opens
+  that day and no other. The local tests also insert events for days further back (as the table owner, holding the lock) to
+  show the selection is per day.
+- **"Last summary" (§7).** After every successful run, today's run rows record the time (never the watermark), so Data health still
+  shows when the scheduled job last completed. At the storage gate nothing is recorded, as before.
+- The purge selects the days to summarise once more before deletion in the same way.
+
+**Assumptions and operational limits.**
+- **Inserts must follow the approved path.** The guarantee holds only for events inserted by `analytics_ingest()`. A row added
+  any other way by the table owner or an administrator (a hand-made SQL insert, a backfill, a restore) does not take the lock
+  and can be missed. No such path exists in the product; manual inserts into `analytics_events` are not allowed. (Tests that
+  insert directly do so either while holding the lock, in the multi-connection checks, or inside a single transaction that is
+  rolled back, where no other connection exists.)
+- **The id sequence.** Ids must be handed out one at a time, increasing, never reused: the table's own identity sequence with
+  cache 1, increment 1 and no cycling. The migration refuses to finish otherwise. Changing the sequence later (`ALTER SEQUENCE`,
+  `setval`, an identity restart) breaks the guarantee and is not allowed.
+- **Transaction behaviour on hosted PostgreSQL 17** (isolation level, sequence defaults, advisory-lock behaviour) has been checked
+  on PostgreSQL 16 locally only (§9a, item 8).
+- Unchanged: when the storage gate stops the purge from summarising an expiring day, that day's raw events are still deleted on
+  time and its summary is lost (`days_purged_without_rollup`, §3.4).
 
 ### 5.3 Other definitions (Implemented, Tested)
 Session: ends after 30 minutes without events or at New York midnight, and a **new UTM campaign** starts a new session (blueprint
@@ -370,6 +448,12 @@ these figures describe real visitors.
 | Existing database suite (`pf.test.js`, run with `TZ=UTC`) | **48/48** (0409 counts corrected in Chapter 1D) | Real database |
 | Full browser regression (`run-browser-tests.sh`) | see the PR description for the latest run | Real browser, every calculator suite |
 
+**Results with the C1/B1 review patch (rollup watermark and byte limit; 2026-11-26, unmerged; local PostgreSQL 16.15):** analytics
+database **61/61** (the 35 above plus 26 new: 16 byte-limit checks and 10 rollup-watermark checks, the latter each in its own
+committed throwaway database with several connections); existing database suite 48/48 (mutants 24/24); website tracking
+43/43; dashboard 12/12; frontend 56/56. The same new checks run against the code from before the change: 21 of the 26 fail
+(the 5 that pass check that nothing else changed). The full browser regression was not re-run for this change.
+
 **Earlier recorded results (kept as history, not current):** revision 2 (`2233403`): database 21/21, website 26/26. Rewrite
 `f3ad9cd` and Chapter 1D/1D.1 (`ffee3f5`): database 34/34, website 36/36, frontend 55/55. Chapter 1D.1 navigation fixes
 (`9278493`, `b7389326`): website 37/37, shell navigation 23/23, full browser regression 52/52 suites.
@@ -431,6 +515,11 @@ Everything in §8 ran locally on synthetic data. None of the following has been 
 6. Real magic-link sign-in for the owner dashboard, and the owner allow-list on the hosted project.
 7. Forced row-level security with no policies working for the functions' owner on the hosted project (production's `postgres`
    role bypasses RLS per the 2026-10-13 record; this migration has not run there).
+8. The rollup watermark's assumptions on hosted PostgreSQL 17 (§5.2a): the events id sequence's cache, increment and cycle
+   settings; the transaction isolation used by `pg_cron` and the API; advisory-lock waits between a concurrent ingest and
+   rollup.
+9. The receiver's byte limit under Supabase's Deno runtime (§3.11): the size of the request chunks it delivers, cancellation,
+   UTF-8 decoding, and the 8,192 / 8,193-byte boundary.
 
 ---
 
@@ -513,3 +602,10 @@ Added from the 2026-11-16 audit (not changed unless stated):
     and tested.
 13. **Fixed in Chapter 1D.2:** the control's wording while analytics is switched off (§3.10); the published Privacy Policy
     restored (§11, decision 2).
+
+Added from the 2026-11-25 review (fixed in the unmerged C1/B1 review patch of 2026-11-26; not released or deployed):
+
+14. **Fixed in the C1/B1 review patch (unmerged): events could be left out of a day's summary** when their ingest waited for a rollup's lock (§5.2a). The rollup now
+    uses a per-day event-id watermark, takes the lock itself, and no longer rebuilds today when nothing new arrived.
+15. **Fixed in the C1/B1 review patch (unmerged): the receiver's size limit counted characters after reading the whole body** (§3.11). It now counts bytes as the
+    body arrives, stops at 8,192 and cancels the read. Invalid UTF-8 handling is unchanged.

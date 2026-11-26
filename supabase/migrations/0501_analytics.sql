@@ -6,7 +6,7 @@
 --   analytics_ingest_stats  per-day ingestion counters (accepted / duplicate / rejected+reason / capped / bot / client errors)
 --   analytics_sessions      one row per session (sessionised server-side), 13-month retention
 --   analytics_daily         daily rollup (day, env, metric, dim) -> value, kept indefinitely
---   analytics_rollup_runs   when each day was last rolled up
+--   analytics_rollup_runs   when each day was last rolled up, and the highest event id that rollup covered (its watermark)
 --   analytics_visitors      first and last reporting day per anonymous visitor id (new vs returning), 13-month retention
 --   analytics_rate          short-lived rate-limit counters keyed by a salted hash of the sender's network (never the address)
 --   analytics_rate_salt     one random salt per day for those hashes; deleted after two days
@@ -93,9 +93,10 @@ CREATE TABLE IF NOT EXISTS public.analytics_daily (
 );
 
 CREATE TABLE IF NOT EXISTS public.analytics_rollup_runs (
-  day    date NOT NULL,
-  env    text NOT NULL,
-  ran_at timestamptz NOT NULL DEFAULT now(),
+  day          date NOT NULL,
+  env          text NOT NULL,
+  ran_at       timestamptz NOT NULL DEFAULT now(),
+  max_event_id bigint NOT NULL DEFAULT 0,          -- per-day watermark: the highest analytics_events.id this day's last rollup covered
   PRIMARY KEY (day, env)
 );
 
@@ -432,9 +433,15 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.analytics_rollup(p_day date) RETURNS void
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
-DECLARE tz text := public.analytics_tz(); d0 timestamptz; d1 timestamptz;
+DECLARE tz text := public.analytics_tz(); d0 timestamptz; d1 timestamptz; v_wm bigint;
 BEGIN
+  -- The analytics write lock (re-entrant: a caller that already holds it, the purge or analytics_rollup_pending, just keeps it).
+  -- Every event is inserted only by analytics_ingest() while it holds this lock, so while we hold it no event can be inserted,
+  -- and every event inserted after we release it gets a larger id than any id we can see.
+  PERFORM pg_advisory_xact_lock(7104202611130501);
   d0 := (p_day::timestamp AT TIME ZONE tz); d1 := ((p_day + 1)::timestamp AT TIME ZONE tz);
+  -- The day's watermark is read BEFORE the events are read: an event the rollup below does not see can only have a larger id.
+  SELECT coalesce(max(e.id), 0) INTO v_wm FROM public.analytics_events e WHERE e.ts_server >= d0 AND e.ts_server < d1;
   DELETE FROM public.analytics_sessions WHERE day = p_day;
   DELETE FROM public.analytics_daily WHERE day = p_day;
 
@@ -511,9 +518,11 @@ BEGIN
   SELECT env, vid, p_day, p_day FROM public.analytics_sessions WHERE day = p_day AND NOT bot GROUP BY env, vid
   ON CONFLICT (env, vid) DO UPDATE SET first_day = least(v.first_day, EXCLUDED.first_day), last_day = greatest(v.last_day, EXCLUDED.last_day);
 
-  INSERT INTO public.analytics_rollup_runs (day, env, ran_at)
-  SELECT p_day, x.env, now() FROM (VALUES ('live'), ('test'), ('dev')) x(env)
-  ON CONFLICT (day, env) DO UPDATE SET ran_at = now();
+  -- one rollup covers every environment, so all three rows record the same watermark (written in this transaction, so it
+  -- commits or rolls back together with the aggregates above)
+  INSERT INTO public.analytics_rollup_runs (day, env, ran_at, max_event_id)
+  SELECT p_day, x.env, now(), v_wm FROM (VALUES ('live'), ('test'), ('dev')) x(env)
+  ON CONFLICT (day, env) DO UPDATE SET ran_at = now(), max_event_id = EXCLUDED.max_event_id;
 END $$;
 
 -- Retention: raw events 30 days, sessions and ingestion counters 13 months, daily rollups kept.
@@ -525,11 +534,13 @@ DECLARE cutoff date := (now() AT TIME ZONE public.analytics_tz())::date - 30; d 
   lim_headroom bigint := (public.analytics_limits()->>'rollup_headroom_mb')::bigint * 1048576;
 BEGIN
   PERFORM pg_advisory_xact_lock(7104202611130501);   -- the analytics write lock (see analytics_rate_check): growth is serialised
-  -- roll up (once more) only the expiring days whose raw events arrived after their last rollup; already rolled-up days
-  -- are not rewritten (a rewrite would only create dead rows). Retention is never delayed: the raw rows go regardless.
-  FOR d IN SELECT x.day FROM (SELECT (ts_server AT TIME ZONE public.analytics_tz())::date AS day, max(ts_server) AS last_ev FROM public.analytics_events
+  -- roll up (once more) only the expiring days holding an event the day's last rollup did not cover (an id above that day's
+  -- watermark); already rolled-up days are not rewritten (a rewrite would only create dead rows). Retention is never delayed:
+  -- the raw rows go regardless.
+  FOR d IN SELECT x.day FROM (SELECT (ts_server AT TIME ZONE public.analytics_tz())::date AS day, max(id) AS max_id FROM public.analytics_events
                               WHERE ts_server < (cutoff::timestamp AT TIME ZONE public.analytics_tz()) GROUP BY 1) x
-           WHERE NOT EXISTS (SELECT 1 FROM public.analytics_rollup_runs r WHERE r.day = x.day AND r.ran_at >= x.last_ev) LOOP
+           WHERE x.max_id > coalesce((SELECT max(r.max_event_id) FROM public.analytics_rollup_runs r WHERE r.day = x.day), 0)
+           ORDER BY 1 LOOP
     IF public.analytics_storage_bytes() + lim_headroom > lim_budget THEN n_unrolled := n_unrolled + 1;   -- storage gate: the day's
     ELSE PERFORM public.analytics_rollup(d); END IF;                                                   -- aggregates are lost, retention is kept
   END LOOP;
@@ -549,8 +560,13 @@ BEGIN
   RETURN jsonb_build_object('events', n_ev, 'sessions', n_s, 'stats', n_st, 'days_purged_without_rollup', n_unrolled);
 END $$;
 
--- Rolls up every day whose raw events arrived after its last rollup (or that was never rolled up), plus today.
+-- Rolls up every day holding an event its last rollup did not cover (an id above that day's watermark), including a day
+-- that was never rolled up. A day with no new events, today included, is not rewritten.
+-- The watermark is per day and compared per day: an event stored late for an earlier day (its ts_server is its ingest
+-- transaction's start, which can precede a rollup that was holding the lock) re-opens exactly that day.
 -- Returns the number of days rolled up, or -1 when it stopped at the storage gate.
+-- After a successful pass it records the run on today's rows (ran_at only, never the watermark), so Data health's
+-- "Last rollup" still shows when the scheduled job last completed. At the storage gate nothing is recorded, as before.
 -- Needed so first-visit days (new vs returning) and daily totals never miss a day when pg_cron is not running.
 CREATE OR REPLACE FUNCTION public.analytics_rollup_pending() RETURNS integer
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
@@ -560,9 +576,8 @@ DECLARE tz text := public.analytics_tz(); d date; n int := 0;
 BEGIN
   PERFORM pg_advisory_xact_lock(7104202611130501);   -- the analytics write lock: ingest waits (at most 3 s, then 'busy')
   FOR d IN
-    SELECT x.day FROM (SELECT (ts_server AT TIME ZONE tz)::date AS day, max(ts_server) AS last_ev FROM public.analytics_events GROUP BY 1) x
-    WHERE NOT EXISTS (SELECT 1 FROM public.analytics_rollup_runs r WHERE r.day = x.day AND r.ran_at >= x.last_ev)
-    UNION SELECT (now() AT TIME ZONE tz)::date
+    SELECT x.day FROM (SELECT (ts_server AT TIME ZONE tz)::date AS day, max(id) AS max_id FROM public.analytics_events GROUP BY 1) x
+    WHERE x.max_id > coalesce((SELECT max(r.max_event_id) FROM public.analytics_rollup_runs r WHERE r.day = x.day), 0)
     ORDER BY 1
   LOOP
     -- storage gate: one day's rollup can add at most rollup_headroom_mb; stop (and leave the dashboard stale) rather than
@@ -570,6 +585,10 @@ BEGIN
     IF public.analytics_storage_bytes() + lim_headroom > lim_budget THEN RETURN -1; END IF;
     PERFORM public.analytics_rollup(d); n := n + 1;
   END LOOP;
+  -- heartbeat: ran_at only; a new row starts with watermark 0, an existing row keeps its watermark
+  INSERT INTO public.analytics_rollup_runs AS r (day, env, ran_at)
+  SELECT (now() AT TIME ZONE tz)::date, x.env, now() FROM (VALUES ('live'), ('test'), ('dev')) x(env)
+  ON CONFLICT (day, env) DO UPDATE SET ran_at = now();
   RETURN n;
 END $$;
 
@@ -761,6 +780,13 @@ BEGIN
     RAISE EXCEPTION 'ANALYTICS_0501_POSTCONDITION: function privileges too broad'; END IF;
   IF has_sequence_privilege('anon', 'public.analytics_events_id_seq', 'USAGE') OR has_sequence_privilege('authenticated', 'public.analytics_events_id_seq', 'USAGE') THEN
     RAISE EXCEPTION 'ANALYTICS_0501_POSTCONDITION: a client role can use the events sequence'; END IF;
+  -- The rollup watermark relies on event ids being handed out one at a time, in increasing order, never reused:
+  -- the identity sequence must be the events table's own, with cache 1 and no cycling.
+  IF pg_catalog.pg_get_serial_sequence('public.analytics_events', 'id') IS DISTINCT FROM 'public.analytics_events_id_seq' THEN
+    RAISE EXCEPTION 'ANALYTICS_0501_POSTCONDITION: analytics_events.id is not backed by analytics_events_id_seq'; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_sequences s WHERE s.schemaname = 'public' AND s.sequencename = 'analytics_events_id_seq'
+                 AND s.cache_size = 1 AND NOT s.cycle AND s.increment_by = 1) THEN
+    RAISE EXCEPTION 'ANALYTICS_0501_POSTCONDITION: the events id sequence must have cache 1, increment 1 and no cycle'; END IF;
 END $$;
 
 COMMIT;
