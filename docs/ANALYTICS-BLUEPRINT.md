@@ -1,7 +1,7 @@
 # Gearhead Labs — First-Party Analytics & Owner Dashboard Blueprint
 
 > **Read this first (updated 2026-11-09).** This is the original plan, kept unchanged below to record the intended
-> design and scope. It has since been implemented in draft PR #29, and several parts were built differently —
+> design and scope. It has since been implemented in PR #29 (merged 2026-11-27), and several parts were built differently —
 > environment handling, rate limits, new versus returning visitors, calculator completion, search words and account
 > linking among them. **`docs/ANALYTICS-IMPLEMENTATION.md` is the authoritative record of what was actually built**, its
 > limitations and the open owner decisions (its §10 lists the differences from this plan). Where the two disagree, the

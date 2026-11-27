@@ -57,7 +57,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       for (const k in kv) localStorage.setItem(k, kv[k]);
     }, preset);
     if (noChoice) await page.route(u => u.pathname.startsWith('/analytics-choice.js'), r => r.fulfill({ status: 404, body: '' }));
-    if (noScript) await page.route(u => u.pathname.startsWith('/analytics.js'), r => r.fulfill({ status: 404, body: '' }));   // analytics.js failed to load
+    if (noScript) await page.route(u => u.pathname.startsWith('/analytics.min.js'), r => r.fulfill({ status: 404, body: '' }));   // analytics.js failed to load
     await page.route('https://cdn.jsdelivr.net/**', r => r.abort());
     if (enabled) await page.route(u => u.pathname.startsWith('/analytics-config.js'), r => r.fulfill({ status: 200, headers: { 'content-type': 'text/javascript' },
       body: `window.GH_ANALYTICS_CONFIG = { enabled: true, endpoint: '${EP}', env: 'test' };` }));
@@ -523,7 +523,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     const env = { batches: [], pageErrors: [] };
     page.on('pageerror', e => env.pageErrors.push(e.message));
     const top = `<!doctype html><meta charset="utf-8"><script>window.GH_ANALYTICS_CONFIG={enabled:true,endpoint:'${EP}',env:'test'}</script>
-      <script src="/analytics-choice.js"></script><script src="/analytics.js"></script><iframe id="app" src="/fx/frame.html?calc=fixture_calc&mode=${mode}" style="width:800px;height:400px"></iframe>`;
+      <script src="/analytics-choice.js"></script><script src="/analytics.min.js"></script><iframe id="app" src="/fx/frame.html?calc=fixture_calc&mode=${mode}" style="width:800px;height:400px"></iframe>`;
     const frame = `<!doctype html><meta charset="utf-8"><div id="calc-container"><input id="a" class="field-input" type="text" value="10">
       <input id="b" class="field-input" type="text" value="1"><div id="out"></div></div><script>
       const mode = new URLSearchParams(location.search).get('mode'), out = document.getElementById('out');

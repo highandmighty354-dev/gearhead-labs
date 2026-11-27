@@ -11,7 +11,8 @@
 #
 # Jobs
 #   fast-gate        every pull request: register / catalog consistency, the engine self-test (with its known baseline), the independent known-answer suite for
-#                    the Critical and High defects (with its known-open ledger), and three fast physics/unit suites. About 5-10 minutes.
+#                    the Critical and High defects (with its known-open ledger), three fast physics/unit suites, the delivered analytics script's
+#                    build and size check, and the analytics website-tracking suite (against analytics.min.js). About 10-15 minutes.
 #   full-regression  manual only (Actions tab -> "Calculator tests" -> Run workflow -> full = true): the whole browser suite, about 2.5 hours.
 name: Calculator tests
 
@@ -51,6 +52,11 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Delivered analytics script is current and at most 8 KB gzip (analytics.min.js, docs/ANALYTICS-IMPLEMENTATION.md §1a)
+        run: |
+          npm ci --prefix tools/analytics-build --ignore-scripts --no-audit --no-fund
+          node tools/analytics-build/build.mjs --check
+
       - name: Install Playwright and Chromium (test tooling only)
         run: |
           npm install -g "playwright@${PLAYWRIGHT_VERSION}"
@@ -82,6 +88,9 @@ jobs:
 
       - name: Numeric guard self-check
         run: node premium/tests/numeric-guard.test.js
+
+      - name: Analytics website tracking against the delivered analytics.min.js (real Chromium, fake receiver, synthetic sessions)
+        run: node premium/tests/analytics-client.test.js
 
   full-regression:
     name: Full browser regression (manual)
