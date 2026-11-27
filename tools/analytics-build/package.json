@@ -1,0 +1,9 @@
+{
+  "name": "gearhead-analytics-build",
+  "private": true,
+  "description": "Builds analytics.min.js (the delivered analytics script) from analytics.js. Not part of the published site.",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "terser": "5.51.4"
+  }
+}

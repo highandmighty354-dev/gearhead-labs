@@ -14,7 +14,7 @@ built (§10 lists the differences).
 | Real-world validation | **None** — no real visitor traffic has ever reached this system |
 | Hosted verification | **None** — nothing has run on hosted Supabase or production (§9a lists what must be verified) |
 | Release blocker | Migration 0501 is outside the locked migration package (§9) |
-| Script size | Blueprint target "8 KB or less" **waived by the owner on 2026-11-17** (§10; §11, decision 11). The script is unchanged |
+| Script size | **Met as served-compressed size (owner decision of 2026-11-27, replacing the 2026-11-17 waiver; §1a, §11 decision 11).** The site loads the generated `analytics.min.js`: 12,468 B, gzip 5,362 B (level 6), at most 5,614 B at any gzip level 1-9; limit 8,192 B. `analytics.js` stays the readable source; behaviour unchanged |
 | Rollup watermark and receiver byte limit (2026-11-26) | Implemented and tested **locally** in the C1/B1 review patch: **unmerged, not released, not deployed** (§3.11, §5.2a, §8). Hosted behaviour not verified (§9a, items 8 and 9) |
 
 Labels used below: **Implemented** (in the code), **Tested** (a test in §8 exercises it), **Untested** (built, not
@@ -28,10 +28,38 @@ exercised), **Proposed** (not built), **Awaiting owner decision** (§11).
 |---|---|
 | Database | `supabase/migrations/0501_analytics.sql`; rollback `supabase/rollback/0501_analytics.rollback.sql` (removes all analytics objects **and all analytics data**) |
 | Receiver (Supabase Edge Function) | `supabase/functions/analytics-ingest/index.ts` (reads settings) + `supabase/functions/_shared/analytics-ingest.js` (the logic) |
-| Website tracking | `analytics-choice.js` (the visitor's choice, read first), `analytics.js`, `analytics-config.js`, three script tags in `index.html`; the opt-out control beneath the published policy on the Privacy page (`F1_12_4…html`, `privacy` page) |
+| Website tracking | `analytics-choice.js` (the visitor's choice, read first), `analytics.js` (readable source) and the delivered `analytics.min.js` generated from it (§1a), `analytics-config.js`, three script tags in `index.html`; the opt-out control beneath the published policy on the Privacy page (`F1_12_4…html`, `privacy` page) |
 | Navigation fixes made in this PR (Chapter 1D.1) | `app-shell.js` (start-up re-syncs and Back/Forward no longer leave static pages); `F1_12_4…html` (`ghRoute()` hands `?page=` to `ghCertRoute()`; static pages take a GH-DEF-035 render number); test `premium/tests/shell-static-routes.test.js` |
 | Owner dashboard | `owner/analytics.html`, `owner/analytics.js`, `owner/analytics.css` |
 | Tests | `premium-foundation/tests/analytics.test.js`, `premium/tests/analytics-client.test.js`, `premium/tests/analytics-dashboard.test.js`, `premium/tests/shell-static-routes.test.js`, and the Privacy-page guard in `premium/tests/frontend.test.js`; results in `premium-foundation/evidence/analytics-*.json` |
+
+
+## 1a. The delivered script: analytics.min.js (build step, 2026-11-27)
+
+- **Source and delivered file.** `analytics.js` is the readable source that is reviewed and edited. The site loads
+  `analytics.min.js`, which is **generated** from it and committed next to it. Never edit `analytics.min.js` by hand.
+- **Why it is committed.** GitHub Pages publishes the repository as it is (its Jekyll build copies `.js` files unchanged and runs
+  no project build step), so the delivered file must be in the repository. No hosting or deployment setting was changed.
+- **Build (reproducible).** `tools/analytics-build/` holds `build.mjs` and terser pinned to exactly 5.51.4 with integrity hashes
+  (`package-lock.json`). From the repository root:
+  1. `npm ci --prefix tools/analytics-build`
+  2. `node tools/analytics-build/build.mjs` writes `analytics.min.js` and sets its `?v=` in `index.html` to the first 12 hex digits
+     of the file's SHA-256 (so browsers fetch a new copy exactly when the file changes).
+
+  Fixed options: ES5 output (as the source), local names shortened, **no property renaming** (every global, storage key and event
+  field keeps its exact name), comments removed, non-ASCII characters written as escapes. A one-line header names the source's
+  SHA-256 and the terser version. The same source always builds to the same bytes.
+- **Check (every pull request).** The fast gate runs `node tools/analytics-build/build.mjs --check`, which changes nothing and
+  fails if `analytics.min.js` is not exactly what `analytics.js` builds to, if `index.html` does not load it with the matching
+  `?v=`, or if the file compressed with gzip at **any** level 1-9 is over **8,192 bytes**. The host's gzip level is not published,
+  so the largest result (level 1) is the one held to the limit.
+- **Measured (2026-11-27):** source `analytics.js` 24,590 B (unchanged); `analytics.min.js` 12,468 B; gzip level 6: 5,362 B;
+  level 9: 5,358 B; largest over levels 1-9: 5,614 B. Limit 8,192 B.
+- **Not yet measured on the live site.** The new file is published only when this change reaches `main`. The served response
+  (`Content-Encoding: gzip` and its byte count from `https://www.gearhead-labs.com/analytics.min.js`) must be read after that
+  release; it was not reachable from the environment that built this.
+- **Behaviour.** Unchanged: every analytics, website, dashboard and frontend suite runs against the delivered `analytics.min.js`
+  (the browser suites load `index.html`, which now loads it).
 
 ---
 
@@ -536,7 +564,7 @@ Everything in §8 ran locally on synthetic data. None of the following has been 
 | Report functions | Several separate functions | One owner-checked report function plus refresh and billing functions |
 | Rollup schedule | Nightly | Every 15 minutes, with catch-up |
 | Session on a new campaign | New session when a new UTM campaign arrives | As specified, applied by the page; server re-checks gaps and midnight only (as the blueprint says) |
-| Script size | "8 KB or less" (checklist §11); "`analytics.js`, about 6 KB" (§6.4); **no measurement method stated** | **Waived by the owner on 2026-11-17** (§11, decision 11): keep the existing functionality, remove no features to reduce size, add no minification or compression build step. Not met as measured: `analytics.js`: 24,590 B raw; 8,624 B gzip (level 6, about what the host sends); 12,271 B minified; 5,254 B minified + gzip; 6,174 B gzip with comments stripped. Raw 8 KB is reachable only by removing required features. The script is unchanged |
+| Script size | "8 KB or less" (checklist §11); "`analytics.js`, about 6 KB" (§6.4); **no measurement method stated** | **Now met (2026-11-27, §1a):** measured as the gzip-compressed response of the delivered `analytics.min.js`, 5,362 B at gzip level 6 and at most 5,614 B at any level 1-9 (limit 8,192 B); checked on every pull request. *History:* **waived by the owner on 2026-11-17** (§11, decision 11): keep the existing functionality, remove no features to reduce size, add no minification or compression build step. Not met as measured: `analytics.js`: 24,590 B raw; 8,624 B gzip (level 6, about what the host sends); 12,271 B minified; 5,254 B minified + gzip; 6,174 B gzip with comments stripped. Raw 8 KB is reachable only by removing required features. The script is unchanged |
 | Opt-out control | Not in the blueprint (consent was an owner decision) | Built (§3.10): GPC / DNT honoured, Privacy-page switch, states the site's on/off state |
 
 ---
@@ -555,7 +583,7 @@ Everything in §8 ran locally on synthetic data. None of the following has been 
 | 8 | Visitor authenticity | (a) accept best-effort figures and cross-check against Google Search Console and Stripe; (b) add a free human-check service such as Cloudflare Turnstile — a third party, a Privacy-page mention and a site change; (c) count only signed-in visitors — conflicts with the no-account-linking rule. **Current recommendation: (a). This is a recommendation, not an approval.** Only (a) is in place |
 | 9 | Rate limits | Starting values: 10,000 / day and 2,000 / hour for the **whole project** (all environments together); 600 / 10 min and 5,000 / day per sender network (an IPv4 address or an IPv6 /56); 300 / 10 min and 2,000 / day shared by all unknown senders; raise them (or move to a paid plan) if Data health shows real visitors being dropped. *(Corrected 2026-11-17: this row said "per environment"; the code has counted the whole project since Chapter 1D.)* Note that with the default `ANALYTICS_ADDRESS_SOURCE=none` every visitor counts as "unknown", so the whole site shares 300 / 10 min and 2,000 / day |
 | 10 | Address source | `ANALYTICS_ADDRESS_SOURCE`: `none` until the TEST-project probe shows which header the platform sets and a caller cannot forge |
-| 11 | Script size target | **Decided by the owner on 2026-11-17: the blueprint's "8 KB or less" target is waived.** Keep the existing analytics functionality; do not remove features to reduce size; do not add minification or compression build steps; no further size-reduction work. Measurements are in §10 |
+| 11 | Script size target | **Decided by the owner on 2026-11-27 (replaces the 2026-11-17 waiver): deliver the script at 8 KB or less, measured as the served gzip-compressed response, through a reproducible minification build; no functionality, privacy safeguard, consent behaviour, campaign-session rule or error handling removed or changed.** Implemented as §1a. *Previous decision, 2026-11-17, superseded:* the blueprint's "8 KB or less" target is waived. Keep the existing analytics functionality; do not remove features to reduce size; do not add minification or compression build steps; no further size-reduction work. Measurements are in §10 |
 
 Draft Privacy page (decision 2, not approved, pending legal review). **History:** until 2026-11-16 the full proposed text was
 the `privacy` page body in `F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html`, marked DRAFT, with
