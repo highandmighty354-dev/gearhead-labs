@@ -1,0 +1,238 @@
+{
+  "checks": [
+    {
+      "name": "shipped default: analytics is OFF — no request, no storage, calculators unchanged",
+      "pass": true
+    },
+    {
+      "name": "page views: a live re-render on every keystroke is NOT a new page view; navigation is",
+      "pass": true
+    },
+    {
+      "name": "calculator: start on first input (once), complete 2 s after the last input with a valid result (once); no input values sent",
+      "pass": true
+    },
+    {
+      "name": "calculator: abandonment = started, then left before a completion (no calc_complete; page_leave sent)",
+      "pass": true
+    },
+    {
+      "name": "engagement: active time is counted; time after 30 s without activity is not",
+      "pass": true
+    },
+    {
+      "name": "search: result count after 1.5 s idle, click rank on choosing a result; the search text is never sent",
+      "pass": true
+    },
+    {
+      "name": "Premium funnel: gate view on a Premium calculator, offer view + sign-in request on Profile, checkout return once",
+      "pass": true
+    },
+    {
+      "name": "privacy: every payload has only envelope fields; page keys never carry a URL, query or email",
+      "pass": true
+    },
+    {
+      "name": "opt-out: GPC => nothing is sent and no identifier is ever created (page loads, navigation, typing, leaving)",
+      "pass": true
+    },
+    {
+      "name": "opt-out: Do Not Track => nothing is sent and no identifier is ever created (page loads, navigation, typing, leaving)",
+      "pass": true
+    },
+    {
+      "name": "opt-out: identifiers left from earlier visits are deleted when a browser signal is present",
+      "pass": true
+    },
+    {
+      "name": "opt-out switch: Privacy page control turns analytics off at once, deletes ids, persists over reloads and navigation; accessible",
+      "pass": true
+    },
+    {
+      "name": "opt-out switch: reversible — \"turn back on\" says it resumes on the next page load; a NEW identifier is created then",
+      "pass": true
+    },
+    {
+      "name": "opt-out: turning it off in one tab stops another open tab of the site immediately",
+      "pass": true
+    },
+    {
+      "name": "opt-out across tabs: the OTHER tab stops at once and deletes ITS OWN session identifiers and unsent queue; a later opt-in starts new ids; GPC still wins",
+      "pass": true
+    },
+    {
+      "name": "opt-out control works when the frame's HTML arrives after the parent page has finished parsing (slow connection)",
+      "pass": true
+    },
+    {
+      "name": "opt-out across tabs: storage unavailable in a tab = analytics never runs there (fails closed)",
+      "pass": true
+    },
+    {
+      "name": "opt-out: the control works while analytics is switched off site-wide, and a missing choice module means analytics never runs",
+      "pass": true
+    },
+    {
+      "name": "sessions: a new campaign starts a new session; the same campaign, direct visits and navigation do not; a change back starts another",
+      "pass": true
+    },
+    {
+      "name": "privacy control, site switched OFF (as shipped): says off, never implies collection; opt-out, reload and re-enable all stay accurate",
+      "pass": true
+    },
+    {
+      "name": "privacy control, site switched ON: says on; opt-out says off and stops; re-enable says it resumes on the next page load",
+      "pass": true
+    },
+    {
+      "name": "privacy control with GPC: correct for the site switched off and on; no button either way",
+      "pass": true
+    },
+    {
+      "name": "privacy control with Do Not Track: correct for the site switched off and on; no button either way",
+      "pass": true
+    },
+    {
+      "name": "privacy control when analytics.js did not load: reports the site as off (nothing can be collected)",
+      "pass": true
+    },
+    {
+      "name": "opt-out: a browser signal shows an explanation and no button (the browser setting decides)",
+      "pass": true
+    },
+    {
+      "name": "ingestion down: calculators keep working, no page error, queue stays capped at 50, sending backs off",
+      "pass": true
+    },
+    {
+      "name": "completion classifier: empty, placeholder, NaN/Infinity, errors and text are not results; numbers in real formats are",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): default result on screen, nobody types: no start, no completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): scripted fill (untrusted input event): ignored",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): valid integer result after typing: one completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): decimal result: completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): several result fields (one \"—\", one formatted with units): completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): NaN result: no completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): error message: no completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): non-numeric text result: no completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): input that does not re-render the calculator (old default result still showing): no completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): result appears 1 s after the input: completion",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): result appears 3 s after the input: completion once it appears",
+      "pass": true
+    },
+    {
+      "name": "completion (synthetic calculator, real typing): valid, then invalidated by more input within 2 s: no completion; later valid: exactly one",
+      "pass": true
+    },
+    {
+      "name": "completion on real calculators, two per LAB (gasoline, diesel, EV, towing, universal): exactly one each, nothing before typing",
+      "pass": true
+    },
+    {
+      "name": "real calculator, unparseable input (\"abc\") showing \"—\": no completion",
+      "pass": true
+    },
+    {
+      "name": "catalogue sweep: result-area verdict for every free calculator after an input (exceptions listed in evidence)",
+      "pass": true
+    },
+    {
+      "name": "performance: typing into a calculator with analytics ON vs OFF (same machine, alternating runs)",
+      "pass": true
+    }
+  ],
+  "performance": {
+    "off": [
+      385.9000000000233,
+      338.0999999999767,
+      451.5,
+      451.5,
+      464.4000000000233,
+      500.0999999999767
+    ],
+    "on": [
+      501.0999999999767,
+      518.1999999999534,
+      447.4000000000233,
+      628.1999999999534,
+      260.39999999990687,
+      329
+    ],
+    "median_off_ms": 451.5,
+    "median_on_ms": 501.0999999999767
+  },
+  "catalogue_sweep": {
+    "catalogue": 757,
+    "free": 585,
+    "premium_skipped": 172,
+    "valid": 573,
+    "by_lab": {
+      "universal": {
+        "valid": 307,
+        "no-input": 4,
+        "none": 4
+      },
+      "gasoline": {
+        "valid": 159,
+        "none": 1,
+        "invalid": 2
+      },
+      "towing": {
+        "valid": 26,
+        "invalid": 1
+      },
+      "diesel": {
+        "valid": 42
+      },
+      "ev": {
+        "valid": 39
+      }
+    },
+    "exceptions": [
+      "cam_card (gasoline): none",
+      "christmas_tree (universal): no-input",
+      "ct_push_loose (universal): no-input",
+      "nitrous_jet (gasoline): invalid",
+      "octane_for_cr (gasoline): invalid",
+      "resistor_color (universal): no-input",
+      "rotor_heat (universal): no-input",
+      "sim_braking (universal): none",
+      "sim_gear_rpm (universal): none",
+      "sim_weight_transfer (universal): none",
+      "trailer_sway (towing): invalid",
+      "universal_automotive_converter (universal): none"
+    ]
+  }
+}

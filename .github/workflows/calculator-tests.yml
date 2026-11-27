@@ -11,7 +11,8 @@
 #
 # Jobs
 #   fast-gate        every pull request: register / catalog consistency, the engine self-test (with its known baseline), the independent known-answer suite for
-#                    the Critical and High defects (with its known-open ledger), and three fast physics/unit suites. About 5-10 minutes.
+#                    the Critical and High defects (with its known-open ledger), three fast physics/unit suites, the delivered analytics script's
+#                    build and size check, and the analytics website-tracking suite (against analytics.min.js). About 10-15 minutes.
 #   full-regression  manual only (Actions tab -> "Calculator tests" -> Run workflow -> full = true): the whole browser suite, about 2.5 hours.
 name: Calculator tests
 
@@ -51,6 +52,11 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Delivered analytics script is current and at most 8 KB gzip (analytics.min.js, docs/ANALYTICS-IMPLEMENTATION.md §1a)
+        run: |
+          npm ci --prefix tools/analytics-build --ignore-scripts --no-audit --no-fund
+          node tools/analytics-build/build.mjs --check
+
       - name: Install Playwright and Chromium (test tooling only)
         run: |
           npm install -g "playwright@${PLAYWRIGHT_VERSION}"
@@ -83,6 +89,9 @@ jobs:
       - name: Numeric guard self-check
         run: node premium/tests/numeric-guard.test.js
 
+      - name: Analytics website tracking against the delivered analytics.min.js (real Chromium, fake receiver, synthetic sessions)
+        run: node premium/tests/analytics-client.test.js
+
   full-regression:
     name: Full browser regression (manual)
     if: github.event_name == 'workflow_dispatch' && inputs.full
@@ -93,6 +102,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+          # Full history: four suites read earlier versions of files with `git show <commit>:<file>` (search-authority
+          # c9db895, upgrade-navigation 885f843, premium-profile 6f12a54 and 205d0c2, validation-units-imp018 d65a914).
+          # A depth-1 checkout does not contain those commits.
+          fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -103,6 +116,25 @@ jobs:
         run: |
           npm install -g "playwright@${PLAYWRIGHT_VERSION}"
           npx -y "playwright@${PLAYWRIGHT_VERSION}" install --with-deps chromium
+
+      - name: Make the site's Supabase host unreachable (this job only)
+        # browser-smoke's "Supabase unreachable" cases (A1, H1 and others) send requests for *.supabase.co to the real
+        # network and expect them to fail ("real network, blocked here"). A GitHub runner can reach Supabase, so the page
+        # reached the live project named in supabase-config.js and reported "production". Pointing that one host at this
+        # machine restores the condition the tests assume, and the regression no longer contacts the live project. The
+        # runner is discarded after the job.
+        run: |
+          host="$(grep -oE 'https://[a-z0-9]{20}\.supabase\.co' supabase-config.js | head -n 1 | sed 's#^https://##')" || host=""
+          [ -n "$host" ] || { echo "::error::no Supabase project address found in supabase-config.js"; exit 1; }
+          printf '127.0.0.1 %s\n::1 %s\n' "$host" "$host" | sudo tee -a /etc/hosts > /dev/null
+          addrs="$(getent ahosts "$host" | awk '{print $1}' | sort -u | tr '\n' ' ')" || addrs="(does not resolve) "
+          case "$addrs" in
+            "127.0.0.1 "|"127.0.0.1 ::1 "|"::1 127.0.0.1 ") ;;
+            *) echo "::error::$host resolves to '$addrs', not only to this machine"; exit 1 ;;
+          esac
+          rc=0; curl -s -o /dev/null --max-time 10 "https://$host/rest/v1/" || rc=$?
+          [ "$rc" = 7 ] || { echo "::error::$host is not refused here (curl exit $rc, expected 7: connection refused)"; exit 1; }
+          echo "- $host points at this machine (connection refused) for this job only" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Full browser regression suite
         run: bash premium/tests/run-browser-tests.sh

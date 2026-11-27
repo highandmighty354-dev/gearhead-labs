@@ -8884,6 +8884,9 @@ buildNav = ghBuildNav;
 /* Query-string landing support for search-engine-friendly calculator URLs. */
 function ghRoute(){
   const params=new URLSearchParams(location.search);
+  /* Static pages (?page=about|methodology|privacy|terms|contact) belong to window.ghCertRoute() (defined further down). Without this,
+     Back/Forward onto one drew the dashboard here, and the dashboard's delayed home-page paint then replaced the static page. */
+  if(params.get('page')&&typeof window.ghCertRoute==='function'&&window.ghCertRoute()) return;
   const calc=params.get('calc');
   const lab=params.get('lab');
   const calcResolved = calc && (GH_CALC_ALIASES[calc]||calc);
@@ -10271,7 +10274,7 @@ function ghE110StaticPage(kind){
     },
     privacy:{
       title:"Gearhead Labs Privacy Policy",
-      body:`<h1>Privacy Policy</h1><p>Gearhead Labs calculators run in your browser. This policy covers what data we collect and how it is used.</p><h2>Advertising</h2><p>This site may display advertising. Ad providers may use cookies, web beacons, IP addresses and related technologies as required by applicable publisher policies.</p><h2>Contact</h2><p>For privacy questions, use the contact method on our Contact page.</p>`
+      body:`<h1>Privacy Policy</h1><p>Gearhead Labs calculators run in your browser. This policy covers what data we collect and how it is used.</p><h2>Advertising</h2><p>This site may display advertising. Ad providers may use cookies, web beacons, IP addresses and related technologies as required by applicable publisher policies.</p><h2>Contact</h2><p>For privacy questions, use the contact method on our Contact page.</p><div class="gh-analytics-choice" data-gh-analytics-choice><p data-gh-analytics-status role="status" aria-live="polite">Loading your analytics setting…</p><button type="button" data-gh-analytics-toggle hidden></button></div>`
     },
     terms:{
       title:"Gearhead Labs Terms",
@@ -10286,6 +10289,9 @@ function ghE110StaticPage(kind){
 }
 
 function ghE110RenderStatic(kind){
+  /* GH-DEF-035 applies to static pages too: drawing one is a newer render, so a follow-up still queued by an earlier ghRender()
+     (the dashboard's home-page swap) must not run over it. */
+  GH_RENDER_SEQ++;
   const p=ghE110StaticPage(kind);
   const box=document.getElementById("calc-container");
   if(!box) return;
