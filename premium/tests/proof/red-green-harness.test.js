@@ -62,9 +62,24 @@ rejects('self-test: pageErrors non-empty', 'st-pe-nonempty', () => H.runSelftest
 {
   const B = H.EXPECTED_RED_SELFTEST_FAILURES, s = f => ({ total: 736, passed: 736 - f.length, failed: f.length, failures: f });
   ok(B.join('|') === 'formula:ackermann_angle|formula:diesel_smoke_limit|renderer:piston_position 90deg', 'expected RED self-test failures are exactly the three Stage 1 rows');
+  /* The RED list is the Stage 1 baseline (historical, see red-green.js). Until 2026-11-18 it had to equal the current KNOWN_BASELINE_IDS; Stage 2 repaired
+     GH-DEF-046 and GH-DEF-047, so the current baseline legitimately has fewer rows. Checked instead: (a) the list is the one the recorded Stage 1 proof ran with
+     and observed; (b) every Stage 1 row is either still in the current baseline under the same register id, or its register entry is no longer OPEN.
+     (register-check.js separately requires every current baseline row to name an OPEN entry.) */
+  const STAGE1_BASELINE = { 'formula:ackermann_angle': 'GH-DEF-052', 'formula:diesel_smoke_limit': 'GH-DEF-046', 'renderer:piston_position 90deg': 'GH-DEF-047' };  // engine-selftest.js KNOWN_BASELINE_IDS at b58e1f0
+  ok(Object.keys(STAGE1_BASELINE).sort().join('|') === B.slice().sort().join('|'), 'harness RED list is the Stage 1 KNOWN_BASELINE_IDS (b58e1f0)');
+  let rec = null; try { rec = JSON.parse(fs.readFileSync(path.join(__dirname, 'out', 'red-green.json'), 'utf8')); } catch (e) { /* checked below */ }
+  const same = (x, y) => Array.isArray(x) && x.slice().sort().join('|') === y.slice().sort().join('|');
+  ok(rec && rec.valid === true && same(rec.expectedRedSelftestFailures, B) && rec.redSelftest && same(rec.redSelftest.failures, B), 'harness RED list matches the recorded Stage 1 proof (out/red-green.json: valid, expected and observed RED self-test failures)');
   const src = fs.readFileSync(path.join(__dirname, '..', 'engine-selftest.js'), 'utf8');
-  const keys = [...(src.match(/const KNOWN_BASELINE_IDS = \{([\s\S]*?)\};/) || ['', ''])[1].matchAll(/'([^']+)'\s*:/g)].map(m => m[1]);
-  ok(keys.slice().sort().join('|') === B.slice().sort().join('|'), `harness RED list agrees with KNOWN_BASELINE_IDS in engine-selftest.js (${keys.join(', ')})`);
+  const cur = Object.fromEntries([...(src.match(/const KNOWN_BASELINE_IDS = \{([\s\S]*?)\};/) || ['', ''])[1].matchAll(/'([^']+)'\s*:\s*'([^']+)'/g)].map(m => [m[1], m[2]]));
+  const reg = fs.readFileSync(path.join(__dirname, '..', '..', '..', 'docs', 'DEFERRED-WORK-REGISTER.md'), 'utf8');
+  const status = id => { const m = reg.match(new RegExp('^### ' + id + ' [^\\n]*\\n[\\s\\S]*?^- \\*\\*Status:\\*\\* ([^\\n]+)', 'm')); return m ? m[1].trim() : null; };
+  ok(Object.keys(cur).length > 0, `current KNOWN_BASELINE_IDS read from engine-selftest.js (${Object.entries(cur).map(([k, v]) => k + ' -> ' + v).join(', ')})`);
+  for (const [row, id] of Object.entries(STAGE1_BASELINE)) {
+    const st = status(id);
+    ok(cur[row] === id || (cur[row] === undefined && st !== null && st !== 'OPEN'), `Stage 1 baseline row ${row} (${id}): ${cur[row] === undefined ? 'left the current baseline; register status ' + st + ' (must exist and not be OPEN)' : 'still in the current baseline as ' + cur[row] + ' (must be ' + id + ')'}`);
+  }
   ok(H.selftestDiscrepancies('RED', s(B)).length === 0, 'RED: exactly the three expected failures is accepted');
   ok(H.selftestDiscrepancies('RED', s(B.slice().reverse())).length === 0, 'RED: order of failures does not matter');
   const extra = H.selftestDiscrepancies('RED', s(B.concat('formula:otto_efficiency')));
@@ -111,11 +126,17 @@ for (const [mode, re] of [['green-exit1', /exited with status 1/], ['selftest-ok
 }
 
 /* 7. end to end: the self-test outcome per phase reaches the report (fake suite succeeds, fake self-test shaped by FAKE_ST) */
+const STAGE1_PROBE_TARGET = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'gh-rg-engine-')), 'engine.txt');
+fs.writeFileSync(STAGE1_PROBE_TARGET, H.PROBES.map(p => p[2].map(e => e[0]).join('\n')).join('\n'));
+{ let e = null; try { process.env.RG_ENGINE_SOURCE = STAGE1_PROBE_TARGET; H.makeEngine(H.PROBES.map(p => p[0])); } catch (x) { e = x; } finally { delete process.env.RG_ENGINE_SOURCE; }
+  ok(!e, 'synthetic probe target: every Stage 1 probe applies to it' + (e ? ' (' + e.message + ')' : '')); }
 for (const [st, re] of [['red-extra', /RED: engine self-test on the shipped engine has unexpected failure\(s\): formula:otto_efficiency/], ['red-missing', /RED: engine self-test on the shipped engine is missing expected baseline failure\(s\): renderer:piston_position 90deg/], ['green-fail', /GREEN: engine self-test on the corrected copy: 1 failure\(s\): formula:diesel_smoke_limit/], ['exact', null]]) {
   const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'gh-rg-')), 'report.json');
-  const env = Object.assign({}, process.env, { RG_SUITE: FAKE, RG_SELFTEST: FAKE, PROOF_OUT: out, FAKE_MODE: 'ok', FAKE_ST: st });
+  // the probes are applied to STAGE1_PROBE_TARGET, a synthetic engine text holding each probe's find text, so these phases are reached whatever the real engine is
+  const env = Object.assign({}, process.env, { RG_SUITE: FAKE, RG_SELFTEST: FAKE, PROOF_OUT: out, FAKE_MODE: 'ok', FAKE_ST: st, RG_ENGINE_SOURCE: STAGE1_PROBE_TARGET });
   const r = spawnSync(process.execPath, [path.join(__dirname, 'red-green.js')], { env, encoding: 'utf8', timeout: 120000 });
   let rep = null; try { rep = JSON.parse(fs.readFileSync(out, 'utf8')); } catch (e) { /* checked below */ }
+  ok(rep && rep.harnessError === null && rep.redSelftest && rep.greenSelftest, `end to end (self-test ${st}): the RED and GREEN self-test phases both ran (${rep && rep.harnessError ? rep.harnessError.message : 'no harness error'})`);
   const stProblems = rep ? rep.problems.filter(p => /engine self-test/.test(p)) : null;
   ok(r.status === 1 && rep && rep.valid === false, `end to end (self-test ${st}): harness exits 1, report invalid (the fake known-answer cases also fail the RED/ISOLATION expectations)`);
   if (re) ok(stProblems && stProblems.length === 1 && re.test(stProblems[0]), `end to end (self-test ${st}): report names the discrepancy (${stProblems && stProblems.join(' / ')})`);

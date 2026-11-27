@@ -4,7 +4,7 @@
  "generated_from": {
   "catalog": {
    "file": "catalog/gearhead-catalog.json",
-   "sha256": "cd839aae94e09eedffb2ac4c70fa10dc5ec4b66e8aedadf134a10c7186bf15fa"
+   "sha256": "9ae3a3fa52e022e1ee7cfda790eb8e18d0c815743a74954c684f856ee1945109"
   },
   "enrichment": {
    "file": "catalog/encyclopedia-enrichment.json",
@@ -12,7 +12,7 @@
   },
   "page": {
    "file": "F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html",
-   "sha256": "d8102d1b7df97317e19c2477d00506feb392ede52e85bf747bb39511d8d435e9"
+   "sha256": "189c34aebbef8d76bf090a5a71e9d7c38a8bbad9f6a5de7cd8823314f3a2ced5"
   },
   "models": {
    "file": "premium/models.js",
@@ -5179,7 +5179,7 @@
     }
    ],
    "former_ids": [],
-   "description": "Consolidates the four valve events, centerlines, LSA, duration and overlap at one measurement lift.",
+   "description": "Consolidates the four valve events, centerlines, LSA, duration and overlap at one measurement lift. The recommended (cam card) intake centerline is kept as entered; the events use the installed centerline = recommended − advance.",
    "formula": null,
    "concepts": [
     "term.intake-valve-closing"
@@ -5314,7 +5314,7 @@
     }
    ],
    "former_ids": [],
-   "description": "EVO and EVC are derived from exhaust duration and exhaust centerline using the same lift reference.",
+   "description": "EVO and EVC are derived from exhaust duration and exhaust centerline using the same lift reference. Installed Intake Centerline = recommended (cam card) ICL − advance, and Exhaust Centerline = 2 × LSA − installed Intake Centerline.",
    "formula": null,
    "concepts": [],
    "provenance": {
@@ -5352,7 +5352,7 @@
    "formula": {
     "inputs": [
      "LSA",
-     "Installed Advance (+) / Retard (−)",
+     "Total Advance vs LSA (+) / Retard (−)",
      "Desired Intake Centerline"
     ],
     "outputs": [
@@ -5396,7 +5396,7 @@
     }
    ],
    "former_ids": [],
-   "description": "IVC at a stated lift reference is derived from intake duration and intake centerline. Earlier IVC generally increases effective compression, all else equal.",
+   "description": "IVC at a stated lift reference is derived from intake duration and the installed intake centerline (recommended cam-card ICL − advance). Earlier IVC generally increases effective compression, all else equal.",
    "formula": null,
    "concepts": [
     "term.intake-valve-closing"
@@ -7476,6 +7476,10 @@
      },
      {
       "name": "Estimated Cranking Pressure",
+      "unit": "psi"
+     },
+     {
+      "name": "Absolute Cranking Pressure",
       "unit": "psi"
      }
     ]
@@ -28257,7 +28261,7 @@
     }
    ],
    "former_ids": [],
-   "description": "Smoke-Limited Fuel = Airflow ÷ Minimum Allowable Lambda. The maximum fuel a diesel can be fed at a given airflow before dropping below the minimum lambda where visible smoke and excess particulate emissions begin — a hard ceiling on fueling that airflow alone doesn’t reveal.",
+   "description": "Smoke-Limited Fuel = Airflow ÷ (Minimum Allowable Lambda × 14.5, the stoichiometric air/fuel ratio of diesel). The maximum fuel a diesel can be fed at a given airflow before dropping below the minimum lambda where visible smoke and excess particulate emissions begin — a hard ceiling on fueling that airflow alone doesn’t reveal.",
    "formula": {
     "inputs": [
      "Airflow",

@@ -46,6 +46,11 @@ const MPH = 5280 / 3600;               // ft/s per mph
 const pistonX = (stroke, rod, deg) => { const r = stroke / 2, a = deg * D2R; return r * (1 - Math.cos(a)) + rod - Math.sqrt(rod * rod - Math.pow(r * Math.sin(a), 2)); };
 /* dynamic (effective) compression: the trapped stroke starts at IVC, which is IVC degrees ABDC = 180 + IVC degrees from TDC */
 const dynCR = (cr, rod, stroke, ivc) => 1 + (pistonX(stroke, rod, 180 + ivc) / stroke) * (cr - 1);
+/* cam centerline convention (owner decision 2026-11-18): installed ICL = recommended (cam card) ICL - advance (+ advance, - retard); then the standard
+   .050-inch event relations: ECL = 2 LSA - ICL, IVO = dur_i/2 - ICL (BTDC), IVC = dur_i/2 + ICL - 180 (ABDC), EVO = ECL + dur_e/2 - 180 (BBDC), EVC = dur_e/2 - ECL (ATDC) */
+const camRef = (durI, durE, rec, lsa, adv) => { const inst = rec - adv, ecl = 2 * lsa - inst, ivo = durI / 2 - inst, evc = durE / 2 - ecl;
+  return { 'Installed Intake Centerline': inst, 'Installed Intake CL': inst, 'Exhaust Centerline': ecl, 'Exhaust CL': ecl, IVO: ivo, IVC: durI / 2 + inst - 180, EVO: ecl + durE / 2 - 180, EVC: evc, Overlap: ivo + evc }; };
+const camDiff = (got, want, tol) => Object.keys(got).map(k => mismatch(got[k], want[k], tol) ? `${k} ${got[k]} (independent ${want[k]})` : null).filter(Boolean);
 /* Stull (2011), J. Appl. Meteor. Climatol. 50, 2267-2269: Tw in degC from T in degC and RH in % */
 const stullC = (tc, rh) => tc * Math.atan(0.151977 * Math.sqrt(rh + 8.313659)) + Math.atan(tc + rh) - Math.atan(rh - 1.676331) + 0.00391838 * Math.pow(rh, 1.5) * Math.atan(0.023101 * rh) - 4.686035;
 const wetBulbF = (tf, rh) => stullC((tf - 32) * 5 / 9, rh) * 9 / 5 + 32;
@@ -80,26 +85,49 @@ const SIM = { W: 3200, cd: 0.32, A: 22, crr: 0.012, hpWheel: 319.88 * 0.85 };
 
 /* ---------- cases ---------- */
 /* kind 'row': open `calc`, type `edit`, read the result row whose label contains `row`, compare with `want` within `tol` (absolute).
-   kind 'sim': the same against a simulator stat tile.  kind 'prop': run `fn` (custom check).  `rc` = Phase 0 root cause, `reg` = register id. */
+   kind 'sim': the same against a simulator stat tile.  kind 'prop': run `fn` (custom check).  `rc` = Phase 0 root cause, `reg` = register id.
+   kind 'api' (Stage 2): the formula registry path, GH_ENGINE.calculate(`calc`, `inputs`) (registry variable names), output `out` (its key), compared with `want`
+   within `tol`. Saved calculations and the page's printed FORMULA block use this path, so a repair must correct it as well as the page. */
 const CASES = [
   // RC-01 / GH-DEF-045 diesel_power_from_fuel — HP = fuel [lb/hr] / BSFC [lb/hp-hr]
   { id: 'KA-01', reg: 'GH-DEF-045', calc: 'diesel_power_from_fuel', edit: { dpf_fuel: 25, dpf_bsfc: 0.40 }, row: 'Estimated Brake Power', want: 25 / 0.40, tol: 0.6, why: 'HP = 25 lb/hr / 0.40 lb/hp-hr = 62.5' },
   { id: 'KA-02', reg: 'GH-DEF-045', calc: 'diesel_power_from_fuel', edit: { dpf_fuel: 100, dpf_bsfc: 0.38 }, row: 'Estimated Brake Power', want: 100 / 0.38, tol: 0.6, why: 'HP = 100 / 0.38 = 263.2' },
-  // RC-02 / GH-DEF-046 diesel_smoke_limit — fuel = air / (lambda x stoich AFR). Reference value: diesel stoichiometric AFR 14.5 (the documented convention).
+  { id: 'KA-45', reg: 'GH-DEF-045', kind: 'api', calc: 'diesel_power_from_fuel', inputs: { fuel: 25, bsfc: 0.40 }, out: 'estimated_brake_power', want: 25 / 0.40, tol: 1e-9, why: 'registry: HP = 25 / 0.40 = 62.5 exactly' },
+  // RC-02 / GH-DEF-046 diesel_smoke_limit — fuel = air / (lambda x stoich AFR). Reference value: diesel stoichiometric AFR 14.5 (the documented convention; approved by the owner 2026-11-18).
   // The tolerance is a TOLERANCE, not a second reference: +/-1 % of the 14.5-based value, for display rounding. It happens to admit a stoichiometric AFR of
   // roughly 14.36-14.65, but the expected value is computed with 14.5 only. The shipped engine (air / lambda, no AFR) is about 14.5x too high and fails either way.
   { id: 'KA-03', reg: 'GH-DEF-046', calc: 'diesel_smoke_limit', edit: { dsl_a: 500, dsl_l: 1.15 }, row: 'Smoke-Limited Fuel', want: 500 / (1.15 * 14.5), tol: 0.30, why: '500 / (1.15 x 14.5) = 29.99 lb/min (tolerance +/-1 %)' },
   { id: 'KA-04', reg: 'GH-DEF-046', calc: 'diesel_smoke_limit', edit: { dsl_a: 60, dsl_l: 1.3 }, row: 'Smoke-Limited Fuel', want: 60 / (1.3 * 14.5), tol: 0.032, why: '60 / (1.3 x 14.5) = 3.183 lb/min (tolerance +/-1 %)' },
+  { id: 'KA-53', reg: 'GH-DEF-046', kind: 'api', calc: 'diesel_smoke_limit', inputs: { a: 500, l: 1.15 }, out: 'smoke_limited_fuel_index', want: 500 / (1.15 * 14.5), tol: 1e-9, why: 'registry: 500 / (1.15 x 14.5) = 29.985 (stoich AFR 14.5, owner decision 2026-11-18)' },
   // RC-03 / GH-DEF-047 piston_position — slider-crank
   { id: 'KA-05', reg: 'GH-DEF-047', calc: 'piston_position', edit: { str6: 3.75, rl2: 6.76, ang: 90 }, row: 'Piston Position', want: pistonX(3.75, 6.76, 90), tol: 0.001, why: 'x(90 deg) = 2.1402 in' },
   { id: 'KA-06', reg: 'GH-DEF-047', calc: 'piston_position', edit: { str6: 3.75, rl2: 6.76, ang: 0 }, row: 'Piston Position', want: 0, tol: 0.001, why: 'at TDC the piston is 0 in from TDC' },
   { id: 'KA-07', reg: 'GH-DEF-047', calc: 'piston_position', edit: { str6: 4.0, rl2: 6.0, ang: 60 }, row: 'Piston Position', want: pistonX(4, 6, 60), tol: 0.001, why: 'x(60 deg) = 1.2554 in' },
   { id: 'KA-08', reg: 'GH-DEF-047', calc: 'piston_position', edit: { str6: 3.75, rl2: 6.76, ang: 180 }, row: 'Piston Position', want: 3.75, tol: 0.001, why: 'at BDC the piston is one full stroke from TDC' },
-  // RC-04 / GH-DEF-048 cranking_compression — IVC is degrees ABDC; P = atm x CRe^gamma with the page's gamma
+  { id: 'KA-46', reg: 'GH-DEF-047', kind: 'api', calc: 'piston_position', inputs: { stroke6: 3.75, rl2: 6.76, angle: 90 }, out: 'piston_position_from_tdc', want: pistonX(3.75, 6.76, 90), tol: 1e-9, why: 'registry: x(90 deg) = 2.1402 in' },
+  { id: 'KA-47', reg: 'GH-DEF-047', kind: 'api', calc: 'piston_position', inputs: { stroke6: 4.0, rl2: 6.0, angle: 60 }, out: 'piston_position_from_tdc', want: pistonX(4, 6, 60), tol: 1e-9, why: 'registry: x(60 deg) = 1.2554 in' },
+  // RC-04 / GH-DEF-048 cranking_compression — IVC is degrees ABDC; absolute P = atm x CRe^gamma with the page's gamma; the primary result is gauge
+  // pressure P - atm = atm x (CRe^gamma - 1) (owner decision 2026-11-20), what a compression gauge reads
   { id: 'KA-09', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 10.5, cc_rod: 6.0, cc_stroke: 3.75, cc_ivc: 40, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Effective Compression Ratio', want: dynCR(10.5, 6, 3.75, 40), tol: 0.006, why: 'CRe = 9.699' },
-  { id: 'KA-10', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 10.5, cc_rod: 6.0, cc_stroke: 3.75, cc_ivc: 40, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Estimated Cranking Pressure', want: 14.7 * Math.pow(dynCR(10.5, 6, 3.75, 40), 1.32), tol: 1.0, why: 'P = 14.7 x 9.699^1.32 = 295 psi' },
+  { id: 'KA-10', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 10.5, cc_rod: 6.0, cc_stroke: 3.75, cc_ivc: 40, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Estimated Cranking Pressure (gauge)', want: 14.7 * (Math.pow(dynCR(10.5, 6, 3.75, 40), 1.32) - 1), tol: 1.0, why: 'gauge P = 14.7 x (9.699^1.32 - 1) = 280 psi' },
   { id: 'KA-11', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 9.5, cc_rod: 6.5, cc_stroke: 4.0, cc_ivc: 60, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Effective Compression Ratio', want: dynCR(9.5, 6.5, 4.0, 60), tol: 0.006, why: 'CRe = 7.874' },
-  { id: 'KA-12', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 9.5, cc_rod: 6.5, cc_stroke: 4.0, cc_ivc: 60, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Estimated Cranking Pressure', want: 14.7 * Math.pow(dynCR(9.5, 6.5, 4.0, 60), 1.32), tol: 1.0, why: 'P = 224 psi' },
+  { id: 'KA-12', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 9.5, cc_rod: 6.5, cc_stroke: 4.0, cc_ivc: 60, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Estimated Cranking Pressure (gauge)', want: 14.7 * (Math.pow(dynCR(9.5, 6.5, 4.0, 60), 1.32) - 1), tol: 1.0, why: 'gauge P = 224 - 14.7 = 209 psi' },
+  { id: 'KA-48', reg: 'GH-DEF-048', kind: 'api', calc: 'cranking_compression', inputs: { scr3: 10.5, rod: 6.0, stroke: 3.75, ivc: 40, atm: 14.7, gamma: 1.32 }, out: 'effective_compression_ratio', want: dynCR(10.5, 6, 3.75, 40), tol: 1e-9, why: 'registry: CRe = 9.699' },
+  { id: 'KA-49', reg: 'GH-DEF-048', kind: 'api', calc: 'cranking_compression', inputs: { scr3: 9.5, rod: 6.5, stroke: 4.0, ivc: 60, atm: 14.7, gamma: 1.32 }, out: 'estimated_cranking_pressure', want: 14.7 * (Math.pow(dynCR(9.5, 6.5, 4.0, 60), 1.32) - 1), tol: 0.05, why: 'registry: gauge P = 14.7 x (7.874^1.32 - 1) = 209.3 psi (the registry rounds CRe to 3 decimals first, as the page does: within 0.05 psi)' },
+  { id: 'KA-66', reg: 'GH-DEF-048', calc: 'cranking_compression', edit: { scr3: 10.5, cc_rod: 6.0, cc_stroke: 3.75, cc_ivc: 40, cc_atm: 14.7, cc_gamma: 1.32 }, row: 'Absolute Cranking Pressure', want: 14.7 * Math.pow(dynCR(10.5, 6, 3.75, 40), 1.32), tol: 1.0, why: 'absolute P = 14.7 x 9.699^1.32 = 295 psi, kept as a second row' },
+  { id: 'KA-67', reg: 'GH-DEF-048', kind: 'api', calc: 'cranking_compression', inputs: { scr3: 9.5, rod: 6.5, stroke: 4.0, ivc: 60, atm: 14.7, gamma: 1.32 }, out: 'absolute_cranking_pressure', want: 14.7 * Math.pow(dynCR(9.5, 6.5, 4.0, 60), 1.32), tol: 0.05, why: 'registry: absolute P = 14.7 x 7.874^1.32 = 224.0 psi' },
+  { id: 'KA-68', reg: 'GH-DEF-048', kind: 'prop', calc: 'cranking_compression', why: 'altitude and Metric: at 12.2 psi atmospheric (about 5,000 ft) gauge = 12.2 x (9.699^1.32 - 1) = 232.6 psi and absolute 244.8; the same engine typed in Metric (152.4 mm rod, 95.25 mm stroke, 1.01353 bar) shows 19.3 bar gauge and 20.3 bar absolute', fn: async (h) => {
+    const bad = [], k = Math.pow(dynCR(10.5, 6, 3.75, 40), 1.32);
+    await h.reset('cranking_compression'); await h.type({ scr3: 10.5, cc_rod: 6.0, cc_stroke: 3.75, cc_ivc: 40, cc_atm: 12.2, cc_gamma: 1.32 });
+    let r = await h.read(['Estimated Cranking Pressure (gauge)', 'Absolute Cranking Pressure']);
+    if (mismatch(r['Estimated Cranking Pressure (gauge)'], 12.2 * (k - 1), 1.0)) bad.push(`gauge at 12.2 psi: ${r['Estimated Cranking Pressure (gauge)']} (independent ${(12.2 * (k - 1)).toFixed(1)})`);
+    if (mismatch(r['Absolute Cranking Pressure'], 12.2 * k, 1.0)) bad.push(`absolute at 12.2 psi: ${r['Absolute Cranking Pressure']} (independent ${(12.2 * k).toFixed(1)})`);
+    const BAR = 0.0689475729, atmBar = 14.7 * BAR;
+    await h.reset('cranking_compression', 'metric'); await h.type({ scr3: 10.5, cc_rod: 152.4, cc_stroke: 95.25, cc_ivc: 40, cc_atm: +atmBar.toFixed(5), cc_gamma: 1.32 });
+    r = await h.read(['Estimated Cranking Pressure (gauge)', 'Absolute Cranking Pressure']);
+    if (mismatch(r['Estimated Cranking Pressure (gauge)'], atmBar * (k - 1), 0.06)) bad.push(`Metric gauge ${r['Estimated Cranking Pressure (gauge)']} bar (independent ${(atmBar * (k - 1)).toFixed(2)})`);
+    if (mismatch(r['Absolute Cranking Pressure'], atmBar * k, 0.06)) bad.push(`Metric absolute ${r['Absolute Cranking Pressure']} bar (independent ${(atmBar * k).toFixed(2)})`);
+    return bad.length ? bad.join('; ') : null; } },
   // RC-05 / GH-DEF-049 ct_sway_bar — roll stiffness per degree; Track Width must matter
   { id: 'KA-13', reg: 'GH-DEF-049', calc: 'ct_sway_bar', edit: { sb_arm: 6, sb_wire: 0.875, sb_len: 18, tw_sb: 60 }, row: 'Roll Stiffness Added', want: swayRollPerDeg(11.5e6, 0.875, 18, 6, 60), tol: 0.005 * 64170, conv: 'end links at the track width (motion ratio 1)', why: 'K = k_bar T^2 pi/180 = 64,170 lb-in/deg' },
   { id: 'KA-14', reg: 'GH-DEF-049', kind: 'prop', calc: 'ct_sway_bar', why: 'convention-free: roll stiffness must change when Track Width changes (40 in vs 80 in)', fn: async (h) => { const a = await h.rowAt('ct_sway_bar', { tw_sb: 40 }, 'Roll Stiffness Added'); const b = await h.rowAt('ct_sway_bar', { tw_sb: 80 }, 'Roll Stiffness Added'); return (Number.isFinite(a) && Number.isFinite(b) && Math.abs(b - a) > 1) ? null : `track 40 in gives ${a}, track 80 in gives ${b}: Track Width has no effect`; } },
@@ -107,6 +135,7 @@ const CASES = [
   { id: 'KA-15', reg: 'GH-DEF-050', calc: 'wet_bulb', edit: { temp_wb: 85, rh_wb: 50 }, row: 'Wet Bulb', want: wetBulbF(85, 50), tol: 0.15, why: 'Tw = 71.3 F' },
   { id: 'KA-16', reg: 'GH-DEF-050', calc: 'wet_bulb', edit: { temp_wb: 110, rh_wb: 10 }, row: 'Wet Bulb', want: wetBulbF(110, 10), tol: 0.15, why: 'Tw = 68.8 F (the defect gives 58.9 F)' },
   { id: 'KA-17', reg: 'GH-DEF-050', calc: 'wet_bulb', edit: { temp_wb: 60, rh_wb: 30 }, row: 'Wet Bulb', want: wetBulbF(60, 30), tol: 0.15, why: 'Tw at 60 F / 30 %' },
+  { id: 'KA-50', reg: 'GH-DEF-050', kind: 'api', calc: 'wet_bulb', inputs: { temp_wb: 110, rh_wb: 10 }, out: 'wet_bulb_temperature', want: wetBulbF(110, 10), tol: 1e-9, why: 'registry: Tw = 68.78 F (Stull 2011 in degC, converted)' },
   // RC-07 / GH-DEF-051 bolt_pattern — the page's own rule: even lug counts measured across opposite studs (PCD = measurement), odd counts adjacent
   { id: 'KA-18', reg: 'GH-DEF-051', calc: 'bolt_pattern', edit: { lugs: 4, meas: 4.5 }, row: 'Bolt Circle', want: 4.5, tol: 0.002, why: '4-lug opposite studs: PCD = 4.500 in' },
   { id: 'KA-19', reg: 'GH-DEF-051', calc: 'bolt_pattern', edit: { lugs: 8, meas: 6.5 }, row: 'Bolt Circle', want: 6.5, tol: 0.002, why: '8-lug opposite studs: PCD = 6.500 in' },
@@ -126,18 +155,155 @@ const CASES = [
   // RC-09 / GH-DEF-053 fuel_line_loss — relative roughness in consistent units
   { id: 'KA-22', reg: 'GH-DEF-053', calc: 'fuel_line_loss', edit: { flow_gph: 50, line_len: 10, line_id: 0.375, fuel_sg: 0.74, fuel_visc: 0.6, fuel_rough: 0.00006 }, row: 'Darcy Friction Factor', want: fuelLine(50, 10, 0.375, 0.00006, 0.74, 0.6).f, tol: 0.0006, why: 'f = 0.0325 (the defect gives 0.0408)' },
   { id: 'KA-23', reg: 'GH-DEF-053', calc: 'fuel_line_loss', edit: { flow_gph: 300, line_len: 20, line_id: 0.5, fuel_sg: 0.74, fuel_visc: 0.6, fuel_rough: 0.00006 }, row: 'Pressure Drop', want: fuelLine(300, 20, 0.5, 0.00006, 0.74, 0.6).psi, tol: 0.02 * 3.575, why: 'dP = 3.58 psi (the defect gives 5.2 psi)' },
+  { id: 'KA-51', reg: 'GH-DEF-053', calc: 'fuel_line_loss', edit: { flow_gph: 50, line_len: 10, line_id: 0.375, fuel_sg: 0.74, fuel_visc: 0.6, fuel_rough: 0.00006 }, row: 'Pressure Drop', want: fuelLine(50, 10, 0.375, 0.00006, 0.74, 0.6).psi, tol: 0.006, why: 'dP = 0.30 psi at the defaults (the defect gives 0.38 psi; the page shows 2 decimals)' },
   // RC-10 / GH-DEF-054 simulator air density — convention-free physical bounds and one direct value
   { id: 'KA-24', reg: 'GH-DEF-054', kind: 'sim', calc: 'sim_top_speed', edit: {}, row: 'Estimated Top Speed', max: powerLimitedTopMph(SIM), why: 'no gearing can exceed the speed where drag + rolling absorb the peak wheel power (~174.3 mph)' },
   { id: 'KA-25', reg: 'GH-DEF-054', kind: 'sim', calc: 'sim_dragstrip', edit: {}, row: 'Trap Speed', max: powerBound({ ...SIM, toFt: 1320 }).mph, why: 'power-limited upper bound on trap speed at 1,320 ft (~115.7 mph)' },
   { id: 'KA-26', reg: 'GH-DEF-054', kind: 'sim', calc: 'sim_acceleration', edit: { sim_target: 130 }, row: 'Target Time', min: powerBound({ ...SIM, toMph: 130 }).t, why: 'power-limited lower bound on 0-130 mph time (~15.27 s)' },
   { id: 'KA-27', reg: 'GH-DEF-054', kind: 'sim', calc: 'sim_cornering', edit: {}, row: 'Aero Downforce', want: 0.5 * RHO_SL * 1.2 * 22 * Math.pow(60 * MPH, 2), tol: 2, why: 'L = 1/2 rho Cl A v^2 = 243 lbf at 60 mph, Cl 1.2, A 22 ft^2' },
+  // GH-DEF-054 follow-up (owner decision 2026-11-20): the six simulators' Air Density stays slug/ft³ in Imperial and shows kg/m³ in Metric (1 slug/ft³ = 14.593902937206364 kg /
+  // 0.028316846592 m³ = 515.3788 kg/m³); a soft warning when the number looks like lb/ft³ or kg/m³ (or, in Metric, lb/ft³ or slug/ft³); never a silent conversion.
+  { id: 'KA-72', reg: 'GH-DEF-054', kind: 'prop', calc: 'sim_top_speed', why: 'Metric: the box shows 1.225 kg/m³ for the 0.0023769 slug/ft³ default (no warning) and every tile equals Imperial; the Metric / Imperial buttons convert the typed 0.0020 slug/ft³ to 1.0308 kg/m³ and back without changing a tile', fn: async (h) => {
+    const K = 14.593902937206364 / 0.028316846592, bad = [], tiles = ['Estimated Top Speed', 'Drag + Rolling'];
+    await h.reset('sim_top_speed'); const imp = {}; for (const t of tiles) imp[t] = await h.stat(t);
+    await h.reset('sim_top_speed', 'metric');
+    if (mismatch(await h.box('sim_rho'), 0.0023769 * K, 0.0005)) bad.push(`Metric default box ${await h.box('sim_rho')} (independent ${(0.0023769 * K).toFixed(4)} kg/m³)`);
+    if (await h.warn('sim_rho')) bad.push('Metric default warns: ' + await h.warn('sim_rho'));
+    for (const t of tiles) if (mismatch(await h.stat(t), imp[t], 0)) bad.push(`Metric ${t} ${await h.stat(t)} (Imperial ${imp[t]})`);
+    await h.reset('sim_top_speed'); await h.type({ sim_rho: 0.002 }); const before = {}; for (const t of tiles) before[t] = await h.stat(t);
+    await h.unitBtn('metric'); if (mismatch(await h.box('sim_rho'), 0.002 * K, 0.0005)) bad.push(`after Metric press the box shows ${await h.box('sim_rho')} (independent ${(0.002 * K).toFixed(4)})`);
+    for (const t of tiles) if (mismatch(await h.stat(t), before[t], 0)) bad.push(`after Metric press ${t} ${await h.stat(t)} (was ${before[t]})`);
+    await h.unitBtn('imperial'); if (mismatch(await h.box('sim_rho'), 0.002, 0.000001)) bad.push(`back in Imperial the box shows ${await h.box('sim_rho')}`);
+    for (const t of tiles) if (mismatch(await h.stat(t), before[t], 0)) bad.push(`back in Imperial ${t} ${await h.stat(t)} (was ${before[t]})`);
+    return bad.length ? bad.join('; ') : null; } },
+  { id: 'KA-73', reg: 'GH-DEF-054', kind: 'prop', calc: 'sim_top_speed', why: 'the soft warning: Imperial 0.0765 (lb/ft³) and 1.2 (kg/m³) warn, naming slug/ft³ and sea level 0.00238, and are used as typed (not converted); 0.0029 and 0.0011 do not warn; Metric 0.0765 and 0.0024 warn naming kg/m³ and 1.225; Metric 1.225 does not', fn: async (h) => {
+    const bad = [];
+    for (const [sys, v, warns] of [['imperial', 0.0765, true], ['imperial', 1.2, true], ['imperial', 0.0029, false], ['imperial', 0.0011, false], ['imperial', 0.0023769, false], ['metric', 0.0765, true], ['metric', 0.0024, true], ['metric', 1.225, false], ['metric', 1.5, false]]) {
+      await h.reset('sim_top_speed', sys); await h.type({ sim_rho: v }); const w = await h.warn('sim_rho'), box = await h.box('sim_rho');
+      if (!!w !== warns) bad.push(`${sys} ${v}: warning ${w ? 'shown' : 'absent'}`);
+      if (warns && sys === 'imperial' && !(w.includes('slug/ft³') && w.includes('0.00238') && w.includes('lb/ft³') && w.includes('kg/m³'))) bad.push(`${sys} ${v}: text "${w}"`);
+      if (warns && sys === 'metric' && !(w.includes('kg/m³') && w.includes('1.225') && w.includes('lb/ft³') && w.includes('slug/ft³'))) bad.push(`${sys} ${v}: text "${w}"`);
+      if (box !== v) bad.push(`${sys} ${v}: the box was changed to ${box}`);
+    }
+    await h.reset('sim_cornering'); await h.type({ sim_rho: 0.0765 }); if (!await h.warn('sim_rho')) bad.push('sim_cornering 0.0765: no warning');
+    return bad.length ? bad.join('; ') : null; } },
+  { id: 'KA-74', reg: 'GH-DEF-054', kind: 'prop', calc: 'dynamic_pressure', why: 'unchanged by the follow-up (owner decision 2026-11-20): EV Top Speed and Dynamic Pressure keep a plain slug/ft³ box in BOTH systems (no kg/m³, no warning) and read the number as typed: q = 1/2 rho v^2 at 70 mph and the aero-limited speed (the page model: 0.85 P = 1/2 rho Cd A v^3) for 0.0021 slug/ft³, the same in Imperial and Metric, and through a Metric / Imperial press', fn: async (h) => {
+    const bad = [], FPS = 5280 / 3600;
+    const evMph = rho => Math.cbrt(500 * 550 * 0.85 / (0.5 * rho * 0.28 * 24 * Math.pow(1.467, 3)));   // the page's own model, unchanged here: 85 % of 500 HP, Cd 0.28, 24 sq ft, 1.467 ft/s per mph
+    const label = async (id) => (await h.text()).includes('Air Density') && (await h.text()).includes('slug/ft³') && !(await h.text()).includes('kg/m³');
+    for (const sys of ['imperial', 'metric']) {
+      await h.reset('dynamic_pressure', sys); await h.type({ dp_rho: 0.0021 });
+      if (await h.box('dp_rho') !== 0.0021) bad.push(`${sys} Dynamic Pressure box ${await h.box('dp_rho')}`); if (await h.warn('dp_rho')) bad.push(`${sys} Dynamic Pressure warns`); if (!await label('dp_rho')) bad.push(`${sys} Dynamic Pressure label is not slug/ft³`);
+      const q = (await h.read(['Dynamic Pressure']))['Dynamic Pressure']; if (mismatch(q, 0.5 * 0.0021 * Math.pow(70 * FPS, 2), 0.006)) bad.push(`${sys} q ${q} (independent ${(0.5 * 0.0021 * Math.pow(70 * FPS, 2)).toFixed(3)} lb/sq ft)`);
+      await h.reset('ev_top_speed', sys); await h.type({ ev_rho: 0.0021 });
+      if (await h.box('ev_rho') !== 0.0021) bad.push(`${sys} EV box ${await h.box('ev_rho')}`); if (await h.warn('ev_rho')) bad.push(`${sys} EV warns`); if (!await label('ev_rho')) bad.push(`${sys} EV label is not slug/ft³`);
+      const v = (await h.read(['Estimated Aero-Limited Speed']))['Estimated Aero-Limited Speed'], want = sys === 'metric' ? evMph(0.0021) * 1.609344 : evMph(0.0021);
+      if (mismatch(v, want, want * 0.002)) bad.push(`${sys} EV speed ${v} (independent ${want.toFixed(2)})`);
+    }
+    await h.reset('dynamic_pressure'); await h.type({ dp_rho: 0.0021 }); await h.unitBtn('metric');
+    if (await h.box('dp_rho') !== 0.0021) bad.push(`after Metric press the Dynamic Pressure box shows ${await h.box('dp_rho')}`);
+    const qm = (await h.read(['Dynamic Pressure']))['Dynamic Pressure']; if (mismatch(qm, 0.5 * 0.0021 * Math.pow(70 * FPS, 2), 0.006)) bad.push(`after Metric press q ${qm}`);
+    return bad.length ? bad.join('; ') : null; } },
+  // GH-DEF-062 (Medium; fixed with the Stage 2 repairs on the owner's instruction of 2026-11-18): the Drag + Rolling tile must be the resistance AT the reported top speed
+  { id: 'KA-54', reg: 'GH-DEF-062', kind: 'prop', calc: 'sim_top_speed', why: 'Drag + Rolling = 1/2 rho Cd A v^2 + Crr W at the shown top speed (default vehicle; ~549 lbf at 168.5 mph)', fn: async (h) => {
+    const s = await h.rowAt('sim_top_speed', {}, 'Estimated Top Speed'), d = await h.rowAt('sim_top_speed', {}, 'Drag + Rolling');
+    if (!Number.isFinite(s) || !Number.isFinite(d)) return `could not read the tiles (top speed ${s}, drag ${d})`;
+    const want = 0.5 * RHO_SL * SIM.cd * SIM.A * Math.pow(s * MPH, 2) + SIM.crr * SIM.W, m = mismatch(d, want, 1);
+    return m ? `shows ${d} lbf at ${s} mph, independent value ${want.toFixed(1)} (${m})` : null; } },
   // RC-14 / GH-DEF-055 hidden cam advance — what the page shows must be self-consistent: LSA = (ICL + ECL) / 2 with the ICL on the page
-  { id: 'KA-28', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 230, cam_lsa: 110, cam_icl: 110 }, row: 'Exhaust Centerline', want: 2 * 110 - 110, tol: 0.5, why: 'ECL = 2 x LSA - ICL = 110 deg BTDC with the values shown on the page' },
-  { id: 'KA-29', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 230, cam_lsa: 110, cam_icl: 110 }, row: 'EVC', want: 230 / 2 - 110, tol: 0.5, why: 'EVC = dur/2 - ECL = 5 deg ATDC' },
+  { id: 'KA-28', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 230, cam_lsa: 110, cam_icl: 110, cam_adv: 0 }, row: 'Exhaust Centerline', want: 2 * 110 - 110, tol: 0.5, why: 'ECL = 2 x LSA - ICL = 110 deg BTDC with the values shown on the page' },
+  { id: 'KA-29', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 230, cam_lsa: 110, cam_icl: 110, cam_adv: 0 }, row: 'EVC', want: 230 / 2 - 110, tol: 0.5, why: 'EVC = dur/2 - ECL = 5 deg ATDC' },
+  { id: 'KA-55', reg: 'GH-DEF-055', calc: 'camshaft_exhaust_events', edit: { cam_d050_e: 236, cam_lsa: 112, cam_icl: 106, cam_adv: 0 }, row: 'EVO', want: (2 * 112 - 106) + 236 / 2 - 180, tol: 0.5, why: 'recommended ICL 106, advance 0 (installed 106), LSA 112: ECL = 118, EVO = ECL + dur/2 - 180 = 56 deg BBDC' },
+  // cam centerline convention (owner decision 2026-11-18): every cam page shows recommended ICL, advance and installed ICL, and uses installed = recommended - advance
+  ...[['KA-56', 4, '4 deg advance'], ['KA-57', -4, '4 deg retard']].map(([id, adv, what]) => ({ id, reg: 'GH-DEF-055', kind: 'prop', calc: 'camshaft_exhaust_events', why: `Exhaust Valve Events, 230 / LSA 110 / recommended ICL 110, ${what}: installed ${110 - adv}, ECL ${110 + adv}, EVO ${45 + adv}, EVC ${5 - adv}`, fn: async (h) => {
+    await h.reset('camshaft_exhaust_events'); await h.type({ cam_d050_e: 230, cam_lsa: 110, cam_icl: 110, cam_adv: adv });
+    const g = await h.read(['Installed Intake Centerline', 'Exhaust Centerline', 'EVO', 'EVC']), d = camDiff(g, camRef(224, 230, 110, 110, adv), 0.01), rec = await h.box('cam_icl');
+    return d.length ? d.join('; ') : rec !== 110 ? `recommended ICL box changed to ${rec}` : null; } })),
+  { id: 'KA-58', reg: 'GH-DEF-055', kind: 'prop', calc: 'camshaft_ivc', why: 'IVC page, 224 / LSA 110 / recommended ICL 110: advance 0, +4, -4 give installed 110 / 106 / 114 and IVC 42 / 38 / 46 deg ABDC (advancing lowers the installed ICL number, retarding raises it)', fn: async (h) => {
+    await h.reset('camshaft_ivc'); const bad = [];
+    for (const adv of [0, 4, -4]) { await h.type({ cam_d050_i: 224, cam_lsa: 110, cam_icl: 110, cam_adv: adv }); const g = await h.read(['Installed Intake Centerline', 'IVO', 'IVC']);
+      bad.push(...camDiff(g, camRef(224, 230, 110, 110, adv), 0.01).map(s => `advance ${adv}: ${s}`)); if (await h.box('cam_icl') !== 110) bad.push(`advance ${adv}: recommended ICL box changed`); }
+    return bad.length ? bad.join('; ') : null; } },
+  { id: 'KA-59', reg: 'GH-DEF-055', kind: 'prop', calc: 'cam_card', why: 'Complete Cam Card, 224 / 230 / LSA 110 / recommended ICL 110, 4 deg advance: the Recommended tile stays 110, installed 106, IVO 6, IVC 38, ECL 114, EVO 49, EVC 1, overlap 7', fn: async (h) => {
+    await h.reset('cam_card'); await h.type({ cam_d050_i: 224, cam_d050_e: 230, cam_lsa: 110, cam_icl: 110, cam_adv: 4 });
+    const g = await h.read(['Installed Intake CL', 'Exhaust CL', 'IVO', 'IVC', 'EVO', 'EVC', 'Overlap']), r = await h.read(['Recommended Intake CL', 'Install Adjustment (vs card)']);
+    const d = camDiff(g, camRef(224, 230, 110, 110, 4), 0.01); if (r['Recommended Intake CL'] !== 110) d.push(`Recommended Intake CL tile ${r['Recommended Intake CL']}`); if (r['Install Adjustment (vs card)'] !== 4) d.push(`Install Adjustment tile ${r['Install Adjustment (vs card)']}`);
+    return d.length ? d.join('; ') : null; } },
+  ...[['KA-60', 'imperial'], ['KA-61', 'metric']].map(([id, unit]) => ({ id, reg: 'GH-DEF-055', kind: 'prop', calc: 'cam_card', why: `one cam across every page (${unit}): set 236 / 242 / LSA 112 / recommended ICL 108, 3 deg retard on the Cam Card; Cam Card, IVC and Exhaust Events show the same recommended 108, installed 111, IVC 49, ECL 113; Dynamic Compression's pull gives IVC 49 and DCR = slider-crank reference`, fn: async (h) => {
+    const want = camRef(236, 242, 108, 112, -3), bad = [];
+    await h.reset('cam_card', unit); await h.type({ cam_d050_i: 236, cam_d050_e: 242, cam_lsa: 112, cam_icl: 108, cam_adv: -3 });
+    for (const [pg, labels] of [['cam_card', ['Installed Intake CL', 'IVC', 'Exhaust CL', 'EVO', 'EVC']], ['camshaft_ivc', ['Installed Intake Centerline', 'IVO', 'IVC']], ['camshaft_exhaust_events', ['Installed Intake Centerline', 'Exhaust Centerline', 'EVO', 'EVC']]]) {
+      await h.open(pg); bad.push(...camDiff(await h.read(labels), want, 0.01).map(s => `${pg}: ${s}`));
+      if (await h.box('cam_icl') !== 108) bad.push(`${pg}: recommended ICL box ${await h.box('cam_icl')}`); if (await h.box('cam_adv') !== -3) bad.push(`${pg}: advance box ${await h.box('cam_adv')}`); }
+    await h.open('dynamic_compression'); await h.click('Pull Installed IVC from Cam Card');
+    const ica = await h.box('ica'), dcr = (await h.read(['Dynamic Compression']))['Dynamic Compression'];
+    if (mismatch(ica, want.IVC, 0.005)) bad.push(`Dynamic Compression IVC box ${ica} (independent ${want.IVC})`);
+    if (unit === 'imperial' && mismatch(dcr, dynCR(10.5, 6.76, 3.75, want.IVC), 0.002)) bad.push(`DCR ${dcr} (independent ${dynCR(10.5, 6.76, 3.75, want.IVC).toFixed(4)})`);
+    if (unit === 'metric' && mismatch(dcr, dynCR(10.5, 6.76, 3.75, want.IVC), 0.002)) bad.push(`DCR (metric) ${dcr} (independent ${dynCR(10.5, 6.76, 3.75, want.IVC).toFixed(4)})`);
+    return bad.length ? bad.join('; ') : null; } })),
+  { id: 'KA-65', reg: 'GH-DEF-055', kind: 'prop', calc: 'cam_card', why: 'approved cam wording (owner 2026-11-20): Cam Card / IVC / Exhaust Events advance box "Install Adjustment vs Cam Card: Advance (+) / Retard (−)" with its note; Cam Card tile "Install Adjustment (vs card)"; Intake Centerline "Total Advance vs LSA (+) / Retard (−)", its note, "Advance Needed to Reach Target (+) / Retard (−)" and the Apply note; Dynamic Compression "Pull Installed IVC from Cam Card"; the formula registry keeps its output "Additional Advance (+) / Retard (−)"', fn: async (h) => {
+    const bad = [], txt = () => h.text();
+    for (const pg of ['cam_card', 'camshaft_ivc', 'camshaft_exhaust_events']) { await h.reset(pg); const t = await txt();
+      if (!t.includes('Install Adjustment vs Cam Card: Advance (+) / Retard (−)')) bad.push(`${pg}: advance label`);
+      if (!t.includes('0 = installed as the card specifies. Installed ICL = recommended ICL − this value.')) bad.push(`${pg}: advance note`);
+      if (t.includes('Cam Advance (+) / Retard (−)')) bad.push(`${pg}: old label still shown`); }
+    await h.reset('cam_card'); if (!(await txt()).includes('Install Adjustment (vs card)')) bad.push('cam_card: tile label');
+    await h.reset('camshaft_intake_centerline'); let t = await txt();
+    for (const w of ['Total Advance vs LSA (+) / Retard (−)', 'ICL = LSA − this value. Includes advance ground into the cam.', 'Advance Needed to Reach Target (+) / Retard (−)', 'Sets the cam-card install adjustment so the installed ICL equals this centerline; the recommended ICL is unchanged.']) if (!t.includes(w)) bad.push(`intake centerline: "${w}" missing`);
+    const outs = await h.api('camshaft_intake_centerline', { af_ic_lsa: 114, af_ic_adv: 4, af_ic_target: 110 }, { add: 'additional_advance_retard' });
+    if (outs.add !== 0) bad.push(`registry output additional_advance_retard ${outs.add} (expected 0)`);
+    await h.reset('dynamic_compression'); t = await txt(); if (!t.includes('Pull Installed IVC from Cam Card')) bad.push('dynamic compression: button label');
+    return bad.length ? bad.join('; ') : null; } },
+  { id: 'KA-62', reg: 'GH-DEF-055', kind: 'prop', calc: 'cam_card', why: 'no hidden correction: a fresh visitor sees advance 0 and installed ICL = recommended ICL 110 on every cam page (IVC 42, ECL 110, EVO 45, EVC 5)', fn: async (h) => {
+    const want = camRef(224, 230, 110, 110, 0), bad = [];
+    await h.reset('cam_card');
+    for (const [pg, labels] of [['cam_card', ['Installed Intake CL', 'IVC', 'Exhaust CL', 'EVO', 'EVC']], ['camshaft_ivc', ['Installed Intake Centerline', 'IVC']], ['camshaft_exhaust_events', ['Installed Intake Centerline', 'Exhaust Centerline', 'EVO', 'EVC']]]) {
+      await h.open(pg); bad.push(...camDiff(await h.read(labels), want, 0.01).map(s => `${pg}: ${s}`)); if (await h.box('cam_adv') !== 0) bad.push(`${pg}: default advance ${await h.box('cam_adv')}`); }
+    return bad.length ? bad.join('; ') : null; } },
+  { id: 'KA-64', reg: 'GH-DEF-069', kind: 'prop', calc: 'camshaft_ivc', why: 'stale remembered boxes: IVC page typed with recommended ICL 112; then Cam Card set to recommended 106 with 2 deg advance; then another page; then the IVC page and Exhaust Events show 106 / 2 / installed 104 (IVC 36, ECL 116), and a keystroke there does not write 112 back', fn: async (h) => {
+    const want = camRef(224, 230, 106, 110, 2), bad = [];
+    await h.reset('camshaft_ivc'); await h.type({ cam_d050_i: 224, cam_lsa: 110, cam_icl: 112, cam_adv: 0 });
+    await h.open('cam_card'); await h.type({ cam_d050_e: 230, cam_icl: 106, cam_adv: 2 });
+    for (const [pg, labels] of [['camshaft_ivc', ['Installed Intake Centerline', 'IVC']], ['camshaft_exhaust_events', ['Installed Intake Centerline', 'Exhaust Centerline', 'EVO', 'EVC']]]) {
+      await h.open('hp_quarter_mile'); await h.open(pg);
+      if (await h.box('cam_icl') !== 106 || await h.box('cam_adv') !== 2) bad.push(`${pg}: boxes show ICL ${await h.box('cam_icl')} / advance ${await h.box('cam_adv')} (shared 106 / 2)`);
+      bad.push(...camDiff(await h.read(labels), want, 0.01).map(s => `${pg}: ${s}`)); }
+    await h.type({ cam_lsa: 110 }); await h.open('cam_card');
+    if (await h.box('cam_icl') !== 106 || await h.box('cam_adv') !== 2) bad.push(`after a keystroke: Cam Card ICL ${await h.box('cam_icl')} / advance ${await h.box('cam_adv')}`);
+    return bad.length ? bad.join('; ') : null; } },
+  { id: 'KA-63', reg: 'GH-DEF-068', kind: 'prop', calc: 'camshaft_intake_centerline', why: 'Intake Centerline page, LSA 114 and 4 deg advance (calculated installed ICL 110), applied to a cam whose recommended ICL is 108: no page error; the Cam Card keeps recommended 108, sets advance -2, installed 110, LSA 114', fn: async (h) => {
+    await h.reset('cam_card'); await h.type({ cam_icl: 108, cam_adv: 0 }); const errs0 = h.errors().length;
+    await h.open('camshaft_intake_centerline'); await h.type({ af_ic_lsa: 114, af_ic_adv: 4 }); await h.click('Apply Centerline to Cam Card');
+    const bad = [], e = h.errors().slice(errs0); if (e.length) bad.push('page error: ' + e.join(' | '));
+    const rec = await h.box('cam_icl'), adv = await h.box('cam_adv'), lsa = await h.box('cam_lsa'), inst = (await h.read(['Installed Intake CL']))['Installed Intake CL'];
+    if (rec !== 108) bad.push(`recommended ICL ${rec}`); if (adv !== -2) bad.push(`advance ${adv}`); if (lsa !== 114) bad.push(`LSA ${lsa}`); if (inst !== 110) bad.push(`installed ICL ${inst}`);
+    return bad.length ? bad.join('; ') : null; } },
   // RC-17 / GH-DEF-056 e85_blend remove/replace — volume of fuel to drain and replace with ethanol-free gasoline (provisional: replacement fuel E0)
   { id: 'KA-30', reg: 'GH-DEF-056', calc: 'e85_blend', edit: { tank_gal: 16, cur_e: 60, target_e: 30, e85_pct: 75 }, row: 'Fuel to Remove', want: 16 * (60 - 30) / 60, tol: 0.02, conv: 'replacement fuel is E0 gasoline', why: 'drain 16 x (60 - 30)/60 = 8.00 gal, refill with E0' },
   // RC-19 / GH-DEF-057 rc_fuel_stint — 3.6 gal at 0.12 gal/lap is 30 laps
   { id: 'KA-31', reg: 'GH-DEF-057', calc: 'rc_fuel_stint', edit: { laps_rc2: 30, fuel_lap2: 0.12, safety: 0.5 }, row: 'Max Green Laps', want: 30, tol: 0, why: '3.60 gal / 0.12 gal per lap = 30 laps exactly' },
+  { id: 'KA-52', reg: 'GH-DEF-057', kind: 'api', calc: 'rc_fuel_stint', inputs: { laps_rc2: 30, fuel_lap2: 0.12, safety: 0.5 }, out: 'max_green_laps', want: 30, tol: 0, why: 'registry: 3.60 / 0.12 = 30 laps exactly' },
+  // GH-DEF-057 follow-up (owner decision 2026-11-20): fuel rounded UP to the next 0.01 gal; Max Green Laps from the true, unrounded fuel. The reference works in
+  // exact integers of 0.0001 gal (every per-lap value below has at most 4 decimals), independent of the engine's 9-decimal floating-point step.
+  ...[['KA-69', 'page'], ['KA-70', 'registry']].map(([id, path]) => ({ id, reg: 'GH-DEF-057', kind: 'prop', calc: 'rc_fuel_stint', why: `${path}: 7 x 0.333 = 2.331 -> 2.34 gal, 7 laps (was 2.33, 6); 1 x 0.001 -> 0.01 gal, 1 lap (was 0, 0); 9 x 0.333 = 2.997 -> 3.00 gal, 9 laps; exact boundaries 30 x 0.12 = 3.60 / 30 laps and 12 x 0.125 = 1.50 / 12 laps; 0 laps -> 0 gal, 0 laps; load and 3 % save target rounded up too`, fn: async (h) => {
+    const T = [[7, 0.333, 0.5], [1, 0.001, 0.5], [9, 0.333, 0.5], [30, 0.12, 0.5], [12, 0.125, 0], [0, 0.12, 0.5], [1, 0.0001, 0]], bad = [];
+    for (const [laps, per, buf] of T) {
+      const q = Math.round(per * 1e4), n = laps * q, b4 = Math.round(buf * 1e4), up = u => Math.ceil(u / 100) / 100;   // u in 0.0001 gal -> next 0.01 gal
+      const want = { 'Fuel Required': up(n), 'Load with Buffer': up(n + b4), 'Max Green Laps': Math.floor(n / q), '3% Save Target': up(n * 97 / 100) };
+      let got;
+      if (path === 'page') { await h.reset('rc_fuel_stint'); await h.type({ laps_rc2: laps, fuel_lap2: per, safety: buf }); got = await h.read(Object.keys(want)); }
+      else got = await h.api('rc_fuel_stint', { laps_rc2: laps, fuel_lap2: per, safety: buf }, { 'Fuel Required': 'fuel_required', 'Load with Buffer': 'load_with_buffer', 'Max Green Laps': 'max_green_laps', '3% Save Target': '3_save_target' });
+      for (const k of Object.keys(want)) if (mismatch(got[k], want[k], 1e-9)) bad.push(`${laps} x ${per} + ${buf}: ${k} ${got[k]} (independent ${want[k]})`);
+      if (got['Max Green Laps'] < laps && Number.isInteger(laps)) bad.push(`${laps} x ${per}: lap count ${got['Max Green Laps']} understates the stint`);
+    }
+    return bad.length ? bad.join('; ') : null; } })),
+  { id: 'KA-71', reg: 'GH-DEF-057', kind: 'prop', calc: 'rc_fuel_stint', why: 'Metric: 7 laps at 1.2605 L/lap (0.333 gal) shows 2.34 gal = 8.8579 L, 7 laps', fn: async (h) => {
+    const G = 3.785411784, bad = [];
+    await h.reset('rc_fuel_stint', 'metric'); await h.type({ laps_rc2: 7, fuel_lap2: +(0.333 * G).toFixed(10), safety: +(0.5 * G).toFixed(10) });
+    const r = await h.read(['Fuel Required', 'Max Green Laps']);
+    if (mismatch(r['Fuel Required'], 2.34 * G, 0.0001)) bad.push(`Fuel Required ${r['Fuel Required']} L (independent ${(2.34 * G).toFixed(4)})`);
+    if (r['Max Green Laps'] !== 7) bad.push(`Max Green Laps ${r['Max Green Laps']}`);
+    return bad.length ? bad.join('; ') : null; } },
   // SYS-01 / GH-DEF-058 silent fallback — a required box left empty (or holding text) must not produce a number
   ...[['piston_position', 'str6'], ['diesel_power_from_fuel', 'dpf_fuel'], ['ct_sway_bar', 'sb_wire'], ['wet_bulb', 'temp_wb'], ['fuel_line_loss', 'flow_gph'], ['cranking_compression', 'cc_ivc'], ['bolt_pattern', 'meas'], ['hp_trap_speed', 'wt2']]
     .map(([calc, fld], i) => ({ id: 'KA-' + (32 + i), reg: 'GH-DEF-058', kind: 'blank', calc, field: fld, value: '', why: `${calc}: ${fld} left empty must give no number` })),
@@ -175,13 +341,27 @@ if (process.env.KA_LIST) { process.stdout.write(JSON.stringify({ ids: CASES.map(
     document.querySelectorAll('#calc-container .result-box').forEach(b => { const v = b.querySelector('.result-value'); if (v) out.push({ label: t(b.querySelector('.result-label')), val: own(v) || t(v) }); });
     document.querySelectorAll('#calc-container .mini-result').forEach(b => { const v = b.querySelector('.value'); if (v) out.push({ label: t(b.querySelector('.label')), val: own(v) || t(v) }); });
     document.querySelectorAll('#calc-container .sim-stat').forEach(s => { if (s.children[0] && s.children[1]) out.push({ label: t(s.children[0]), val: t(s.children[1]) }); });
+    document.querySelectorAll('#calc-container .cam-events-grid > div').forEach(d => { const l = d.querySelector('span'), v = d.querySelector('strong'); if (l && v) out.push({ label: t(l), val: t(v) }); });   // Complete Cam Card tiles
     return out;
   });
   const warnings = () => page.evaluate(() => document.querySelectorAll('#calc-container .field-warning-text, #calc-container .gh-invalid-result').length);
   const pick = (rs, label) => rs.find(r => r.label.toLowerCase().includes(label.toLowerCase()));
   const valueOf = s => parseShown(String(s).replace(/[^0-9eE+\-.,~−–]/g, ' ').trim().split(/\s+/)[0]);
   const h = {
-    rowAt: async (calc, edit, label) => { await fresh(calc); for (const [k, v] of Object.entries(edit)) await type(k, v); const r = pick(await rows(), label); return r ? valueOf(r.val) : NaN; }
+    rowAt: async (calc, edit, label) => { await fresh(calc); for (const [k, v] of Object.entries(edit)) await type(k, v); const r = pick(await rows(), label); return r ? valueOf(r.val) : NaN; },
+    // cam centerline cases (several pages in one session): reset clears remembered state; open renders a page without reloading; read returns the rows by label
+    reset: async (calc, unit) => { await page.goto(ENGINE, { waitUntil: 'load', timeout: 60000 }); await page.evaluate(([i, u]) => { try { localStorage.clear(); } catch (e) {} setUnit(u || 'imperial'); renderCalc(i, false); }, [calc, unit]); await page.waitForTimeout(120); },
+    open: async (calc) => { await page.evaluate(i => renderCalc(i, false), calc); await page.waitForTimeout(120); },
+    type: async (edit) => { for (const [k, v] of Object.entries(edit)) await type(k, v); },
+    read: async (labels) => { const rs = await rows(), o = {}; for (const l of labels) { const r = rs.find(x => x.label.toLowerCase() === l.toLowerCase()) || pick(rs, l); o[l] = r ? valueOf(r.val) : NaN; } return o; },
+    box: (id) => page.evaluate(i => { const e = document.getElementById(i); return e ? parseFloat(e.value) : NaN; }, id),
+    click: async (text) => { await page.click(`#calc-container button:has-text("${text}")`); await page.waitForTimeout(200); },
+    errors: () => pageErrors.slice(),
+    warn: (id) => page.evaluate(i => { const e = document.getElementById(i), f = e && (e.closest('.field') || e.parentElement), w = f && f.querySelector('.field-warning-text'); return w ? w.textContent.trim() : ''; }, id),
+    stat: (label) => page.evaluate(l => { for (const s of document.querySelectorAll('#calc-container .sim-stat')) if (s.children[0] && s.children[0].textContent.trim() === l) return parseFloat(s.children[1].textContent); return NaN; }, label),
+    unitBtn: async (sys) => { await page.click('#btn-' + sys); await page.waitForTimeout(300); },
+    text: () => page.evaluate(() => document.getElementById('calc-container').textContent.replace(/\s+/g, ' ')),
+    api: (calc, inputs, keys) => page.evaluate(([c, i, k]) => { const r = GH_ENGINE.calculate(c, i), o = {}; for (const [l, key] of Object.entries(k)) { const x = r.outputs.find(q => q.key === key); o[l] = x ? x.value : NaN; } return o; }, [calc, inputs, keys])
   };
 
   const results = [];
@@ -189,6 +369,14 @@ if (process.env.KA_LIST) { process.stdout.write(JSON.stringify({ ids: CASES.map(
     let fail = null;
     try {
       if (c.kind === 'prop') fail = await c.fn(h);
+      else if (c.kind === 'api') {
+        await fresh(c.calc);
+        const r = await page.evaluate(([id, inp, key]) => { const x = GH_ENGINE.calculate(id, inp), o = x && x.outputs && x.outputs.find(q => q.key === key);
+          return { state: x && x.state, value: o ? o.value : null, keys: x && x.outputs ? x.outputs.map(q => q.key) : [] }; }, [c.calc, c.inputs, c.out]);
+        if (r.state !== 'VALID') fail = `GH_ENGINE.calculate returned state ${r.state}`;
+        else if (r.value === null || r.value === undefined) fail = `no registry output "${c.out}" (outputs: ${r.keys.join(', ')})`;
+        else { const m = mismatch(r.value, c.want, c.tol); fail = m ? `registry gives ${r.value}, independent value ${+c.want.toFixed(5)} (${m})` : null; }
+      }
       else {
         await fresh(c.calc);
         const needed = c.kind === 'blank' || c.kind === 'huge' ? [c.field] : Object.keys(c.edit || {});

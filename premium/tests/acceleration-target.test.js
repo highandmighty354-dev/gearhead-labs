@@ -128,8 +128,11 @@ async function run(enginePath) {
   await setSystem('imperial');
   const GOLDEN_WEIGHT = '7500';
   const golden = {
-    sim_dragstrip: { '1/4 Mile ET': '18.230 sec', 'Trap Speed': '87.2 mph', '60 ft': '4.150 sec', '330 ft': '8.750 sec', '660 ft': '12.440 sec', '1000 ft': '15.600 sec', '1320 ft': '18.230 sec', 'Peak Wheel Torque': '3551 lb-ft' },
-    sim_top_speed: { 'Estimated Top Speed': '218.5 mph', 'Top Gear RPM': '6491 RPM', 'Wheel Power': '263 HP', 'Drag + Rolling': '117 lbf' }
+    // GH-DEF-054 (2026-11-18): re-recorded after the air-density correction (was 18.230 sec / 87.2 mph / 8.750 / 12.440 / 15.600 sec / 3551 lb-ft)
+    sim_dragstrip: { '1/4 Mile ET': '18.370 sec', 'Trap Speed': '85.2 mph', '60 ft': '4.150 sec', '330 ft': '8.770 sec', '660 ft': '12.480 sec', '1000 ft': '15.690 sec', '1320 ft': '18.370 sec', 'Peak Wheel Torque': '3550 lb-ft' },
+    // GH-DEF-054 (2026-11-18): re-recorded after the air-density correction (was 218.5 mph / 6491 RPM / 263 HP / 117 lbf, with aero drag 32x too small).
+    // GH-DEF-062: Drag + Rolling is the resistance at the reported top speed, 1/2 rho Cd A v^2 + Crr W = 583 lbf at 165.5 mph (was 949, the last speed tested).
+    sim_top_speed: { 'Estimated Top Speed': '165.5 mph', 'Top Gear RPM': '5992 RPM', 'Wheel Power': '272 HP', 'Drag + Rolling': '583 lbf' }
   };
   for (const id of Object.keys(golden)) {
     await fresh(); await goTo(id); await fill('sim_weight', GOLDEN_WEIGHT); const r = await read();
@@ -137,7 +140,8 @@ async function run(enginePath) {
   }
   {
     await fresh(); await goTo('sim_acceleration'); await fill('sim_weight', GOLDEN_WEIGHT); await fill('sim_target', '50'); const r = await read();
-    const expected = { 'Target Time': '8.220 sec', 'Target Speed': '50.0 mph', 'Distance': '290 ft', 'Gear': '2', 'Shifts': '1', 'Peak RPM': '6009 RPM', 'Peak Wheel Torque': '3551 lb-ft', 'Peak Tire Force': '3156 lbf', 'Max Accel': '0.41 g' };   // recorded from the engine before this fix
+    // GH-DEF-054 (2026-11-18): re-recorded after the air-density correction (was 8.220 sec / 290 ft / 6009 RPM / 3551 lb-ft, with aero drag 32x too small)
+    const expected = { 'Target Time': '8.280 sec', 'Target Speed': '50.0 mph', 'Distance': '294 ft', 'Gear': '2', 'Shifts': '1', 'Peak RPM': '6006 RPM', 'Peak Wheel Torque': '3550 lb-ft', 'Peak Tire Force': '3156 lbf', 'Max Accel': '0.41 g' };   // recorded from the engine before this fix
     const got = {}; for (const k of Object.keys(r.stats)) got[k] = r.stats[k].trim();
     check('D sim_acceleration: a 50 mph target for the 7,500 lb vehicle is unchanged', JSON.stringify(got) === JSON.stringify(expected), `${JSON.stringify(got)} (expected ${JSON.stringify(expected)})`);
   }
@@ -155,7 +159,7 @@ async function run(enginePath) {
   await setSystem('imperial'); await fresh(); await goTo('sim_acceleration'); await fill('sim_weight', (await read()).weight); await fill('sim_target', '400');
   {
     const r = await read();
-    check('F a 400 mph target (above the 218.5 mph top speed): the 60-second limit and the speed reached are reported', approx(tile(r, 'Target Time').v, 60, 0, 0.011) && mphOf(tile(r, 'Target Speed')) < 400 && mphOf(tile(r, 'Target Speed')) > 150, JSON.stringify([tile(r, 'Target Time'), tile(r, 'Target Speed')]));
+    check('F a 400 mph target (above the simulated top speed): the 60-second limit and the speed reached are reported', approx(tile(r, 'Target Time').v, 60, 0, 0.011) && mphOf(tile(r, 'Target Speed')) < 400 && mphOf(tile(r, 'Target Speed')) > 150, JSON.stringify([tile(r, 'Target Time'), tile(r, 'Target Speed')]));
   }
 
   check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
