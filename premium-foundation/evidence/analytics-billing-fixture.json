@@ -1,0 +1,17 @@
+{
+  "note": "SYNTHETIC live-mode Stripe data from analytics.test.js",
+  "billing": {
+    "status": "live",
+    "renewals": 0,
+    "arr_cents": 5999,
+    "mrr_cents": 500,
+    "churn_rate": null,
+    "trialing_now": 0,
+    "active_paying": 1,
+    "cancellations": 0,
+    "trials_started": 0,
+    "failed_payments": 1,
+    "paid_conversions": 1,
+    "scheduled_cancellations": 0
+  }
+}

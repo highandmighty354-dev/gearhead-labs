@@ -18,4 +18,8 @@ trap cleanup EXIT
 "${RUN[@]}" "$PG_BIN/initdb" -D "$TMP/data" -A trust -U supabase_admin --locale=C.UTF-8 -E UTF8 >"$TMP/initdb.log" 2>&1
 "${RUN[@]}" "$PG_BIN/pg_ctl" -D "$TMP/data" -o "-p $PORT -k $TMP -c listen_addresses=" -l "$TMP/pg.log" -w start >/dev/null
 echo "== PREMIUM-FOUNDATION suite (PostgreSQL $("$PG_BIN/postgres" --version | awk '{print $3}'), throwaway cluster) =="
-PF_PGHOST="$TMP" PF_PGPORT="$PORT" node "$HERE/tests/pf.test.js"
+RC=0
+PF_PGHOST="$TMP" PF_PGPORT="$PORT" node "$HERE/tests/pf.test.js" || RC=$?
+echo "== Analytics (0501) suite: synthetic events only =="
+PF_PGHOST="$TMP" PF_PGPORT="$PORT" node "$HERE/tests/analytics.test.js" || RC=$?
+exit $RC

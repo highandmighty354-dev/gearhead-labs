@@ -14,7 +14,7 @@
     },
     {
       "group": "integrity",
-      "name": "reference data: 583 calculators, 581 formula versions (577 seeded + 4 from 0408), 252 engine-proven, 47 canonical fields, 2 plans, 2 offers, 14 analyzers",
+      "name": "reference data: 583 calculators, 582 formula versions (577 seeded + 4 from 0408 + 1 from 0409), 252 engine-proven, 47 canonical fields, 2 plans, 2 offers, 14 analyzers",
       "pass": true
     },
     {
@@ -24,7 +24,7 @@
     },
     {
       "group": "integrity",
-      "name": "exactly the 22 expected public tables; RLS enabled AND forced on every one",
+      "name": "exactly the 31 expected public tables (22 + 9 analytics, 0501); RLS enabled AND forced on every one",
       "pass": true
     },
     {

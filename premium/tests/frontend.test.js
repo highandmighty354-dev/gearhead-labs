@@ -452,7 +452,9 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
   });
   await test('the Supabase client is touched only by supabase-boot.js (creates it) and foundation.js (uses it), in every frontend file', () => {
     const touch = FILES.filter(f => /\bGH_SUPABASE\b|window\.supabase\b/.test(stripComments(contents[f])));
-    eq(touch.sort(), ['premium/adapters/foundation.js', 'supabase-boot.js'], 'files touching the client');
+    // owner/analytics.js (0501): the separate owner-only dashboard page uses the bootstrap client for sign-in and the
+    // owner-checked analytics_* functions only; it creates no client (check 1) and reads no table.
+    eq(touch.sort(), ['owner/analytics.js', 'premium/adapters/foundation.js', 'supabase-boot.js'], 'files touching the client');
     assert(!/window\.supabase\b/.test(stripComments(FOUNDATION)), 'foundation.js reaches for the library instead of the bootstrap client');
   });
   await test('live premium code: no client creation, no obsolete adapter, no hard deletes, no raw table access', () => {
@@ -473,7 +475,7 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
     const srcs = scripts.map(a => (a.match(/\bsrc="([^"]+)"/) || [])[1]);
     eq(srcs.map(s => s.replace(/\?v=[^"]*$/, '')), ['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js', 'supabase-config.js', 'supabase-boot.js',
       'premium/models.js', 'premium/adapters/foundation.js', 'premium/config.js', 'premium/adapters/dev-local.js', 'premium/services.js', 'premium/engineering-bridge.js',
-      'premium/shell.js', 'app-shell.js', 'final-ui-fix.js'], 'script order');
+      'premium/shell.js', 'app-shell.js', 'final-ui-fix.js', 'analytics-choice.js', 'analytics-config.js', 'analytics.js'], 'script order');   // analytics: 0501; choice first; shipped OFF
     const cdn = scripts[0];
     assert(/\bintegrity="sha384-Rj26LVGvoeRVR6\+mwQmFfcR3QOBEwT\+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok"/.test(cdn) && /\bcrossorigin="anonymous"/.test(cdn), 'SRI + crossorigin on the library');
     eq(srcs.filter(s => /^https?:/.test(s)).length, 1, 'exactly one external script');
@@ -670,6 +672,23 @@ const stripComments = src => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^
     const authEvents = []; S.on('auth', u => authEvents.push(u));
     await rejects(S.repos.machines.list(), e => eq(e.kind, 'session_expired', 'expired'));
     eq([S.auth.user, authEvents], [null, [null]], 'signed out locally');
+  });
+
+  /* PR #29: the published Privacy Policy is kept word for word until the owner approves new wording. The only addition is the
+     analytics control (its text comes from analytics-choice.js). The unapproved draft and its placeholders must not be in
+     any file the site serves. Update PUBLISHED_PRIVACY only together with an owner-approved policy. */
+  await test('privacy: the published Privacy Policy is unchanged (only the analytics control is added) and no draft or placeholder is served', async () => {
+    const PUBLISHED_PRIVACY = '<h1>Privacy Policy</h1><p>Gearhead Labs calculators run in your browser. This policy covers what data we collect and how it is used.</p><h2>Advertising</h2><p>This site may display advertising. Ad providers may use cookies, web beacons, IP addresses and related technologies as required by applicable publisher policies.</p><h2>Contact</h2><p>For privacy questions, use the contact method on our Contact page.</p>';
+    const CONTROL = '<div class="gh-analytics-choice" data-gh-analytics-choice><p data-gh-analytics-status role="status" aria-live="polite">Loading your analytics setting…</p><button type="button" data-gh-analytics-toggle hidden></button></div>';
+    const engine = read('F1_12_4_Gearhead_Labs_Automotive_Math_Encyclopedia_Universal_batch9_1.html');
+    const m = /privacy:\{[^`]*?body:`([\s\S]*?)`/.exec(engine);
+    assert(m, 'privacy page body found');
+    eq(m[1], PUBLISHED_PRIVACY + CONTROL, 'privacy body = published policy + the analytics control');
+    const served = execFileSync('git', ['ls-files', '*.html', '*.js', '*.md'], { cwd: REPO, encoding: 'utf8' }).split('\n')
+      .filter(f => f && !/^(premium\/tests|premium-foundation\/tests|supabase\/|catalog\/|node_modules\/)/.test(f));
+    const bad = [];
+    for (const f of served) { const t = read(f); if (/DRAFT pending legal review|\[CONTACT EMAIL\]|Effective \[DATE\]|\[Legal review\.\]|\[Advertising: describe only if enabled\.\]/.test(t)) bad.push(f); }
+    eq(bad, [], 'files the site serves that contain the draft policy or its placeholders');
   });
 
   const failed = results.filter(r => !r.pass);
