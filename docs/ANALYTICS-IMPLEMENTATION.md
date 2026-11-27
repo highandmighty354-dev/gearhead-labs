@@ -1,21 +1,21 @@
 # First-party analytics and owner dashboard — implementation record
 
-**This is the authoritative operational record** for the analytics in PR #29 (branch `feature/analytics-dashboard`).
+**This is the authoritative operational record** for the analytics in PR #29 (branch `feature/analytics-dashboard`; merged into `main` on 2026-11-27 as `215b1a0`).
 `docs/ANALYTICS-BLUEPRINT.md` is the original plan; where the two differ, this document describes what was actually
 built (§10 lists the differences).
 
-| | Status (updated 2026-11-17, Chapter 1D.2; first written 2026-11-09) |
+| | Status (updated 2026-11-17, Chapter 1D.2; status rows corrected 2026-11-27 after the merge; first written 2026-11-09) |
 |---|---|
 | Code, database migration, tests | Implemented and tested on a throwaway local database and in a real browser, using **synthetic traffic only** |
-| PR #29 | **Draft, unmerged** |
-| Deployment | **Nothing deployed.** Migration 0501 not applied to any hosted database |
+| PR #29 | **Merged** into `main` on 2026-11-27 (`215b1a0`). *Until then: draft, unmerged.* |
+| Deployment | **Website files: published** by the merge (GitHub Pages from `main`): the analytics scripts with tracking **off**, the Privacy-page control, the shell and engine navigation fixes and the `owner/` pages. **Analytics backend: not deployed.** Migration 0501 is not applied to any hosted database, the `analytics-ingest` function is not deployed and no analytics setting or secret exists |
 | Website tracking | **Disabled** (`analytics-config.js`: `enabled: false`) |
 | Privacy page | The **published** Privacy Policy is unchanged, word for word; only the analytics control is added beneath it, and it says analytics is switched off. The draft policy is **not** in any file the site serves (§11, decision 2) |
 | Real-world validation | **None** — no real visitor traffic has ever reached this system |
 | Hosted verification | **None** — nothing has run on hosted Supabase or production (§9a lists what must be verified) |
 | Release blocker | Migration 0501 is outside the locked migration package (§9) |
 | Script size | **Met as served-compressed size (owner decision of 2026-11-27, replacing the 2026-11-17 waiver; §1a, §11 decision 11).** The site loads the generated `analytics.min.js`: 12,468 B, gzip 5,362 B (level 6), at most 5,614 B at any gzip level 1-9; limit 8,192 B. `analytics.js` stays the readable source; behaviour unchanged |
-| Rollup watermark and receiver byte limit (2026-11-26) | Implemented and tested **locally** in the C1/B1 review patch: **unmerged, not released, not deployed** (§3.11, §5.2a, §8). Hosted behaviour not verified (§9a, items 8 and 9) |
+| Rollup watermark and receiver byte limit (2026-11-26) | Implemented and tested **locally** in the C1/B1 review patch, **merged with PR #29 on 2026-11-27**. The receiver and database code are part of the undeployed backend (§3.11, §5.2a, §8). Hosted behaviour not verified (§9a, items 8 and 9) |
 
 Labels used below: **Implemented** (in the code), **Tested** (a test in §8 exercises it), **Untested** (built, not
 exercised), **Proposed** (not built), **Awaiting owner decision** (§11).
@@ -150,7 +150,7 @@ bot-proof, or human verification. Stronger options are an open owner decision (�
   request already over a limit is refused without writing a counter, a salt or a row, and never waits.
 - A request that passes takes the **analytics write lock** (a transaction-scoped advisory lock held until its
   transaction commits), checks everything again and only then reserves its counters. Ingest batches, rollups and the
-  purge all take this lock, so analytics never grows from two places at once. In the C1/B1 review patch (2026-11-26, unmerged)
+  purge all take this lock, so analytics never grows from two places at once. In the C1/B1 review patch (2026-11-26, merged with PR #29 on 2026-11-27)
   `analytics_rollup()` also takes it itself, so a rollup started by hand is serialised too, and the rollup watermark depends on
   this lock (§5.2a).
 - The counters live in `analytics_rate`, shared by every running copy of the receiver; purged after two days.
@@ -262,7 +262,7 @@ record an opt-out in advance, and it is kept. With the site on, the wording is a
 reload, turning back on, GPC, Do Not Track, and `analytics.js` failing to load. Until 1D.2 the control said "Analytics is on for
 this browser" even while the site switch was off (found in the 2026-11-16 audit).
 
-### 3.11 The receiver's byte limit (C1/B1 review patch, 2026-11-26, unmerged; Implemented, Tested locally; hosted behaviour NOT yet verified)
+### 3.11 The receiver's byte limit (C1/B1 review patch, 2026-11-26, merged 2026-11-27, not deployed; Implemented, Tested locally; hosted behaviour NOT yet verified)
 The receiver accepts a request body of at most **8,192 bytes**, counted as the body arrives (`readBodyLimited()` in
 `supabase/functions/_shared/analytics-ingest.js`). Before this change it read the whole body first and then compared its length
 in **characters**, so a body without a `Content-Length` header was buffered in full, and multi-byte text up to about 24 KB passed
@@ -356,7 +356,7 @@ new events, today included, is not rebuilt (before the C1/B1 review patch, today
 recorded day" and the daily totals are only correct if no day was skipped: if the scheduled job stops for a while, the
 next run fills the gap instead of leaving holes. It can only rebuild days whose raw events are still kept (30 days).
 
-### 5.2a The rollup watermark (C1/B1 review patch, 2026-11-26, unmerged; Implemented, Tested locally; hosted behaviour NOT yet verified)
+### 5.2a The rollup watermark (C1/B1 review patch, 2026-11-26, merged 2026-11-27, not deployed; Implemented, Tested locally; hosted behaviour NOT yet verified)
 **Why it was needed.** Before the C1/B1 review patch a day counted as summarised when its last summary ran at or after its latest event's
 server time. An event's server time is the moment its ingest transaction *started*, and an ingest can wait for the analytics
 lock while a rollup holds it. Its event is then stored with a time *earlier* than that rollup's run time, and the day looked
@@ -476,7 +476,7 @@ these figures describe real visitors.
 | Existing database suite (`pf.test.js`, run with `TZ=UTC`) | **48/48** (0409 counts corrected in Chapter 1D) | Real database |
 | Full browser regression (`run-browser-tests.sh`) | see the PR description for the latest run | Real browser, every calculator suite |
 
-**Results with the C1/B1 review patch (rollup watermark and byte limit; 2026-11-26, unmerged; local PostgreSQL 16.15):** analytics
+**Results with the C1/B1 review patch (rollup watermark and byte limit; 2026-11-26, before its merge on 2026-11-27; local PostgreSQL 16.15):** analytics
 database **61/61** (the 35 above plus 26 new: 16 byte-limit checks and 10 rollup-watermark checks, the latter each in its own
 committed throwaway database with several connections); existing database suite 48/48 (mutants 24/24); website tracking
 43/43; dashboard 12/12; frontend 56/56. The same new checks run against the code from before the change: 21 of the 26 fail
@@ -515,12 +515,22 @@ statistically sound (more samples) is a recorded follow-up (§12).
 
 ## 9. Deployment boundary
 
-- PR #29 is a **draft** and is **not deployed**. No hosted database, production setting, secret, live website or live
-  analytics setting has been changed. Tracking remains disabled (`enabled: false`).
-- **Release route (proposed, owner approval required at every step):** 0501 is added to the existing approval-gated
-  provisioning workflow on `main` as a 20-file pinned package (`supabase/PROVISIONING.md`), validated first on a separate
-  TEST Supabase project with synthetic traffic only, then dry-run and applied to production. 0501 is never applied by
-  hand and production migration history is never edited (forward-only policy).
+- PR #29 was **merged** on 2026-11-27 (`215b1a0`), which published its **website files** (see the last point). The
+  **analytics backend is not deployed**: no hosted database, production setting, secret or live analytics setting has been
+  changed, and tracking remains disabled (`enabled: false`).
+- **Release route (proposed, owner approval required at every step; the migration order is the owner's open decision A1 in
+  the hosted TEST verification procedure, revision 10):**
+  1. **Order: 0001–0409 (already applied) → 0410 → 0501.** 0410 (Stage 2 calculator repairs, PR #31, not yet on `main`) comes
+     first; a missing or withdrawn 0410 stops the 0501 step. 0501 has no schema dependency on 0410; the order is procedural,
+     so the TEST rehearsal matches the order production will use.
+  2. **TEST first**, synthetic traffic only: 0410, then 0501, each dry-run and then applied separately through the staging
+     repository's gated workflow (0501 needs a new Stage 3 there).
+  3. **Production:** one new **21-file pinned package** (0001–0409, 0410, 0501) in the approval-gated provisioning workflow on
+     `main` (`supabase/PROVISIONING.md`), pinned to a `main` commit that contains both files, with production expected to show
+     exactly 0410 then 0501 pending; dry-run, then applied. The current package (19 files, ending at 0409) cannot apply either.
+
+  0501 is never applied by hand and production migration history is never edited (forward-only policy). *History: until
+  2026-11-27 this point proposed a 20-file package containing 0501 alone.*
 - After the apply, each with separate owner approval: deploy `analytics-ingest` with sign-in checking off, the settings
   `ANALYTICS_ENV=live`, `ANALYTICS_ALLOWED_ORIGINS`, `ANALYTICS_ADDRESS_SOURCE` (as established on TEST) and
   `ANALYTICS_INGEST_ENABLED` **unset** (disabled); add the owner to `analytics_owners`; publish the legally reviewed
@@ -529,7 +539,8 @@ statistically sound (more samples) is a recorded follow-up (§12).
 - **Merging is itself a site release.** Per the project record the site is published from `main` by GitHub Pages (the Pages
   settings themselves were not readable from the review environment), so merging PR #29 publishes the
   changed site files (engine, shell, analytics scripts with tracking off, the Privacy-page control, `owner/` pages). It does
-  not apply 0501: the provisioning workflow deploys only its pinned 19-file package.
+  not apply 0501: the provisioning workflow deploys only its pinned 19-file package. **This happened on 2026-11-27**: the
+  merge `215b1a0` was published by Pages run #145; no migration, function or setting changed.
 
 ## 9a. Hosted-environment verification still required (none done)
 
@@ -631,9 +642,9 @@ Added from the 2026-11-16 audit (not changed unless stated):
 13. **Fixed in Chapter 1D.2:** the control's wording while analytics is switched off (§3.10); the published Privacy Policy
     restored (§11, decision 2).
 
-Added from the 2026-11-25 review (fixed in the unmerged C1/B1 review patch of 2026-11-26; not released or deployed):
+Added from the 2026-11-25 review (fixed in the C1/B1 review patch of 2026-11-26, merged with PR #29 on 2026-11-27; the backend is not deployed):
 
-14. **Fixed in the C1/B1 review patch (unmerged): events could be left out of a day's summary** when their ingest waited for a rollup's lock (§5.2a). The rollup now
+14. **Fixed in the C1/B1 review patch (merged 2026-11-27): events could be left out of a day's summary** when their ingest waited for a rollup's lock (§5.2a). The rollup now
     uses a per-day event-id watermark, takes the lock itself, and no longer rebuilds today when nothing new arrived.
-15. **Fixed in the C1/B1 review patch (unmerged): the receiver's size limit counted characters after reading the whole body** (§3.11). It now counts bytes as the
+15. **Fixed in the C1/B1 review patch (merged 2026-11-27): the receiver's size limit counted characters after reading the whole body** (§3.11). It now counts bytes as the
     body arrives, stops at 8,192 and cancels the read. Invalid UTF-8 handling is unchanged.
