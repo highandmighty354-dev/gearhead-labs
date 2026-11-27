@@ -1,6 +1,6 @@
 # Stage 2 — calculator repairs (GH-DEF-045, 046, 047, 048, 050, 053, 054, 055, 057, and 062)
 
-Branch `fix/stage-2-calculator-repairs`, from `main` `b58e1f0`. The live site serves deployment `d25afa2`, whose engine differs from `b58e1f0` only in three self-test rows. **Not merged, not deployed, nothing applied to Supabase.**
+Branch `fix/stage-2-calculator-repairs`, from `main` `b58e1f0`; **`main` `9903ee4` merged in on 2026-11-27 (`0149e9c`)**, see "Update of 2026-11-27" below. The live site now serves `main` `9903ee4` (Pages run #146), which does not contain these repairs. **Not merged, not deployed, nothing applied to Supabase.** *Until 2026-11-27 this line read: the live site serves deployment `d25afa2`, whose engine differs from `b58e1f0` only in three self-test rows.*
 
 ## Authorization and scope
 
@@ -292,6 +292,34 @@ Every expected value below is computed **independently of the engine**. The sour
 - **Migration 0410 throwaway-database proof:** 50/50.
 - **Independent reference checks:** the repaired formulas, the cam convention in Imperial and Metric, and the Apply button and stale-box fixes all agree with references written outside the test suite.
 - **GitHub Actions:** never run on this branch (0 check runs). No pull request exists.
+
+
+**Update of 2026-11-27: `main` merged into the branch (owner-authorized).** The results above are kept as the record of
+2026-11-19.
+- **Merge:** `main` `9903ee4` (PR #29 analytics with tracking off, PR #32, PR #33 delivered `analytics.min.js`) merged as
+  `0149e9c`. No rebase, no force-push.
+- **Conflicts:** only the generated source-checksum lines of `catalog/gearhead-catalog.json` and
+  `catalog/gearhead-encyclopedia.json`, because both sides changed the engine page. Both files were regenerated with
+  `catalog/build-catalog.js` and `catalog/build-encyclopedia.js` from the merged sources, not edited by hand. Against this
+  branch's previous head (`62b8a65`) the only differences are the three checksums (engine page `189c34ae…`, catalogue
+  `9ae3a3fa…`); every Stage 2 catalogue entry is unchanged. `check-catalog` and `check-encyclopedia`: OK.
+- **What `main` changed in the engine page:** navigation for static pages (GH-DEF-035 render sequence) and the Privacy page's
+  analytics control; 7 lines added, 1 changed; no formula, registry or renderer code.
+- **0410:** byte-for-byte unchanged, SHA-256 `355c0c137a94b9683e9f9b31af381361716f1f4017a0513a6dcae6bbf890905e`.
+- **Fingerprints:** unchanged. The six 0410 rows (`fv1-b16d2d94`, `fv1-09188b84`, `fv1-59c91f10`, `fv1-782fda42`,
+  `fv1-6d100b74`, `fv1-64771dd0`) equal the regenerated catalogue's values, and `formula-fingerprints.test.js` passes on
+  the merged engine (577 seed formulas: 566 identical to the production seed, 11 recorded as corrected; 0 failures).
+- **Results on `0149e9c`:**
+  - GitHub fast gate (Actions run #29): passed. Register check OK; catalogue check OK; engine self-test 735/736 (the one
+    failure is the known GH-DEF-052 baseline); known-answer 78 cases, 58 pass, the 20 failures exactly the known-open ledger;
+    delivered analytics script check passed; analytics website tracking 43/43.
+  - GitHub full browser regression (Actions run #30, 21:41–23:02 UTC): passed; all 52 suites ran, 0 failed.
+  - Local, strict known-answer (ledger ignored): 78 cases, 58 pass; the 20 failures are the excluded defects GH-DEF-049, 051,
+    052, 056, 058 and 059. (The 68-case count above was recorded on `be6ff52`. The suite file then changed in the 2026-11-20 follow-ups `6b80d86`, `331bf2e` and `7d5f50e`, and is identical on `62b8a65` and `0149e9c`, so the 78 cases already applied before the merge.)
+- **Not re-run:** the 0410 throwaway-database proof (0410 is unchanged and applying it anywhere was outside this update) and
+  the whole-engine before/after page comparison (`main`'s engine changes contain no calculation code).
+- **Evidence file:** `docs/evidence/stage2-red-green-isolation.json` is unchanged. It records each repair commit against its
+  parent from `b58e1f0`, which the merge does not alter.
 
 ## Limitations and open points (not changed here)
 
